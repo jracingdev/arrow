@@ -8,7 +8,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/sites.conf"
 
 WWW_ROOT="${1:-/www/wwwroot}"
-PHP_BIN="${PHP_BIN:-php}"
+
+if [[ -z "${PHP_BIN:-}" ]] && [[ -x /www/server/php/82/bin/php ]]; then
+  PHP_BIN="/www/server/php/82/bin/php"
+else
+  PHP_BIN="${PHP_BIN:-php}"
+fi
 
 echo "==> Ajustando .env para produção"
 echo ""

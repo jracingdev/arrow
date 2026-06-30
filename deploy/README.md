@@ -43,6 +43,9 @@ Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` 
 | `post-deploy.sh` | Composer, permissões e cache Laravel |
 | `check-env.sh` | Valida `.env` sem expor senhas |
 | `fix-php-aapanel.sh` | Habilita fileinfo no PHP 8.2 do aaPanel |
+| `fix-open-basedir.sh` | Corrige open_basedir nos vhosts (Laravel precisa da raiz do site) |
+| `fix-all.sh` | Recuperação completa: repo + PHP + deploy + open_basedir + check |
+| `update-repo.sh` | `git fetch` + `reset --hard origin/main` (resolve conflitos de pull) |
 | `set-production.sh` | APP_ENV=production e APP_DEBUG=false |
 
 ## Mapeamento domínio → pasta no servidor
@@ -257,11 +260,61 @@ firebase deploy --only functions
 - [ ] `APP_DEBUG=false` em todos os `.env` de produção
 - [ ] Uploads em `storage/app/public` acessíveis (symlink `public/storage` se necessário)
 
+## open_basedir — ERRO CRÍTICO
+
+O aaPanel define por padrão `open_basedir` apontando para a pasta **`public/`**. Laravel **não funciona** assim: o PHP precisa ler `vendor/`, `storage/` e `bootstrap/` na **raiz do site** (pai de `public/`).
+
+### Configuração correta no aaPanel
+
+Para **arrow.app.br**, **store.arrow.app.br** e **admin.arrow.app.br**:
+
+1. aaPanel → **Website** → clique no domínio
+2. Aba **PHP** (ou configurações PHP do site)
+3. Campo **open_basedir**:
+   - **CORRETO:** `/www/wwwroot/DOMAIN/:/tmp/` (sem `/public` no final)
+   - **ERRADO:** `/www/wwwroot/DOMAIN/public/:/tmp/`
+4. Alternativa: desabilitar a restrição **open_basedir** nas configurações PHP do site
+5. Salvar e reiniciar PHP-FPM 8.2
+
+Exemplos:
+
+| Site | open_basedir correto |
+|------|---------------------|
+| arrow.app.br | `/www/wwwroot/arrow.app.br/:/tmp/` |
+| store.arrow.app.br | `/www/wwwroot/store.arrow.app.br/:/tmp/` |
+| admin.arrow.app.br | `/www/wwwroot/admin.arrow.app.br/:/tmp/` |
+
+> O **document root** continua sendo `/public` — só o **open_basedir** deve apontar para a raiz do site.
+
+### Sintomas quando open_basedir está errado
+
+- Tela branca ou HTTP 500
+- Log PHP: `require(.../vendor/autoload.php): open_basedir restriction in effect`
+- Log PHP: `file_put_contents(.../storage/logs/...): open_basedir restriction in effect`
+- Nginx **404** em rotas Laravel (index.php não consegue carregar o autoload)
+
+### Correção automática no servidor
+
+```bash
+cd /www/wwwroot/arrow-repo/deploy
+sudo ./fix-open-basedir.sh
+```
+
+Ou rode a recuperação completa (recomendado após conflitos de git pull):
+
+```bash
+cd /www/wwwroot/arrow-repo
+sudo git fetch origin main && sudo git reset --hard origin/main
+cd deploy && sudo chmod +x *.sh && sudo ./fix-all.sh
+```
+
 ## Solução de problemas
 
 | Sintoma | Causa provável | Correção |
 |---------|----------------|----------|
-| **404** no Laravel | Document root errado ou `vendor/` ausente | Running directory = `/public` + `./fix-php-aapanel.sh` + `./post-deploy.sh` |
+| **open_basedir** / vendor não permitido | aaPanel restringe PHP só a `public/` | `./fix-open-basedir.sh` ou ajuste manual no aaPanel (ver seção acima) |
+| **404** no Laravel | open_basedir, document root errado ou `vendor/` ausente | open_basedir na raiz + Running directory = `/public` + `./fix-all.sh` |
+| **git pull** com conflitos | Alterações locais no servidor | `sudo ./update-repo.sh` ou `git reset --hard origin/main` |
 | **403** no Laravel | Permissões ou `vendor/` ausente | `chown -R www:www` + `./post-deploy.sh` |
 | **composer: ext-fileinfo** | Extensão PHP desabilitada | `sudo ./fix-php-aapanel.sh` |
 | **composer: php >=8.2** | CLI usa PHP 8.1 | Scripts usam `/www/server/php/82/bin/php` automaticamente |
