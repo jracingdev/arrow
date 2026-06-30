@@ -56,12 +56,15 @@ run_step 2 "open_basedir .user.ini (raiz do site)" \
 run_step 3 "Permissões www:www" \
   bash "$SCRIPT_DIR/fix-permissions.sh" "$WWW_ROOT"
 
+run_step 4 "Rewrite Laravel (try_files → index.php)" \
+  bash "$SCRIPT_DIR/fix-laravel-rewrite.sh"
+
 if [[ "$need_composer" -eq 1 ]]; then
-  run_step 4 "Composer + cache Laravel (vendor ausente)" \
+  run_step 5 "Composer + cache Laravel (vendor ausente)" \
     bash "$SCRIPT_DIR/post-deploy.sh" "$WWW_ROOT"
 else
   echo ""
-  echo ">>> [4] post-deploy — pulado (vendor OK em todos os sites)"
+  echo ">>> [5] post-deploy — pulado (vendor OK em todos os sites)"
 fi
 
 echo ""
@@ -75,8 +78,9 @@ nginx -T 2>/dev/null | grep -E 'root.*/www/wwwroot/(arrow|admin|store)\.arrow' \
 
 echo ""
 for domain in "${LARAVEL_SITES[@]}"; do
-  code=$(curl -sI -o /dev/null -w '%{http_code}' -H "Host: $domain" "http://127.0.0.1/" 2>/dev/null || echo "?")
-  echo "  curl Host:$domain → HTTP $code"
+  code_http=$(curl -sI -o /dev/null -w '%{http_code}' -H "Host: $domain" "http://127.0.0.1/" 2>/dev/null || echo "?")
+  code_https=$(curl -sk -o /dev/null -w '%{http_code}' --resolve "${domain}:443:127.0.0.1" "https://${domain}/" 2>/dev/null || echo "?")
+  echo "  $domain → HTTP $code_http | HTTPS $code_https"
 done
 
 echo ""

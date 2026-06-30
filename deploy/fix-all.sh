@@ -75,7 +75,10 @@ run_step 8 "Corrigindo open_basedir (vhosts aaPanel)" \
 run_step 9 "Corrigindo .user.ini (aaPanel chattr +i)" \
   bash "$SCRIPT_DIR/fix-user-ini.sh"
 
-run_step 10 "Verificando .env" \
+run_step 10 "Rewrite Laravel (try_files)" \
+  bash "$SCRIPT_DIR/fix-laravel-rewrite.sh"
+
+run_step 11 "Verificando .env" \
   bash "$SCRIPT_DIR/check-env.sh" "$WWW_ROOT"
 
 echo ""
