@@ -882,12 +882,7 @@
 <script type="70bc925eb21d34a7d8eb3710-text/javascript" src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script type="70bc925eb21d34a7d8eb3710-text/javascript" src="vendor/slick/slick.min.js"></script>
 <script type="70bc925eb21d34a7d8eb3710-text/javascript" src="vendor/sidebar/hc-offcanvas-nav.js"></script>
-<script type="70bc925eb21d34a7d8eb3710-text/javascript" src="js/osahan.js"></script>
-<script src="js/rocket-loader.min.js" data-cf-settings="70bc925eb21d34a7d8eb3710-|49" defer=""></script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v652eace1692a40cfa3763df669d7439c1639079717194"
-        integrity="sha512-Gi7xpJR8tSkrpF7aordPZQlW2DLtzUlZcumS8dMQjwDHEnw9I7ZLyiOj/6tZStRBGtGgN6ceN6cMH8z7etPGlw=="
-        data-cf-beacon='{"rayId":"6c83f3752ca50fee","version":"2021.12.0","r":1,"token":"dd471ab1978346bbb991feaa79e6ce5c","si":100}'
-        crossorigin="anonymous"></script>
+<script type="text/javascript" src="js/osahan.js"></script>
 </body>
 <!-- Mirrored from askbootstrap.com/preview/swiggiweb/faq.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 04 Jan 2022 10:58:46 GMT -->
 </html>

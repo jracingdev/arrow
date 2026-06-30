@@ -3407,10 +3407,6 @@
 
 <!-- <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script> -->
 
-<script type="text/javascript" src="{{ asset('js/rocket-loader.min.js') }}"></script>
-
-<script type="text/javascript" src="{{ asset('https://static.cloudflareinsights.com/beacon.min.js') }}"></script>
-
 <script type="text/javascript" src="{{ asset('js/sweetalert2.js') }}"></script>
 
 <?php if (Auth::user()) { ?>
@@ -4320,13 +4316,15 @@
 
 
 
-    database.collection('sections').doc(getCookie('section_id')).get().then(async function(snapshots) {
-
-        var adminCommissionSettings = snapshots.data();
-
-        localStorage.setItem('adminCommissionSettings', JSON.stringify(adminCommissionSettings.adminCommision));
-
-    });
+    var sectionIdForCommission = getCookie('section_id');
+    if (sectionIdForCommission) {
+        database.collection('sections').doc(sectionIdForCommission).get().then(async function(snapshots) {
+            var adminCommissionSettings = snapshots.data();
+            if (adminCommissionSettings && adminCommissionSettings.adminCommision) {
+                localStorage.setItem('adminCommissionSettings', JSON.stringify(adminCommissionSettings.adminCommision));
+            }
+        });
+    }
 
 
 

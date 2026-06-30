@@ -289,12 +289,12 @@ O SSL já está ativo no servidor. No aaPanel: **Website → SSL → Let's Encry
 
 Os três painéis Laravel (**website**, **store**, **admin**) **não** leem a config Firebase do Firestore. O fluxo é:
 
-1. **`AppServiceProvider`** (`web/*/app/Providers/AppServiceProvider.php`) grava cookies HTTP com os valores `FIREBASE_*` do `.env` (codificados em hex).
-2. **`public/js/jquery.validate.js`** lê os cookies via `$.decrypt()` e chama `firebase.initializeApp(firebaseConfig)`.
+1. **`partials/firebase-init.blade.php`** injeta `window.__firebaseConfig` via `@json(config('firebase.client'))` e chama `firebase.initializeApp()` inline (sem cookies).
+2. **`public/js/jquery.validate.js`** existe apenas como fallback legado (3 linhas); **não** é mais carregado pelas views — a init acontece só no partial.
 3. As views Blade (ex.: `footer.blade.php`, `layouts/app.blade.php`) usam `firebase.firestore()` no browser para ler/gravar dados (coleção `settings`, pedidos, etc.).
 4. O **`SettingsController`** só renderiza telas de configuração — os valores são salvos no **Firestore pelo JavaScript**, não vêm do `.env`.
 
-> Ter só `FIREBASE_PROJECT_ID` preenchido **não basta**. Sem **todas** as variáveis, o console mostra `No Firebase App '[DEFAULT]' has been created` e erros em cascata (`collection` undefined, `jquery.cookie.js`).
+> Ter só `FIREBASE_PROJECT_ID` preenchido **não basta**. Sem **todas** as variáveis, o console mostra `No Firebase App '[DEFAULT]' has been created` e erros em cascata (`collection` undefined).
 
 ### Variáveis `.env` obrigatórias (os 3 painéis)
 
@@ -371,37 +371,42 @@ No browser (F12 → Console), após corrigir o `.env` e limpar cache, **não** d
 
 | Erro | Tipo | Correção |
 |------|------|----------|
-| `jquery.cookie.js` / `$.decrypt` / `reading 'length'` em `jquery.validate.js:3` | **Código / cache / deploy** | O servidor pode estar servindo **versão antiga** de `public/js/jquery.validate.js` (linha 3 deve ser `if (window.__firebaseConfig...`, não `$.decrypt`). Rode `./full-deploy.sh`, limpe cache do browser/Cloudflare e verifique o arquivo no servidor (abaixo). |
+| `jquery.cookie.js` / `$.decrypt` / `reading 'length'` | **Cache ou deploy antigo** | O init Firebase **não** usa mais `$.decrypt`. Confirme que `partials/firebase-init.blade.php` está implantado e que o HTML da página contém `window.__firebaseConfig`. Rode `./full-deploy.sh` e limpe cache do browser. |
 | `Firestore: permission-denied` / billing | **GCP / Firebase (não é código)** | Ative faturamento no projeto **j-arrow**: [Enable billing](https://console.developers.google.com/billing/enable?project=j-arrow). Sem billing, Firestore recusa leituras mesmo com `initializeApp` OK. |
-| `[ROCKET LOADER] Activator script doesn't have settings` | **Cloudflare** | Desative **Rocket Loader** em Cloudflare → Speed → Optimization, **ou** confirme `data-cfasync="false"` em **todos** os `<script>` do Firebase (gstatic + `firebase-init`). |
-| `CollectionReference.doc() empty path` | **Consequência** | Geralmente efeito colateral de Firestore falhando (billing) ou init quebrado — corrija os itens acima primeiro. |
+| `[ROCKET LOADER] Activator script doesn't have settings` | **Artefato legado Cloudflare no HTML** | O `rocket-loader.min.js` era **hardcoded** em `footer.blade.php` e páginas estáticas (signup/terms/faq), copiado de um export Cloudflare — **não** vem do aaPanel. Foi removido do monorepo. Se ainda aparecer, o deploy não sincronizou ou há cache. |
+| `CollectionReference.doc() empty path` em `/set-location` | **Cookie `section_id` vazio** | Na página de localização o usuário ainda não escolheu seção; `footer.blade.php` agora só chama `.doc(section_id)` quando o cookie existe. |
 
-#### Verificar JS implantado no servidor
+#### Verificar Firebase init no servidor
 
-Após `./deploy.sh` ou `./full-deploy.sh`, a linha 3 de `jquery.validate.js` deve conter `window.__firebaseConfig`:
+Após `./deploy.sh` ou `./full-deploy.sh`, confirme que o HTML inclui `window.__firebaseConfig` (não depende mais de `jquery.validate.js`):
 
 ```bash
-curl -s https://store.arrow.app.br/js/jquery.validate.js | head -5
-curl -s https://admin.arrow.app.br/js/jquery.validate.js | head -5
-curl -s https://arrow.app.br/js/jquery.validate.js | head -5
+curl -s https://arrow.app.br/set-location | grep -o 'window.__firebaseConfig' | head -1
+curl -s https://store.arrow.app.br/login | grep -o 'window.__firebaseConfig' | head -1
+curl -s https://admin.arrow.app.br/login | grep -o 'window.__firebaseConfig' | head -1
 ```
 
-Esperado (início do arquivo):
+O arquivo `public/js/jquery.validate.js` (se ainda existir no servidor) deve ser apenas fallback de 3 linhas — **sem** `$.decrypt`:
+
+```bash
+curl -s https://arrow.app.br/js/jquery.validate.js
+```
+
+Esperado:
 
 ```js
-var firebaseConfig;
-if (window.__firebaseConfig && window.__firebaseConfig.apiKey) {
+if (typeof firebase !== 'undefined' && window.__firebaseConfig && window.__firebaseConfig.apiKey && !firebase.apps.length) {
+    firebase.initializeApp(window.__firebaseConfig);
+}
 ```
 
-Se ainda aparecer `$.decrypt($.cookie('XSRF-TOKEN-AK'))` na linha 7, o deploy não sincronizou `public/js/` ou o CDN/browser está em cache.
+Se ainda aparecer `$.decrypt($.cookie('XSRF-TOKEN-AK'))`, o deploy não sincronizou `public/js/` ou o browser está em cache.
 
-#### Cloudflare Rocket Loader
+#### Rocket Loader (removido do monorepo)
 
-1. Painel Cloudflare → domínio `arrow.app.br` → **Speed** → **Optimization**
-2. **Rocket Loader** → **Off**
-3. Purge cache (Caching → Purge Everything) após deploy
+O `rocket-loader.min.js` era um script **Cloudflare** copiado para `web/website/public/js/` e referenciado em Blade (`footer.blade.php`, signup, terms, faq). **Não** é injetado pelo aaPanel nem exige Cloudflare no DNS. Foi removido — após deploy, `curl -s https://arrow.app.br/ | grep rocket-loader` não deve retornar nada.
 
-As views Blade marcam scripts Firebase com `data-cfasync="false"` para o Rocket Loader não reordenar o SDK.
+Se usar Cloudflare no futuro, desative Rocket Loader em Speed → Optimization e marque scripts Firebase com `data-cfasync="false"`.
 
 #### Firestore — billing obrigatório
 
