@@ -3,6 +3,10 @@
 # Uso: ./deploy.sh [REPO_ROOT] [WWW_ROOT]
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=sites.conf
+source "$SCRIPT_DIR/sites.conf"
+
 REPO_ROOT="${1:-/www/wwwroot/arrow-repo}"
 WWW_ROOT="${2:-/www/wwwroot}"
 
@@ -16,11 +20,17 @@ RSYNC_EXCLUDES=(
 )
 
 echo "==> Sincronizando de $REPO_ROOT para $WWW_ROOT"
+echo "    Website -> $WWW_WEBSITE"
+echo "    Landing -> $WWW_LANDING"
+echo "    Store   -> $WWW_STORE"
+echo "    Admin   -> $WWW_ADMIN"
+echo ""
 
-rsync -av "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT/web/website/" "$WWW_ROOT/arrow_app_br/"
-rsync -av "$REPO_ROOT/web/landing/" "$WWW_ROOT/lp_arrow_app_br/"
-rsync -av "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT/web/store/" "$WWW_ROOT/store_arrow_app_br/"
-rsync -av "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT/web/admin/" "$WWW_ROOT/admin_arrow_app_br/"
+rsync -av "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT/web/website/" "$WWW_ROOT/$WWW_WEBSITE/"
+rsync -av "$REPO_ROOT/web/landing/" "$WWW_ROOT/$WWW_LANDING/"
+rsync -av "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT/web/store/" "$WWW_ROOT/$WWW_STORE/"
+rsync -av "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT/web/admin/" "$WWW_ROOT/$WWW_ADMIN/"
 
+echo ""
 echo "==> Deploy de arquivos concluído."
-echo "    Execute composer install e php artisan config:cache em cada painel Laravel."
+echo "    Execute: ./post-deploy.sh"

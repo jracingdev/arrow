@@ -4,6 +4,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=sites.conf
+source "$SCRIPT_DIR/sites.conf"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 WWW_ROOT="${WWW_ROOT:-/www/wwwroot}"
 REPO_CLONE="$WWW_ROOT/arrow-repo"
@@ -28,7 +30,7 @@ echo ""
 echo "==> Backup rápido dos .env (se existirem)..."
 BACKUP_DIR="$WWW_ROOT/arrow-backups/$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$BACKUP_DIR"
-for site in arrow_app_br store_arrow_app_br admin_arrow_app_br; do
+for site in "${LARAVEL_SITES[@]}"; do
   if [[ -f "$WWW_ROOT/$site/.env" ]]; then
     cp "$WWW_ROOT/$site/.env" "$BACKUP_DIR/${site}.env"
     echo "    Backup: $site/.env"

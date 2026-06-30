@@ -3,10 +3,12 @@
 # Uso: ./post-deploy.sh [WWW_ROOT]
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=sites.conf
+source "$SCRIPT_DIR/sites.conf"
+
 WWW_ROOT="${1:-/www/wwwroot}"
 PHP_BIN="${PHP_BIN:-php}"
-
-LARAVEL_SITES=(arrow_app_br store_arrow_app_br admin_arrow_app_br)
 
 echo "==> Pós-deploy Laravel em $WWW_ROOT"
 echo ""

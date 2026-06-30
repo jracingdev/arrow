@@ -35,10 +35,10 @@ Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` 
 
 | Domínio | Pasta aaPanel | Origem no monorepo | Document root |
 |---------|---------------|-------------------|---------------|
-| https://arrow.app.br | `/www/wwwroot/arrow_app_br` | `web/website` | `public/` |
-| https://lp.arrow.app.br | `/www/wwwroot/lp_arrow_app_br` | `web/landing` | raiz (`/`) |
-| https://store.arrow.app.br | `/www/wwwroot/store_arrow_app_br` | `web/store` | `public/` |
-| https://admin.arrow.app.br | `/www/wwwroot/admin_arrow_app_br` | `web/admin` | `public/` |
+| https://arrow.app.br | `/www/wwwroot/arrow.app.br` | `web/website` | `public/` |
+| https://lp.arrow.app.br | `/www/wwwroot/lp.arrow.app.br` | `web/landing` | raiz (`/`) |
+| https://store.arrow.app.br | `/www/wwwroot/store.arrow.app.br` | `web/store` | `public/` |
+| https://admin.arrow.app.br | `/www/wwwroot/admin.arrow.app.br` | `web/admin` | `public/` |
 
 > Os caminhos exatos podem variar conforme a instalação do aaPanel. Ajuste se o seu painel usar outro prefixo (ex.: `/www/server/panel/vhost`).
 
@@ -92,19 +92,19 @@ WWW=/www/wwwroot
 rsync -av --delete \
   --exclude='.env' --exclude='vendor/' --exclude='node_modules/' \
   --exclude='storage/logs/*' --exclude='bootstrap/cache/*' \
-  $REPO/web/website/ $WWW/arrow_app_br/
+  $REPO/web/website/ $WWW/arrow.app.br/
 
-rsync -av --delete $REPO/web/landing/ $WWW/lp_arrow_app_br/
-
-rsync -av --delete \
-  --exclude='.env' --exclude='vendor/' --exclude='node_modules/' \
-  --exclude='storage/logs/*' --exclude='bootstrap/cache/*' \
-  $REPO/web/store/ $WWW/store_arrow_app_br/
+rsync -av --delete $REPO/web/landing/ $WWW/lp_arrow.app.br/
 
 rsync -av --delete \
   --exclude='.env' --exclude='vendor/' --exclude='node_modules/' \
   --exclude='storage/logs/*' --exclude='bootstrap/cache/*' \
-  $REPO/web/admin/ $WWW/admin_arrow_app_br/
+  $REPO/web/store/ $WWW/store.arrow.app.br/
+
+rsync -av --delete \
+  --exclude='.env' --exclude='vendor/' --exclude='node_modules/' \
+  --exclude='storage/logs/*' --exclude='bootstrap/cache/*' \
+  $REPO/web/admin/ $WWW/admin.arrow.app.br/
 ```
 
 > **Importante:** não use `--delete` na primeira migração se houver uploads em `storage/app/public` — faça backup antes.
@@ -112,9 +112,9 @@ rsync -av --delete \
 ## 3. Composer (cada painel Laravel)
 
 ```bash
-cd /www/wwwroot/arrow_app_br && composer install --no-dev --optimize-autoloader
-cd /www/wwwroot/store_arrow_app_br && composer install --no-dev --optimize-autoloader
-cd /www/wwwroot/admin_arrow_app_br && composer install --no-dev --optimize-autoloader
+cd /www/wwwroot/arrow.app.br && composer install --no-dev --optimize-autoloader
+cd /www/wwwroot/store.arrow.app.br && composer install --no-dev --optimize-autoloader
+cd /www/wwwroot/admin.arrow.app.br && composer install --no-dev --optimize-autoloader
 ```
 
 ## 4. Configurar `.env` por painel
@@ -126,7 +126,7 @@ cp .env.example .env   # só na primeira vez
 php artisan key:generate   # só se APP_KEY estiver vazio
 ```
 
-### Website — `arrow_app_br/.env`
+### Website — `arrow.app.br/.env`
 
 ```ini
 APP_ENV=production
@@ -148,7 +148,7 @@ FIREBASE_APP_ID=<...>
 FIREBASE_MEASUREMENT_ID=<...>
 ```
 
-### Store — `store_arrow_app_br/.env`
+### Store — `store.arrow.app.br/.env`
 
 ```ini
 APP_ENV=production
@@ -161,7 +161,7 @@ DB_USERNAME=arrow_store_adm
 DB_PASSWORD=<senha do aaPanel>
 ```
 
-### Admin — `admin_arrow_app_br/.env`
+### Admin — `admin.arrow.app.br/.env`
 
 ```ini
 APP_ENV=production
@@ -174,14 +174,14 @@ DB_USERNAME=arrow_admin_adm
 DB_PASSWORD=<senha do aaPanel>
 ```
 
-### Landing — `lp_arrow_app_br`
+### Landing — `lp_arrow.app.br`
 
 Sem `.env` e sem banco de dados.
 
 ## 5. Permissões e cache Laravel
 
 ```bash
-for site in arrow_app_br store_arrow_app_br admin_arrow_app_br; do
+for site in arrow.app.br store.arrow.app.br admin.arrow.app.br; do
   cd /www/wwwroot/$site
   chown -R www:www storage bootstrap/cache
   chmod -R 775 storage bootstrap/cache
@@ -258,5 +258,5 @@ firebase deploy --only functions
 Mantenha backup das pastas e `.env` antes de cada deploy:
 
 ```bash
-tar -czf backup-$(date +%Y%m%d).tar.gz arrow_app_br store_arrow_app_br admin_arrow_app_br lp_arrow_app_br
+tar -czf backup-$(date +%Y%m%d).tar.gz arrow.app.br store.arrow.app.br admin.arrow.app.br lp_arrow.app.br
 ```

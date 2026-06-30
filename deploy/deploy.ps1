@@ -14,10 +14,10 @@ param(
 $ErrorActionPreference = "Stop"
 
 $maps = @(
-    @{ Source = "web\website"; Dest = "arrow_app_br" },
-    @{ Source = "web\landing"; Dest = "lp_arrow_app_br" },
-    @{ Source = "web\store";   Dest = "store_arrow_app_br" },
-    @{ Source = "web\admin";   Dest = "admin_arrow_app_br" }
+    @{ Source = "web\website"; Dest = "arrow.app.br" },
+    @{ Source = "web\landing"; Dest = "lp.arrow.app.br" },
+    @{ Source = "web\store";   Dest = "store.arrow.app.br" },
+    @{ Source = "web\admin";   Dest = "admin.arrow.app.br" }
 )
 
 $excludeDirs = @("vendor", "node_modules", ".git")

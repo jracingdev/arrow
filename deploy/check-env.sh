@@ -3,6 +3,10 @@
 # Uso: ./check-env.sh [WWW_ROOT]
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=sites.conf
+source "$SCRIPT_DIR/sites.conf"
+
 WWW_ROOT="${1:-/www/wwwroot}"
 
 check_site() {
@@ -44,8 +48,8 @@ check_site() {
 echo "==> Verificação de .env em $WWW_ROOT"
 echo ""
 
-check_site "arrow_app_br" "https://arrow.app.br"
-check_site "store_arrow_app_br" "https://store.arrow.app.br"
-check_site "admin_arrow_app_br" "https://admin.arrow.app.br"
+check_site "$WWW_WEBSITE" "https://arrow.app.br"
+check_site "$WWW_STORE" "https://store.arrow.app.br"
+check_site "$WWW_ADMIN" "https://admin.arrow.app.br"
 
-echo "Landing (lp_arrow_app_br): sem .env necessário."
+echo "Landing ($WWW_LANDING): sem .env necessário."

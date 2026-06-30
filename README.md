@@ -36,10 +36,10 @@ arrow/
 
 | Domínio | Pasta no servidor | Caminho no monorepo | Document root Nginx |
 |---------|-------------------|---------------------|---------------------|
-| https://arrow.app.br | `arrow_app_br` | `web/website` | `public/` |
-| https://lp.arrow.app.br | `lp_arrow_app_br` | `web/landing` | raiz da pasta |
-| https://store.arrow.app.br | `store_arrow_app_br` | `web/store` | `public/` |
-| https://admin.arrow.app.br | `admin_arrow_app_br` | `web/admin` | `public/` |
+| https://arrow.app.br | `arrow.app.br` | `web/website` | `public/` |
+| https://lp.arrow.app.br | `lp.arrow.app.br` | `web/landing` | raiz da pasta |
+| https://store.arrow.app.br | `store.arrow.app.br` | `web/store` | `public/` |
+| https://admin.arrow.app.br | `admin.arrow.app.br` | `web/admin` | `public/` |
 
 **Servidor:** `56.125.221.106` · PHP 8.2 · Nginx 1.24 · MySQL 8.0.45 · SSL ativo
 
