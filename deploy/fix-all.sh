@@ -8,9 +8,9 @@
 #   4. post-deploy.sh      (composer + cache Laravel)
 #   5. fix-permissions.sh  (chown/chmod — corrige 403 nginx)
 #   6. set-production.sh   (APP_ENV=production)
-#   7. fix-open-basedir.sh (corrige open_basedir nos vhosts)
-#   8. fix-nginx-root.sh   (corrige document root → /public)
-#   9. fix-user-ini.sh     (corrige .user.ini imutáveis do aaPanel)
+#   7. fix-nginx-root.sh   (corrige document root → /public)
+#   8. fix-open-basedir.sh (corrige open_basedir nos vhosts aaPanel)
+#   9. fix-user-ini.sh     (corrige .user.ini imutáveis — DEPOIS do nginx root)
 #  10. check-env.sh        (valida .env)
 #
 # Uso no servidor (como root):
@@ -66,11 +66,11 @@ run_step 5 "Corrigindo permissões (403 nginx)" \
 run_step 6 "Modo produção (.env)" \
   bash "$SCRIPT_DIR/set-production.sh" "$WWW_ROOT"
 
-run_step 7 "Corrigindo open_basedir (nginx/PHP vhosts)" \
-  bash "$SCRIPT_DIR/fix-open-basedir.sh"
-
-run_step 8 "Corrigindo document root nginx (/public)" \
+run_step 7 "Corrigindo document root nginx (/public)" \
   bash "$SCRIPT_DIR/fix-nginx-root.sh"
+
+run_step 8 "Corrigindo open_basedir (vhosts aaPanel)" \
+  bash "$SCRIPT_DIR/fix-open-basedir.sh"
 
 run_step 9 "Corrigindo .user.ini (aaPanel chattr +i)" \
   bash "$SCRIPT_DIR/fix-user-ini.sh"

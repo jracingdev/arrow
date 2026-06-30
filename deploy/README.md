@@ -43,11 +43,13 @@ Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` 
 | `post-deploy.sh` | Composer, permissões e cache Laravel |
 | `check-env.sh` | Valida `.env` sem expor senhas |
 | `fix-php-aapanel.sh` | Habilita fileinfo no PHP 8.2 do aaPanel |
-| `fix-open-basedir.sh` | Corrige open_basedir nos vhosts (Laravel precisa da raiz do site) |
+| `fix-open-basedir.sh` | Corrige open_basedir nos vhosts aaPanel (Laravel precisa da raiz do site) |
+| `fix-user-ini.sh` | Corrige `.user.ini` imutáveis (`chattr -i` → sed → `chattr +i`) |
+| `fix-open-basedir-now.sh` | Correção rápida: `fix-open-basedir` + `fix-user-ini` |
 | `fix-nginx-root.sh` | Corrige document root nginx → `/public` (causa #1 de 403 plain nginx) |
 | `fix-permissions.sh` | chown/chmod completo — corrige 403 nginx (www não lê public/) |
 | `diagnose-403.sh` | Diagnóstico de 403 plain nginx (root, permissões, vhost) |
-| `fix-all.sh` | Recuperação completa: repo + PHP + deploy + permissões + open_basedir + nginx root + check |
+| `fix-all.sh` | Recuperação completa: repo + PHP + deploy + permissões + nginx root + open_basedir + check |
 | `update-repo.sh` | `git fetch` + `reset --hard origin/main` (resolve conflitos de pull) |
 | `set-production.sh` | APP_ENV=production e APP_DEBUG=false |
 
@@ -296,20 +298,59 @@ Exemplos:
 - Log PHP: `file_put_contents(.../storage/logs/...): open_basedir restriction in effect`
 - Nginx **404** em rotas Laravel (index.php não consegue carregar o autoload)
 
-### Correção automática no servidor
+### Correção imediata no servidor (cole agora)
+
+Após conflitos de `git pull`, resete o repo e corrija `.user.ini` + vhosts:
+
+```bash
+cd /www/wwwroot/arrow-repo
+sudo git fetch origin main && sudo git reset --hard origin/main
+cd deploy && sudo chmod +x *.sh && sudo ./fix-open-basedir-now.sh
+```
+
+Ou só o `.user.ini` (se o vhost já estiver correto):
+
+```bash
+cd /www/wwwroot/arrow-repo
+sudo git fetch origin main && sudo git reset --hard origin/main
+cd deploy && sudo chmod +x *.sh && sudo ./fix-user-ini.sh
+```
+
+Scripts individuais:
 
 ```bash
 cd /www/wwwroot/arrow-repo/deploy
-sudo ./fix-open-basedir.sh
+sudo ./fix-open-basedir.sh   # vhosts aaPanel + pools PHP-FPM
+sudo ./fix-user-ini.sh       # .user.ini imutáveis (chattr -i → sed → chattr +i)
 ```
 
-Ou rode a recuperação completa (recomendado após conflitos de git pull):
+Recuperação completa (recomendado se vários problemas ao mesmo tempo):
 
 ```bash
 cd /www/wwwroot/arrow-repo
 sudo git fetch origin main && sudo git reset --hard origin/main
 cd deploy && sudo chmod +x *.sh && sudo ./fix-all.sh
 ```
+
+### Fallback manual no aaPanel (se `chattr -i` falhar)
+
+O aaPanel marca `.user.ini` como imutável. Se o script mostrar `chattr -i falhou`:
+
+1. aaPanel → **Website** → clique no domínio (ex.: `admin.arrow.app.br`)
+2. Aba **PHP** → campo **open_basedir**
+3. Altere de `/www/wwwroot/admin.arrow.app.br/public/:/tmp/` para `/www/wwwroot/admin.arrow.app.br/:/tmp/`
+4. Repita para **store.arrow.app.br** e **arrow.app.br**
+5. **App Store** → **PHP 8.2** → **Restart**
+
+Via SSH (como root), se tiver acesso direto:
+
+```bash
+chattr -i /www/wwwroot/admin.arrow.app.br/public/.user.ini
+sed -i 's|/public/:/tmp/|/:/tmp/|g' /www/wwwroot/admin.arrow.app.br/public/.user.ini
+chattr +i /www/wwwroot/admin.arrow.app.br/public/.user.ini
+```
+
+Repita para `store.arrow.app.br` e `arrow.app.br` (ambos os caminhos: `DOMAIN/.user.ini` e `DOMAIN/public/.user.ini`).
 
 ## HTTP 403 — plain nginx (sem erro PHP)
 
@@ -383,9 +424,9 @@ Confira especialmente:
 ### Correção automática
 
 ```bash
-sudo ./fix-nginx-root.sh      # document root → /public (faça primeiro)
+sudo ./fix-nginx-root.sh         # document root → /public (faça primeiro)
 sudo ./fix-permissions.sh
-sudo ./fix-open-basedir.sh   # se ainda houver erro PHP depois do 403 sumir
+sudo ./fix-open-basedir-now.sh   # open_basedir vhosts + .user.ini (se erro PHP depois do 403 sumir)
 ```
 
 Ou tudo de uma vez:
@@ -415,7 +456,7 @@ Quando um Laravel funciona e outros não, compare `nginx -T | grep root` entre o
 
 | Sintoma | Causa provável | Correção |
 |---------|----------------|----------|
-| **open_basedir** / vendor não permitido | aaPanel restringe PHP só a `public/` | `./fix-open-basedir.sh` ou ajuste manual no aaPanel (ver seção acima) |
+| **open_basedir** / vendor não permitido | aaPanel restringe PHP só a `public/` (`.user.ini` ou vhost) | `sudo ./fix-open-basedir-now.sh` ou `./fix-user-ini.sh` + fallback manual no aaPanel |
 | **404** no Laravel | open_basedir, document root errado ou `vendor/` ausente | open_basedir na raiz + Running directory = `/public` + `./fix-all.sh` |
 | **git pull** com conflitos | Alterações locais no servidor | `sudo ./update-repo.sh` ou `cd /www/wwwroot/arrow-repo && sudo git fetch origin main && sudo git reset --hard origin/main` |
 | **403 plain nginx** (página `<center>nginx</center>`) | **root sem `/public`** no vhost, permissões root:root, index.php ausente | `./fix-nginx-root.sh` + `./fix-permissions.sh` + Running directory = `/public` no aaPanel |
