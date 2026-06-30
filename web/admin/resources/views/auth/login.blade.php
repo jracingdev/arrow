@@ -117,11 +117,11 @@
 </section>
 
     <script src="{{asset('assets/plugins/jquery/jquery.min.js')}}"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-storage.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-database.js"></script>
+    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
+    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.0.0/firebase-storage.js"></script>
+    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
+    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.0.0/firebase-database.js"></script>
     <script src="{{ asset('js/crypto-js.js') }}"></script>
     @include('partials.firebase-init')
     

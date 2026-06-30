@@ -121,9 +121,9 @@
 
 @section('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-database.js"></script>
+    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.1.0/firebase-app.js"></script>
+    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.1.0/firebase-firestore.js"></script>
+    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.1.0/firebase-database.js"></script>
     <script type="text/javascript">@include('vendor.notifications.init_firebase')</script>
 
 <script type="text/javascript">

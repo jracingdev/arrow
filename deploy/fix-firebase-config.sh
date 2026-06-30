@@ -158,6 +158,31 @@ verify_firebase_inline_config() {
   fi
 }
 
+verify_deployed_jquery_validate() {
+  local base_url="$1"
+  local label="$2"
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "  [SKIP] curl não disponível para verificar JS em $label"
+    return 0
+  fi
+
+  local head
+  head="$(curl -fsSL --max-time 15 "${base_url}/js/jquery.validate.js" 2>/dev/null | head -n 5 || true)"
+
+  if [[ -z "$head" ]]; then
+    echo "  [AVISO] Não foi possível obter /js/jquery.validate.js de $label"
+    return 0
+  fi
+
+  if echo "$head" | grep -q '__firebaseConfig'; then
+    echo "  [OK] $label serve jquery.validate.js com guard __firebaseConfig"
+  else
+    echo "  [FALHA] $label serve jquery.validate.js ANTIGO (sem __firebaseConfig) — rode ./full-deploy.sh e purgue cache CDN"
+    return 1
+  fi
+}
+
 echo "==> Firebase — validação e geração de firebase-messaging-sw.js"
 echo "    WWW_ROOT: $WWW_ROOT"
 echo ""
@@ -207,6 +232,12 @@ verify_firebase_inline_config "https://${WWW_ADMIN}/login" "$WWW_ADMIN/login" ||
 verify_firebase_inline_config "https://${WWW_STORE}/login" "$WWW_STORE/login" || true
 echo ""
 
+echo "==> Verificando jquery.validate.js implantado (public/js)"
+verify_deployed_jquery_validate "https://${WWW_STORE}" "$WWW_STORE" || true
+verify_deployed_jquery_validate "https://${WWW_ADMIN}" "$WWW_ADMIN" || true
+verify_deployed_jquery_validate "https://${WWW_WEBSITE}" "$WWW_WEBSITE" || true
+echo ""
+
 echo "==> fix-firebase-config concluído."
 if [[ "$any_missing" -eq 0 ]]; then
   echo "    Todas as variáveis FIREBASE_* estão preenchidas."
@@ -216,4 +247,8 @@ fi
 echo ""
 echo "    Verificação manual do HTML:"
 echo "      curl -s https://${WWW_WEBSITE}/login | grep -o '__firebaseConfig.*apiKey[^,]*'"
+echo "    Verificação manual do JS (linha 3 deve ter __firebaseConfig):"
+echo "      curl -s https://${WWW_STORE}/js/jquery.validate.js | head -5"
+echo "    Firestore permission-denied: ative billing em https://console.developers.google.com/billing/enable?project=j-arrow"
+echo "    Rocket Loader: desative em Cloudflare Speed → Optimization ou use data-cfasync=\"false\" nos scripts Firebase."
 echo "    Se apiKey estiver vazio, rode config:clear e confira FIREBASE_APIKEY no .env."

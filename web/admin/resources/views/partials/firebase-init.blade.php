@@ -7,5 +7,5 @@ window.__firebaseConfig = @json(config('firebase.client'));
     }
 })();
 </script>
-<script data-cfasync="false" src="{{ asset('js/jquery.cookie.js') }}"></script>
-<script data-cfasync="false" src="{{ asset('js/jquery.validate.js') }}"></script>
+<script data-cfasync="false" src="{{ asset('js/jquery.cookie.js') }}?v={{ filemtime(public_path('js/jquery.cookie.js')) }}"></script>
+<script data-cfasync="false" src="{{ asset('js/jquery.validate.js') }}?v={{ filemtime(public_path('js/jquery.validate.js')) }}"></script>

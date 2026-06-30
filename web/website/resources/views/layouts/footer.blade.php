@@ -248,17 +248,17 @@
 
 <script type="text/javascript" src="{{ asset('js/siddhi.js') }}"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-firestore.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-firestore.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-storage.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-storage.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-auth.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-auth.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-database.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-database.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-messaging.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-messaging.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
 

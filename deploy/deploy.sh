@@ -31,6 +31,9 @@ rsync -av "$REPO_ROOT/web/landing/" "$WWW_ROOT/$WWW_LANDING/"
 rsync -av "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT/web/store/" "$WWW_ROOT/$WWW_STORE/"
 rsync -av "${RSYNC_EXCLUDES[@]}" "$REPO_ROOT/web/admin/" "$WWW_ROOT/$WWW_ADMIN/"
 
+# public/js/ (jquery.validate.js, jquery.cookie.js, etc.) é copiado junto com cada app acima.
+# Verifique após deploy: curl -s https://store.arrow.app.br/js/jquery.validate.js | head -5
+
 echo ""
 echo "==> Deploy de arquivos concluído."
 echo "    Execute: ./post-deploy.sh"

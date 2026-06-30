@@ -496,15 +496,15 @@
 
 <script src="{{ asset('assets/plugins/summernote/summernote-bs4.js')}}"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-storage.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.0.0/firebase-storage.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-database.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.0.0/firebase-database.js"></script>
 
 <script src="https://unpkg.com/geofirestore@5.2.0/dist/geofirestore.js"></script>
 

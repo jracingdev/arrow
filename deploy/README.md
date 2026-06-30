@@ -367,6 +367,52 @@ curl -I https://arrow.app.br/firebase-messaging-sw.js   # deve retornar 200
 
 No browser (F12 → Console), após corrigir o `.env` e limpar cache, **não** deve aparecer `No Firebase App '[DEFAULT]' has been created`.
 
+### Erros comuns no console do browser (pós-deploy)
+
+| Erro | Tipo | Correção |
+|------|------|----------|
+| `jquery.cookie.js` / `$.decrypt` / `reading 'length'` em `jquery.validate.js:3` | **Código / cache / deploy** | O servidor pode estar servindo **versão antiga** de `public/js/jquery.validate.js` (linha 3 deve ser `if (window.__firebaseConfig...`, não `$.decrypt`). Rode `./full-deploy.sh`, limpe cache do browser/Cloudflare e verifique o arquivo no servidor (abaixo). |
+| `Firestore: permission-denied` / billing | **GCP / Firebase (não é código)** | Ative faturamento no projeto **j-arrow**: [Enable billing](https://console.developers.google.com/billing/enable?project=j-arrow). Sem billing, Firestore recusa leituras mesmo com `initializeApp` OK. |
+| `[ROCKET LOADER] Activator script doesn't have settings` | **Cloudflare** | Desative **Rocket Loader** em Cloudflare → Speed → Optimization, **ou** confirme `data-cfasync="false"` em **todos** os `<script>` do Firebase (gstatic + `firebase-init`). |
+| `CollectionReference.doc() empty path` | **Consequência** | Geralmente efeito colateral de Firestore falhando (billing) ou init quebrado — corrija os itens acima primeiro. |
+
+#### Verificar JS implantado no servidor
+
+Após `./deploy.sh` ou `./full-deploy.sh`, a linha 3 de `jquery.validate.js` deve conter `window.__firebaseConfig`:
+
+```bash
+curl -s https://store.arrow.app.br/js/jquery.validate.js | head -5
+curl -s https://admin.arrow.app.br/js/jquery.validate.js | head -5
+curl -s https://arrow.app.br/js/jquery.validate.js | head -5
+```
+
+Esperado (início do arquivo):
+
+```js
+var firebaseConfig;
+if (window.__firebaseConfig && window.__firebaseConfig.apiKey) {
+```
+
+Se ainda aparecer `$.decrypt($.cookie('XSRF-TOKEN-AK'))` na linha 7, o deploy não sincronizou `public/js/` ou o CDN/browser está em cache.
+
+#### Cloudflare Rocket Loader
+
+1. Painel Cloudflare → domínio `arrow.app.br` → **Speed** → **Optimization**
+2. **Rocket Loader** → **Off**
+3. Purge cache (Caching → Purge Everything) após deploy
+
+As views Blade marcam scripts Firebase com `data-cfasync="false"` para o Rocket Loader não reordenar o SDK.
+
+#### Firestore — billing obrigatório
+
+O projeto Firebase **j-arrow** precisa de conta de faturamento GCP vinculada para Firestore em produção:
+
+1. Abra [console.developers.google.com/billing/enable?project=j-arrow](https://console.developers.google.com/billing/enable?project=j-arrow)
+2. Vincule uma conta de faturamento (plano Spark gratuito não cobre uso além dos limites; muitos projetos exigem Blaze para Firestore)
+3. No Firebase Console → Firestore → confirme que o banco está criado e as regras permitem leitura conforme sua app
+
+Isso **não** se corrige no código do monorepo.
+
 ## 9. Firebase Functions (opcional)
 
 ```bash

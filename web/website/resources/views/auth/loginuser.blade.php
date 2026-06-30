@@ -105,11 +105,11 @@ foreach ($countries as $keycountry => $valuecountry) {
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="{{ asset('vendor/select2/dist/js/select2.min.js') }}"></script>
-<script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-storage.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-database.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-firestore.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-storage.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-auth.js"></script>
+<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-database.js"></script>
 <script src="{{ asset('js/crypto-js.js') }}"></script>
 @include('partials.firebase-init')
 <script type="text/javascript">

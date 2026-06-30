@@ -276,11 +276,11 @@
         <script src="{{ asset('assets/plugins/sticky-kit-master/dist/sticky-kit.min.js') }}"></script>
         <script src="{{ asset('assets/plugins/sparkline/jquery.sparkline.min.js') }}"></script>
         <script src="{{ asset('js/custom.min.js') }}"></script>
-        <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-firestore.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-storage.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-database.js"></script>
+        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js"></script>
+        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-firestore.js"></script>
+        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-storage.js"></script>
+        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>
+        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-database.js"></script>
         <script src="https://unpkg.com/geofirestore/dist/geofirestore.js"></script>
         <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
         <script src="{{ asset('js/crypto-js.js') }}"></script>
