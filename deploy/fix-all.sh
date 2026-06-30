@@ -9,8 +9,9 @@
 #   5. fix-permissions.sh  (chown/chmod — corrige 403 nginx)
 #   6. set-production.sh   (APP_ENV=production)
 #   7. fix-open-basedir.sh (corrige open_basedir nos vhosts)
-#   8. fix-user-ini.sh     (corrige .user.ini imutáveis do aaPanel)
-#   9. check-env.sh        (valida .env)
+#   8. fix-nginx-root.sh   (corrige document root → /public)
+#   9. fix-user-ini.sh     (corrige .user.ini imutáveis do aaPanel)
+#  10. check-env.sh        (valida .env)
 #
 # Uso no servidor (como root):
 #   cd /www/wwwroot/arrow-repo/deploy
@@ -42,7 +43,7 @@ run_step() {
   local name="$2"
   shift 2
   echo ""
-  echo ">>> [$n/9] $name"
+  echo ">>> [$n/10] $name"
   echo "----------------------------------------"
   "$@"
 }
@@ -68,10 +69,13 @@ run_step 6 "Modo produção (.env)" \
 run_step 7 "Corrigindo open_basedir (nginx/PHP vhosts)" \
   bash "$SCRIPT_DIR/fix-open-basedir.sh"
 
-run_step 8 "Corrigindo .user.ini (aaPanel chattr +i)" \
+run_step 8 "Corrigindo document root nginx (/public)" \
+  bash "$SCRIPT_DIR/fix-nginx-root.sh"
+
+run_step 9 "Corrigindo .user.ini (aaPanel chattr +i)" \
   bash "$SCRIPT_DIR/fix-user-ini.sh"
 
-run_step 9 "Verificando .env" \
+run_step 10 "Verificando .env" \
   bash "$SCRIPT_DIR/check-env.sh" "$WWW_ROOT"
 
 echo ""

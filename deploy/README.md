@@ -44,9 +44,10 @@ Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` 
 | `check-env.sh` | Valida `.env` sem expor senhas |
 | `fix-php-aapanel.sh` | Habilita fileinfo no PHP 8.2 do aaPanel |
 | `fix-open-basedir.sh` | Corrige open_basedir nos vhosts (Laravel precisa da raiz do site) |
+| `fix-nginx-root.sh` | Corrige document root nginx → `/public` (causa #1 de 403 plain nginx) |
 | `fix-permissions.sh` | chown/chmod completo — corrige 403 nginx (www não lê public/) |
 | `diagnose-403.sh` | Diagnóstico de 403 plain nginx (root, permissões, vhost) |
-| `fix-all.sh` | Recuperação completa: repo + PHP + deploy + permissões + open_basedir + check |
+| `fix-all.sh` | Recuperação completa: repo + PHP + deploy + permissões + open_basedir + nginx root + check |
 | `update-repo.sh` | `git fetch` + `reset --hard origin/main` (resolve conflitos de pull) |
 | `set-production.sh` | APP_ENV=production e APP_DEBUG=false |
 
@@ -314,15 +315,51 @@ cd deploy && sudo chmod +x *.sh && sudo ./fix-all.sh
 
 Quando o navegador mostra a página padrão **403 Forbidden** com `<center>nginx</center>` (146 bytes), o **nginx bloqueou antes do PHP**. Isso **não** é open_basedir (que geraria erro PHP ou HTTP 500).
 
+### Causa #1 (mais comum): document root sem `/public`
+
+O aaPanel costuma gravar `root /www/wwwroot/DOMAIN;` (raiz do site). Laravel **não tem** `index.php` ali — só em `public/`. O nginx retorna **403** porque não encontra um index válido.
+
+**Verifique:**
+
+```bash
+sudo nginx -T 2>/dev/null | grep -E 'root.*/www/wwwroot/(arrow|store|admin)\.arrow\.app\.br'
+```
+
+**Correto:** `root /www/wwwroot/DOMAIN/public;`  
+**Errado:** `root /www/wwwroot/DOMAIN;`
+
+#### Correção imediata no servidor (sem esperar git pull)
+
+Arquivos vhost padrão do aaPanel: `/www/server/panel/vhost/nginx/DOMAIN.conf`
+
+```bash
+sudo sed -i 's|root /www/wwwroot/arrow.app.br;|root /www/wwwroot/arrow.app.br/public;|' \
+  /www/server/panel/vhost/nginx/arrow.app.br.conf
+sudo sed -i 's|root /www/wwwroot/store.arrow.app.br;|root /www/wwwroot/store.arrow.app.br/public;|' \
+  /www/server/panel/vhost/nginx/store.arrow.app.br.conf
+sudo sed -i 's|root /www/wwwroot/admin.arrow.app.br;|root /www/wwwroot/admin.arrow.app.br/public;|' \
+  /www/server/panel/vhost/nginx/admin.arrow.app.br.conf
+sudo nginx -t && sudo nginx -s reload
+```
+
+Ou use o script (após `git pull` / `update-repo.sh`):
+
+```bash
+cd /www/wwwroot/arrow-repo/deploy
+sudo ./fix-nginx-root.sh
+```
+
+O script também verifica extensões em `/www/server/panel/vhost/nginx/extension/DOMAIN/`.
+
 ### Diferença entre 403, 404 e open_basedir
 
 | Resposta | Significado |
 |----------|-------------|
-| **403 plain nginx** | root errado, permissões, ou index.php ilegível/ausente |
+| **403 plain nginx** | **root sem `/public`** (causa #1), permissões, ou index.php ilegível/ausente |
 | **404 nginx/Laravel** | root OK mas rota/arquivo não existe, ou vendor ausente |
 | **500 + open_basedir no log** | PHP rodou mas open_basedir aponta só para `public/` |
 
-### Causas comuns no aaPanel
+### Outras causas comuns no aaPanel
 
 1. **Running directory errado** — Laravel precisa de `/public`, não `/` (raiz do site)
 2. **Deploy com sudo** — pastas ficam `root:root` com `700`; usuário `www` não atravessa até `public/index.php`
@@ -346,6 +383,7 @@ Confira especialmente:
 ### Correção automática
 
 ```bash
+sudo ./fix-nginx-root.sh      # document root → /public (faça primeiro)
 sudo ./fix-permissions.sh
 sudo ./fix-open-basedir.sh   # se ainda houver erro PHP depois do 403 sumir
 ```
@@ -358,7 +396,7 @@ sudo ./fix-all.sh
 
 ### Correção manual no aaPanel
 
-Para **store.arrow.app.br** e **admin.arrow.app.br**:
+Para **arrow.app.br**, **store.arrow.app.br** e **admin.arrow.app.br**:
 
 1. aaPanel → **Website** → clique no domínio
 2. **Site directory** → **Running directory** = `/public`
@@ -367,8 +405,9 @@ Para **store.arrow.app.br** e **admin.arrow.app.br**:
 
 ### Sintoma observado (jun/2026)
 
-- `https://arrow.app.br` → **302** (Laravel OK)
-- `https://store.arrow.app.br` e `https://admin.arrow.app.br` → **403 plain nginx**
+- `nginx -T` mostra `root /www/wwwroot/DOMAIN;` (sem `/public`) nos três Laravel
+- **403 plain nginx** em store/admin (e às vezes arrow funciona parcialmente por rewrites)
+- Após corrigir root + reload: sites respondem 302/200 do Laravel
 
 Quando um Laravel funciona e outros não, compare `nginx -T | grep root` entre os três sites e as permissões de `public/index.php` em cada pasta.
 
@@ -378,8 +417,8 @@ Quando um Laravel funciona e outros não, compare `nginx -T | grep root` entre o
 |---------|----------------|----------|
 | **open_basedir** / vendor não permitido | aaPanel restringe PHP só a `public/` | `./fix-open-basedir.sh` ou ajuste manual no aaPanel (ver seção acima) |
 | **404** no Laravel | open_basedir, document root errado ou `vendor/` ausente | open_basedir na raiz + Running directory = `/public` + `./fix-all.sh` |
-| **git pull** com conflitos | Alterações locais no servidor | `sudo ./update-repo.sh` ou `git reset --hard origin/main` |
-| **403 plain nginx** (página `<center>nginx</center>`) | root ≠ `/public`, permissões root:root, index.php ausente | `./diagnose-403.sh` + `./fix-permissions.sh` + Running directory = `/public` no aaPanel |
+| **git pull** com conflitos | Alterações locais no servidor | `sudo ./update-repo.sh` ou `cd /www/wwwroot/arrow-repo && sudo git fetch origin main && sudo git reset --hard origin/main` |
+| **403 plain nginx** (página `<center>nginx</center>`) | **root sem `/public`** no vhost, permissões root:root, index.php ausente | `./fix-nginx-root.sh` + `./fix-permissions.sh` + Running directory = `/public` no aaPanel |
 | **403** no Laravel (genérico) | Permissões ou `vendor/` ausente | `sudo ./fix-permissions.sh` + `./post-deploy.sh` |
 | **composer: ext-fileinfo** | Extensão PHP desabilitada | `sudo ./fix-php-aapanel.sh` |
 | **composer: php >=8.2** | CLI usa PHP 8.1 | Scripts usam `/www/server/php/82/bin/php` automaticamente |
