@@ -142,6 +142,12 @@ verify_firebase_inline_config() {
     echo "  [AVISO] $label não contém __firebaseConfig (página pode não carregar Firebase)"
   fi
 
+  if echo "$body" | grep -q 'data-cfasync="false"'; then
+    echo "  [OK] $label inclui data-cfasync=\"false\" nos scripts Firebase"
+  else
+    echo "  [AVISO] $label sem data-cfasync=\"false\" — Cloudflare Rocket Loader pode quebrar ordem dos scripts"
+  fi
+
   if echo "$body" | grep -q '"apiKey":""'; then
     echo "  [FALHA] $label tem apiKey vazio no HTML — FIREBASE_APIKEY não chegou ao config cache"
     return 1
@@ -207,3 +213,7 @@ if [[ "$any_missing" -eq 0 ]]; then
 else
   echo "    Corrija os .env e rode novamente: sudo ./fix-firebase-config.sh"
 fi
+echo ""
+echo "    Verificação manual do HTML:"
+echo "      curl -s https://${WWW_WEBSITE}/login | grep -o '__firebaseConfig.*apiKey[^,]*'"
+echo "    Se apiKey estiver vazio, rode config:clear e confira FIREBASE_APIKEY no .env."
