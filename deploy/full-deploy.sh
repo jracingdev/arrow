@@ -18,6 +18,7 @@ echo ""
 
 if [[ -d "$REPO_CLONE/.git" ]]; then
   echo "==> Atualizando repositório..."
+  git config --global --add safe.directory "$REPO_CLONE" 2>/dev/null || true
   cd "$REPO_CLONE"
   git pull origin main
 else
