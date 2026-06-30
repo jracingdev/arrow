@@ -11,7 +11,9 @@
 #   7. fix-nginx-root.sh   (corrige document root → /public)
 #   8. fix-open-basedir.sh (corrige open_basedir nos vhosts aaPanel)
 #   9. fix-user-ini.sh     (corrige .user.ini imutáveis — DEPOIS do nginx root)
-#  10. check-env.sh        (valida .env)
+#  10. fix-laravel-rewrite.sh (try_files Laravel)
+#  11. fix-firebase-config.sh (FIREBASE_* + messaging-sw.js)
+#  12. check-env.sh        (valida .env)
 #
 # Uso no servidor (como root):
 #   cd /www/wwwroot/arrow-repo/deploy
@@ -22,6 +24,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 WWW_ROOT="${WWW_ROOT:-/www/wwwroot}"
+
+# Garante permissão de execução após git reset (modo 100644 no Windows)
+chmod +x "$SCRIPT_DIR"/*.sh 2>/dev/null || true
 
 # Força PHP 8.2 para composer/artisan (CLI padrão do aaPanel costuma ser 8.1)
 if [[ -x /www/server/php/82/bin/php ]]; then
@@ -43,7 +48,7 @@ run_step() {
   local name="$2"
   shift 2
   echo ""
-  echo ">>> [$n/10] $name"
+  echo ">>> [$n/12] $name"
   echo "----------------------------------------"
   "$@"
 }
@@ -78,7 +83,10 @@ run_step 9 "Corrigindo .user.ini (aaPanel chattr +i)" \
 run_step 10 "Rewrite Laravel (try_files)" \
   bash "$SCRIPT_DIR/fix-laravel-rewrite.sh"
 
-run_step 11 "Verificando .env" \
+run_step 11 "Firebase (.env + messaging-sw.js)" \
+  bash "$SCRIPT_DIR/fix-firebase-config.sh" "$WWW_ROOT"
+
+run_step 12 "Verificando .env" \
   bash "$SCRIPT_DIR/check-env.sh" "$WWW_ROOT"
 
 echo ""

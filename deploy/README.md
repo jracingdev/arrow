@@ -52,6 +52,7 @@ Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` 
 | `diagnose-all.sh` | Diagnóstico completo: arquivos, nginx -T, extension, .user.ini, curl, PHP |
 | `fix-arrow-complete.sh` | Correção rápida: nginx root + .user.ini + permissões + composer se vendor ausente |
 | `fix-all.sh` | Recuperação completa: repo + PHP + deploy + permissões + nginx root + open_basedir + check |
+| `fix-firebase-config.sh` | Valida `FIREBASE_*` nos `.env`, gera `firebase-messaging-sw.js`, limpa cache config |
 | `update-repo.sh` | `git fetch` + `reset --hard origin/main` (resolve conflitos de pull) |
 | `set-production.sh` | APP_ENV=production e APP_DEBUG=false |
 
@@ -183,6 +184,15 @@ DB_HOST=127.0.0.1
 DB_DATABASE=arrow_store_db
 DB_USERNAME=arrow_store_adm
 DB_PASSWORD=<senha do aaPanel>
+
+FIREBASE_APIKEY=<...>
+FIREBASE_AUTH_DOMAIN=<...>
+FIREBASE_DATABASE_URL=<...>
+FIREBASE_PROJECT_ID=<...>
+FIREBASE_STORAGE_BUCKET=<...>
+FIREBASE_MESSAAGING_SENDER_ID=<...>
+FIREBASE_APP_ID=<...>
+FIREBASE_MEASUREMENT_ID=<...>
 ```
 
 ### Admin — `admin.arrow.app.br/.env`
@@ -196,6 +206,15 @@ DB_HOST=127.0.0.1
 DB_DATABASE=arrow_admin_db
 DB_USERNAME=arrow_admin_adm
 DB_PASSWORD=<senha do aaPanel>
+
+FIREBASE_APIKEY=<...>
+FIREBASE_AUTH_DOMAIN=<...>
+FIREBASE_DATABASE_URL=<...>
+FIREBASE_PROJECT_ID=<...>
+FIREBASE_STORAGE_BUCKET=<...>
+FIREBASE_MESSAAGING_SENDER_ID=<...>
+FIREBASE_APP_ID=<...>
+FIREBASE_MEASUREMENT_ID=<...>
 ```
 
 ### Landing — `lp.arrow.app.br`
@@ -264,7 +283,91 @@ Ajuste o socket PHP conforme sua versão no aaPanel (`php-cgi-82.sock` para PHP 
 
 O SSL já está ativo no servidor. No aaPanel: **Website → SSL → Let's Encrypt** para renovação automática.
 
-## 8. Firebase Functions (opcional)
+## 8. Firebase — configuração dos painéis Laravel
+
+### Como funciona
+
+Os três painéis Laravel (**website**, **store**, **admin**) **não** leem a config Firebase do Firestore. O fluxo é:
+
+1. **`AppServiceProvider`** (`web/*/app/Providers/AppServiceProvider.php`) grava cookies HTTP com os valores `FIREBASE_*` do `.env` (codificados em hex).
+2. **`public/js/jquery.validate.js`** lê os cookies via `$.decrypt()` e chama `firebase.initializeApp(firebaseConfig)`.
+3. As views Blade (ex.: `footer.blade.php`, `layouts/app.blade.php`) usam `firebase.firestore()` no browser para ler/gravar dados (coleção `settings`, pedidos, etc.).
+4. O **`SettingsController`** só renderiza telas de configuração — os valores são salvos no **Firestore pelo JavaScript**, não vêm do `.env`.
+
+> Ter só `FIREBASE_PROJECT_ID` preenchido **não basta**. Sem **todas** as variáveis, o console mostra `No Firebase App '[DEFAULT]' has been created` e erros em cascata (`collection` undefined, `jquery.cookie.js`).
+
+### Variáveis `.env` obrigatórias (os 3 painéis)
+
+| Variável | Exemplo | Onde obter no Console Firebase |
+|----------|---------|----------------------------------|
+| `FIREBASE_APIKEY` | `AIzaSy...` | Project settings → General → Your apps → Web app → `apiKey` |
+| `FIREBASE_AUTH_DOMAIN` | `j-arrow.firebaseapp.com` | mesmo bloco → `authDomain` |
+| `FIREBASE_DATABASE_URL` | `https://j-arrow-default-rtdb.firebaseio.com` | Realtime Database (se usado) ou URL do projeto |
+| `FIREBASE_PROJECT_ID` | `j-arrow` | `projectId` |
+| `FIREBASE_STORAGE_BUCKET` | `j-arrow.appspot.com` | `storageBucket` |
+| `FIREBASE_MESSAAGING_SENDER_ID` | `123456789` | `messagingSenderId` (grafia original do eMart: **MESSAAGING**) |
+| `FIREBASE_APP_ID` | `1:123:web:abc` | `appId` |
+| `FIREBASE_MEASUREMENT_ID` | `G-XXXX` | `measurementId` (Analytics; pode ficar vazio em dev, mas preencha em produção) |
+
+**Passos no Console Firebase:**
+
+1. Acesse [console.firebase.google.com](https://console.firebase.google.com) → projeto **j-arrow** (ou o seu).
+2. Ícone de engrenagem → **Project settings** → aba **General**.
+3. Em **Your apps**, selecione o app Web (ou crie um: **Add app** → Web).
+4. Copie o objeto `firebaseConfig` e preencha cada `FIREBASE_*` no `.env` dos **três** sites.
+
+Repita o mesmo bloco nos três `.env`:
+
+- `/www/wwwroot/arrow.app.br/.env`
+- `/www/wwwroot/store.arrow.app.br/.env`
+- `/www/wwwroot/admin.arrow.app.br/.env`
+
+### Após editar o `.env`
+
+```bash
+cd /www/wwwroot/arrow-repo/deploy
+sudo chmod +x *.sh   # necessário se ./fix-all.sh der "Permission denied"
+sudo ./fix-firebase-config.sh
+```
+
+Ou manualmente em cada painel:
+
+```bash
+for site in arrow.app.br store.arrow.app.br admin.arrow.app.br; do
+  cd /www/wwwroot/$site
+  php artisan config:clear
+  php artisan config:cache
+done
+```
+
+> **Importante:** após `config:cache`, o Laravel usa os valores do `.env` cacheados. Sempre rode `config:clear` antes de alterar Firebase no `.env`.
+
+### `firebase-messaging-sw.js` — obrigatório ou opcional?
+
+| Contexto | Necessário? |
+|----------|-------------|
+| **Website** (`arrow.app.br`) — push notifications web (FCM) | **Sim** — deve existir em `public/firebase-messaging-sw.js` |
+| **Store / Admin** | **Não** — esses painéis não registram service worker de messaging |
+| **Login e Firestore básico** | **Opcional** para o SW — mas **obrigatório** preencher todas as `FIREBASE_*` no `.env` |
+
+O arquivo é um **service worker** (não um `<script>` comum). O SDK do Firebase busca automaticamente `https://seu-dominio/firebase-messaging-sw.js`. O script `deploy/fix-firebase-config.sh` gera esse arquivo a partir do `.env` do website usando o template em `deploy/templates/`.
+
+Se aparecer **404** em `/firebase-messaging-sw.js`, rode:
+
+```bash
+sudo ./fix-firebase-config.sh
+```
+
+### Verificação rápida
+
+```bash
+./check-env.sh
+curl -I https://arrow.app.br/firebase-messaging-sw.js   # deve retornar 200
+```
+
+No browser (F12 → Console), após corrigir o `.env` e limpar cache, **não** deve aparecer `No Firebase App '[DEFAULT]' has been created`.
+
+## 9. Firebase Functions (opcional)
 
 ```bash
 cd /www/wwwroot/arrow-repo/firebase/functions

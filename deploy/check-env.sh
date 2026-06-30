@@ -39,9 +39,34 @@ check_site() {
   [[ -n "$db_user" ]] && echo "  [OK] DB_USERNAME=$db_user" || echo "  [FALTA] DB_USERNAME"
   [[ -n "$db_pass" ]] && echo "  [OK] DB_PASSWORD definida" || echo "  [FALTA] DB_PASSWORD — copie do aaPanel"
 
-  local firebase_project
-  firebase_project=$(grep '^FIREBASE_PROJECT_ID=' "$env_file" | cut -d= -f2- | tr -d '"')
-  [[ -n "$firebase_project" ]] && echo "  [OK] FIREBASE_PROJECT_ID=$firebase_project" || echo "  [AVISO] FIREBASE_PROJECT_ID vazio"
+  local firebase_vars=(
+    FIREBASE_APIKEY
+    FIREBASE_AUTH_DOMAIN
+    FIREBASE_DATABASE_URL
+    FIREBASE_PROJECT_ID
+    FIREBASE_STORAGE_BUCKET
+    FIREBASE_MESSAAGING_SENDER_ID
+    FIREBASE_APP_ID
+    FIREBASE_MEASUREMENT_ID
+  )
+  local var val
+  for var in "${firebase_vars[@]}"; do
+    val=$(grep "^${var}=" "$env_file" | cut -d= -f2- | tr -d '"' | tr -d "'")
+    if [[ -n "$val" ]]; then
+      if [[ "$var" == "FIREBASE_PROJECT_ID" ]]; then
+        echo "  [OK] $var=$val"
+      else
+        echo "  [OK] $var definida"
+      fi
+    else
+      echo "  [FALTA] $var vazia — Firebase no browser não inicializa"
+    fi
+  done
+
+  local sw_file="$WWW_ROOT/$site/public/firebase-messaging-sw.js"
+  if [[ "$site" == "$WWW_WEBSITE" ]]; then
+    [[ -f "$sw_file" ]] && echo "  [OK] firebase-messaging-sw.js existe" || echo "  [FALTA] firebase-messaging-sw.js — rode: ./fix-firebase-config.sh"
+  fi
   echo ""
 }
 

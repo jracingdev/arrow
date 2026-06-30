@@ -1,0 +1,17 @@
+// Gerado por deploy/fix-firebase-config.sh — não edite manualmente.
+// Service worker para Firebase Cloud Messaging (website arrow.app.br).
+importScripts('https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/8.9.1/firebase-messaging.js');
+
+firebase.initializeApp({
+  apiKey: '{{FIREBASE_APIKEY}}',
+  authDomain: '{{FIREBASE_AUTH_DOMAIN}}',
+  databaseURL: '{{FIREBASE_DATABASE_URL}}',
+  projectId: '{{FIREBASE_PROJECT_ID}}',
+  storageBucket: '{{FIREBASE_STORAGE_BUCKET}}',
+  messagingSenderId: '{{FIREBASE_MESSAAGING_SENDER_ID}}',
+  appId: '{{FIREBASE_APP_ID}}',
+  measurementId: '{{FIREBASE_MEASUREMENT_ID}}'
+});
+
+const messaging = firebase.messaging();

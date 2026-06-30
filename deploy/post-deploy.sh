@@ -77,5 +77,9 @@ for site in "${LARAVEL_SITES[@]}"; do
   echo ""
 done
 
+if [[ -x "$SCRIPT_DIR/fix-firebase-config.sh" ]]; then
+  bash "$SCRIPT_DIR/fix-firebase-config.sh" "$WWW_ROOT" || true
+fi
+
 echo "==> Pós-deploy concluído."
 echo "    Próximo: sudo ./set-production.sh"

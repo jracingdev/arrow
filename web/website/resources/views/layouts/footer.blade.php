@@ -262,8 +262,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
 
-<script src="{{ asset('firebase-messaging-sw.js') }}" type="text/javascript"></script>
-
 <script src="{{ asset('js/crypto-js.js') }}"></script>
 
 <script src="{{ asset('js/jquery.cookie.js') }}"></script>
