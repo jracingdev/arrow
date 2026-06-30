@@ -42,6 +42,8 @@ Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` 
 | `deploy.sh` | Só copia arquivos para as pastas dos sites |
 | `post-deploy.sh` | Composer, permissões e cache Laravel |
 | `check-env.sh` | Valida `.env` sem expor senhas |
+| `fix-php-aapanel.sh` | Habilita fileinfo no PHP 8.2 do aaPanel |
+| `set-production.sh` | APP_ENV=production e APP_DEBUG=false |
 
 ## Mapeamento domínio → pasta no servidor
 
@@ -259,8 +261,10 @@ firebase deploy --only functions
 
 | Sintoma | Causa provável | Correção |
 |---------|----------------|----------|
-| **404** no Laravel | Document root errado | No aaPanel: Running directory = `/public` |
-| **403** no Laravel | Permissões ou `vendor/` ausente | `./post-deploy.sh` + `composer install` |
+| **404** no Laravel | Document root errado ou `vendor/` ausente | Running directory = `/public` + `./fix-php-aapanel.sh` + `./post-deploy.sh` |
+| **403** no Laravel | Permissões ou `vendor/` ausente | `chown -R www:www` + `./post-deploy.sh` |
+| **composer: ext-fileinfo** | Extensão PHP desabilitada | `sudo ./fix-php-aapanel.sh` |
+| **composer: php >=8.2** | CLI usa PHP 8.1 | Scripts usam `/www/server/php/82/bin/php` automaticamente |
 | **500** | `.env` ou banco incorreto | `./check-env.sh` + conferir senha MySQL no aaPanel |
 | **store** não resolve DNS | Subdomínio não criado no DNS | Adicionar registro A `store` → `56.125.221.106` |
 | Landing OK, Laravel não | Deploy antigo ainda ativo | Rodar `./full-deploy.sh` para sincronizar monorepo |

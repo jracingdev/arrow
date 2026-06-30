@@ -8,10 +8,26 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/sites.conf"
 
 WWW_ROOT="${1:-/www/wwwroot}"
-PHP_BIN="${PHP_BIN:-php}"
+
+# aaPanel: CLI padrão costuma ser PHP 8.1; sites usam PHP 8.2
+if [[ -z "${PHP_BIN:-}" ]] && [[ -x /www/server/php/82/bin/php ]]; then
+  PHP_BIN="/www/server/php/82/bin/php"
+else
+  PHP_BIN="${PHP_BIN:-php}"
+fi
+
+COMPOSER_BIN="${COMPOSER_BIN:-$(command -v composer 2>/dev/null || echo /usr/bin/composer)}"
+export COMPOSER_ALLOW_SUPERUSER=1
 
 echo "==> Pós-deploy Laravel em $WWW_ROOT"
+echo "    PHP: $($PHP_BIN -v | head -1)"
 echo ""
+
+if ! $PHP_BIN -m | grep -qi fileinfo; then
+  echo "ERRO: ext-fileinfo ausente no PHP usado pelo deploy."
+  echo "      Rode primeiro: sudo ./fix-php-aapanel.sh"
+  exit 1
+fi
 
 for site in "${LARAVEL_SITES[@]}"; do
   SITE_PATH="$WWW_ROOT/$site"
@@ -27,9 +43,9 @@ for site in "${LARAVEL_SITES[@]}"; do
   if [[ ! -f .env ]]; then
     if [[ -f .env.example ]]; then
       cp .env.example .env
-      echo "    .env criado a partir de .env.example — CONFIGURE AS SENHAS antes de usar em produção!"
+      echo "    .env criado a partir de .env.example — CONFIGURE AS SENHAS!"
     else
-      echo "    ERRO: .env ausente e sem .env.example — configure manualmente."
+      echo "    ERRO: .env ausente — configure manualmente."
       continue
     fi
   fi
@@ -39,21 +55,20 @@ for site in "${LARAVEL_SITES[@]}"; do
     echo "    APP_KEY gerada."
   fi
 
-  if command -v composer &>/dev/null; then
-    composer install --no-dev --optimize-autoloader --no-interaction
+  if [[ -f "$COMPOSER_BIN" ]] || command -v composer &>/dev/null; then
+    $PHP_BIN "$COMPOSER_BIN" install --no-dev --optimize-autoloader --no-interaction
     echo "    composer install OK."
   else
-    echo "    AVISO: composer não encontrado no PATH."
+    echo "    AVISO: composer não encontrado."
   fi
 
   mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache
 
-  if id www &>/dev/null; then
-    chown -R www:www storage bootstrap/cache 2>/dev/null || true
-  fi
+  chown -R www:www "$SITE_PATH/storage" "$SITE_PATH/bootstrap/cache" 2>/dev/null || true
   chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
   $PHP_BIN artisan storage:link 2>/dev/null || true
+  $PHP_BIN artisan config:clear
   $PHP_BIN artisan config:cache
   $PHP_BIN artisan route:cache
   $PHP_BIN artisan view:cache
@@ -63,4 +78,4 @@ for site in "${LARAVEL_SITES[@]}"; do
 done
 
 echo "==> Pós-deploy concluído."
-echo "    Verifique: APP_DEBUG=false e DB_PASSWORD em cada .env"
+echo "    Próximo: sudo ./set-production.sh"
