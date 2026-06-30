@@ -1,3 +1,4 @@
+import 'package:arrow_shared/arrow_production_config.dart';
 import 'package:emartdriver/model/TaxModel.dart';
 import 'package:emartdriver/model/mail_setting.dart';
 import 'package:location/location.dart';
@@ -52,7 +53,7 @@ const emailTemplates = 'email_templates';
 const SECOND_MILLIS = 1000;
 const MINUTE_MILLIS = 60 * SECOND_MILLIS;
 const HOUR_MILLIS = 60 * MINUTE_MILLIS;
-const GlobalURL = "https://emartadmin.siswebapp.com/";
+const GlobalURL = kAdminApiBaseUrl;
 
 String senderId = '';
 String jsonNotificationFileURL = '';

@@ -168,9 +168,27 @@ flutter pub get
 flutter run
 ```
 
-Configure `google-services.json` (Android) e credenciais Firebase localmente — arquivos sensíveis estão no `.gitignore`.
+Configure `google-services.json` (Android) e credenciais Firebase localmente — arquivos sensíveis estão no `.gitignore`. Veja `firebase/android/README.md` e rode `deploy/prepare-android-apps.sh`.
 
 Documentação detalhada: `docs/eMart App Documentation.pdf`
+
+### Android — build de release
+
+```bash
+cd deploy && chmod +x prepare-android-apps.sh && ./prepare-android-apps.sh --build-debug
+# ou por app:
+cd apps/customer && flutter build appbundle
+cd apps/store    && flutter build appbundle
+cd apps/driver   && flutter build appbundle
+```
+
+| App | Package Android | API (`GlobalURL`) |
+|-----|-----------------|-------------------|
+| Cliente | `com.emart.customer` | `https://admin.arrow.app.br/` |
+| Lojista | `com.emart.store` | `https://admin.arrow.app.br/` |
+| Entregador | `com.emart.driver` | `https://admin.arrow.app.br/` |
+
+Config compartilhada: pacote `apps/shared` (`arrow_shared`).
 
 ## Deploy em produção
 

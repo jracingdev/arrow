@@ -53,6 +53,7 @@ Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` 
 | `fix-arrow-complete.sh` | Correção rápida: nginx root + .user.ini + permissões + composer se vendor ausente |
 | `fix-all.sh` | Recuperação completa: repo + PHP + deploy + permissões + nginx root + open_basedir + check |
 | `fix-firebase-config.sh` | Valida `FIREBASE_*` nos `.env`, gera `firebase-messaging-sw.js`, limpa cache config |
+| `prepare-android-apps.sh` | `flutter pub get` / analyze nos 3 apps Flutter; opcional `--build-debug` / `--build-release` |
 | `update-repo.sh` | `git fetch` + `reset --hard origin/main` (resolve conflitos de pull) |
 | `set-production.sh` | APP_ENV=production e APP_DEBUG=false |
 

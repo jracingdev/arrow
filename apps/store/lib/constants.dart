@@ -1,4 +1,6 @@
 import 'dart:io';
+
+import 'package:arrow_shared/arrow_production_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emartstore/model/CurrencyModel.dart';
 import 'package:emartstore/model/SectionModel.dart';
@@ -94,7 +96,7 @@ String adminEmail = '';
 const Currency = 'currencies';
 
 String fileSize = "10";
-const GlobalURL = "https://emartadmin.siswebapp.com/";
+const GlobalURL = kAdminApiBaseUrl;
 CurrencyModel? currencyData;
 bool isDineInEnable = false;
 SectionModel? selectedSectionModel;

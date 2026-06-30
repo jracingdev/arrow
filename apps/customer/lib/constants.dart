@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:arrow_shared/arrow_production_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:emartconsumer/model/CurrencyModel.dart';
@@ -148,7 +149,7 @@ const COD = 'CODSettings';
 const TermsAndConditions = 'terms_and_condition';
 const GIFT_CARDS = 'gift_cards';
 const GIFT_PURCHASES = 'gift_purchases';
-const GlobalURL = "https://emartadmin.siswebapp.com/";
+const GlobalURL = kAdminApiBaseUrl;
 const Currency = 'currencies';
 const STORAGE_ROOT = 'emart';
 bool isSubscriptionModelApplied = false;
