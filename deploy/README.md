@@ -94,7 +94,7 @@ rsync -av --delete \
   --exclude='storage/logs/*' --exclude='bootstrap/cache/*' \
   $REPO/web/website/ $WWW/arrow.app.br/
 
-rsync -av --delete $REPO/web/landing/ $WWW/lp_arrow.app.br/
+rsync -av --delete $REPO/web/landing/ $WWW/lp.arrow.app.br/
 
 rsync -av --delete \
   --exclude='.env' --exclude='vendor/' --exclude='node_modules/' \
@@ -174,7 +174,7 @@ DB_USERNAME=arrow_admin_adm
 DB_PASSWORD=<senha do aaPanel>
 ```
 
-### Landing — `lp_arrow.app.br`
+### Landing — `lp.arrow.app.br`
 
 Sem `.env` e sem banco de dados.
 
@@ -258,5 +258,5 @@ firebase deploy --only functions
 Mantenha backup das pastas e `.env` antes de cada deploy:
 
 ```bash
-tar -czf backup-$(date +%Y%m%d).tar.gz arrow.app.br store.arrow.app.br admin.arrow.app.br lp_arrow.app.br
+tar -czf backup-$(date +%Y%m%d).tar.gz arrow.app.br store.arrow.app.br admin.arrow.app.br lp.arrow.app.br
 ```
