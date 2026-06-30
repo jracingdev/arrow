@@ -1,0 +1,67 @@
+# Laravel (todos os painéis web)
+vendor/
+node_modules/
+.env
+.env.local
+.env.*.local
+storage/logs/*
+!storage/logs/.gitignore
+storage/framework/cache/*
+!storage/framework/cache/.gitignore
+storage/framework/sessions/*
+!storage/framework/sessions/.gitignore
+storage/framework/views/*
+!storage/framework/views/.gitignore
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+public/storage
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+
+# Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+**/android/.gradle/
+**/android/.cxx/
+**/android/app/.cxx/
+**/android/app/build/
+**/android/build/
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+*.apk
+*.aab
+*.ipa
+
+# Firebase / credenciais
+credentials.json
+serviceAccountKey.json
+**/google-services.json
+firebase-debug.log
+firebase-debug.*.log
+.runtimeconfig.json
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Arquivos compactados legados
+*.zip
