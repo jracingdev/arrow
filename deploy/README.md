@@ -49,6 +49,8 @@ Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` 
 | `fix-nginx-root.sh` | Corrige document root nginx → `/public` (causa #1 de 403 plain nginx) |
 | `fix-permissions.sh` | chown/chmod completo — corrige 403 nginx (www não lê public/) |
 | `diagnose-403.sh` | Diagnóstico de 403 plain nginx (root, permissões, vhost) |
+| `diagnose-all.sh` | Diagnóstico completo: arquivos, nginx -T, extension, .user.ini, curl, PHP |
+| `fix-arrow-complete.sh` | Correção rápida: nginx root + .user.ini + permissões + composer se vendor ausente |
 | `fix-all.sh` | Recuperação completa: repo + PHP + deploy + permissões + nginx root + open_basedir + check |
 | `update-repo.sh` | `git fetch` + `reset --hard origin/main` (resolve conflitos de pull) |
 | `set-production.sh` | APP_ENV=production e APP_DEBUG=false |
@@ -213,9 +215,24 @@ for site in arrow.app.br store.arrow.app.br admin.arrow.app.br; do
 done
 ```
 
-## 6. Nginx — document root
+## 6. Nginx — document root e aaPanel
 
-No aaPanel, confirme o **Running directory** de cada site:
+### Configurações obrigatórias no aaPanel (Website → cada domínio)
+
+| Configuração | arrow / store / admin | lp.arrow.app.br |
+|--------------|----------------------|-----------------|
+| **Running directory** | `/public` | `/` (raiz) |
+| **Anti-XSS attack** | **OFF** (Laravel quebra com XSS filter ativo) | conforme necessário |
+| **open_basedir** (aba PHP) | `/www/wwwroot/DOMAIN/:/tmp/` (sem `/public`) | — |
+
+> **Verificação crítica:** após qualquer alteração no painel, confirme que **arrow.app.br** aparece em `nginx -T` com `/public`:
+>
+> ```bash
+> sudo nginx -T 2>/dev/null | grep 'root.*/www/wwwroot/arrow.app.br'
+> # Esperado: root /www/wwwroot/arrow.app.br/public;
+> ```
+>
+> Se só admin/store aparecem com `/public` e arrow não, o vhost `arrow.app.br.conf` não foi atualizado ou uma config em `extension/arrow.app.br/` sobrescreve o root.
 
 | Site | Running directory |
 |------|-------------------|
@@ -412,7 +429,17 @@ O script também verifica extensões em `/www/server/panel/vhost/nginx/extension
 ```bash
 cd /www/wwwroot/arrow-repo/deploy
 sudo chmod +x *.sh
+sudo ./diagnose-all.sh | tee /tmp/diagnose-all.log
+# ou foco em 403:
 sudo ./diagnose-403.sh | tee /tmp/diagnose-403.log
+```
+
+### Correção rápida (404/403 sem redeploy completo)
+
+```bash
+cd /www/wwwroot/arrow-repo
+sudo git fetch origin main && sudo git reset --hard origin/main
+cd deploy && sudo chmod +x *.sh && sudo ./fix-arrow-complete.sh
 ```
 
 Confira especialmente:
@@ -447,7 +474,11 @@ Para **arrow.app.br**, **store.arrow.app.br** e **admin.arrow.app.br**:
 ### Sintoma observado (jun/2026)
 
 - `nginx -T` mostra `root /www/wwwroot/DOMAIN;` (sem `/public`) nos três Laravel
-- **403 plain nginx** em store/admin (e às vezes arrow funciona parcialmente por rewrites)
+- **grep só mostra admin/store com /public** — `arrow.app.br` ausente = vhost principal não patchado
+- `sed` com glob falha sem bash: use `sudo bash -c 'for f in ...'` ou `./fix-nginx-root.sh`
+- Config em `extension/DOMAIN/*.conf` pode sobrescrever root de volta para raiz do site
+- Conflito: aaPanel "Running directory" + sed manual podem gerar `/public/public` (script corrige)
+- **403 plain nginx** em store/admin; **404** quando root errado ou vendor ausente
 - Após corrigir root + reload: sites respondem 302/200 do Laravel
 
 Quando um Laravel funciona e outros não, compare `nginx -T | grep root` entre os três sites e as permissões de `public/index.php` em cada pasta.

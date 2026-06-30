@@ -184,6 +184,22 @@ Resumo:
 4. Configure `.env` com credenciais de produção (senhas fora do Git)
 5. `php artisan config:cache` e `php artisan route:cache`
 
+### aaPanel — configurações críticas (Laravel)
+
+| Site | Running directory | Anti-XSS | open_basedir |
+|------|-------------------|----------|--------------|
+| arrow.app.br | `/public` | **OFF** | `/www/wwwroot/arrow.app.br/:/tmp/` |
+| store.arrow.app.br | `/public` | **OFF** | `/www/wwwroot/store.arrow.app.br/:/tmp/` |
+| admin.arrow.app.br | `/public` | **OFF** | `/www/wwwroot/admin.arrow.app.br/:/tmp/` |
+
+Confirme no servidor que **arrow.app.br** aparece no nginx com `/public`:
+
+```bash
+sudo nginx -T 2>/dev/null | grep 'root.*/www/wwwroot/arrow.app.br'
+```
+
+Correção rápida no servidor: `cd /www/wwwroot/arrow-repo/deploy && sudo ./fix-arrow-complete.sh`
+
 ## Segurança
 
 - Nunca commite `.env`, senhas de banco, `credentials.json` ou `serviceAccountKey.json`
