@@ -2,6 +2,35 @@
 
 Guia de implantação no servidor de produção **56.125.221.106** (aaPanel, PHP 8.2, Nginx 1.24, MySQL 8.0.45, SSL).
 
+## Início rápido (terminal do aaPanel)
+
+No servidor, abra **Terminal** no aaPanel e execute:
+
+```bash
+cd /www/wwwroot
+git clone https://github.com/jracingdev/arrow.git arrow-repo   # só na 1ª vez
+cd /www/wwwroot/arrow-repo/deploy
+chmod +x *.sh
+./full-deploy.sh
+```
+
+Depois configure as senhas MySQL nos `.env` (se ainda não existirem no servidor) e rode:
+
+```bash
+./check-env.sh
+```
+
+Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` + sync + cache).
+
+### Scripts disponíveis
+
+| Script | Função |
+|--------|--------|
+| `full-deploy.sh` | Clone/pull + sync + composer + cache (tudo) |
+| `deploy.sh` | Só copia arquivos para as pastas dos sites |
+| `post-deploy.sh` | Composer, permissões e cache Laravel |
+| `check-env.sh` | Valida `.env` sem expor senhas |
+
 ## Mapeamento domínio → pasta no servidor
 
 | Domínio | Pasta aaPanel | Origem no monorepo | Document root |
@@ -213,6 +242,16 @@ firebase deploy --only functions
 - [ ] Login funciona em cada painel Laravel
 - [ ] `APP_DEBUG=false` em todos os `.env` de produção
 - [ ] Uploads em `storage/app/public` acessíveis (symlink `public/storage` se necessário)
+
+## Solução de problemas
+
+| Sintoma | Causa provável | Correção |
+|---------|----------------|----------|
+| **404** no Laravel | Document root errado | No aaPanel: Running directory = `/public` |
+| **403** no Laravel | Permissões ou `vendor/` ausente | `./post-deploy.sh` + `composer install` |
+| **500** | `.env` ou banco incorreto | `./check-env.sh` + conferir senha MySQL no aaPanel |
+| **store** não resolve DNS | Subdomínio não criado no DNS | Adicionar registro A `store` → `56.125.221.106` |
+| Landing OK, Laravel não | Deploy antigo ainda ativo | Rodar `./full-deploy.sh` para sincronizar monorepo |
 
 ## Rollback
 
