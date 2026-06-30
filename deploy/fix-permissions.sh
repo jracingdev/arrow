@@ -31,8 +31,24 @@ fix_site() {
 
   echo "---- $site ----"
 
-  chown -R "${WEB_USER}:${WEB_GROUP}" "$path"
-  echo "    chown -R ${WEB_USER}:${WEB_GROUP} OK"
+  # .user.ini do aaPanel é imutável (chattr +i) — ajustar antes do chown
+  for ini in "$path/.user.ini" "$path/public/.user.ini"; do
+    if [[ -f "$ini" ]] && lsattr "$ini" 2>/dev/null | grep -q 'i'; then
+      chattr -i "$ini" 2>/dev/null || true
+    fi
+  done
+
+  chown -R "${WEB_USER}:${WEB_GROUP}" "$path" 2>/dev/null || {
+    chown -R "${WEB_USER}:${WEB_GROUP}" "$path/public" "$path/vendor" "$path/storage" "$path/bootstrap" "$path/app" "$path/config" "$path/database" "$path/resources" "$path/routes" 2>/dev/null || true
+  }
+  for ini in "$path/.user.ini" "$path/public/.user.ini"; do
+    if [[ -f "$ini" ]]; then
+      chown "${WEB_USER}:${WEB_GROUP}" "$ini" 2>/dev/null || true
+      chattr +i "$ini" 2>/dev/null || true
+    fi
+  done
+
+  echo "    chown ${WEB_USER}:${WEB_GROUP} OK"
 
   find "$path" -type d -exec chmod 755 {} +
   find "$path" -type f -exec chmod 644 {} +
