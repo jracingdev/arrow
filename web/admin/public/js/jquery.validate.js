@@ -1,5 +1,5 @@
 
-var firebaseConfig = {
+var firebaseConfig = window.__firebaseConfig || {
     apiKey: $.decrypt($.cookie('XSRF-TOKEN-AK')),
     authDomain: $.decrypt($.cookie('XSRF-TOKEN-AD')),
     databaseURL: $.decrypt($.cookie('XSRF-TOKEN-DU')),
@@ -8,6 +8,8 @@ var firebaseConfig = {
     messagingSenderId: $.decrypt($.cookie('XSRF-TOKEN-MS')),
     appId: $.decrypt($.cookie('XSRF-TOKEN-AI')),
     measurementId: $.decrypt($.cookie('XSRF-TOKEN-MI'))
-}
+};
 
-firebase.initializeApp(firebaseConfig); 
+if (firebaseConfig.apiKey) {
+    firebase.initializeApp(firebaseConfig);
+}

@@ -918,8 +918,7 @@
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
 
 <script src="{{ asset('js/crypto-js.js') }}"></script>
-<script src="{{ asset('js/jquery.cookie.js') }}"></script>
-<script src="{{ asset('js/jquery.validate.js') }}"></script>
+@include('partials.firebase-init')
 
 <script>
     var database = firebase.firestore();

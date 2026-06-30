@@ -97,6 +97,61 @@ clear_laravel_config_cache() {
   echo "  [OK] Cache de config recriado"
 }
 
+verify_firebase_config_cached() {
+  local site_path="$1"
+  local site_name="$2"
+
+  if [[ ! -f "$site_path/artisan" ]]; then
+    return 0
+  fi
+
+  local api_key
+  api_key="$(
+    cd "$site_path" && $PHP_BIN artisan tinker --execute="echo config('firebase.api_key');" 2>/dev/null \
+      | tr -d '\r' | tail -n 1
+  )"
+
+  if [[ -n "$api_key" && "$api_key" != "null" ]]; then
+    echo "  [OK] config('firebase.api_key') disponível após config:cache"
+  else
+    echo "  [FALHA] config('firebase.api_key') vazio — confira config/firebase.php e .env"
+    return 1
+  fi
+}
+
+verify_firebase_inline_config() {
+  local url="$1"
+  local label="$2"
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "  [SKIP] curl não disponível para verificar $label"
+    return 0
+  fi
+
+  local body
+  body="$(curl -fsSL --max-time 15 "$url" 2>/dev/null || true)"
+
+  if [[ -z "$body" ]]; then
+    echo "  [AVISO] Não foi possível obter HTML de $url"
+    return 0
+  fi
+
+  if echo "$body" | grep -q '__firebaseConfig'; then
+    echo "  [OK] $label expõe window.__firebaseConfig no HTML"
+  else
+    echo "  [AVISO] $label não contém __firebaseConfig (página pode não carregar Firebase)"
+  fi
+
+  if echo "$body" | grep -q '"apiKey":""'; then
+    echo "  [FALHA] $label tem apiKey vazio no HTML — FIREBASE_APIKEY não chegou ao config cache"
+    return 1
+  fi
+
+  if echo "$body" | grep -qE '"apiKey":"[^"]{10,}"'; then
+    echo "  [OK] $label tem apiKey preenchido no HTML"
+  fi
+}
+
 echo "==> Firebase — validação e geração de firebase-messaging-sw.js"
 echo "    WWW_ROOT: $WWW_ROOT"
 echo ""
@@ -135,9 +190,16 @@ for site in "${LARAVEL_SITES[@]}"; do
   if [[ -f "$site_path/.env" ]]; then
     echo "---- $site ----"
     clear_laravel_config_cache "$site_path"
+    verify_firebase_config_cached "$site_path" "$site" || true
     echo ""
   fi
 done
+
+echo "==> Verificando __firebaseConfig no HTML (requer site no ar)"
+verify_firebase_inline_config "https://${WWW_WEBSITE}/login" "$WWW_WEBSITE/login" || true
+verify_firebase_inline_config "https://${WWW_ADMIN}/login" "$WWW_ADMIN/login" || true
+verify_firebase_inline_config "https://${WWW_STORE}/login" "$WWW_STORE/login" || true
+echo ""
 
 echo "==> fix-firebase-config concluído."
 if [[ "$any_missing" -eq 0 ]]; then

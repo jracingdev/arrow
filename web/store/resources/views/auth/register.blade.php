@@ -159,8 +159,7 @@
 <script src="{{ asset('assets/plugins/select2/dist/js/select2.min.js') }}"></script>
 
 <script src="{{ asset('js/crypto-js.js') }}"></script>
-<script src="{{ asset('js/jquery.cookie.js') }}"></script>
-<script src="{{ asset('js/jquery.validate.js') }}"></script>
+@include('partials.firebase-init')
 
 <script>
     var database = firebase.firestore();

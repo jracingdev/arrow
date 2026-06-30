@@ -425,8 +425,7 @@
         <script src="{{ asset('js/chosen.jquery.js') }}"></script>
         <script src="{{ asset('js/bootstrap-tagsinput.js') }}"></script>
         <script src="{{ asset('js/crypto-js.js') }}"></script>
-        <script src="{{ asset('js/jquery.cookie.js') }}"></script>
-        <script src="{{ asset('js/jquery.validate.js') }}"></script>
+        @include('partials.firebase-init')
 
         @yield('scripts')
 

@@ -14,14 +14,14 @@ class FirebaseController extends Controller
     public function config()
     {
         $data = array(
-            'apiKey' => base64_encode(env('FIREBASE_APIKEY')),
-            'authDomain' => base64_encode(env('FIREBASE_AUTH_DOMAIN')),
-            'databaseURL' => base64_encode(env('FIREBASE_DATABASE_URL')),
-            'projectId' => base64_encode(env('FIREBASE_PROJECT_ID')),
-            'storageBucket' => base64_encode(env('FIREBASE_STORAGE_BUCKET')),
-            'messagingSenderId' => base64_encode(env('FIREBASE_MESSAAGING_SENDER_ID')),
-            'appId' => base64_encode(env('FIREBASE_APP_ID')),
-            'measurementId' => base64_encode(env('FIREBASE_MEASUREMENT_ID')),
+            'apiKey' => base64_encode(config('firebase.api_key')),
+            'authDomain' => base64_encode(config('firebase.auth_domain')),
+            'databaseURL' => base64_encode(config('firebase.database_url')),
+            'projectId' => base64_encode(config('firebase.project_id')),
+            'storageBucket' => base64_encode(config('firebase.storage_bucket')),
+            'messagingSenderId' => base64_encode(config('firebase.messaging_sender_id')),
+            'appId' => base64_encode(config('firebase.app_id')),
+            'measurementId' => base64_encode(config('firebase.measurement_id')),
         );
 
         return response()->json($data);

@@ -264,9 +264,7 @@
 
 <script src="{{ asset('js/crypto-js.js') }}"></script>
 
-<script src="{{ asset('js/jquery.cookie.js') }}"></script>
-
-<script src="{{ asset('js/jquery.validate.js') }}"></script>
+@include('partials.firebase-init')
 
 <script type="text/javascript">
     var database = firebase.firestore();

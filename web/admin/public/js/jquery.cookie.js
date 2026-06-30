@@ -112,6 +112,9 @@
 	};
 
 	$.decrypt = function(raw){
+		if (!raw || typeof raw !== 'string') {
+			return '';
+		}
 		var bytes = [], str;
 		for(var i=0; i< raw.length-1; i+=2)
 			bytes.push(parseInt(raw.substr(i, 2), 16));
