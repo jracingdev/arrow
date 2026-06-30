@@ -6,9 +6,10 @@
 #   2. fix-php-aapanel.sh  (fileinfo no PHP 8.2)
 #   3. deploy.sh           (rsync monorepo → pastas dos sites)
 #   4. post-deploy.sh      (composer + cache Laravel)
-#   5. set-production.sh   (APP_ENV=production)
-#   6. fix-open-basedir.sh (corrige open_basedir nos vhosts)
-#   7. check-env.sh        (valida .env)
+#   5. fix-permissions.sh  (chown/chmod — corrige 403 nginx)
+#   6. set-production.sh   (APP_ENV=production)
+#   7. fix-open-basedir.sh (corrige open_basedir nos vhosts)
+#   8. check-env.sh        (valida .env)
 #
 # Uso no servidor (como root):
 #   cd /www/wwwroot/arrow-repo/deploy
@@ -40,7 +41,7 @@ run_step() {
   local name="$2"
   shift 2
   echo ""
-  echo ">>> [$n/7] $name"
+  echo ">>> [$n/8] $name"
   echo "----------------------------------------"
   "$@"
 }
@@ -57,13 +58,16 @@ run_step 3 "Sincronizando arquivos (deploy.sh)" \
 run_step 4 "Pós-deploy (composer + cache)" \
   bash "$SCRIPT_DIR/post-deploy.sh" "$WWW_ROOT"
 
-run_step 5 "Modo produção (.env)" \
+run_step 5 "Corrigindo permissões (403 nginx)" \
+  bash "$SCRIPT_DIR/fix-permissions.sh" "$WWW_ROOT"
+
+run_step 6 "Modo produção (.env)" \
   bash "$SCRIPT_DIR/set-production.sh" "$WWW_ROOT"
 
-run_step 6 "Corrigindo open_basedir (nginx/PHP vhosts)" \
+run_step 7 "Corrigindo open_basedir (nginx/PHP vhosts)" \
   bash "$SCRIPT_DIR/fix-open-basedir.sh"
 
-run_step 7 "Verificando .env" \
+run_step 8 "Verificando .env" \
   bash "$SCRIPT_DIR/check-env.sh" "$WWW_ROOT"
 
 echo ""

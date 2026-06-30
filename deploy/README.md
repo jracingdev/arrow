@@ -44,7 +44,9 @@ Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` 
 | `check-env.sh` | Valida `.env` sem expor senhas |
 | `fix-php-aapanel.sh` | Habilita fileinfo no PHP 8.2 do aaPanel |
 | `fix-open-basedir.sh` | Corrige open_basedir nos vhosts (Laravel precisa da raiz do site) |
-| `fix-all.sh` | Recuperação completa: repo + PHP + deploy + open_basedir + check |
+| `fix-permissions.sh` | chown/chmod completo — corrige 403 nginx (www não lê public/) |
+| `diagnose-403.sh` | Diagnóstico de 403 plain nginx (root, permissões, vhost) |
+| `fix-all.sh` | Recuperação completa: repo + PHP + deploy + permissões + open_basedir + check |
 | `update-repo.sh` | `git fetch` + `reset --hard origin/main` (resolve conflitos de pull) |
 | `set-production.sh` | APP_ENV=production e APP_DEBUG=false |
 
@@ -308,6 +310,68 @@ sudo git fetch origin main && sudo git reset --hard origin/main
 cd deploy && sudo chmod +x *.sh && sudo ./fix-all.sh
 ```
 
+## HTTP 403 — plain nginx (sem erro PHP)
+
+Quando o navegador mostra a página padrão **403 Forbidden** com `<center>nginx</center>` (146 bytes), o **nginx bloqueou antes do PHP**. Isso **não** é open_basedir (que geraria erro PHP ou HTTP 500).
+
+### Diferença entre 403, 404 e open_basedir
+
+| Resposta | Significado |
+|----------|-------------|
+| **403 plain nginx** | root errado, permissões, ou index.php ilegível/ausente |
+| **404 nginx/Laravel** | root OK mas rota/arquivo não existe, ou vendor ausente |
+| **500 + open_basedir no log** | PHP rodou mas open_basedir aponta só para `public/` |
+
+### Causas comuns no aaPanel
+
+1. **Running directory errado** — Laravel precisa de `/public`, não `/` (raiz do site)
+2. **Deploy com sudo** — pastas ficam `root:root` com `700`; usuário `www` não atravessa até `public/index.php`
+3. **`public/index.php` ausente** — deploy não sincronizou store/admin
+4. **Execute bit nas pastas pai** — `/www`, `/www/wwwroot` e a pasta do site precisam de `755`
+
+### Diagnóstico no servidor
+
+```bash
+cd /www/wwwroot/arrow-repo/deploy
+sudo chmod +x *.sh
+sudo ./diagnose-403.sh | tee /tmp/diagnose-403.log
+```
+
+Confira especialmente:
+
+- `root` no vhost = `/www/wwwroot/DOMAIN/public`
+- `ls -la .../public/index.php` existe e é `-rw-r--r-- www www`
+- `sudo -u www test -r .../public/index.php` retorna OK
+
+### Correção automática
+
+```bash
+sudo ./fix-permissions.sh
+sudo ./fix-open-basedir.sh   # se ainda houver erro PHP depois do 403 sumir
+```
+
+Ou tudo de uma vez:
+
+```bash
+sudo ./fix-all.sh
+```
+
+### Correção manual no aaPanel
+
+Para **store.arrow.app.br** e **admin.arrow.app.br**:
+
+1. aaPanel → **Website** → clique no domínio
+2. **Site directory** → **Running directory** = `/public`
+3. Salvar
+4. Se persistir: **Website** → **Config file** → confirme `root /www/wwwroot/DOMAIN/public;`
+
+### Sintoma observado (jun/2026)
+
+- `https://arrow.app.br` → **302** (Laravel OK)
+- `https://store.arrow.app.br` e `https://admin.arrow.app.br` → **403 plain nginx**
+
+Quando um Laravel funciona e outros não, compare `nginx -T | grep root` entre os três sites e as permissões de `public/index.php` em cada pasta.
+
 ## Solução de problemas
 
 | Sintoma | Causa provável | Correção |
@@ -315,7 +379,8 @@ cd deploy && sudo chmod +x *.sh && sudo ./fix-all.sh
 | **open_basedir** / vendor não permitido | aaPanel restringe PHP só a `public/` | `./fix-open-basedir.sh` ou ajuste manual no aaPanel (ver seção acima) |
 | **404** no Laravel | open_basedir, document root errado ou `vendor/` ausente | open_basedir na raiz + Running directory = `/public` + `./fix-all.sh` |
 | **git pull** com conflitos | Alterações locais no servidor | `sudo ./update-repo.sh` ou `git reset --hard origin/main` |
-| **403** no Laravel | Permissões ou `vendor/` ausente | `chown -R www:www` + `./post-deploy.sh` |
+| **403 plain nginx** (página `<center>nginx</center>`) | root ≠ `/public`, permissões root:root, index.php ausente | `./diagnose-403.sh` + `./fix-permissions.sh` + Running directory = `/public` no aaPanel |
+| **403** no Laravel (genérico) | Permissões ou `vendor/` ausente | `sudo ./fix-permissions.sh` + `./post-deploy.sh` |
 | **composer: ext-fileinfo** | Extensão PHP desabilitada | `sudo ./fix-php-aapanel.sh` |
 | **composer: php >=8.2** | CLI usa PHP 8.1 | Scripts usam `/www/server/php/82/bin/php` automaticamente |
 | **500** | `.env` ou banco incorreto | `./check-env.sh` + conferir senha MySQL no aaPanel |
