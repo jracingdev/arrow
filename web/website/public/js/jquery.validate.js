@@ -15,6 +15,6 @@ if (window.__firebaseConfig && window.__firebaseConfig.apiKey) {
     };
 }
 
-if (firebaseConfig.apiKey) {
+if (firebaseConfig.apiKey && typeof firebase !== 'undefined' && !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
