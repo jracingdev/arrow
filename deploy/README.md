@@ -4,11 +4,23 @@ Guia de implantação no servidor de produção **56.125.221.106** (aaPanel, PHP
 
 ## Início rápido (terminal do aaPanel)
 
-No servidor, abra **Terminal** no aaPanel e execute:
+No servidor, use o **Terminal do aaPanel como root** (não como `ubuntu` SSH, se der permissão negada):
 
 ```bash
+# Diagnóstico
+whoami
+ls -la /www/wwwroot | head
+which git
+git --version
+
+# Clone (sem esconder erros)
 cd /www/wwwroot
-git clone https://github.com/jracingdev/arrow.git arrow-repo   # só na 1ª vez
+git clone https://github.com/jracingdev/arrow.git arrow-repo
+
+# Se "Permission denied":
+# sudo git clone https://github.com/jracingdev/arrow.git arrow-repo
+# sudo chown -R www:www arrow-repo
+
 cd /www/wwwroot/arrow-repo/deploy
 chmod +x *.sh
 ./full-deploy.sh
