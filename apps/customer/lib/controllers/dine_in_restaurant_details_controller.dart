@@ -48,7 +48,7 @@ class DineInRestaurantDetailsController extends GetxController {
   RxList<TimeModel> timeSlotList = <TimeModel>[].obs;
 
   Rx<Timestamp> selectedDate = Timestamp.now().obs;
-  RxString selectedTimeSlot = '6:00 PM'.obs;
+  RxString selectedTimeSlot = '18:00'.obs;
 
   RxString selectedTimeDiscount = '0'.obs;
   RxString selectedTimeDiscountType = ''.obs;
@@ -65,7 +65,7 @@ class DineInRestaurantDetailsController extends GetxController {
     ShowToastDialog.showLoader("Please wait...".tr);
 
     DateTime dt = selectedDate.value.toDate();
-    String hour = DateFormat("kk:mm").format(DateFormat('hh:mm a').parse((Intl.getCurrentLocale() == "en_US") ? selectedTimeSlot.value : selectedTimeSlot.value.toLowerCase()));
+    String hour = DateFormat("HH:mm").format(DateFormat('HH:mm').parse(selectedTimeSlot.value));
     dt = DateTime(dt.year, dt.month, dt.day, int.parse(hour.split(":")[0]), int.parse(hour.split(":")[1]), dt.second, dt.millisecond, dt.microsecond);
     Timestamp selectedDateTime = Timestamp.fromDate(dt);
     if (selectedDateTime.toDate().isBefore(DateTime.now())) {
@@ -136,7 +136,7 @@ class DineInRestaurantDetailsController extends GetxController {
 
     timeSet(selectedDate.value);
     if (timeSlotList.isNotEmpty) {
-      selectedTimeSlot.value = DateFormat('hh:mm a').format(timeSlotList[0].time!);
+      selectedTimeSlot.value = DateFormat('HH:mm').format(timeSlotList[0].time!);
     }
   }
 

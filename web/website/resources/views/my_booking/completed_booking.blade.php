@@ -369,8 +369,8 @@
             if (orderDetails.authorID != user_uuid) {
                 window.location.href = '{{ route('login') }}';
             } else {
-                var orderDate = orderDetails.scheduleDateTime.toDate().toDateString();
-                var time = orderDetails.scheduleDateTime.toDate().toLocaleTimeString('en-US');
+                var orderDate = ArrowDateTime.formatDate(orderDetails.scheduleDateTime.toDate());
+                var time = ArrowDateTime.formatTime(orderDetails.scheduleDateTime.toDate());
                 $("#booking-date").html(orderDate + ' ' + time);
                 var billingName = '';
                 if (orderDetails.author.hasOwnProperty('firstName')) {
@@ -405,12 +405,12 @@
                         totalHours = parseFloat(totalHours / 3600).toFixed(2);
                         $('#total_time').removeClass('d-none');
                         $('#timer').html(totalOrderTime);
-                        var startAt = orderDetails.startTime.toDate().toDateString();
-                        var time = orderDetails.startTime.toDate().toLocaleTimeString('en-US');
+                        var startAt = ArrowDateTime.formatDate(orderDetails.startTime.toDate());
+                        var time = ArrowDateTime.formatTime(orderDetails.startTime.toDate());
                         $('#stime').html(startAt + ' ' + time);
                         $('#start_time').removeClass('d-none');
-                        var endAt = orderDetails.endTime.toDate().toDateString();
-                        var time = orderDetails.endTime.toDate().toLocaleTimeString('en-US');
+                        var endAt = ArrowDateTime.formatDate(orderDetails.endTime.toDate());
+                        var time = ArrowDateTime.formatTime(orderDetails.endTime.toDate());
                         $('#etime').html(endAt + ' ' + time);
                         $('#end_time').removeClass('d-none');
                     }

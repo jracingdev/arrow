@@ -907,7 +907,7 @@
                         $(".plan_type").html(vendor.subscription_plan.type);
                         if (vendor.subscriptionExpiryDate != null && vendor
                             .subscriptionExpiryDate != '') {
-                            date = vendor.subscriptionExpiryDate.toDate().toDateString();
+                            date = ArrowDateTime.formatDate(vendor.subscriptionExpiryDate.toDate());
                             time = vendor.subscriptionExpiryDate.toDate().toLocaleTimeString(
                                 'en-US');
                             $(".plan_expire_at").html(date + ' ' + time);

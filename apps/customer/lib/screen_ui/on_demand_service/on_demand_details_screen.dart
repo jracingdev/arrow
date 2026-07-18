@@ -402,7 +402,7 @@ class OnDemandDetailsScreen extends StatelessWidget {
                     children: [
                       Text(review.uname ?? '', style: TextStyle(fontSize: 16, letterSpacing: 1, fontWeight: FontWeight.w600, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900)),
                       Text(
-                        review.createdAt != null ? DateFormat('dd MMM').format(review.createdAt!.toDate()) : '',
+                        review.createdAt != null ? DateFormat('dd-MM').format(review.createdAt!.toDate()) : '',
                         style: TextStyle(fontSize: 12, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900),
                       ),
                     ],

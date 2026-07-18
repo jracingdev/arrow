@@ -805,8 +805,8 @@
             if (orderDetails.author.id != user_uuid) {
                 window.location.href = '{{ route('login') }}';
             } else {
-                var orderDate = orderDetails.createdAt.toDate().toDateString();
-                var time = orderDetails.createdAt.toDate().toLocaleTimeString('en-US');
+                var orderDate = ArrowDateTime.formatDate(orderDetails.createdAt.toDate());
+                var time = ArrowDateTime.formatTime(orderDetails.createdAt.toDate());
                 $("#order-date").html(orderDate + ' ' + time);
                 var billingName = '';
                 if (orderDetails.author.hasOwnProperty('firstName')) {

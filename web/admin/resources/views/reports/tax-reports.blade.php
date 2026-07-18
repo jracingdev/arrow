@@ -146,7 +146,7 @@
     $('#reportrange span').html('{{ trans("lang.select_date_range") }}');
     $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
         $('#reportrange span').html(
-            picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY')
+            picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY')
         );
     });
 
@@ -522,7 +522,7 @@
         let table = $('#tax_report_table_container table');
         let startDate = $('#reportrange').data('daterangepicker').startDate.format('YYYY-MM-DD');
         let endDate = $('#reportrange').data('daterangepicker').endDate.format('YYYY-MM-DD');
-        let displayRange = $('#reportrange').data('daterangepicker').startDate.format('MMMM D, YYYY') + ' - ' + $('#reportrange').data('daterangepicker').endDate.format('MMMM D, YYYY');
+        let displayRange = $('#reportrange').data('daterangepicker').startDate.format('DD-MM-YYYY') + ' - ' + $('#reportrange').data('daterangepicker').endDate.format('DD-MM-YYYY');
                         
         let csv = [];
         csv.push(`"Tax Report"`);
@@ -561,7 +561,7 @@
         let table = $('#taxDetailContent table');
         let startDate = $('#reportrange').data('daterangepicker').startDate.format('YYYY-MM-DD');
         let endDate = $('#reportrange').data('daterangepicker').endDate.format('YYYY-MM-DD');
-        let displayRange = $('#reportrange').data('daterangepicker').startDate.format('MMMM D, YYYY') + ' - ' + $('#reportrange').data('daterangepicker').endDate.format('MMMM D, YYYY');
+        let displayRange = $('#reportrange').data('daterangepicker').startDate.format('DD-MM-YYYY') + ' - ' + $('#reportrange').data('daterangepicker').endDate.format('DD-MM-YYYY');
 
         let csv = [];
         csv.push(`"Detailed Tax Report"`);
@@ -604,7 +604,7 @@
         let table = $('#tax_report_table_container table');
         let startDate = $('#reportrange').data('daterangepicker').startDate.format('YYYY-MM-DD');
         let endDate = $('#reportrange').data('daterangepicker').endDate.format('YYYY-MM-DD');
-        let displayRange = $('#reportrange').data('daterangepicker').startDate.format('MMMM D, YYYY') + ' - ' + $('#reportrange').data('daterangepicker').endDate.format('MMMM D, YYYY');
+        let displayRange = $('#reportrange').data('daterangepicker').startDate.format('DD-MM-YYYY') + ' - ' + $('#reportrange').data('daterangepicker').endDate.format('DD-MM-YYYY');
 
         let tableClone = table.clone();
         tableClone.find('th:last-child').remove();
@@ -635,7 +635,7 @@
         let table = $('#taxDetailContent table');
         let startDate = $('#reportrange').data('daterangepicker').startDate.format('YYYY-MM-DD');
         let endDate = $('#reportrange').data('daterangepicker').endDate.format('YYYY-MM-DD');
-        let displayRange = $('#reportrange').data('daterangepicker').startDate.format('MMMM D, YYYY') + ' - ' + $('#reportrange').data('daterangepicker').endDate.format('MMMM D, YYYY');
+        let displayRange = $('#reportrange').data('daterangepicker').startDate.format('DD-MM-YYYY') + ' - ' + $('#reportrange').data('daterangepicker').endDate.format('DD-MM-YYYY');
 
         let tableClone = table.clone();
         tableClone.find('br').replaceWith('\n');
@@ -660,8 +660,8 @@
     $(document).on('click', '.history-view', function() {
 
         let source = $(this).data('source'); // adminCommission, vendorSubscription, platformFee
-        let startDate = $('#reportrange').data('daterangepicker').startDate.format('MMMM D, YYYY');
-        let endDate = $('#reportrange').data('daterangepicker').endDate.format('MMMM D, YYYY');
+        let startDate = $('#reportrange').data('daterangepicker').startDate.format('DD-MM-YYYY');
+        let endDate = $('#reportrange').data('daterangepicker').endDate.format('DD-MM-YYYY');
 
         // Show search criteria
         let filterHtml = `<strong>Date:</strong> ${startDate} - ${endDate}<br>
@@ -715,7 +715,7 @@
                 html += `<tr>
                             <td>${count++}</td>
                             <td>${order.id}</td>
-                            <td>${order.createdAt.toDate().toDateString()}</td>
+                            <td>${ArrowDateTime.formatDate(order.createdAt.toDate())}</td>
                             <td>$${adminCommission.toFixed(2)}</td>
                             <td>${buildTaxSummary(taxes)}</td>
                         </tr>`;
@@ -741,7 +741,7 @@
                 html += `<tr>
                             <td>${count++}</td>
                             <td>${sub.id}</td>
-                            <td>${sub.createdAt.toDate().toDateString()}</td>
+                            <td>${ArrowDateTime.formatDate(sub.createdAt.toDate())}</td>
                             <td>$${price.toFixed(2)}</td>
                             <td>${buildTaxSummary(taxes)}</td>
                         </tr>`;
@@ -767,7 +767,7 @@
                 html += `<tr>
                             <td>${count++}</td>
                             <td>${order.id}</td>
-                            <td>${order.createdAt.toDate().toDateString()}</td>
+                            <td>${ArrowDateTime.formatDate(order.createdAt.toDate())}</td>
                             <td>$${platformAmount.toFixed(2)}</td>
                             <td>${buildTaxSummary(taxes)}</td>
                         </tr>`;

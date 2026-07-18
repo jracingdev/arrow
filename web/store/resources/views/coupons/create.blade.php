@@ -145,7 +145,7 @@
     isActive: true   
   };
   $('#datetimepicker1').datepicker({
-      dateFormat: 'mm/dd/yyyy'
+      dateFormat: 'dd-mm-yyyy'
   });
   document.addEventListener("DOMContentLoaded", async function() {   
     if (authRole === 'employee') {               

@@ -232,11 +232,8 @@
         const now = new Date();
         const isFuture = bookingDate > now; // true if future
 
-        const date = bookingDate.toDateString();
-        const time = bookingDate.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: 'numeric'
-        });
+        const date = ArrowDateTime.formatDate(bookingDate);
+        const time = ArrowDateTime.formatTime(bookingDate);
 
         html += '<td>' + date + ' ' + time + '</td>';
         html += '<td>' + val.totalGuest + '</td>';

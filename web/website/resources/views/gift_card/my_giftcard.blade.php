@@ -173,8 +173,8 @@
             });
             alldata.forEach((listval) => {
                 var val = listval;
-                var date = val.expireDate.toDate().toDateString();
-                var time = val.expireDate.toDate().toLocaleTimeString('en-US');
+                var date = ArrowDateTime.formatDate(val.expireDate.toDate());
+                var time = ArrowDateTime.formatTime(val.expireDate.toDate());
                 var expiry = date + ' ' + time;
                 var price_val = '';
                 if (currencyAtRight) {
@@ -195,8 +195,8 @@
                 }
                 if (val.hasOwnProperty('expireDate') && val.expireDate) {
                     try {
-                        date = val.expireDate.toDate().toDateString();
-                        time = val.expireDate.toDate().toLocaleTimeString('en-US');
+                        date = ArrowDateTime.formatDate(val.expireDate.toDate());
+                        time = ArrowDateTime.formatTime(val.expireDate.toDate());
                     } catch (err) {
                         date = '';
                         time = '';
@@ -347,7 +347,7 @@
                     $('.redeem-err').html('{{trans("lang.alerady_redeemed")}}');
                     return false;
                 }
-                if (new Date(data.expireDate.toDate().toDateString()) < new Date()) {
+                if (new Date(data.expireDate.toDate()) < new Date()) {
                     $('.redeem-err').html('{{trans("lang.gift_card_expired")}}');
                     return false;
                 }

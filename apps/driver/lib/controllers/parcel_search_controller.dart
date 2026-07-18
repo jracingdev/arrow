@@ -47,7 +47,7 @@ class ParcelSearchController extends GetxController {
 
   String formatDate(Timestamp timestamp) {
     final dateTime = timestamp.toDate();
-    return DateFormat("dd MMM yyyy, hh:mm a").format(dateTime);
+    return DateFormat("dd-MM-yyyy HH:mm").format(dateTime);
   }
 
   Future<void> getOwnerDetails(String ownerId) async {
@@ -202,7 +202,7 @@ class ParcelSearchController extends GetxController {
 
     if (date == null) return;
     pickUpDateTime.value = date;
-    dateTimeTextEditController.value.text = DateFormat('dd-MMM-yyyy').format(date);
+    dateTimeTextEditController.value.text = DateFormat('dd-MM-yyyy').format(date);
     update();
   }
 

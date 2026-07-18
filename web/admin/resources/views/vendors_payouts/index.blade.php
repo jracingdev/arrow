@@ -399,9 +399,9 @@
 
                                     try {
 
-                                        date = childData.paidDate.toDate().toDateString();
+                                        date = ArrowDateTime.formatDate(childData.paidDate.toDate());
 
-                                        time = childData.paidDate.toDate().toLocaleTimeString('en-US');
+                                        time = ArrowDateTime.formatTime(childData.paidDate.toDate());
 
                                     } catch (err) {
 
@@ -780,9 +780,9 @@
 
                     try {
 
-                        date = val.paidDate.toDate().toDateString();
+                        date = ArrowDateTime.formatDate(val.paidDate.toDate());
 
-                        time = val.paidDate.toDate().toLocaleTimeString('en-US');
+                        time = ArrowDateTime.formatTime(val.paidDate.toDate());
 
                     } catch (err) {
 

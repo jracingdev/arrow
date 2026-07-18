@@ -146,7 +146,7 @@
 
                 $(function() {
                     $('#datetimepicker1').datepicker({
-                        dateFormat: 'mm/dd/yyyy'
+                        dateFormat: 'dd-mm-yyyy'
                     });
                 });
 
@@ -179,7 +179,7 @@
                     if (promo.hasOwnProperty("expiresAt")) {
 
                         try {
-                            var date1 = promo.expiresAt.toDate().toDateString();
+                            var date1 = ArrowDateTime.formatDate(promo.expiresAt.toDate());
                             var date = new Date(date1);
                             var dd = String(date.getDate()).padStart(2, '0');
                             var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!

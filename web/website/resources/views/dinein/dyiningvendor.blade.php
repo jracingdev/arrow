@@ -1058,8 +1058,8 @@
             var date = '';
             var time = '';
             if (val.hasOwnProperty('expiresAt') && val.expiresAt) {
-                date = val.expiresAt.toDate().toDateString();
-                time = val.expiresAt.toDate().toLocaleTimeString('en-US');
+                date = ArrowDateTime.formatDate(val.expiresAt.toDate());
+                time = ArrowDateTime.formatTime(val.expiresAt.toDate());
             }
             var price_val = '';
             if (currencyAtRight) {

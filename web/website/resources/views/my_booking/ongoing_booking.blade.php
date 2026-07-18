@@ -330,14 +330,14 @@
             if (orderDetails.authorID != user_uuid) {
                 window.location.href = '{{ route('login') }}';
             } else {
-                var orderDate = orderDetails.scheduleDateTime.toDate().toDateString();
-                var time = orderDetails.scheduleDateTime.toDate().toLocaleTimeString('en-US');
+                var orderDate = ArrowDateTime.formatDate(orderDetails.scheduleDateTime.toDate());
+                var time = ArrowDateTime.formatTime(orderDetails.scheduleDateTime.toDate());
                 $("#booking-date").html(orderDate + ' ' + time);
                 var scheduleDate = '';
                 var scheduleTime = '';
                 if (orderDetails.hasOwnProperty('newScheduleDateTime') && orderDetails.newScheduleDateTime != '' && orderDetails.newScheduleDateTime != null) {
-                    scheduleDate = orderDetails.newScheduleDateTime.toDate().toDateString();
-                    scheduleTime = orderDetails.newScheduleDateTime.toDate().toLocaleTimeString('en-US');
+                    scheduleDate = ArrowDateTime.formatDate(orderDetails.newScheduleDateTime.toDate());
+                    scheduleTime = ArrowDateTime.formatTime(orderDetails.newScheduleDateTime.toDate());
                     $('#new-schedule-date').html(scheduleDate + ' ' + scheduleTime);
                     $('.new_schedule_date').show();
                 }
@@ -349,15 +349,15 @@
                 var storedEndTime = '';
                 if (orderDetails.hasOwnProperty('startTime') && orderDetails.startTime != null && orderDetails.startTime != '') {
                     storedStartTime = orderDetails.startTime.toDate().getTime();
-                    var startAt = orderDetails.startTime.toDate().toDateString();
-                    var time = orderDetails.startTime.toDate().toLocaleTimeString('en-US');
+                    var startAt = ArrowDateTime.formatDate(orderDetails.startTime.toDate());
+                    var time = ArrowDateTime.formatTime(orderDetails.startTime.toDate());
                     $('#stime').html(startAt + ' ' + time);
                     $('#start_time').removeClass('d-none');
                 }
                 if (orderDetails.hasOwnProperty('endTime') && orderDetails.endTime != null && orderDetails.endTime != '') {
                     storedEndTime = orderDetails.endTime.toDate().getTime();
-                    var endAt = orderDetails.endTime.toDate().toDateString();
-                    var time = orderDetails.endTime.toDate().toLocaleTimeString('en-US');
+                    var endAt = ArrowDateTime.formatDate(orderDetails.endTime.toDate());
+                    var time = ArrowDateTime.formatTime(orderDetails.endTime.toDate());
                     $('#etime').html(endAt + ' ' + time);
                     $('#end_time').removeClass('d-none');
                 }

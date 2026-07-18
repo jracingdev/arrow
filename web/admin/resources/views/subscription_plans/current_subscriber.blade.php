@@ -142,8 +142,8 @@
                                 var time = '';
                                 if (childData.subscriptionExpiryDate?.toDate) {
                                     try {
-                                        date = childData.subscriptionExpiryDate.toDate().toDateString();
-                                        time = childData.subscriptionExpiryDate.toDate().toLocaleTimeString('en-US');
+                                        date = ArrowDateTime.formatDate(childData.subscriptionExpiryDate.toDate());
+                                        time = ArrowDateTime.formatTime(childData.subscriptionExpiryDate.toDate());
                                     } catch (err) {
                                         console.error('Error processing expire_date:', err);
                                     }
@@ -277,8 +277,8 @@
                 html.push('<span>{{ trans('lang.total') }} :' + val.subscription_plan.itemLimit + ' </span><br><span>{{ trans('lang.available') }} :' + available + ' </span>')
             }
             if (val.subscriptionExpiryDate != null && val.subscriptionExpiryDate != '') {
-                var date = val.subscriptionExpiryDate.toDate().toDateString();
-                var time = val.subscriptionExpiryDate.toDate().toLocaleTimeString('en-US');
+                var date = ArrowDateTime.formatDate(val.subscriptionExpiryDate.toDate());
+                var time = ArrowDateTime.formatTime(val.subscriptionExpiryDate.toDate());
                 html.push('<span class="dt-time">' + date + ' ' + time + '</span>');
             } else {
                 html.push('<span class="dt-time">{{ trans('lang.unlimited') }}</span>');

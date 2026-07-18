@@ -622,8 +622,8 @@ element.style {
                 price = parseInt(val.tip_amount) + price;
             }
 
-            var date = val.createdAt.toDate().toDateString();
-            var time = val.createdAt.toDate().toLocaleTimeString('en-US');
+            var date = ArrowDateTime.formatDate(val.createdAt.toDate());
+            var time = ArrowDateTime.formatTime(val.createdAt.toDate());
 
             var price = buildHTMLProductstotal(val);
 

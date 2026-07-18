@@ -172,8 +172,8 @@ $(document).ready(function () {
                     var time = '';
                     if (childData.hasOwnProperty("expiresAt") && childData.expiresAt != '') {
                         try {
-                            date = childData.expiresAt.toDate().toDateString();
-                            time = childData.expiresAt.toDate().toLocaleTimeString('en-US');
+                            date = ArrowDateTime.formatDate(childData.expiresAt.toDate());
+                            time = ArrowDateTime.formatTime(childData.expiresAt.toDate());
                         } catch (err) {
 
                         }
@@ -302,8 +302,8 @@ async function buildHTML(val) {
         html.push(val.description);
         if (val.hasOwnProperty("expiresAt")) {
             try {
-                date = val.expiresAt.toDate().toDateString();
-                time = val.expiresAt.toDate().toLocaleTimeString('en-US');
+                date = ArrowDateTime.formatDate(val.expiresAt.toDate());
+                time = ArrowDateTime.formatTime(val.expiresAt.toDate());
             } catch (err) {
 
             }

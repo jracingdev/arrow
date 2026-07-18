@@ -143,7 +143,7 @@
             var end = moment();
 
             function cb(start, end) {
-                $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+                $('#reportrange span').html(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
             }
 
             $('#reportrange').daterangepicker({
@@ -402,7 +402,7 @@
                 finalOrderObject['User Email'] = ((userData.email) ? shortEmail(userData.email) : "");
                 finalOrderObject['User Phone'] = ((userData.phoneNumber) ? (userData.phoneNumber.includes('+') ? EditPhoneNumber(userData.phoneNumber.slice(1)) : '(+) ' + EditPhoneNumber(userData.phoneNumber)) : '');
 
-                finalOrderObject['Date'] = moment(date).format('ddd MMM DD YYYY h:mm:ss A');
+                finalOrderObject['Date'] = moment(date).format('DD-MM-YYYY HH:mm:ss');
 
                 if (service_type == 'cab-service') {
                     finalOrderObject['Payment Method'] = orderObj.paymentMethod;

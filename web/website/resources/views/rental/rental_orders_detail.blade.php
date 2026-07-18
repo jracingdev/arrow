@@ -689,7 +689,7 @@
                 day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: true
+                hour12: false
             }))
             $('.pickup_address').html(order.sourceLocationName);
             $('.payment_').html(`${order.paymentStatus ? "Done" : "Pending"}`);

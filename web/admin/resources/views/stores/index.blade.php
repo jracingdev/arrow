@@ -352,8 +352,8 @@
                                 var time = '';
                                 if (childData.hasOwnProperty("createdAt")) {
                                     try {
-                                        date = childData.createdAt.toDate().toDateString();
-                                        time = childData.createdAt.toDate().toLocaleTimeString('en-US');
+                                        date = ArrowDateTime.formatDate(childData.createdAt.toDate());
+                                        time = ArrowDateTime.formatTime(childData.createdAt.toDate());
                                     } catch (err) {
                                     }
                                 }
@@ -580,8 +580,8 @@
             var time = '';
             if (val.hasOwnProperty("createdAt")) {
                 try {
-                    date = val.createdAt.toDate().toDateString();
-                    time = val.createdAt.toDate().toLocaleTimeString('en-US');
+                    date = ArrowDateTime.formatDate(val.createdAt.toDate());
+                    time = ArrowDateTime.formatTime(val.createdAt.toDate());
                 } catch (err) {
                 }
                 html.push('<span class="dt-time">' + date + '<br> ' + time + '</span>');

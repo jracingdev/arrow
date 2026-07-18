@@ -197,7 +197,7 @@
             if (!startDate || !endDate) {
                 $('#daterange span').html('{{ trans('lang.select_range') }}');
             } else {
-                $('#daterange span').html(moment(startDate).format('MMMM D, YYYY') + ' - ' + moment(endDate).format('MMMM D, YYYY'));
+                $('#daterange span').html(moment(startDate).format('DD-MM-YYYY') + ' - ' + moment(endDate).format('DD-MM-YYYY'));
             }
             $('#daterange').daterangepicker({
                 autoUpdateInput: false,
@@ -205,11 +205,11 @@
                 startDate: startDate ? startDate : moment(), // Set default if null
                 endDate: endDate ? endDate : moment(),
             }, function(start, end) {
-                $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+                $('#daterange span').html(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
 
             });
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
-                $('#daterange span').html(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
+                $('#daterange span').html(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
             });
             $('#daterange').on('cancel.daterangepicker', function(ev, picker) {
                 $('#daterange span').html('{{ trans('lang.select_range') }}');

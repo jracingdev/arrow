@@ -264,8 +264,8 @@
         var time = '';
         if (val.hasOwnProperty("createdAt")) {
             try {
-                date = val.createdAt.toDate().toDateString();
-                time = val.createdAt.toDate().toLocaleTimeString('en-US');
+                date = ArrowDateTime.formatDate(val.createdAt.toDate());
+                time = ArrowDateTime.formatTime(val.createdAt.toDate());
             } catch (err) {
 
             }

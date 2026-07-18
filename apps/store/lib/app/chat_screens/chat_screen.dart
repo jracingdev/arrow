@@ -196,7 +196,7 @@ class ChatScreen extends StatelessWidget {
                         ),
                   const SizedBox(height: 5),
                   Text(
-                    DateFormat('MMM d, yyyy hh:mm aa').format(DateTime.fromMillisecondsSinceEpoch(data.createdAt!.millisecondsSinceEpoch)),
+                    DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(data.createdAt!.millisecondsSinceEpoch)),
                     style: const TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ],
@@ -252,7 +252,7 @@ class ChatScreen extends StatelessWidget {
                         ),
                   const SizedBox(height: 5),
                   Text(
-                    DateFormat('MMM d, yyyy hh:mm aa').format(DateTime.fromMillisecondsSinceEpoch(data.createdAt!.millisecondsSinceEpoch)),
+                    DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(data.createdAt!.millisecondsSinceEpoch)),
                     style: const TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ],

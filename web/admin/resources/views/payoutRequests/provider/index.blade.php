@@ -651,9 +651,9 @@
 
                     try {
 
-                        date = childData.paidDate.toDate().toDateString();
+                        date = ArrowDateTime.formatDate(childData.paidDate.toDate());
 
-                        time = childData.paidDate.toDate().toLocaleTimeString('en-US');
+                        time = ArrowDateTime.formatTime(childData.paidDate.toDate());
 
                     } catch (err) {
 
@@ -982,9 +982,9 @@
 
         html.push('<td>' + amount + '</td>');
 
-        var date = val.paidDate.toDate().toDateString();
+        var date = ArrowDateTime.formatDate(val.paidDate.toDate());
 
-        var time = val.paidDate.toDate().toLocaleTimeString('en-US');
+        var time = ArrowDateTime.formatTime(val.paidDate.toDate());
 
         html.push('<td>' + (val.note ? val.note : '-') + '</td>');
 

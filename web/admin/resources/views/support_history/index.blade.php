@@ -139,8 +139,8 @@
 
                         if (!threadSnap.empty) {
                             const lastMsg = threadSnap.docs[0].data();
-                            const createdAt = lastMsg.createdAt.toDate().toDateString();
-                            const time = lastMsg.createdAt.toDate().toLocaleTimeString('en-US');
+                            const createdAt = ArrowDateTime.formatDate(lastMsg.createdAt.toDate());
+                            const time = ArrowDateTime.formatTime(lastMsg.createdAt.toDate());
                             var userId = lastMsg.senderId;
                             if (lastMsg.senderId == 'admin') {
                                 userId = lastMsg.receiverId;

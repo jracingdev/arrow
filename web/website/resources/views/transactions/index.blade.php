@@ -280,8 +280,8 @@
             });
             alldata.forEach((listval) => {
                 var val = listval;
-                var date = val.date.toDate().toDateString();
-                var time = val.date.toDate().toLocaleTimeString('en-US');
+                var date = ArrowDateTime.formatDate(val.date.toDate());
+                var time = ArrowDateTime.formatTime(val.date.toDate());
                 var price_val = '';
                 if (currencyAtRight) {
                     price_val = parseFloat(val.amount).toFixed(decimal_degits) + '' + currentCurrency;

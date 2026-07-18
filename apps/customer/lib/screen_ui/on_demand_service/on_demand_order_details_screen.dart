@@ -166,7 +166,7 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                                           padding: const EdgeInsets.only(top: 6),
                                           child: Text(
                                             controller.onProviderOrder.value?.scheduleDateTime != null
-                                                ? DateFormat('dd-MMM-yyyy').format(controller.onProviderOrder.value!.scheduleDateTime!.toDate())
+                                                ? DateFormat('dd-MM-yyyy').format(controller.onProviderOrder.value!.scheduleDateTime!.toDate())
                                                 : "",
                                             style: AppThemeData.regularTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900),
                                           ),
@@ -183,7 +183,7 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                                           padding: const EdgeInsets.only(top: 6),
                                           child: Text(
                                             controller.onProviderOrder.value?.scheduleDateTime != null
-                                                ? DateFormat('hh:mm a').format(controller.onProviderOrder.value!.scheduleDateTime!.toDate())
+                                                ? DateFormat('HH:mm').format(controller.onProviderOrder.value!.scheduleDateTime!.toDate())
                                                 : "",
                                             style: AppThemeData.regularTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900),
                                           ),
@@ -643,7 +643,7 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                                           children: [
                                             Text("New Date : ".tr, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontFamily: AppThemeData.regular, fontWeight: FontWeight.w500)),
                                             Text(
-                                              DateFormat('dd-MMM-yyyy hh:mm a').format(controller.onProviderOrder.value!.newScheduleDateTime!.toDate()),
+                                              DateFormat('dd-MM-yyyy HH:mm').format(controller.onProviderOrder.value!.newScheduleDateTime!.toDate()),
                                               style: TextStyle(color: isDark ? Colors.white : Colors.black, fontFamily: AppThemeData.regular, fontWeight: FontWeight.w500),
                                             ),
                                           ],

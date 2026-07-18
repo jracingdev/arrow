@@ -457,8 +457,8 @@
                                 if (searchValue) {
                                     if (childData.hasOwnProperty("date")) {
                                         try {
-                                            date = childData.date.toDate().toDateString();
-                                            time = childData.date.toDate().toLocaleTimeString('en-US');
+                                            date = ArrowDateTime.formatDate(childData.date.toDate());
+                                            time = ArrowDateTime.formatTime(childData.date.toDate());
                                         } catch (err) {
                                         }
                                     }
@@ -650,8 +650,8 @@
             var time = "";
             try {
                 if (val.hasOwnProperty("date")) {
-                    date = val.date.toDate().toDateString();
-                    time = val.date.toDate().toLocaleTimeString('en-US');
+                    date = ArrowDateTime.formatDate(val.date.toDate());
+                    time = ArrowDateTime.formatTime(val.date.toDate());
                 }
             } catch (err) {
             }

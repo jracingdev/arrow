@@ -220,10 +220,10 @@ class BookTableScreen extends StatelessWidget {
                                       selectedColor: AppThemeData.primary300,
                                       labelStyle: TextStyle(color: isDark ? AppThemeData.grey100 : AppThemeData.grey800),
                                       label: Text(
-                                        DateFormat('hh:mm a').format(timeSlotList.time!),
+                                        DateFormat('HH:mm').format(timeSlotList.time!),
                                         style: TextStyle(
                                           color:
-                                              controller.selectedTimeSlot.value == DateFormat('hh:mm a').format(timeSlotList.time!)
+                                              controller.selectedTimeSlot.value == DateFormat('HH:mm').format(timeSlotList.time!)
                                                   ? AppThemeData.grey50
                                                   : isDark
                                                   ? AppThemeData.grey400
@@ -233,9 +233,9 @@ class BookTableScreen extends StatelessWidget {
                                         ),
                                       ),
                                       showCheckmark: false,
-                                      selected: controller.selectedTimeSlot.value == DateFormat('hh:mm a').format(timeSlotList.time!),
+                                      selected: controller.selectedTimeSlot.value == DateFormat('HH:mm').format(timeSlotList.time!),
                                       onSelected: (value) {
-                                        controller.selectedTimeSlot.value = DateFormat('hh:mm a').format(timeSlotList.time!);
+                                        controller.selectedTimeSlot.value = DateFormat('HH:mm').format(timeSlotList.time!);
                                         controller.selectedTimeDiscount.value = timeSlotList.discountPer!;
                                         controller.selectedTimeDiscountType.value = timeSlotList.discountType!;
                                       },

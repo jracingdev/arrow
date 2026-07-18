@@ -318,7 +318,7 @@ class OrderDetailsController extends GetxController {
     );
 
     bytes += generator.text(
-      'Date: ${DateFormat('MMM d yyyy, h:mm:ss a').format(DateTime.fromMicrosecondsSinceEpoch(orderModel.value.vendor!.createdAt!.microsecondsSinceEpoch)).toString()} ',
+      'Date: ${DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.fromMicrosecondsSinceEpoch(orderModel.value.vendor!.createdAt!.microsecondsSinceEpoch)).toString()} ',
       styles: const PosStyles(align: PosAlign.left),
     );
     bytes += generator.row([

@@ -231,8 +231,8 @@
                     var time = ''; 
                     if (childData.hasOwnProperty("paidDate")) {
                         try {
-                            date = childData.paidDate.toDate().toDateString();
-                            time = childData.paidDate.toDate().toLocaleTimeString('en-US');
+                            date = ArrowDateTime.formatDate(childData.paidDate.toDate());
+                            time = ArrowDateTime.formatTime(childData.paidDate.toDate());
                         } catch (err) {
                         }
                     }
@@ -439,8 +439,8 @@
             html.push('<td><a href="' + route + '">' + val.title + '</a></td>');
             <?php } ?>
             html.push('<td>' + amount + '</td>');
-            var date = val.paidDate.toDate().toDateString();
-            var time = val.paidDate.toDate().toLocaleTimeString('en-US');
+            var date = ArrowDateTime.formatDate(val.paidDate.toDate());
+            var time = ArrowDateTime.formatTime(val.paidDate.toDate());
             html.push('<td>' + date + '<br> ' + time + '</td>');
 
             if (val.note != undefined && val.note != '') {

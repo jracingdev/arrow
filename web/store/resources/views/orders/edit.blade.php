@@ -733,13 +733,13 @@
                         .author.email + '</a>');
                 }
                 if (order.createdAt) {
-                    var date1 = order.createdAt.toDate().toDateString();
+                    var date1 = ArrowDateTime.formatDate(order.createdAt.toDate());
                     var date = new Date(date1);
                     var dd = String(date.getDate()).padStart(2, '0');
                     var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
                     var yyyy = date.getFullYear();
                     var createdAt_val = yyyy + '-' + mm + '-' + dd;
-                    var time = order.createdAt.toDate().toLocaleTimeString('en-US');
+                    var time = ArrowDateTime.formatTime(order.createdAt.toDate());
                     $('#createdAt').text(createdAt_val + ' ' + time);
                 }
                 var payment_method = '';
@@ -965,8 +965,8 @@
                 if (order.hasOwnProperty('scheduleTime') && order.scheduleTime != null && order
                     .scheduleTime != '') {
                     scheduleTime = order.scheduleTime;
-                    var scheduleDate = scheduleTime.toDate().toDateString();
-                    var time = order.scheduleTime.toDate().toLocaleTimeString('en-US');
+                    var scheduleDate = ArrowDateTime.formatDate(scheduleTime.toDate());
+                    var time = ArrowDateTime.formatTime(order.scheduleTime.toDate());
                     var scheduleDate = new Date(scheduleDate);
                     var dd = String(scheduleDate.getDate()).padStart(2, '0');
                     var mm = String(scheduleDate.getMonth() + 1).padStart(2, '0'); //January is 0!
@@ -1264,8 +1264,8 @@
                                 }
                                 const windowStart = new Date(scheduleTime.getTime() - notifyBeforeMs);
                                 const windowEnd = scheduleTime;
-                                var endDate = order.scheduleTime.toDate().toDateString() + ' ' + order.scheduleTime.toDate().toLocaleTimeString('en-US');
-                                var startDate = windowStart.toDateString() + ' ' + windowStart.toLocaleTimeString('en-US');
+                                var endDate = ArrowDateTime.formatDate(order.scheduleTime.toDate()) + ' ' + ArrowDateTime.formatTime(order.scheduleTime.toDate());
+                                var startDate = ArrowDateTime.formatDate(windowStart) + ' ' + ArrowDateTime.formatTime(windowStart);
                                 if (now >= windowStart && now <= windowEnd) {
                                     if (isSelfDeliveryGlobally && isSelfDeliveryByVendor && !orderTakeAwayOption) {
                                         if (orderStatus != "Order Rejected" && orderStatus != "Order Cancelled") {

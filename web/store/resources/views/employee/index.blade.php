@@ -202,8 +202,8 @@
                             var time = '';
                             if (childData.hasOwnProperty("createdAt")) {
                                 try {
-                                    date = childData.createdAt.toDate().toDateString();
-                                    time = childData.createdAt.toDate().toLocaleTimeString('en-US');
+                                    date = ArrowDateTime.formatDate(childData.createdAt.toDate());
+                                    time = ArrowDateTime.formatTime(childData.createdAt.toDate());
                                 } catch (err) {}
                             }
                             childData.createdDate = date + ' ' + time;

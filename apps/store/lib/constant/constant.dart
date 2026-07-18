@@ -181,11 +181,20 @@ class Constant {
   }
 
   static String amountShow({required String? amount}) {
+    final value = double.tryParse((amount == null || amount.isEmpty) ? '0' : amount.toString()) ?? 0.0;
+    final decimals = currencyModel?.decimalDigits ?? 0;
+    final symbol = currencyModel?.symbol?.toString() ?? 'R\$';
+    final number = NumberFormat.currency(locale: 'pt_BR', symbol: '', decimalDigits: decimals).format(value).trim();
     if (currencyModel?.symbolAtRight == true) {
-      return "${double.parse(amount == null ? '0.0' : amount.toString()).toStringAsFixed(currencyModel!.decimalDigits ?? 0)} ${currencyModel!.symbol.toString()}";
-    } else {
-      return "${currencyModel!.symbol.toString()} ${double.parse(amount == null ? '0.0' : amount.toString()).toStringAsFixed(currencyModel!.decimalDigits ?? 0)}";
+      return '$number $symbol';
     }
+    return '$symbol $number';
+  }
+
+  /// Labels de status para UI (valores persistidos permanecem em inglês).
+  static String orderStatusLabel(String? status) {
+    if (status == null || status.isEmpty) return '';
+    return status.tr;
   }
 
   static double calculateTax({String? amount, TaxModel? taxModel}) {
@@ -357,22 +366,22 @@ class Constant {
 
   static String timestampToDate(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('MMM dd,yyyy').format(dateTime);
+    return DateFormat('dd-MM-yyyy').format(dateTime);
   }
 
   static String timestampToDateTime(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('MMM dd,yyyy hh:mm aa').format(dateTime);
+    return DateFormat('dd-MM-yyyy HH:mm').format(dateTime);
   }
 
   static String timestampToTime(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('hh:mm aa').format(dateTime);
+    return DateFormat('HH:mm').format(dateTime);
   }
 
   static String timestampToDateChat(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('dd/MM/yyyy').format(dateTime);
+    return DateFormat('dd-MM-yyyy').format(dateTime);
   }
 
   static LanguageModel getLanguage() {
@@ -581,7 +590,7 @@ class Constant {
   }
 
   static String dateAndTimeFormatTimestamp(Timestamp? timestamp) {
-    var format = DateFormat('dd MMM yyyy hh:mm aa'); // <- use skeleton here
+    var format = DateFormat('dd-MM-yyyy HH:mm');
     return format.format(timestamp!.toDate());
   }
 }

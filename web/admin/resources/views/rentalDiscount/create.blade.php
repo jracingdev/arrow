@@ -140,7 +140,7 @@
 
             $(function() {
                 $('#datetimepicker1').datepicker({
-                    dateFormat: 'mm/dd/yyyy'
+                    dateFormat: 'dd-mm-yyyy'
                 });
             });
 

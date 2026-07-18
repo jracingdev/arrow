@@ -257,8 +257,8 @@
 
             $(".orderId").text(id);
 
-            var date = order.createdAt.toDate().toDateString();
-            var time = order.createdAt.toDate().toLocaleTimeString('en-US');
+            var date = ArrowDateTime.formatDate(order.createdAt.toDate());
+            var time = ArrowDateTime.formatTime(order.createdAt.toDate());
             $(".orderDate").text(date + " " + time);
 
             var billingAddressstring = '';

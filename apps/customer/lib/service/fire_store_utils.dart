@@ -1936,7 +1936,7 @@ class FireStoreUtils {
       newString = newString.replaceAll("{passengername}", orderModel.author?.fullName() ?? '');
       newString = newString.replaceAll("{rideid}", orderModel.id.toString());
       newString = newString.replaceAll("{date}", DateFormat('dd-MM-yyyy').format(orderModel.createdAt!.toDate()));
-      newString = newString.replaceAll("{time}", DateFormat('hh:mm a').format(orderModel.createdAt!.toDate()));
+      newString = newString.replaceAll("{time}", DateFormat('HH:mm').format(orderModel.createdAt!.toDate()));
       newString = newString.replaceAll("{pickuplocation}", orderModel.sourceLocationName.toString());
       newString = newString.replaceAll("{dropofflocation}", orderModel.destinationLocationName.toString());
       newString = newString.replaceAll("{drivername}", orderModel.driver?.fullName() ?? '');
@@ -1957,7 +1957,7 @@ class FireStoreUtils {
       newString = newString.replaceAll("{username}", orderModel.author?.fullName() ?? '');
       newString = newString.replaceAll("{passengername}", orderModel.author?.fullName() ?? '');
       newString = newString.replaceAll("{date}", DateFormat('dd-MM-yyyy').format(orderModel.createdAt!.toDate()));
-      newString = newString.replaceAll("{time}", DateFormat('hh:mm a').format(orderModel.createdAt!.toDate()));
+      newString = newString.replaceAll("{time}", DateFormat('HH:mm').format(orderModel.createdAt!.toDate()));
       newString = newString.replaceAll("{pickuplocation}", orderModel.sourceLocationName.toString());
 
       String subjectNewString = emailTemplateModel.subject.toString();

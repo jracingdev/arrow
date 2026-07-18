@@ -333,8 +333,8 @@
                                 var time = '';
                                 if (childData.expiry_date?.toDate) {
                                     try {
-                                        date = childData.expiry_date.toDate().toDateString();
-                                        time = childData.expiry_date.toDate().toLocaleTimeString('en-US');
+                                        date = ArrowDateTime.formatDate(childData.expiry_date.toDate());
+                                        time = ArrowDateTime.formatTime(childData.expiry_date.toDate());
                                     } catch (err) {
                                         console.error('Error processing expiry_date:', err);
                                     }
@@ -342,8 +342,8 @@
                                 childData.paidDate = date + ' ' + time;
                                 if (childData.createdAt?.toDate) {
                                     try {
-                                        purchasedate = childData.createdAt.toDate().toDateString();
-                                        purchasetime = childData.createdAt.toDate().toLocaleTimeString('en-US');
+                                        purchasedate = ArrowDateTime.formatDate(childData.createdAt.toDate());
+                                        purchasetime = ArrowDateTime.formatTime(childData.createdAt.toDate());
                                     } catch (err) {
                                         console.error('Error processing expiry_date:', err);
                                     }
@@ -499,8 +499,8 @@
             }
             if (val.hasOwnProperty('expiry_date')) {
                 if (val.expiry_date != null && val.expiry_date != '' && val.expiry_date != '-1') {
-                    var date = val.expiry_date.toDate().toDateString();
-                    var time = val.expiry_date.toDate().toLocaleTimeString('en-US');
+                    var date = ArrowDateTime.formatDate(val.expiry_date.toDate());
+                    var time = ArrowDateTime.formatTime(val.expiry_date.toDate());
                     html.push('<span class="dt-time">' + date + ' ' + time + '</span>');
                 } else {
                     html.push("{{ trans('lang.unlimited') }}")
@@ -510,8 +510,8 @@
             }
             if (val.hasOwnProperty('createdAt')) {
                 if (val.createdAt != null && val.createdAt != '' && val.createdAt != '-1') {
-                    var date = val.createdAt.toDate().toDateString();
-                    var time = val.createdAt.toDate().toLocaleTimeString('en-US');
+                    var date = ArrowDateTime.formatDate(val.createdAt.toDate());
+                    var time = ArrowDateTime.formatTime(val.createdAt.toDate());
                     html.push('<span class="dt-time">' + date + ' ' + time + '</span>');
                 } else {
                     html.push("{{ trans('lang.unlimited') }}")

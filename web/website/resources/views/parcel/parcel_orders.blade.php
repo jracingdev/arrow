@@ -358,7 +358,7 @@
                 }
 
                 html = html + '<div class="parcel_payment_total-row"><div class="parcel_payment_total col-md-12" style="padding-bottom:15px"><div class="row">';
-                html = html + '<div class="col-md-3 parcel_payment-box"><span class="label" style="line-height:15px">Pickup Date</span><span class="total" style="line-height:15px">' + val.senderPickupDateTime.toDate().toDateString() + '  </span></div><div class="col-md-3 parcel_payment-box"><span class="label" style="line-height:15px">Drop Date</span><span class="total" style="line-height:15px">' + val.receiverPickupDateTime.toDate().toDateString() + '  </span></div>';
+                html = html + '<div class="col-md-3 parcel_payment-box"><span class="label" style="line-height:15px">Pickup Date</span><span class="total" style="line-height:15px">' + ArrowDateTime.formatDate(val.senderPickupDateTime.toDate()) + '  </span></div><div class="col-md-3 parcel_payment-box"><span class="label" style="line-height:15px">Drop Date</span><span class="total" style="line-height:15px">' + ArrowDateTime.formatDate(val.receiverPickupDateTime.toDate()) + '  </span></div>';
                 var parcelType = '';
                 if (val.hasOwnProperty('parcelType')) {
                     parcelType = val.parcelType;
@@ -372,7 +372,7 @@
                     parcelweight = '';
                 }
                 html = html + '<div class="col-md-2 parcel_payment-box"><span class="label" style="line-height:15px">{{trans("lang.weight")}}</span><span class="total" style="line-height:15px">' + parcelweight + '</span></div>';
-                html = html + '<div class="col-md-4 parcel_payment-box date"><span class="label" style="line-height:15px">{{trans("lang.date")}}</span><span class="total" style="line-height:15px">' + val.createdAt.toDate().toDateString() + '</span></div>';
+                html = html + '<div class="col-md-4 parcel_payment-box date"><span class="label" style="line-height:15px">{{trans("lang.date")}}</span><span class="total" style="line-height:15px">' + ArrowDateTime.formatDate(val.createdAt.toDate()) + '</span></div>';
                 if (val.paymentCollectByReceiver == true) {
                     payment = 'Pending';
                 } else {
@@ -533,7 +533,7 @@
                     parcelweight = '';
                 }
                 html = html + '<div class="col-md-2 parcel_payment-box"><span class="label">Weight</span><span class="total">' + parcelweight + '</span></div>';
-                html = html + '<div class="col-md-2 parcel_payment-box date"><span class="label">Order Date</span><span class="total">' + val.createdAt.toDate().toDateString() + '</span></div>';
+                html = html + '<div class="col-md-2 parcel_payment-box date"><span class="label">Order Date</span><span class="total">' + ArrowDateTime.formatDate(val.createdAt.toDate()) + '</span></div>';
                 if (val.paymentCollectByReceiver == true) {
                     payment = 'Pending';
                 } else {
@@ -680,7 +680,7 @@
                     parcelweight = '';
                 }
                 html = html + '<div class="col-md-2 parcel_payment-box"><span class="label">Weight</span><span class="total">' + parcelweight + '</span></div>';
-                html = html + '<div class="col-md-2 parcel_payment-box date"><span class="label">Date</span><span class="total">' + val.createdAt.toDate().toDateString() + '</span></div>';
+                html = html + '<div class="col-md-2 parcel_payment-box date"><span class="label">Date</span><span class="total">' + ArrowDateTime.formatDate(val.createdAt.toDate()) + '</span></div>';
                 if (val.paymentCollectByReceiver == true) {
                     payment = 'Pending';
                 } else {

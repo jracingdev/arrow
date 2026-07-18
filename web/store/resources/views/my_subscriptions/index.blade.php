@@ -157,10 +157,8 @@
                             if (childData.hasOwnProperty("expiry_date") && childData
                                 .expiry_date != '' && childData.expiry_date != null) {
                                 try {
-                                    date = childData.expiry_date.toDate()
-                                        .toDateString();
-                                    time = childData.expiry_date.toDate()
-                                        .toLocaleTimeString('en-US');
+                                    date = ArrowDateTime.formatDate(childData.expiry_date.toDate());
+                                    time = ArrowDateTime.formatTime(childData.expiry_date.toDate());
                                 } catch (err) {
                                 }
                             }
@@ -169,9 +167,8 @@
                             if (childData.hasOwnProperty("createdAt") && childData
                                 .createdAt != '' && childData.createdAt != null) {
                                 try {
-                                    date = childData.createdAt.toDate().toDateString();
-                                    time = childData.createdAt.toDate()
-                                        .toLocaleTimeString('en-US');
+                                    date = ArrowDateTime.formatDate(childData.createdAt.toDate());
+                                    time = ArrowDateTime.formatTime(childData.createdAt.toDate());
                                 } catch (err) {
                                 }
                             }

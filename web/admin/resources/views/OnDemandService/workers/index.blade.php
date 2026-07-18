@@ -168,11 +168,11 @@
         $('#daterange').daterangepicker({
             autoUpdateInput: false, 
         }, function (start, end) {
-            $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            $('#daterange span').html(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
             $('.filteredRecords').trigger('change'); 
         });
         $('#daterange').on('apply.daterangepicker', function (ev, picker) {
-            $('#daterange span').html(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
+            $('#daterange span').html(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
             $('.filteredRecords').trigger('change');
         });
         $('#daterange').on('cancel.daterangepicker', function (ev, picker) {

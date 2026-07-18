@@ -171,7 +171,7 @@ $(document).ready(function () {
         var book = snapshots.docs[0].data();
 
         try {
-            $(".event_date").val(book.date.toDate().toDateString());
+            $(".event_date").val(ArrowDateTime.formatDate(book.date.toDate()));
             $(".total_guest").val(parseInt(book.totalGuest));
             $(".guest_first_name").val(book.guestFirstName);
             $(".guest_last_name").val(book.guestLastName);

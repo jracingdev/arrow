@@ -182,11 +182,11 @@
             $('#daterange').daterangepicker({
                 autoUpdateInput: false,
             }, function(start, end) {
-                $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+                $('#daterange span').html(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
                 $('.filteredRecords').trigger('change');
             });
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
-                $('#daterange span').html(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
+                $('#daterange span').html(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
                 $('.filteredRecords').trigger('change');
             });
             $('#daterange').on('cancel.daterangepicker', function(ev, picker) {
@@ -406,8 +406,8 @@
                             var time = '';
                             try {
                                 if (childData.createdAt) {
-                                    date = childData.createdAt.toDate().toDateString();
-                                    time = childData.createdAt.toDate().toLocaleTimeString('en-US');
+                                    date = ArrowDateTime.formatDate(childData.createdAt.toDate());
+                                    time = ArrowDateTime.formatTime(childData.createdAt.toDate());
                                 }
                             } catch (err) {}
 
@@ -596,8 +596,8 @@
             var time = '';
             if (val.hasOwnProperty("createdAt")) {
                 try {
-                    date = val.createdAt.toDate().toDateString();
-                    time = val.createdAt.toDate().toLocaleTimeString('en-US');
+                    date = ArrowDateTime.formatDate(val.createdAt.toDate());
+                    time = ArrowDateTime.formatTime(val.createdAt.toDate());
                 } catch (err) {
                 }
                 html.push('<td class="dt-time">' + date + '<br> ' + time + '</td>');

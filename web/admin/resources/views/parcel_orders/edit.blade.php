@@ -401,7 +401,7 @@
             var date = "";
             var time = "";
             if (order.senderPickupDateTime) {
-                date = order.senderPickupDateTime.toDate().toDateString();
+                date = ArrowDateTime.formatDate(order.senderPickupDateTime.toDate());
                 time = order.senderPickupDateTime.toDate().toLocaleTimeString();
             }
             $("#sender_datetime").text(date + " " + time);
@@ -423,7 +423,7 @@
             var time = "";
 
             if (order.receiverPickupDateTime) {
-                date = order.receiverPickupDateTime.toDate().toDateString();
+                date = ArrowDateTime.formatDate(order.receiverPickupDateTime.toDate());
                 time = order.receiverPickupDateTime.toDate().toLocaleTimeString();
 
             }
@@ -440,13 +440,13 @@
 
 
             if (order.createdAt) {
-                var date1 = order.createdAt.toDate().toDateString();
+                var date1 = ArrowDateTime.formatDate(order.createdAt.toDate());
                 var date = new Date(date1);
                 var dd = String(date.getDate()).padStart(2, '0');
                 var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
                 var yyyy = date.getFullYear();
                 var createdAt_val = yyyy + '-' + mm + '-' + dd;
-                var time = order.createdAt.toDate().toLocaleTimeString('en-US');
+                var time = ArrowDateTime.formatTime(order.createdAt.toDate());
 
                 $('#createdAt').text(createdAt_val + ' ' + time);
             }

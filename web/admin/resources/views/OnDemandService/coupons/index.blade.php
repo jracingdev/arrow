@@ -255,8 +255,8 @@
                             var time = '';
                             if (childData.hasOwnProperty("expiresAt")) {
                                 try {
-                                    date = childData.expiresAt.toDate().toDateString();
-                                    time = childData.expiresAt.toDate().toLocaleTimeString('en-US');
+                                    date = ArrowDateTime.formatDate(childData.expiresAt.toDate());
+                                    time = ArrowDateTime.formatTime(childData.expiresAt.toDate());
                                 } catch (err) {
                                 }
                             }
@@ -443,8 +443,8 @@
         var time = '';
         if (val.hasOwnProperty("expiresAt")) {
             try {
-                date = val.expiresAt.toDate().toDateString();
-                time = val.expiresAt.toDate().toLocaleTimeString('en-US');
+                date = ArrowDateTime.formatDate(val.expiresAt.toDate());
+                time = ArrowDateTime.formatTime(val.expiresAt.toDate());
             } catch (err) {
 
             }

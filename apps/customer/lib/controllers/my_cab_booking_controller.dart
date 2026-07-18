@@ -126,7 +126,7 @@ class MyCabBookingController extends GetxController {
 
   String formatDate(Timestamp timestamp) {
     final dateTime = timestamp.toDate();
-    return DateFormat("dd MMM yyyy, hh:mm a").format(dateTime);
+    return DateFormat("dd-MM-yyyy HH:mm").format(dateTime);
   }
 
   Rx<WalletSettingModel> walletSettingModel = WalletSettingModel().obs;

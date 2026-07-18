@@ -171,7 +171,7 @@ class DineInCreateScreen extends StatelessWidget {
                                   TimeOfDay? pickedTime = await showTimePicker(initialTime: TimeOfDay.now(), context: context);
 
                                   if (pickedTime != null) {
-                                    controller.startDateController.value.text = pickedTime.format(context); //set the value
+                                    controller.startDateController.value.text = DateFormat('HH:mm').format(DateTime(2000, 1, 1, pickedTime.hour, pickedTime.minute)); //set the value
                                   }
                                 },
                                 child: TextFieldWidget(
@@ -191,10 +191,10 @@ class DineInCreateScreen extends StatelessWidget {
                                 onTap: () async {
                                   TimeOfDay? pickedTime = await showTimePicker(initialTime: TimeOfDay.now(), context: context);
                                   if (pickedTime != null) {
-                                    controller.endDateDateController.value.text = pickedTime.format(context);
+                                    controller.endDateDateController.value.text = DateFormat('HH:mm').format(DateTime(2000, 1, 1, pickedTime.hour, pickedTime.minute));
 
-                                    DateTime startDate = DateFormat("hh:mm a").parse(controller.startDateController.value.text.toString());
-                                    DateTime endDate = DateFormat("hh:mm a").parse(controller.endDateDateController.value.text.toString());
+                                    DateTime startDate = DateFormat("HH:mm").parse(controller.startDateController.value.text.toString());
+                                    DateTime endDate = DateFormat("HH:mm").parse(controller.endDateDateController.value.text.toString());
 
                                     if (endDate.isAfter(startDate)) {
                                       controller.isTimeValid.value = true;

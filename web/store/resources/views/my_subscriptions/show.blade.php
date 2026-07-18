@@ -148,10 +148,8 @@
                 if (data.hasOwnProperty("expiry_date") && data
                     .expiry_date != '' && data.expiry_date != null ) {
                     try {
-                        date = data.expiry_date.toDate()
-                            .toDateString();
-                        time = data.expiry_date.toDate()
-                            .toLocaleTimeString('en-US');
+                        date = ArrowDateTime.formatDate(data.expiry_date.toDate());
+                        time = ArrowDateTime.formatTime(data.expiry_date.toDate());
                     } catch (err) {
                     }
                     $('#expire_at').html(date + ' ' + time);
@@ -164,10 +162,8 @@
                 if (data.hasOwnProperty("createdAt") && data.createdAt != '' && data.createdAt !=
                     null) {
                     try {
-                        date = data.createdAt.toDate()
-                            .toDateString();
-                        time = data.createdAt.toDate()
-                            .toLocaleTimeString('en-US');
+                        date = ArrowDateTime.formatDate(data.createdAt.toDate());
+                        time = ArrowDateTime.formatTime(data.createdAt.toDate());
                     } catch (err) {
                     }
                 }

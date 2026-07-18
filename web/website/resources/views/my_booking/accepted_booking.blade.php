@@ -319,14 +319,14 @@
             if (orderDetails.authorID != user_uuid) {
                 window.location.href = '{{ route('login') }}';
             } else {
-                var orderDate = orderDetails.scheduleDateTime.toDate().toDateString();
-                var time = orderDetails.scheduleDateTime.toDate().toLocaleTimeString('en-US');
+                var orderDate = ArrowDateTime.formatDate(orderDetails.scheduleDateTime.toDate());
+                var time = ArrowDateTime.formatTime(orderDetails.scheduleDateTime.toDate());
                 $("#booking-date").html(orderDate + ' ' + time);
                 var scheduleDate = '';
                 var scheduleTime = '';
                 if (orderDetails.hasOwnProperty('newScheduleDateTime') && orderDetails.newScheduleDateTime != '' && orderDetails.newScheduleDateTime != null) {
-                    scheduleDate = orderDetails.newScheduleDateTime.toDate().toDateString();
-                    scheduleTime = orderDetails.newScheduleDateTime.toDate().toLocaleTimeString('en-US');
+                    scheduleDate = ArrowDateTime.formatDate(orderDetails.newScheduleDateTime.toDate());
+                    scheduleTime = ArrowDateTime.formatTime(orderDetails.newScheduleDateTime.toDate());
                     $('#new-schedule-date').html(scheduleDate + ' ' + scheduleTime);
                     $('.new_schedule_date').show();
                 }

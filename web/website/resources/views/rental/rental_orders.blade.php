@@ -527,7 +527,7 @@
                 
                 var order_total = order_subtotal + platformFee + total_tax_amount;;
                 
-                var pick_up_time = val.bookingDateTime.toDate().toLocaleTimeString('en-US');
+                var pick_up_time = ArrowDateTime.formatTime(val.bookingDateTime.toDate());
                 var id = val.id;
                 var route1 = '{{route("rental_orders_detail",":id")}}';
                 route1 = route1.replace(':id', id);
@@ -582,7 +582,7 @@
                                                 day: '2-digit',
                                                 hour: '2-digit',
                                                 minute: '2-digit',
-                                                hour12: true
+                                                hour12: false
                                             })}
                                         </p>
                                         <p>
@@ -786,7 +786,7 @@
                                                 day: '2-digit',
                                                 hour: '2-digit',
                                                 minute: '2-digit',
-                                                hour12: true
+                                                hour12: false
                                             })}
                                         </p>
                                         <p>
@@ -978,7 +978,7 @@
                                                 day: '2-digit',
                                                 hour: '2-digit',
                                                 minute: '2-digit',
-                                                hour12: true
+                                                hour12: false
                                             })}
                                         </p>
                                         <p>

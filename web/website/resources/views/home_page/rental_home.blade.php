@@ -94,11 +94,11 @@
     $('input[name="driverDates"]').daterangepicker({
         singleDatePicker: true,
         timePicker: true,
-        timePicker24Hour: false,
+        timePicker24Hour: true,
         timePickerIncrement: 5,
         minDate: new Date(),
         locale: {
-            format: 'YYYY-MM-DD hh:mm A'
+            format: 'DD-MM-YYYY HH:mm'
         },
     });
 

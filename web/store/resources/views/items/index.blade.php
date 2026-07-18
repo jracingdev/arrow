@@ -319,9 +319,8 @@
                                                 }
                                                 if (childData.hasOwnProperty("createdAt") && childData.createdAt != '' && childData.createdAt != null) {
                                                     try {
-                                                        date = childData.createdAt.toDate().toDateString();
-                                                        time = childData.createdAt.toDate()
-                                                            .toLocaleTimeString('en-US');
+                                                        date = ArrowDateTime.formatDate(childData.createdAt.toDate());
+                                                        time = ArrowDateTime.formatTime(childData.createdAt.toDate());
                                                     } catch (err) {}
                                                 }
                                                 var createdAt = date + ' ' + time;

@@ -41,7 +41,7 @@ class AddEditCouponController extends GetxController {
       couponCodeController.value.text = couponModel.value.code.toString();
       priceController.value.text = couponModel.value.discount.toString();
       // selectDateController.value.text = Constant.timestampToDate(couponModel.value.expiresAt!);
-      selectDateController.value.text = couponModel.value.expiresAt != null ? DateFormat("MMM dd, yyyy").format(couponModel.value.expiresAt!.toDate()) : "";
+      selectDateController.value.text = couponModel.value.expiresAt != null ? DateFormat("dd-MM-yyyy").format(couponModel.value.expiresAt!.toDate()) : "";
       isActive.value = couponModel.value.isEnabled ?? false;
       isPublic.value = couponModel.value.isPublic ?? false;
       selectCouponType.value = couponModel.value.discountType == "Percentage" || couponModel.value.discountType == "Percent" ? "Percentage" : couponModel.value.discountType.toString();
@@ -88,7 +88,7 @@ class AddEditCouponController extends GetxController {
         DateTime? expireDate;
         try {
           String dateText = selectDateController.value.text.trim();
-          expireDate = DateFormat("MMM dd, yyyy").parse(dateText);
+          expireDate = DateFormat("dd-MM-yyyy").parse(dateText);
           expireDate = DateTime(expireDate.year, expireDate.month, expireDate.day, 23, 59, 59);
         } catch (e) {
           ShowToastDialog.closeLoader();

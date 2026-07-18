@@ -300,7 +300,7 @@
             if (!startDate || !endDate) {
                 $('#daterange span').html('{{ trans('lang.select_range') }}');
             } else {
-                $('#daterange span').html(moment(startDate).format('MMMM D, YYYY') + ' - ' + moment(endDate).format('MMMM D, YYYY'));
+                $('#daterange span').html(moment(startDate).format('DD-MM-YYYY') + ' - ' + moment(endDate).format('DD-MM-YYYY'));
             }
             $('#daterange').daterangepicker({
                 autoUpdateInput: false,
@@ -308,11 +308,11 @@
                 startDate: startDate ? startDate : moment(), // Set default if null
                 endDate: endDate ? endDate : moment(),
             }, function(start, end) {
-                $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+                $('#daterange span').html(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
 
             });
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
-                $('#daterange span').html(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
+                $('#daterange span').html(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
                 updateValidity();
             });
             $('#daterange').on('cancel.daterangepicker', function(ev, picker) {
@@ -332,13 +332,13 @@
                 $("#update_status option[value='canceled']").prop('disabled', true);
                 $('.update-status-div').removeClass('d-none');
             }
-            var date1 = data.createdAt.toDate().toDateString();
+            var date1 = ArrowDateTime.formatDate(data.createdAt.toDate());
             var date = new Date(date1);
             var dd = String(date.getDate()).padStart(2, '0');
             var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
             var yyyy = date.getFullYear();
             var createdAt_val = yyyy + '-' + mm + '-' + dd;
-            var time = data.createdAt.toDate().toLocaleTimeString('en-US');
+            var time = ArrowDateTime.formatTime(data.createdAt.toDate());
             $('#createdAt').html(createdAt_val + ' ' + time);
             (data.type == 'restaurant_promotion') ? $('#advType').html('{{ trans('lang.restaurant_promotion') }}'): $('#advType').html('{{ trans('lang.video_promotion') }}');
             if (data.type == 'restaurant_promotion') {

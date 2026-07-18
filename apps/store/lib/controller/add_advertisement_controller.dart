@@ -40,7 +40,7 @@ class AddAdvertisementController extends GetxController {
         advertisementTitleController.value.text = advertisementModel.value.title ?? '';
         descriptionController.value.text = advertisementModel.value.description ?? '';
         validityController.value.text =
-            '${DateFormat('MMM d, yyyy').format(advertisementModel.value.startDate!.toDate())} - ${DateFormat('MMM d, yyyy').format(advertisementModel.value.endDate!.toDate())}';
+            '${DateFormat('dd-MM-yyyy').format(advertisementModel.value.startDate!.toDate())} - ${DateFormat('dd-MM-yyyy').format(advertisementModel.value.endDate!.toDate())}';
         isReviewSelected.value = advertisementModel.value.showReview ?? false;
         isRatingsSelected.value = advertisementModel.value.showRating ?? false;
         selectedAdvertisementType.value = advertisementModel.value.type == 'restaurant_promotion' ? 'Store Promotion' : 'Video Promotion';
@@ -87,7 +87,7 @@ class AddAdvertisementController extends GetxController {
   Rx<DateTime> endValidityDate = DateTime.now().obs;
 
   void selectValidityDate() {
-    validityController.value.text = '${DateFormat('MMM d, yyyy').format(startValidityDate.value)} - ${DateFormat('MMM d, yyyy').format(endValidityDate.value)}';
+    validityController.value.text = '${DateFormat('dd-MM-yyyy').format(startValidityDate.value)} - ${DateFormat('dd-MM-yyyy').format(endValidityDate.value)}';
     update(); // Notify GetX listeners
   }
 

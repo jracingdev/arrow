@@ -278,11 +278,20 @@ class Constant {
   }
 
   static String amountShow({required String? amount}) {
-    if (currencyModel!.symbolatright == true) {
-      return "${double.parse(amount.toString()).toStringAsFixed(currencyModel?.decimal ?? 0)} ${currencyModel!.symbol.toString()}";
-    } else {
-      return "${currencyModel!.symbol.toString()} ${amount == null || amount.isEmpty ? "0.0" : double.parse(amount.toString()).toStringAsFixed(currencyModel?.decimal ?? 0)}";
+    final value = double.tryParse((amount == null || amount.isEmpty) ? '0' : amount.toString()) ?? 0.0;
+    final decimals = currencyModel?.decimal ?? 0;
+    final symbol = currencyModel?.symbol?.toString() ?? 'R\$';
+    final number = NumberFormat.currency(locale: 'pt_BR', symbol: '', decimalDigits: decimals).format(value).trim();
+    if (currencyModel?.symbolatright == true) {
+      return '$number $symbol';
     }
+    return '$symbol $number';
+  }
+
+  /// Labels de status para UI (valores persistidos no Firestore permanecem em inglês).
+  static String orderStatusLabel(String? status) {
+    if (status == null || status.isEmpty) return '';
+    return status.tr;
   }
 
   static Color statusColor({required String? status}) {
@@ -522,27 +531,27 @@ class Constant {
 
   static String timestampToDate(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('MMM dd,yyyy').format(dateTime);
+    return DateFormat('dd-MM-yyyy').format(dateTime);
   }
 
   static String timestampToDateTime(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('MMM dd,yyyy hh:mm aa').format(dateTime);
+    return DateFormat('dd-MM-yyyy HH:mm').format(dateTime);
   }
 
   static String timestampToDateTime2(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('EEE MMM d yyyy').format(dateTime);
+    return DateFormat('EEE dd-MM-yyyy').format(dateTime);
   }
 
   static String timestampToTime(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('hh:mm aa').format(dateTime);
+    return DateFormat('HH:mm').format(dateTime);
   }
 
   static String timestampToDateChat(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('dd/MM/yyyy').format(dateTime);
+    return DateFormat('dd-MM-yyyy').format(dateTime);
   }
 
   static DateTime stringToDate(String openDineTime) {
@@ -903,7 +912,7 @@ class Constant {
   static String formatTimestamp(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
 
-    return DateFormat("d-MM-yyyy h:mm a").format(dateTime);
+    return DateFormat("dd-MM-yyyy HH:mm").format(dateTime);
   }
 
   /// Calculate tax amount for a single tax model
@@ -946,7 +955,7 @@ class Constant {
   }
 
   static String dateAndTimeFormatTimestamp(Timestamp? timestamp) {
-    var format = DateFormat('dd MMM yyyy hh:mm aa'); // <- use skeleton here
+    var format = DateFormat('dd-MM-yyyy HH:mm');
     return format.format(timestamp!.toDate());
   }
 

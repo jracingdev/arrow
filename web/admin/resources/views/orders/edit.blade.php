@@ -896,12 +896,12 @@
                 if (order.createdAt) {
                     if (order.createdAt._seconds != undefined) {
                         var date = new Date(order.createdAt._seconds * 1000);
-                        var time = date.toLocaleTimeString('en-US');
+                        var time = ArrowDateTime.formatTime(date);
 
                     } else {
                         var date1 = order.createdAt.toDate().toString();
                         var date = new Date(date1);
-                        var time = order.createdAt.toDate().toLocaleTimeString('en-US');
+                        var time = ArrowDateTime.formatTime(order.createdAt.toDate());
 
                     }
 
@@ -1195,8 +1195,8 @@
 
                 if (order.hasOwnProperty('scheduleTime') && order.scheduleTime != null && order.scheduleTime != '') {
                     scheduleTime = order.scheduleTime;
-                    var scheduleDate = scheduleTime.toDate().toDateString();
-                    var time = order.scheduleTime.toDate().toLocaleTimeString('en-US');
+                    var scheduleDate = ArrowDateTime.formatDate(scheduleTime.toDate());
+                    var time = ArrowDateTime.formatTime(order.scheduleTime.toDate());
                     var scheduleDate = new Date(scheduleDate);
                     var dd = String(scheduleDate.getDate()).padStart(2, '0');
                     var mm = String(scheduleDate.getMonth() + 1).padStart(2, '0'); //January is 0!
@@ -1511,8 +1511,8 @@
                                 }
                                 const windowStart = new Date(scheduleTime.getTime() - notifyBeforeMs);
                                 const windowEnd = scheduleTime;
-                                var endDate = order.scheduleTime.toDate().toDateString() + ' ' + order.scheduleTime.toDate().toLocaleTimeString('en-US');
-                                var startDate = windowStart.toDateString() + ' ' + windowStart.toLocaleTimeString('en-US');
+                                var endDate = ArrowDateTime.formatDate(order.scheduleTime.toDate()) + ' ' + ArrowDateTime.formatTime(order.scheduleTime.toDate());
+                                var startDate = ArrowDateTime.formatDate(windowStart) + ' ' + ArrowDateTime.formatTime(windowStart);
                                 if (now >= windowStart && now <= windowEnd) {
                                     if (isSelfDeliveryGlobally && isSelfDeliveryByVendor && !orderTakeAwayOption) {
                                         $('#assignDriverModal').modal('show');

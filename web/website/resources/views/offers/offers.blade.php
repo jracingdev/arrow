@@ -142,8 +142,8 @@
                 var time = '';
                 if (val.hasOwnProperty('expiresAt') && val.expiresAt) {
                     try {
-                        date = val.expiresAt.toDate().toDateString();
-                        time = val.expiresAt.toDate().toLocaleTimeString('en-US');
+                        date = ArrowDateTime.formatDate(val.expiresAt.toDate());
+                        time = ArrowDateTime.formatTime(val.expiresAt.toDate());
                     } catch (err) {
                         date = '';
                         time = '';

@@ -195,7 +195,7 @@
 
                             <p class="small font-weight-bold text-center">
                                 <i class="feather-clock"></i> 
-                                ${val.date.toDate().toDateString()}<br>
+                                ${ArrowDateTime.formatDate(val.date.toDate())}<br>
                                 ${val.date.toDate().toTimeString()}
                             </p>
                         </div>
@@ -313,7 +313,7 @@
 
                             <p class="small font-weight-bold text-center">
                                 <i class="feather-clock"></i>
-                                ${val.date.toDate().toDateString()}<br/>
+                                ${ArrowDateTime.formatDate(val.date.toDate())}<br/>
                                 ${val.date.toDate().toTimeString()}
                             </p>
                         </div>
@@ -412,7 +412,7 @@
                                 <p class="bg-rejected text-white py-1 px-2 rounded small mb-1">Rejected</p>
                                 <p class="small font-weight-bold text-center">
                                     <i class="feather-clock"></i>
-                                    ${val.date.toDate().toDateString()}<br/>
+                                    ${ArrowDateTime.formatDate(val.date.toDate())}<br/>
                                     ${val.date.toDate().toTimeString()}
                                 </p>
                             </div>

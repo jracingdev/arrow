@@ -20,6 +20,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
@@ -119,11 +120,20 @@ class Constant {
   static String? adminType = "admin";
 
   static String amountShow({required String? amount}) {
-    if (currencyModel!.symbolAtRight == true) {
-      return "${double.parse(amount.toString()).toStringAsFixed(currencyModel!.decimalDigits ?? 0)} ${currencyModel!.symbol.toString()}";
-    } else {
-      return "${currencyModel!.symbol.toString()} ${amount == null || amount.isEmpty ? "0.0" : double.parse(amount.toString()).toStringAsFixed(currencyModel!.decimalDigits ?? 0)}";
+    final value = double.tryParse((amount == null || amount.isEmpty) ? '0' : amount.toString()) ?? 0.0;
+    final decimals = currencyModel?.decimalDigits ?? 0;
+    final symbol = currencyModel?.symbol?.toString() ?? 'R\$';
+    final number = NumberFormat.currency(locale: 'pt_BR', symbol: '', decimalDigits: decimals).format(value).trim();
+    if (currencyModel?.symbolAtRight == true) {
+      return '$number $symbol';
     }
+    return '$symbol $number';
+  }
+
+  /// Labels de status para UI (valores persistidos permanecem em inglês).
+  static String orderStatusLabel(String? status) {
+    if (status == null || status.isEmpty) return '';
+    return status.tr;
   }
 
   Future<Uint8List> getBytesFromUrl(String url, {int width = 100}) async {
@@ -354,22 +364,22 @@ class Constant {
 
   static String timestampToDate(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('MMM dd,yyyy').format(dateTime);
+    return DateFormat('dd-MM-yyyy').format(dateTime);
   }
 
   static String timestampToDateTime(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('MMM dd,yyyy hh:mm aa').format(dateTime);
+    return DateFormat('dd-MM-yyyy HH:mm').format(dateTime);
   }
 
   static String timestampToTime(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('hh:mm aa').format(dateTime);
+    return DateFormat('HH:mm').format(dateTime);
   }
 
   static String timestampToDateChat(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('dd/MM/yyyy').format(dateTime);
+    return DateFormat('dd-MM-yyyy').format(dateTime);
   }
 
   static DateTime stringToDate(String openDineTime) {
@@ -495,11 +505,11 @@ class Constant {
   static String formatTimestamp(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
 
-    return DateFormat("d MMMM yyyy 'at' h:mm a").format(dateTime);
+    return DateFormat("dd-MM-yyyy HH:mm").format(dateTime);
   }
 
   static String dateAndTimeFormatTimestamp(Timestamp? timestamp) {
-    var format = DateFormat('dd MMM yyyy hh:mm aa'); // <- use skeleton here
+    var format = DateFormat('dd-MM-yyyy HH:mm');
     return format.format(timestamp!.toDate());
   }
 }

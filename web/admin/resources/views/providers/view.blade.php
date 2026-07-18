@@ -696,8 +696,8 @@
                     $(".plan_name").html(user.subscription_plan.name);
                     $(".plan_type").html(user.subscription_plan.type);
                     if (user.subscriptionExpiryDate != null && user.subscriptionExpiryDate != '') {
-                        date = user.subscriptionExpiryDate.toDate().toDateString();
-                        time = user.subscriptionExpiryDate.toDate().toLocaleTimeString('en-US');
+                        date = ArrowDateTime.formatDate(user.subscriptionExpiryDate.toDate());
+                        time = ArrowDateTime.formatTime(user.subscriptionExpiryDate.toDate());
                         $(".plan_expire_at").html(date + ' ' + time);
                         $(".plan_expire_date").html(date);
                     } else {

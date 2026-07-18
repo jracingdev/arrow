@@ -112,11 +112,11 @@ class ViewAdvertisementScreen extends StatelessWidget {
                               isDarkMode: isDark,
                             ),
                             buildRow(label: 'Ad Type:'.tr, value: controller.advertisementModel.value.type == 'restaurant_promotion' ? 'Store Promotion'.tr : 'Video Promotion'.tr, isDarkMode: isDark),
-                            buildRow(label: 'Ad Created Date:'.tr, value: DateFormat('MMM d, yyyy').format(controller.advertisementModel.value.createdAt!.toDate()), isDarkMode: isDark),
+                            buildRow(label: 'Ad Created Date:'.tr, value: DateFormat('dd-MM-yyyy').format(controller.advertisementModel.value.createdAt!.toDate()), isDarkMode: isDark),
                             buildRow(
                               label: 'Duration:'.tr,
                               value:
-                                  '${DateFormat('MMM d, yyyy').format(controller.advertisementModel.value.startDate!.toDate())} - ${DateFormat('MMM d, yyyy').format(controller.advertisementModel.value.endDate!.toDate())}',
+                                  '${DateFormat('dd-MM-yyyy').format(controller.advertisementModel.value.startDate!.toDate())} - ${DateFormat('dd-MM-yyyy').format(controller.advertisementModel.value.endDate!.toDate())}',
                               isDarkMode: isDark,
                             ),
                             Visibility(

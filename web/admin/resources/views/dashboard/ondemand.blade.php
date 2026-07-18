@@ -1176,8 +1176,8 @@
 
                 html = html + '<td data-url="' + route + '" class="redirecttopage"><i class="fa fa-shopping-cart"></i> ' + val.quantity + '</td>';
 
-                var date = val.createdAt.toDate().toDateString();
-                var time = val.createdAt.toDate().toLocaleTimeString('en-US');
+                var date = ArrowDateTime.formatDate(val.createdAt.toDate());
+                var time = ArrowDateTime.formatTime(val.createdAt.toDate());
                 html = html + '<td>' + date + ' ' + time + '</td>';
 
                 if (val.status == 'Order Placed') {

@@ -226,8 +226,8 @@
                             var time = '';
                             if (childData.hasOwnProperty("expiresAt")) {
                                 try {
-                                    date = childData.expiresAt.toDate().toDateString();
-                                    time = childData.expiresAt.toDate().toLocaleTimeString('en-US');
+                                    date = ArrowDateTime.formatDate(childData.expiresAt.toDate());
+                                    time = ArrowDateTime.formatTime(childData.expiresAt.toDate());
                                 } catch (err) {
                                 }
                             }
@@ -380,7 +380,7 @@
                 discount_price = currentCurrency + "" + parseFloat(val.discount).toFixed(decimal_degits);
             }
         }
-        const expireDate = new Date( val.expiresAt.toDate().toDateString()); 
+        const expireDate = new Date( ArrowDateTime.formatDate(val.expiresAt.toDate())); 
         const currentDate = new Date();
         const isExpired = expireDate < currentDate;
         var id = val.id;
@@ -411,8 +411,8 @@
         var time = '';
         if (val.hasOwnProperty("expiresAt")) {
             try {
-                date = val.expiresAt.toDate().toDateString();
-                time = val.expiresAt.toDate().toLocaleTimeString('en-US');
+                date = ArrowDateTime.formatDate(val.expiresAt.toDate());
+                time = ArrowDateTime.formatTime(val.expiresAt.toDate());
             } catch (err) {
             }
             html.push('<span class="dt-time">' + date + '<br> ' + time + '</span>');

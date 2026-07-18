@@ -179,7 +179,7 @@
                     profilePictureURL: userData.profilePictureURL || placeholderImage,
                     message: lastMsg.messageType === 'text' ? lastMsg.message : `[${lastMsg.messageType}]`,
                     time: lastMsg.createdAt?.toDate()
-                        ? lastMsg.createdAt.toDate().toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})
+                        ? ArrowDateTime.formatTime(lastMsg.createdAt.toDate())
                         : '',
                     unreadCount,
                     type: data.chatType

@@ -811,13 +811,13 @@
                 $("#billing_email").html('<a href="mailto:' + order.author.email + '">' + shortEmail(order.author.email) + '</a>');
             }
             if (order.scheduleDateTime) {
-                var date1 = order.scheduleDateTime.toDate().toDateString();
+                var date1 = ArrowDateTime.formatDate(order.scheduleDateTime.toDate());
                 var date = new Date(date1);
                 var dd = String(date.getDate()).padStart(2, '0');
                 var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
                 var yyyy = date.getFullYear();
                 var createdAt_val = yyyy + '-' + mm + '-' + dd;
-                var time = order.scheduleDateTime.toDate().toLocaleTimeString('en-US');
+                var time = ArrowDateTime.formatTime(order.scheduleDateTime.toDate());
 
                 $('#createdAt').text(createdAt_val + ' ' + time);
 
@@ -835,13 +835,13 @@
             }
             if (order.hasOwnProperty('newScheduleDateTime') && order.newScheduleDateTime != '' && order.newScheduleDateTime != null) {
                 $('#new_schdeule_date_div').show();
-                var date1 = order.newScheduleDateTime.toDate().toDateString();
+                var date1 = ArrowDateTime.formatDate(order.newScheduleDateTime.toDate());
                 var date = new Date(date1);
                 var dd = String(date.getDate()).padStart(2, '0');
                 var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
                 var yyyy = date.getFullYear();
                 var createdAt_val = yyyy + '-' + mm + '-' + dd;
-                var time = order.newScheduleDateTime.toDate().toLocaleTimeString('en-US');
+                var time = ArrowDateTime.formatTime(order.newScheduleDateTime.toDate());
                 $('.new_schedule_date').text(createdAt_val + ' ' + time);
                 newScheduleBookingDate = order.newScheduleDateTime;
             }
@@ -978,25 +978,25 @@
             storedEndTime = '';
             if (order.hasOwnProperty('startTime') && order.startTime != null && order.startTime != '') {
                 storedStartTime = order.startTime.toDate();
-                var date1 = order.startTime.toDate().toDateString();
+                var date1 = ArrowDateTime.formatDate(order.startTime.toDate());
                     var date = new Date(date1);
                     var dd = String(date.getDate()).padStart(2, '0');
                     var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
                     var yyyy = date.getFullYear();
                     var startDate = yyyy + '-' + mm + '-' + dd;
-                    var time = order.startTime.toDate().toLocaleTimeString('en-US');
+                    var time = ArrowDateTime.formatTime(order.startTime.toDate());
                     $('.start_time').text(startDate+' '+time);
                     $('#start_time_div').show();
             }
             if (order.hasOwnProperty('endTime') && order.endTime != null && order.endTime != '') {
                 storedEndTime = order.endTime.toDate();
-                 var date1 = order.endTime.toDate().toDateString();
+                 var date1 = ArrowDateTime.formatDate(order.endTime.toDate());
                     var date = new Date(date1);
                     var dd = String(date.getDate()).padStart(2, '0');
                     var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
                     var yyyy = date.getFullYear();
                     var endDate = yyyy + '-' + mm + '-' + dd;
-                    var time = order.endTime.toDate().toLocaleTimeString('en-US');
+                    var time = ArrowDateTime.formatTime(order.endTime.toDate());
                     $('.end_time').text(endDate+' '+time);
                     $('#end_time_div').show();
             }
@@ -1533,13 +1533,13 @@
         }
         var currentTime = new Date();
         if (dateToCheck.toDate() > currentTime) {
-            var date1 = dateToCheck.toDate().toDateString();
+            var date1 = ArrowDateTime.formatDate(dateToCheck.toDate());
             var date = new Date(date1);
             var dd = String(date.getDate()).padStart(2, '0');
             var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
             var yyyy = date.getFullYear();
             var date = yyyy + '-' + mm + '-' + dd;
-            var time = dateToCheck.toDate().toLocaleTimeString('en-US');
+            var time = ArrowDateTime.formatTime(dateToCheck.toDate());
             alert('{{trans("lang.you_can_start_booking_on")}} ' + date + ', ' + time);
         } else {
             database.collection('provider_orders').doc(id).update({

@@ -111,6 +111,7 @@
     </div>
 </footer>
 <script type="text/javascript" src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
+<script src="{{ asset('js/arrow-datetime.js') }}"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript" src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <?php if (str_replace('_', '-', app()->getLocale()) == 'ar') { ?>
@@ -1097,7 +1098,7 @@
             }
         }
 
-        let formattedDate = new Date().toLocaleDateString('en-GB');
+        let formattedDate = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
         var subject = emailTemplatesData.subject;
         subject = subject.replace(/{orderid}/g, orderDetails.id);
@@ -1271,7 +1272,7 @@
             }
         }
 
-        let formattedDate = new Date().toLocaleDateString('en-GB');
+        let formattedDate = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
         var subject = emailTemplatesData.subject;
         subject = subject.replace(/{orderid}/g, orderDetails.id);
@@ -2620,17 +2621,22 @@
     function getTimeFormat(time) {
         let [h, m] = time.split(":");
         h = parseInt(h);
-        return (h % 12 || 12) + ":" + m + (h >= 12 ? " PM" : " AM");
+        return String(h).padStart(2, "0") + ":" + (m || "00").padStart(2, "0");
     }
 
     function formatCurrency(amount, currency = {}) {
-        const symbol = currency.symbol || '';
+        const symbol = currency.symbol || 'R$';
         const decimals = currency.decimal_degits ?? 2;
         const symbolAtRight = Boolean(currency.symbolAtRight);
-        const formatted = parseFloat(amount).toFixed(decimals);
+        const num = Number.parseFloat(amount);
+        const safe = Number.isFinite(num) ? num : 0;
+        const formatted = safe.toLocaleString('pt-BR', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        });
         return symbolAtRight
             ? formatted + ' ' + symbol
-            : symbol + formatted;
+            : symbol + ' ' + formatted;
     }
 
     async function getCountryFromLatLng(lat, lng) {

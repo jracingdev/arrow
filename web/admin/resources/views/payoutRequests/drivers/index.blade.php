@@ -749,9 +749,9 @@
 
                     try {
 
-                        date = childData.paidDate.toDate().toDateString();
+                        date = ArrowDateTime.formatDate(childData.paidDate.toDate());
 
-                        time = childData.paidDate.toDate().toLocaleTimeString('en-US');
+                        time = ArrowDateTime.formatTime(childData.paidDate.toDate());
 
                     } catch (err) {
 
@@ -1130,11 +1130,11 @@
 
 
 
-        var date = val.paidDate.toDate().toDateString();
+        var date = ArrowDateTime.formatDate(val.paidDate.toDate());
 
 
 
-        var time = val.paidDate.toDate().toLocaleTimeString('en-US');
+        var time = ArrowDateTime.formatTime(val.paidDate.toDate());
 
 
 

@@ -139,13 +139,13 @@
             var data = snapshots.docs[0].data();
             $('#advId').html(data.id);
 
-            var date1 = data.createdAt.toDate().toDateString();
+            var date1 = ArrowDateTime.formatDate(data.createdAt.toDate());
             var date = new Date(date1);
             var dd = String(date.getDate()).padStart(2, '0');
             var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
             var yyyy = date.getFullYear();
             var createdAt_val = yyyy + '-' + mm + '-' + dd;
-            var time = data.createdAt.toDate().toLocaleTimeString('en-US');
+            var time = ArrowDateTime.formatTime(data.createdAt.toDate());
             $('#createdAt').html(createdAt_val + ' ' + time);
             (data.type == 'restaurant_promotion') ? $('#advType').html('{{ trans('lang.restaurant_promotion') }}'): $('#advType').html('{{ trans('lang.video_promotion') }}');
             if (data.type == 'restaurant_promotion') {

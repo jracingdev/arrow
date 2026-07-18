@@ -768,8 +768,8 @@
                         $(".plan_name").html(vendor.subscription_plan.name);
                         $(".plan_type").html(vendor.subscription_plan.type);
                         if (vendor.subscriptionExpiryDate != null && vendor.subscriptionExpiryDate != '') {
-                            date = vendor.subscriptionExpiryDate.toDate().toDateString();
-                            time = vendor.subscriptionExpiryDate.toDate().toLocaleTimeString('en-US');
+                            date = ArrowDateTime.formatDate(vendor.subscriptionExpiryDate.toDate());
+                            time = ArrowDateTime.formatTime(vendor.subscriptionExpiryDate.toDate());
                             $(".plan_expire_at").html(date + ' ' + time);
                             $(".plan_expire_date").html(date);
                         } else {

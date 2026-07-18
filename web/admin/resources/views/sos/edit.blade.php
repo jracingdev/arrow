@@ -269,13 +269,13 @@ $(document).ready(function(){
           drawRoute(originAddress,sosAddress ,destinationAddress)
 
           if (driverdata.createdAt) {
-            var date1 = driverdata.createdAt.toDate().toDateString();
+            var date1 = ArrowDateTime.formatDate(driverdata.createdAt.toDate());
             var date = new Date(date1);
             var dd = String(date.getDate()).padStart(2, '0');
             var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
             var yyyy = date.getFullYear();
             var createdAt_val = yyyy + '-' + mm + '-' + dd;
-            var time = driverdata.createdAt.toDate().toLocaleTimeString('en-US');
+            var time = ArrowDateTime.formatTime(driverdata.createdAt.toDate());
             $('#createdAt').text(createdAt_val+' '+time);
         }
           

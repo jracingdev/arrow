@@ -358,11 +358,11 @@
             $('#daterange').daterangepicker({
                 autoUpdateInput: false,
             }, function(start, end) {
-                $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+                $('#daterange span').html(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
                 //filterData();                     
             });
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
-                $('#daterange span').html(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
+                $('#daterange span').html(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
                 filterData();
             });
             $('#daterange').on('cancel.daterangepicker', function(ev, picker) {
@@ -646,20 +646,20 @@
                                 var bookingDate = '';
                                 var bookingTime = '';
                                 if (childData.hasOwnProperty("scheduleDateTime")) {
-                                    bookingDate = childData.scheduleDateTime.toDate().toDateString();
-                                    bookingTime = childData.scheduleDateTime.toDate().toLocaleTimeString('en-US');
+                                    bookingDate = ArrowDateTime.formatDate(childData.scheduleDateTime.toDate());
+                                    bookingTime = ArrowDateTime.formatTime(childData.scheduleDateTime.toDate());
                                 }
                                 if (childData.hasOwnProperty("newScheduleDateTime") && childData.newScheduleDateTime != null && childData.newScheduleDateTime != '') {
-                                    bookingDate = childData.newScheduleDateTime.toDate().toDateString();
-                                    bookingTime = childData.newScheduleDateTime.toDate().toLocaleTimeString('en-US');
+                                    bookingDate = ArrowDateTime.formatDate(childData.newScheduleDateTime.toDate());
+                                    bookingTime = ArrowDateTime.formatTime(childData.newScheduleDateTime.toDate());
                                 }
                                 var bookingDateTime = bookingDate + '<br> ' + bookingTime;
                                 var date = '';
                                 var time = '';
                                 if (childData.hasOwnProperty("createdAt") && childData.createdAt != '') {
                                     try {
-                                        date = childData.createdAt.toDate().toDateString();
-                                        time = childData.createdAt.toDate().toLocaleTimeString('en-US');
+                                        date = ArrowDateTime.formatDate(childData.createdAt.toDate());
+                                        time = ArrowDateTime.formatTime(childData.createdAt.toDate());
                                     } catch (err) {
                                     }
                                 }
@@ -796,20 +796,20 @@
             var bookingDate = '';
             var bookingTime = '';
             if (val.hasOwnProperty("scheduleDateTime")) {
-                bookingDate = val.scheduleDateTime.toDate().toDateString();
-                bookingTime = val.scheduleDateTime.toDate().toLocaleTimeString('en-US');
+                bookingDate = ArrowDateTime.formatDate(val.scheduleDateTime.toDate());
+                bookingTime = ArrowDateTime.formatTime(val.scheduleDateTime.toDate());
             }
             if (val.hasOwnProperty("newScheduleDateTime") && val.newScheduleDateTime != null && val.newScheduleDateTime != '') {
-                bookingDate = val.newScheduleDateTime.toDate().toDateString();
-                bookingTime = val.newScheduleDateTime.toDate().toLocaleTimeString('en-US');
+                bookingDate = ArrowDateTime.formatDate(val.newScheduleDateTime.toDate());
+                bookingTime = ArrowDateTime.formatTime(val.newScheduleDateTime.toDate());
             }
             html.push('<td class="dt-time">' + bookingDate + '<br> ' + bookingTime + '</td>');
             var date = '';
             var time = '';
             if (val.hasOwnProperty("createdAt") && val.createdAt != '') {
                 try {
-                    date = val.createdAt.toDate().toDateString();
-                    time = val.createdAt.toDate().toLocaleTimeString('en-US');
+                    date = ArrowDateTime.formatDate(val.createdAt.toDate());
+                    time = ArrowDateTime.formatTime(val.createdAt.toDate());
                 } catch (err) {
                 }
             }

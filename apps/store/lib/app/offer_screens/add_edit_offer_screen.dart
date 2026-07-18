@@ -205,7 +205,7 @@ class AddEditOfferScreen extends StatelessWidget {
                           style: TextStyle(fontFamily: AppThemeData.medium, fontSize: 14, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900),
                         ),
                         DateTimeField(
-                          format: DateFormat("MMM dd, yyyy"),
+                          format: DateFormat("dd-MM-yyyy"),
                           controller: controller.selectDateController.value,
                           textInputAction: TextInputAction.done,
                           style: TextStyle(fontSize: 14, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontFamily: AppThemeData.medium),

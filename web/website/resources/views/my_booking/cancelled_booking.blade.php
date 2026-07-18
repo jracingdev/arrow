@@ -257,8 +257,8 @@
             if (orderDetails.authorID != user_uuid) {
                 window.location.href = '{{ route('login') }}';
             } else {
-                var orderDate = orderDetails.scheduleDateTime.toDate().toDateString();
-                var time = orderDetails.scheduleDateTime.toDate().toLocaleTimeString('en-US');
+                var orderDate = ArrowDateTime.formatDate(orderDetails.scheduleDateTime.toDate());
+                var time = ArrowDateTime.formatTime(orderDetails.scheduleDateTime.toDate());
                 $("#booking-date").html(orderDate + ' ' + time);
                 var billingName = '';
                 if (orderDetails.author.hasOwnProperty('firstName')) {

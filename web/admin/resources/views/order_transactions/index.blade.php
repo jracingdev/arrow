@@ -278,8 +278,8 @@ async function getListData(val) {
             var time = "";
             try {
                 if (val.hasOwnProperty("date")) {
-                    date = val.date.toDate().toDateString();
-                    time = val.date.toDate().toLocaleTimeString('en-US');
+                    date = ArrowDateTime.formatDate(val.date.toDate());
+                    time = ArrowDateTime.formatTime(val.date.toDate());
                 }
             } catch (err) {
 

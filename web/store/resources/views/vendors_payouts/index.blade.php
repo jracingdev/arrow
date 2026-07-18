@@ -192,8 +192,8 @@ error_reporting(E_ALL ^ E_NOTICE);
                             var time = '';
                             if (childData.hasOwnProperty("paidDate") && childData.paidDate != '') {
                                 try {
-                                    date = childData.paidDate.toDate().toDateString();
-                                    time = childData.paidDate.toDate().toLocaleTimeString('en-US');
+                                    date = ArrowDateTime.formatDate(childData.paidDate.toDate());
+                                    time = ArrowDateTime.formatTime(childData.paidDate.toDate());
                                 } catch (err) {
 
                                 }
@@ -347,8 +347,8 @@ async function buildHTML(val) {
                 price_val = currentCurrency + "" + parseFloat(val.amount).toFixed(decimal_degits);
             }
             html.push('<td>' + price_val + '</td>');
-            var date = val.paidDate.toDate().toDateString();
-            var time = val.paidDate.toDate().toLocaleTimeString('en-US');
+            var date = ArrowDateTime.formatDate(val.paidDate.toDate());
+            var time = ArrowDateTime.formatTime(val.paidDate.toDate());
 
             html.push('<td>' + date + ' ' + time + '</td>');
             if (val.note != undefined) {

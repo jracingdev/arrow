@@ -156,6 +156,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/js/bootstrap-timepicker.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/js/bootstrap-timepicker.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script src="{{ asset('js/arrow-datetime.js') }}"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
@@ -785,13 +786,18 @@
         }
 
         function formatCurrency(amount, currency = {}) {
-            const symbol = currency.symbol || '';
+            const symbol = currency.symbol || 'R$';
             const decimals = currency.decimal_degits ?? 2;
             const symbolAtRight = Boolean(currency.symbolAtRight);
-            const formatted = parseFloat(amount).toFixed(decimals);
+            const num = Number.parseFloat(amount);
+            const safe = Number.isFinite(num) ? num : 0;
+            const formatted = safe.toLocaleString('pt-BR', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
             return symbolAtRight
                 ? formatted + ' ' + symbol
-                : symbol + formatted;
+                : symbol + ' ' + formatted;
         }
         
         async function getCountryFromLatLng(lat, lng) {

@@ -270,7 +270,7 @@
                 var route1 = '{{ route('booktable.edit', ':id') }}?id=<?php echo $id; ?>';
                 route1 = route1.replace(':id', id);
 
-                html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + val.date.toDate().toDateString() + '</td>';
+                html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + ArrowDateTime.formatDate(val.date.toDate()) + '</td>';
                 html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + val.totalGuest + '</td>';
                 html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + val.guestFirstName + ' ' + val.guestLastName + '</td>';
                 html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + val.guestPhone + '</td>';

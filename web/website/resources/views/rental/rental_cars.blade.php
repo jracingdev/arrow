@@ -271,7 +271,7 @@ session_start();
                     var data = listval.data();
                     if (data.rentalBookingDate && data.rentalBookingDate.length > 0 && data.rentalBookingDate != null && data.rentalBookingDate != "") {
                         for (var i = 0; i < data.rentalBookingDate.length; i++) {
-                            var rentalBookingDate = data.rentalBookingDate[i].toDate().toDateString();
+                            var rentalBookingDate = ArrowDateTime.formatDate(data.rentalBookingDate[i].toDate());
                             rentalBookingDate = new Date(rentalBookingDate);
                             rentalBookingDate = rentalBookingDate.getDate() + '/' + (rentalBookingDate.getMonth() + 1) + '/' + rentalBookingDate.getFullYear();
                             if ((rentalBookingDate <= startDate && rentalBookingDate >= startDate) || (rentalBookingDate <= endDate && rentalBookingDate >= endDate)) {

@@ -332,8 +332,8 @@
                 var time = '';
                 if (childData.hasOwnProperty("paidDate") && childData.paidDate != '') {
                     try {
-                        date = childData.paidDate.toDate().toDateString();
-                        time = childData.paidDate.toDate().toLocaleTimeString('en-US');
+                        date = ArrowDateTime.formatDate(childData.paidDate.toDate());
+                        time = ArrowDateTime.formatTime(childData.paidDate.toDate());
                     } catch (err) {
                     }
                 }
@@ -517,8 +517,8 @@
             html.push('<td><a href="' + route_url + '" class="redirecttopage ">'+val.title+'</a></td>');
         }
         html.push('<td>' + amount + '</td>');
-        var date = val.paidDate.toDate().toDateString();
-        var time = val.paidDate.toDate().toLocaleTimeString('en-US');
+        var date = ArrowDateTime.formatDate(val.paidDate.toDate());
+        var time = ArrowDateTime.formatTime(val.paidDate.toDate());
         html.push('<td>' + val.note + '</td>');
         html.push('<td>' + date + ' ' + time + '</td>');
 

@@ -1451,25 +1451,13 @@
                 var openDineTime = $("#openDineTime").val();
                 var openDineTime_val = $("#openDineTime").val();
                 if (openDineTime) {
-                    openDineTime = new Date('1970-01-01T' + openDineTime + 'Z')
-                        .toLocaleTimeString('en-US', {
-                            timeZone: 'UTC',
-                            hour12: true,
-                            hour: 'numeric',
-                            minute: 'numeric'
-                        });
+                    openDineTime = ArrowDateTime.formatTime(new Date('1970-01-01T' + openDineTime + 'Z'));
                 }
 
                 var closeDineTime = $("#closeDineTime").val();
                 var closeDineTime_val = $("#closeDineTime").val();
                 if (closeDineTime) {
-                    closeDineTime = new Date('1970-01-01T' + closeDineTime + 'Z')
-                        .toLocaleTimeString('en-US', {
-                            timeZone: 'UTC',
-                            hour12: true,
-                            hour: 'numeric',
-                            minute: 'numeric'
-                        });
+                    closeDineTime = ArrowDateTime.formatTime(new Date('1970-01-01T' + closeDineTime + 'Z'));
                 }
 
                 if (dine_in_active == false) {

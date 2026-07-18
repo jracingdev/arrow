@@ -214,8 +214,8 @@
                     var time = '';
                     if (childData.hasOwnProperty("paidDate")) {
                         try {
-                            date = childData.paidDate.toDate().toDateString();
-                            time = childData.paidDate.toDate().toLocaleTimeString('en-US');
+                            date = ArrowDateTime.formatDate(childData.paidDate.toDate());
+                            time = ArrowDateTime.formatTime(childData.paidDate.toDate());
                         } catch (err) {
                         }
                     }
@@ -394,8 +394,8 @@ order: [[ @if(empty($id)) 2 @else 1 @endif, "desc" ]], // Order by Amount column
             } else {
                 html.push('<td>' + currentCurrency + '' + parseFloat(val.amount).toFixed(decimal_degits) + '</td>');
             }
-            var date = val.paidDate.toDate().toDateString();
-            var time = val.paidDate.toDate().toLocaleTimeString('en-US');
+            var date = ArrowDateTime.formatDate(val.paidDate.toDate());
+            var time = ArrowDateTime.formatTime(val.paidDate.toDate());
             html.push('<td>' + date + '<br> ' + time + '</td>');
             html.push('<td>' + val.note + '</td>');
             html.push('<td><span class="action-btn"><a id="' + val.recid + '" class="delete-btn" name="driver_payouts-delete" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a></span></td>');

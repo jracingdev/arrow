@@ -150,6 +150,20 @@
                                             </div>
                                         </div>
                                         <div class="form-group row">
+                                            <label class="col-3 control-label">{{ trans('lang.cnpj') }}</label>
+                                            <div class="col-9">
+                                                <input type="text" class="form-control vendor_cnpj" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric">
+                                                <div class="form-text text-muted">{{ trans('lang.cnpj_help') }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-3 control-label">{{ trans('lang.cep') }}</label>
+                                            <div class="col-9">
+                                                <input type="text" class="form-control vendor_cep" placeholder="00000-000" maxlength="9" inputmode="numeric">
+                                                <div class="form-text text-muted">{{ trans('lang.cep_help') }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
                                             <label class="col-3 control-label">{{ trans('lang.zone') }}<span class="required-field"></span></label>
                                             <div class="col-9">
                                                 <select id='zone' class="form-control">
@@ -1143,6 +1157,12 @@
                     if (vendor.hasOwnProperty('phonenumber')) {
                         $(".vendor_phone").val(vendor.phonenumber);
                     }
+                    if (vendor.hasOwnProperty('cnpj')) {
+                        $(".vendor_cnpj").val(vendor.cnpj);
+                    }
+                    if (vendor.hasOwnProperty('postalCode')) {
+                        $(".vendor_cep").val(vendor.postalCode);
+                    }
                     if (vendor.deliveryCharge && deliveryChargeFlag) {
                         $("#delivery_charges_per_km").val(vendor.deliveryCharge
                             .delivery_charges_per_km);
@@ -1434,25 +1454,13 @@
             var openDineTime = $("#openDineTime").val();
             
             if (openDineTime) {
-                openDineTime = new Date('1970-01-01T' + openDineTime + 'Z')
-                    .toLocaleTimeString('en-US', {
-                        timeZone: 'UTC',
-                        hour12: true,
-                        hour: 'numeric',
-                        minute: 'numeric'
-                    });
+                openDineTime = ArrowDateTime.formatTime(new Date('1970-01-01T' + openDineTime + 'Z'));
             }
             
             var closeDineTime = $("#closeDineTime").val();
             
             if (closeDineTime) {
-                closeDineTime = new Date('1970-01-01T' + closeDineTime + 'Z')
-                    .toLocaleTimeString('en-US', {
-                        timeZone: 'UTC',
-                        hour12: true,
-                        hour: 'numeric',
-                        minute: 'numeric'
-                    });
+                closeDineTime = ArrowDateTime.formatTime(new Date('1970-01-01T' + closeDineTime + 'Z'));
             }
             
             if (is_dine_in_active == false) {
@@ -1742,6 +1750,8 @@
                     'section_id': section_id,
                     'categoryID': cuisines,
                     'phonenumber': phonenumber,
+                    'cnpj': ($(".vendor_cnpj").val() || '').replace(/\D/g, ''),
+                    'postalCode': ($(".vendor_cep").val() || '').replace(/\D/g, ''),
                     'categoryTitle': categoryTitle,
                     'coordinates': coordinates,
                     'authorName': userFirstName,

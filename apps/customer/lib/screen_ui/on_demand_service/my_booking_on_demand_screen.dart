@@ -172,13 +172,13 @@ class MyBookingOnDemandScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Column(
           children: [
-            detailRow("Date & Time", DateFormat('dd-MMM-yyyy hh:mm a').format(order.scheduleDateTime!.toDate()), isDark),
+            detailRow("Date & Time", DateFormat('dd-MM-yyyy HH:mm').format(order.scheduleDateTime!.toDate()), isDark),
             const Divider(thickness: 1),
             detailRow("Provider", order.provider.authorName.toString(), isDark),
 
             if (order.provider.priceUnit == "Hourly") ...[
-              if (order.startTime != null) ...[const Divider(thickness: 1), detailRow("Start Time", DateFormat('dd-MMM-yyyy hh:mm a').format(order.startTime!.toDate()), isDark)],
-              if (order.endTime != null) ...[const Divider(thickness: 1), detailRow("End Time", DateFormat('dd-MMM-yyyy hh:mm a').format(order.endTime!.toDate()), isDark)],
+              if (order.startTime != null) ...[const Divider(thickness: 1), detailRow("Start Time", DateFormat('dd-MM-yyyy HH:mm').format(order.startTime!.toDate()), isDark)],
+              if (order.endTime != null) ...[const Divider(thickness: 1), detailRow("End Time", DateFormat('dd-MM-yyyy HH:mm').format(order.endTime!.toDate()), isDark)],
             ],
 
             if (worker != null) ...[const Divider(thickness: 1), detailRow("Worker", worker.fullName().toString(), isDark)],
