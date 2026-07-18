@@ -555,7 +555,7 @@ class Constant {
   }
 
   static DateTime stringToDate(String openDineTime) {
-    return DateFormat('HH:mm').parse(DateFormat('HH:mm').format(DateFormat("hh:mm a").parse((Intl.getCurrentLocale() == "en_US") ? openDineTime : openDineTime.toLowerCase())));
+    return DateFormat('HH:mm').parse(openDineTime);
   }
 
   static LanguageModel getLanguage() {
