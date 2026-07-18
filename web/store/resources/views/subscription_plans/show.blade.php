@@ -84,6 +84,7 @@
         <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
         <script src="{{ asset('js/crypto-js.js') }}"></script>
         <script src="{{ asset('js/jquery.cookie.js') }}"></script>
+        @include('partials.firebase-init')
         <script src="{{ asset('js/jquery.validate.js') }}"></script>
         <script type="text/javascript" src="{{ asset('assets/plugins/slick/slick.min.js') }}"></script>
         <script type="text/javascript" src="{{ asset('assets/plugins/slick/slick-lightbox.js') }}"></script>

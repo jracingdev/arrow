@@ -132,6 +132,7 @@ foreach ($countries as $keycountry => $valuecountry) {
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="{{ asset('js/crypto-js.js') }}"></script>
 <script src="{{ asset('js/jquery.cookie.js') }}"></script>
+@include('partials.firebase-init')
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
 <script type="text/javascript">
     var database = firebase.firestore();

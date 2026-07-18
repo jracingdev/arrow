@@ -1,13 +1,3 @@
-
-var firebaseConfig = {
-    apiKey: $.decrypt($.cookie('XSRF-TOKEN-AK')),
-    authDomain: $.decrypt($.cookie('XSRF-TOKEN-AD')),
-    databaseURL: $.decrypt($.cookie('XSRF-TOKEN-DU')),
-    projectId: $.decrypt($.cookie('XSRF-TOKEN-PI')),
-    storageBucket: $.decrypt($.cookie('XSRF-TOKEN-SB')),
-    messagingSenderId: $.decrypt($.cookie('XSRF-TOKEN-MS')),
-    appId: $.decrypt($.cookie('XSRF-TOKEN-AI')),
-    measurementId: $.decrypt($.cookie('XSRF-TOKEN-MI'))
+if (typeof firebase !== 'undefined' && window.__firebaseConfig && window.__firebaseConfig.apiKey && !firebase.apps.length) {
+    firebase.initializeApp(window.__firebaseConfig);
 }
-
-firebase.initializeApp(firebaseConfig); 

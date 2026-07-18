@@ -153,6 +153,7 @@ foreach ($countries as $keycountry => $valuecountry) {
 <script src="{{ asset('vendor/select2/dist/js/select2.min.js') }}"></script>
 <script src="{{ asset('js/crypto-js.js') }}"></script>
 <script src="{{ asset('js/jquery.cookie.js') }}"></script>
+@include('partials.firebase-init')
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
 <script type="text/javascript">
     var createdAt = firebase.firestore.FieldValue.serverTimestamp();

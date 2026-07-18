@@ -82,6 +82,7 @@
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
 <script src="{{ asset('js/crypto-js.js') }}"></script>
 <script src="{{ asset('js/jquery.cookie.js') }}"></script>
+@include('partials.firebase-init')
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
 <script>
     var doNotDeleteAlert = "{{trans('lang.this_is_for_demo_we_can_not_allow_to_delete')}}";
