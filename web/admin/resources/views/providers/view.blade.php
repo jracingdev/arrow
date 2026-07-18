@@ -2,8 +2,29 @@
 
 @section('content')
     <div class="page-wrapper">
-        <div class="container-fluid">
-            <div class="admin-top-section pt-4">
+                        <div class="row page-titles">
+                            <div class="col-md-5 align-self-center">
+                                <div class="d-flex top-title-section justify-content-between">
+                                    <div class="d-flex top-title-left align-self-center">
+                                        <span class="icon mr-3"><img src="{{ asset('images/provider.png') }}"></span>
+                                        <h3 class="mb-0">{{ trans('lang.provider_plural') }} - <span
+                                                class="itemTitle"></span></h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-7 align-self-center">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a
+                                            href="{{ route('dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
+                                    <li class="breadcrumb-item"><a
+                                            href="{!! route('providers') !!}">{{ trans('lang.provider_plural') }}</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">{{ trans('lang.provider_details') }}</li>
+                                </ol>
+                            </div>
+                        </div>
+                         
+            {{-- <div class="admin-top-section pt-4">
                 <div class="row">
                     <div class="col-12">
                         <div class="d-flex top-title-section pb-4 justify-content-between">
@@ -11,39 +32,50 @@
                                 <span class="icon mr-3"><img src="{{ asset('images/provider.png') }}"></span>
                                 <div class="top-title-breadcrumb">
                                     <h3 class="mb-0 restaurantTitle">{{ trans('lang.provider_plural') }}</h3>
+                                     <div class="col-md-7 align-self-center">
                                     <ol class="breadcrumb">
-                                        <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
+                                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
                                         <li class="breadcrumb-item"><a href="{!! route('providers') !!}">{{ trans('lang.provider_plural') }}</a></li>
                                         <li class="breadcrumb-item active">{{ trans('lang.provider_details') }}</li>
                                     </ol>
+                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
+        <div class="container-fluid">
             <div class="resttab-sec mb-4">
                 <div class="menu-tab">
                     <ul>
-                        <li class="active"><a href="{{ route('providers.view', $id) }}">{{ trans('lang.tab_basic') }}</a>
+                        <li class="active"><a href="{{ route('providers.view', $id) }}"><img
+                                    src="{{ asset('images/provider.png') }}"> {{ trans('lang.tab_basic') }}</a>
                         </li>
-                        <li><a href="{{ route('ondemand.services.index', $id) }}">{{ trans('lang.services') }}</a></li>
+                        <li><a href="{{ route('ondemand.services.index', $id) }}"><img
+                                    src="{{ asset('images/service.png') }}"> {{ trans('lang.services') }}</a></li>
                         <li>
-                        <li><a href="{{ route('ondemand.workers.index', $id) }}">{{ trans('lang.workers') }}</a></li>
+                        <li><a href="{{ route('ondemand.workers.index', $id) }}"><img
+                                    src="{{ asset('images/worker.png') }}"> {{ trans('lang.workers') }}</a></li>
                         <li>
-                        <li><a href="{{ route('ondemand.bookings.index', $id) }}">{{ trans('lang.booking_plural') }}</a></li>
+                        <li><a href="{{ route('ondemand.bookings.index', $id) }}"><img
+                                    src="{{ asset('images/booking.png') }}"> {{ trans('lang.booking_plural') }}</a></li>
                         <li>
-                        <li><a href="{{ route('ondemand.coupons', $id) }}">{{ trans('lang.coupon_plural') }}</a></li>
+                        <li><a href="{{ route('ondemand.coupons', $id) }}"><img src="{{ asset('images/coupon.png') }}">
+                                {{ trans('lang.coupon_plural') }}</a></li>
                         <li>
-                            <a href="{{ route('providerPayouts.payout', $id) }}">{{ trans('lang.tab_payouts') }}</a>
+                            <a href="{{ route('providerPayouts.payout', $id) }}"><img
+                                    src="{{ asset('images/payment.png') }}"> {{ trans('lang.tab_payouts') }}</a>
                         </li>
                         <li>
-                            <a href="{{ route('payoutRequests.providers', $id) }}">{{ trans('lang.tab_payout_request') }}</a>
+                            <a href="{{ route('payoutRequests.providers', $id) }}"><img
+                                    src="{{ asset('images/payment.png') }}"> {{ trans('lang.tab_payout_request') }}</a>
                         </li>
-                        <?php if (in_array('wallet-transaction', json_decode(@session('user_permissions')))) { ?>
+                        <?php if (in_array('wallet-transaction', json_decode(@session('user_permissions'),true))) { ?>
 
                         <li>
-                            <a href="{{ url('walletstransaction/providerID=' . $id) }}" class="wallet_transaction">{{ trans('lang.wallet_transaction') }}</a>
+                            <a href="{{ url('walletstransaction/providerID=' . $id) }}" class="wallet_transaction"><img
+                                    src="{{ asset('images/wallet.png') }}"> {{ trans('lang.wallet_transaction') }}</a>
                         </li>
 
                         <?php } ?>
@@ -53,7 +85,8 @@
                         $subscription = str_replace(':id', 'providerID=' . $id, $subscription);
                         ?>
                         <li>
-                            <a href="{{ $subscription }}">{{ trans('lang.subscription_history') }}</a>
+                            <a href="{{ $subscription }}"><img src="{{ asset('images/subscription.png') }}">
+                                {{ trans('lang.subscription_history') }}</a>
                         </li>
                     </ul>
                 </div>
@@ -86,7 +119,9 @@
                     <div class="col-md-12">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h3 class="text-dark-2 mb-0 h4">{{ trans('lang.subscription_details') }}</h3>
-                            <a href="javascript:void(0)" data-toggle="modal" data-target="#changeSubscriptionModal" class="btn-primary btn rounded-full change-plan"><i class="mdi mdi-plus mr-2"></i>{{ trans('lang.change_subscription_plan') }}</a>
+                            <a href="javascript:void(0)" data-toggle="modal" data-target="#changeSubscriptionModal"
+                                class="btn-primary btn rounded-full change-plan"><i
+                                    class="mdi mdi-plus mr-2"></i>{{ trans('lang.change_subscription_plan') }}</a>
                         </div>
                     </div>
                 </div>
@@ -138,116 +173,158 @@
                 </div>
             </div>
             <div class="restaurant_info-section">
-                <div class="card border">
-                    <div class="card-header d-flex justify-content-between align-items-center border-bottom pb-3">
-                        <div class="card-header-title">
-                            <h3 class="text-dark-2 mb-0 h4">{{ trans('lang.provider_details') }}</h3>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="restaurant_info_left">
-                                    <div class="d-flex mb-1">
-                                        <div class="sis-img profile_image" id="profile_image">
-                                        </div>
-                                        <div class="sis-content pl-4">
-                                            <ul class="p-0 info-list mb-0">
-                                                <li class="d-flex align-items-center mb-2">
-                                                    <label class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.first_name') }}</label>
-                                                    <span class="user_name" id="user_name"></span>
-                                                </li>
-                                                <li class="d-flex align-items-center mb-2">
-                                                    <label class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.email') }}</label>
-                                                    <span class="email"></span>
-                                                </li>
-                                                <li class="d-flex align-items-center mb-2">
-                                                    <label class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.user_phone') }}</label>
-                                                    <span class="phone"></span>
-                                                </li>
-                                                <li class="d-flex align-items-center mb-2 mr-1">
-                                                    <label class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.section') }}</label>
-                                                    <span class="provider_section"> </span>
-                                                </li>
-                                                <li class="d-flex align-items-center mb-2 mr-1">
-                                                    <label class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.wallet_Balance') }}</label>
-                                                    <span class="wallet_balance"> </span>
-                                                </li>
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="card border h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center border-bottom pb-3">
+                                <div class="card-header-title">
+                                    <h3 class="text-dark-2 mb-0 h4">{{ trans('lang.provider_details') }}</h3>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="restaurant_info_left">
+                                            <div class="d-flex mb-1">
+                                                <div class="sis-img profile_image" id="profile_image">
+                                                </div>
+                                                <div class="sis-content pl-4">
+                                                    <ul class="p-0 info-list mb-0">
+                                                        <li class="d-flex align-items-center mb-2">
+                                                            <label
+                                                                class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.first_name') }}</label>
+                                                            <span class="user_name" id="user_name"></span>
+                                                        </li>
+                                                        <li class="d-flex align-items-center mb-2">
+                                                            <label
+                                                                class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.email') }}</label>
+                                                            <span class="email"></span>
+                                                        </li>
+                                                        <li class="d-flex align-items-center mb-2">
+                                                            <label
+                                                                class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.user_phone') }}</label>
+                                                            <span class="phone"></span>
+                                                        </li>
+                                                        <li class="d-flex align-items-center mb-2 mr-1">
+                                                            <label
+                                                                class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.section') }}</label>
+                                                            <span class="provider_section"> </span>
+                                                        </li>
+                                                        <li class="d-flex align-items-center mb-2 mr-1">
+                                                            <label
+                                                                class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.wallet_Balance') }}</label>
+                                                            <span class="wallet_balance"> </span>
+                                                        </li>
 
-                                            </ul>
+                                                    </ul>
+                                                </div>
+                                            </div>
+
                                         </div>
                                     </div>
 
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="card border h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center border-bottom pb-3">
+                                <div class="card-header-title">
+                                    <h3 class="text-dark-2 mb-0 h4">{{ trans('lang.active_subscription_plan') }}</h3>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
 
+                                    <div class="col-md-4">
+                                        <div class="active-sub-plan">
+                                            <label
+                                                class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.plan_name') }}</label>
+                                            <p><span class="plan_name"></span></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="active-sub-plan">
+                                            <label
+                                                class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.plan_type') }}</label>
+                                            <p><span class="plan_type"></span></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="active-sub-plan">
+                                            <label
+                                                class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.plan_expires_at') }}</label>
+                                            <p><span class="plan_expire_at"></span></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="active-sub-plan">
+                                            <label
+                                                class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.booking_limit') }}</label>
+                                            <p><span class="order_limit"></span></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="active-sub-plan">
+                                            <label
+                                                class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.service_limit') }}</label>
+                                            <p><span class="item_limit"></span></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 update-limit-div" style="display:none">
+                                        <div class="active-sub-plan">
+                                            <a href="javascript:void(0)" data-toggle="modal"
+                                                data-target="#updateLimitModal"
+                                                class="btn-primary btn rounded-full update-limit">{{ trans('lang.update_plan_limit') }}</a>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="active-sub-plan">
+                                            <label
+                                                class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.available_booking_limit') }}</label>
+                                            <p><span class="available_booking_limit"></span></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="active-sub-plan">
+                                            <label
+                                                class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.available_service_limit') }}</label>
+                                            <p><span class="available_service_limit"></span></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="active-sub-plan">
+                                            <label
+                                                class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.available_features') }}</label>
+                                            <p><span class="plan_features"></span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card border">
-                    <div class="card-header d-flex justify-content-between align-items-center border-bottom pb-3">
-                        <div class="card-header-title">
-                            <h3 class="text-dark-2 mb-0 h4">{{ trans('lang.active_subscription_plan') }}</h3>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
 
-                            <div class="col-md-3">
-                                <label class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.plan_name') }}</label>
-                                <p><span class="plan_name"></span></p>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.plan_type') }}</label>
-                                <p><span class="plan_type"></span></p>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.plan_expires_at') }}</label>
-                                <p><span class="plan_expire_at"></span></p>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.booking_limit') }}</label>
-                                <p><span class="order_limit"></span></p>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.service_limit') }}</label>
-                                <p><span class="item_limit"></span></p>
-                            </div>
-                            <div class="col-md-6 update-limit-div" style="display:none">
-                                <a href="javascript:void(0)" data-toggle="modal" data-target="#updateLimitModal" class="btn-primary btn rounded-full update-limit">{{ trans('lang.update_plan_limit') }}</a>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.available_booking_limit') }}</label>
-                                <p><span class="available_booking_limit"></span></p>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.available_service_limit') }}</label>
-                                <p><span class="available_service_limit"></span></p>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="mb-1 font-wi font-semibold text-dark-2">{{ trans('lang.available_features') }}</label>
-                                <p><span class="plan_features"></span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
+
             <div class="form-group col-12 text-center btm-btn">
 
-                <a href="{!! route('providers') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{ trans('lang.cancel') }}</a>
+                <a href="{!! route('providers') !!}" class="btn btn-default"><i
+                        class="fa fa-undo"></i>{{ trans('lang.cancel') }}</a>
 
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="changeSubscriptionModal" tabindex="-1" role="dialog" aria-hidden="true" style="width: 100%">
+    <div class="modal fade" id="changeSubscriptionModal" tabindex="-1" role="dialog" aria-hidden="true"
+        style="width: 100%">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 1200px;">
             <div class="modal-content">
                 <div class="modal-header">
                     <h6 class="text-dark-2 h5 mb-0">{{ trans('lang.business_plans') }}</h6>
-                    <button type="button" id="closeModalButton" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" id="closeModalButton" class="close" data-dismiss="modal"
+                        aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -287,7 +364,8 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="checkoutSubscriptionModal" tabindex="-1" role="dialog" aria-hidden="true" style="width: 100%">
+    <div class="modal fade" id="checkoutSubscriptionModal" tabindex="-1" role="dialog" aria-hidden="true"
+        style="width: 100%">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 1200px;">
             <div class="modal-content">
                 <div class="modal-header">
@@ -314,7 +392,8 @@
                                                 </div>
                                                 <div class="form-check">
                                                     <h6 class="text-dark-2 h6 mb-0">{{ trans('lang.manual_pay') }}</h6>
-                                                    <input type="radio" id="manual_pay" name="payment_method" value="manual_pay" checked="">
+                                                    <input type="radio" id="manual_pay" name="payment_method"
+                                                        value="manual_pay" checked="">
                                                     <label class="control-label mb-0" for="manual_pay"></label>
                                                 </div>
                                             </div>
@@ -325,9 +404,11 @@
                                     <div class="align-items-center justify-content-between">
                                         <div class="edit-form-group btm-btn text-right">
                                             <div class="card-block-active-plan">
-                                                <a href="" class="btn btn-default rounded-full mr-2" data-dismiss="modal">{{ trans('lang.cancel_plan') }}</a>
+                                                <a href="" class="btn btn-default rounded-full mr-2"
+                                                    data-dismiss="modal">{{ trans('lang.cancel_plan') }}</a>
                                                 <input type="hidden" id="plan_id" name="plan_id" value="">
-                                                <button type="button" class="btn-primary btn rounded-full" onclick="finalCheckout()">{{ trans('lang.change_plan') }}</button>
+                                                <button type="button" class="btn-primary btn rounded-full"
+                                                    onclick="finalCheckout()">{{ trans('lang.change_plan') }}</button>
                                             </div>
                                         </div>
                                     </div>
@@ -355,16 +436,21 @@
                                 <div class="form-group row width-100">
                                     <label class="control-label">{{ trans('lang.maximum_booking_limit') }}</label>
                                     <div class="form-check width-100">
-                                        <input type="radio" id="unlimited_order" name="set_order_limit" value="unlimited" checked>
-                                        <label class="control-label" for="unlimited_order">{{ trans('lang.unlimited') }}</label>
+                                        <input type="radio" id="unlimited_order" name="set_order_limit"
+                                            value="unlimited" checked>
+                                        <label class="control-label"
+                                            for="unlimited_order">{{ trans('lang.unlimited') }}</label>
                                     </div>
                                     <div class="d-flex">
                                         <div class="form-check width-50 limited_order_div">
-                                            <input type="radio" id="limited_order" name="set_order_limit" value="limited">
-                                            <label class="control-label" for="limited_order">{{ trans('lang.limited') }}</label>
+                                            <input type="radio" id="limited_order" name="set_order_limit"
+                                                value="limited">
+                                            <label class="control-label"
+                                                for="limited_order">{{ trans('lang.limited') }}</label>
                                         </div>
                                         <div class="form-check width-50 d-none order-limit-div">
-                                            <input type="number" id="order_limit" class="form-control" placeholder="{{ trans('lang.ex_1000') }}">
+                                            <input type="number" id="order_limit" class="form-control"
+                                                placeholder="{{ trans('lang.ex_1000') }}">
                                         </div>
                                     </div>
                                     <span class="booking_limit_err"></span>
@@ -372,16 +458,21 @@
                                 <div class="form-group row width-100">
                                     <label class="control-label">{{ trans('lang.maximum_service_limit') }}</label>
                                     <div class="form-check width-100">
-                                        <input type="radio" id="unlimited_item" name="set_item_limit" value="unlimited" checked>
-                                        <label class="control-label" for="unlimited_item">{{ trans('lang.unlimited') }}</label>
+                                        <input type="radio" id="unlimited_item" name="set_item_limit"
+                                            value="unlimited" checked>
+                                        <label class="control-label"
+                                            for="unlimited_item">{{ trans('lang.unlimited') }}</label>
                                     </div>
                                     <div class="d-flex ">
                                         <div class="form-check width-50 limited_item_div  ">
-                                            <input type="radio" id="limited_item" name="set_item_limit" value="limited">
-                                            <label class="control-label" for="limited_item">{{ trans('lang.limited') }}</label>
+                                            <input type="radio" id="limited_item" name="set_item_limit"
+                                                value="limited">
+                                            <label class="control-label"
+                                                for="limited_item">{{ trans('lang.limited') }}</label>
                                         </div>
                                         <div class="form-check width-50 d-none item-limit-div">
-                                            <input type="number" id="item_limit" class="form-control" placeholder="{{ trans('lang.ex_1000') }}">
+                                            <input type="number" id="item_limit" class="form-control"
+                                                placeholder="{{ trans('lang.ex_1000') }}">
                                         </div>
                                     </div>
                                     <span class="service_limit_err"></span>
@@ -390,7 +481,8 @@
                         </div>
                     </form>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary update-plan-limit">{{ trans('submit') }}</a></button>
+                        <button type="button"
+                            class="btn btn-primary update-plan-limit">{{ trans('submit') }}</a></button>
                         <button type="button" class="btn btn-primary" data-dismiss="modal" aria-label="Close">
                             {{ trans('close') }}</a>
                         </button>
@@ -436,9 +528,9 @@
 
         var commisionModel = false;
         var AdminCommission = '';
-        var vendorSpecificCommission=false;
+        var vendorSpecificCommission = false;
         var commissionObj = '';
-        var refSection = database.collection('sections').where('isActive', '==', true).where('serviceType', '==', 'On Demand Service');
+        var refSection = database.collection('sections').where('isActive', '==', true).where('serviceType', '==','On Demand Service');
         refSection.get().then(async function(sectionsSnapshot) {
             sectionsSnapshot.docs.forEach((listval) => {
                 var data = listval.data();
@@ -452,7 +544,7 @@
 
         async function getCommissionDataBySection() {
             sectionId = $('#section-input').val();
-           
+
             var commissionBusinessModel = database.collection('sections').where('id', '==',
                 sectionId);
             await commissionBusinessModel.get().then(async function(snapshots) {
@@ -472,12 +564,14 @@
                             AdminCommission = commissionSetting.commission + '' + '%';
                         } else {
                             if (currencyAtRight) {
-                                AdminCommission = commissionSetting.commission.toFixed(decimal_degits) + currentCurrency;
+                                AdminCommission = commissionSetting.commission.toFixed(decimal_degits) +
+                                    currentCurrency;
                             } else {
-                                AdminCommission = currentCurrency + commissionSetting.commission.toFixed(decimal_degits);
+                                AdminCommission = currentCurrency + commissionSetting.commission.toFixed(
+                                    decimal_degits);
                             }
                         }
-                        
+
                     }
                 }
             });
@@ -488,7 +582,8 @@
         var subscriptionModel = false;
         database.collection('settings').doc("vendor").get().then(async function(snapshots) {
             var businessModelSettings = snapshots.data();
-            if (businessModelSettings.hasOwnProperty('subscription_model') && businessModelSettings.subscription_model == true) {
+            if (businessModelSettings.hasOwnProperty('subscription_model') && businessModelSettings
+                .subscription_model == true) {
                 subscriptionModel = true;
             }
         });
@@ -507,6 +602,7 @@
                     var user = snapshots.docs[0].data();
 
                     $(".user_name").text(user.firstName + ' ' + user.lastName);
+                    $(".itemTitle").text(user.firstName + ' ' + user.lastName);
 
                     if (user.hasOwnProperty('email') && user.email) {
                         $(".email").text(shortEmail(user.email));
@@ -527,21 +623,25 @@
 
                     }
 
-                    if (user.hasOwnProperty('adminCommission') && user.adminCommission != null && user.adminCommission != '') {
+                    if (user.hasOwnProperty('adminCommission') && user.adminCommission != null &&
+                        user.adminCommission != '') {
                         commissionObj = user.adminCommission;
-                        vendorSpecificCommission=true;
+                        vendorSpecificCommission = true;
                         if (user.adminCommission.type == "percentage") {
                             AdminCommission = user.adminCommission.commission + '' + '%';
                         } else {
                             if (currencyAtRight) {
-                                AdminCommission = user.adminCommission.commission.toFixed(decimal_degits) + currentCurrency;
+                                AdminCommission = user.adminCommission.commission.toFixed(
+                                    decimal_degits) + currentCurrency;
                             } else {
-                                AdminCommission = currentCurrency + user.adminCommission.commission.toFixed(decimal_degits);
+                                AdminCommission = currentCurrency + user.adminCommission.commission
+                                    .toFixed(decimal_degits);
                             }
                         }
                     }
-                    
-                    if (user.hasOwnProperty('section_id') && user.section_id != '' && user.section_id != null) {
+
+                    if (user.hasOwnProperty('section_id') && user.section_id != '' && user
+                        .section_id != null) {
                         sectionId = user.section_id;
                         $('#section-input').val(sectionId).prop('disabled', true);
                         getCommissionDataBySection();
@@ -557,31 +657,41 @@
 
                     var wallet_balance = 0;
 
-                    if (user.hasOwnProperty('wallet_amount') && user.wallet_amount != null && !isNaN(user.wallet_amount)) {
+                    if (user.hasOwnProperty('wallet_amount') && user.wallet_amount != null && !
+                        isNaN(user.wallet_amount)) {
                         wallet_balance = user.wallet_amount;
                     }
                     if (currencyAtRight) {
-                        wallet_balance = parseFloat(wallet_balance).toFixed(decimal_degits) + "" + currentCurrency;
+                        wallet_balance = parseFloat(wallet_balance).toFixed(decimal_degits) + "" +
+                            currentCurrency;
                     } else {
-                        wallet_balance = currentCurrency + "" + parseFloat(wallet_balance).toFixed(decimal_degits);
+                        wallet_balance = currentCurrency + "" + parseFloat(wallet_balance).toFixed(
+                            decimal_degits);
                     }
 
                     $('.wallet_balance').html(wallet_balance);
 
                     var image = "";
                     if (user.profilePictureURL) {
-                        image = '<img width="100px" id="" height="auto" src="' + user.profilePictureURL + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'">';
+                        image = '<img width="100px" id="" height="auto" src="' + user
+                            .profilePictureURL + '" onerror="this.onerror=null;this.src=\'' +
+                            placeholderImage + '\'">';
                     } else {
-                        image = '<img width="100px" id="" height="auto" src="' + placeholderImage + '">';
+                        image = '<img width="100px" id="" height="auto" src="' + placeholderImage +
+                            '">';
                     }
 
                     $('.profile_image').html(image);
                 } else {
-                    $('.provider_detail_div').html('<h5 class="text-danger text-center font-weight-bold">{{ trans('lang.provider_unknown_deleted') }}</h5>')
+                    $('.provider_detail_div').html(
+                        '<h5 class="text-danger text-center font-weight-bold">{{ trans('lang.provider_unknown_deleted') }}</h5>'
+                        )
                 }
                 jQuery("#data-table_processing").hide();
 
-                if (user.hasOwnProperty('subscriptionExpiryDate') && user.hasOwnProperty('subscriptionPlanId') && user.subscriptionPlanId != '' && user.subscriptionPlanId != null) {
+                if (user.hasOwnProperty('subscriptionExpiryDate') && user.hasOwnProperty(
+                        'subscriptionPlanId') && user.subscriptionPlanId != '' && user
+                    .subscriptionPlanId != null) {
                     $(".update-limit-div").show();
                     $(".plan_name").html(user.subscription_plan.name);
                     $(".plan_type").html(user.subscription_plan.type);
@@ -594,23 +704,31 @@
                         $(".plan_expire_at").html("{{ trans('lang.unlimited') }}");
                         $(".plan_expire_date").html("{{ trans('lang.unlimited') }}");
                     }
-                    var number_of_days = user.subscription_plan.expiryDay == "-1" ? 'Unlimited' : user.subscription_plan.expiryDay + " Days";
+                    var number_of_days = user.subscription_plan.expiryDay == "-1" ? 'Unlimited' :
+                        user.subscription_plan.expiryDay + " Days";
                     $(".number_of_days").html(number_of_days);
                     if (currencyAtRight) {
-                        $(".plan_price").html(parseFloat(user.subscription_plan.price).toFixed(decimal_degits) + currentCurrency);
+                        $(".plan_price").html(parseFloat(user.subscription_plan.price).toFixed(
+                            decimal_degits) + currentCurrency);
                     } else {
-                        $(".plan_price").html(currentCurrency + parseFloat(user.subscription_plan.price).toFixed(decimal_degits));
+                        $(".plan_price").html(currentCurrency + parseFloat(user.subscription_plan
+                            .price).toFixed(decimal_degits));
                     }
-                    $('.order_limit').html((user.subscription_plan.orderLimit == '-1') ? "{{ trans('lang.unlimited') }}" : user.subscription_plan.orderLimit);
-                    $('.item_limit').html((user.subscription_plan.itemLimit == '-1') ? "{{ trans('lang.unlimited') }}" : user.subscription_plan.itemLimit);
-                    $('.available_booking_limit').html((user.subscriptionTotalOrders == '-1') ? "{{ trans('lang.unlimited') }}" : user.subscriptionTotalOrders);
+                    $('.order_limit').html((user.subscription_plan.orderLimit == '-1') ?
+                        "{{ trans('lang.unlimited') }}" : user.subscription_plan.orderLimit);
+                    $('.item_limit').html((user.subscription_plan.itemLimit == '-1') ?
+                        "{{ trans('lang.unlimited') }}" : user.subscription_plan.itemLimit);
+                    $('.available_booking_limit').html((user.subscriptionTotalOrders == '-1') ?
+                        "{{ trans('lang.unlimited') }}" : user.subscriptionTotalOrders);
 
-                    var snapshot = await database.collection('providers_services').where('author', '==', id).get();
+                    var snapshot = await database.collection('providers_services').where('author',
+                        '==', id).get();
                     var totalProductCount = snapshot.size;
                     if (user.subscription_plan.itemLimit == '-1') {
                         $('.available_service_limit').html("Unlimited");
                     } else {
-                        var availableService = parseInt(user.subscription_plan.itemLimit) - parseInt(totalProductCount);
+                        var availableService = parseInt(user.subscription_plan.itemLimit) -
+                            parseInt(totalProductCount);
                         if (availableService < 0) {
                             $('.available_service_limit').html(0);
                         } else {
@@ -668,7 +786,8 @@
         async function showPlanDetail(planId) {
             $("#plan_id").val(planId);
             var activePlan = '';
-            var snapshots = await database.collection('subscription_history').where('user_id', '==', id).orderBy('createdAt', 'desc').get();
+            var snapshots = await database.collection('subscription_history').where('user_id', '==', id).orderBy(
+                'createdAt', 'desc').get();
             if (snapshots.docs.length > 0) {
                 var data = snapshots.docs[0].data();
                 activePlan = data.subscription_plan;
@@ -684,10 +803,12 @@
             } else {
                 $('.manual_pay_div').addClass('d-none');
             }
-            let choosedPlan_price = currencyAtRight ? parseFloat(choosedPlan.price).toFixed(decimal_degits) + currentCurrency :
+            let choosedPlan_price = currencyAtRight ? parseFloat(choosedPlan.price).toFixed(decimal_degits) +
+                currentCurrency :
                 currentCurrency + parseFloat(choosedPlan.price).toFixed(decimal_degits);
             if (activePlan) {
-                let activePlan_price = currencyAtRight ? parseFloat(activePlan.price).toFixed(decimal_degits) + currentCurrency :
+                let activePlan_price = currencyAtRight ? parseFloat(activePlan.price).toFixed(decimal_degits) +
+                    currentCurrency :
                     currentCurrency + parseFloat(activePlan.price).toFixed(decimal_degits);
                 html += ` 
                     <div class="col-md-8">
@@ -835,9 +956,27 @@
                         'subscriptionTotalOrders': planData.orderLimit,
                         'section_id': sectionId,
                         'adminCommission': commissionObj
-                    })
+                    }).then(async function(result) {
+                    var sectionCommissionSetting = {};
+                    if(vendorId!=null){
+                        const sectionRef = database.collection('sections').where('id', '==', sectionId);
+                        const sectionSnap = await sectionRef.get();
+                        if (!sectionSnap.empty) {
+                            const sectionData = sectionSnap.docs[0].data();
+                            sectionCommissionSetting = sectionData.adminCommision;
+                        }
+                        await database.collection('vendors').doc(vendorId).update({
+                           'subscription_plan': planData,
+                            'subscriptionPlanId': planId,
+                            'subscriptionExpiryDate': expiryDay,
+                            'subscriptionTotalOrders':planData.orderLimit,
+                            'section_id':sectionId,
+                            'adminCommission': sectionCommissionSetting
+                        })
+                    }
 
-                    var providerServicesSnapshot = await database.collection('providers_services').where('author', '==', userId).get();
+                    var providerServicesSnapshot = await database.collection('providers_services').where('author', '==',
+                        userId).get();
                     if (!providerServicesSnapshot.empty) {
                         providerServicesSnapshot.forEach(async (doc) => {
                             // Update each matching document
@@ -864,6 +1003,7 @@
                     }).then(async function(snapshot) {
                         window.location.reload();
                     })
+                    })
                 }
             }
         }
@@ -873,30 +1013,34 @@
             var activeSubscriptionId = '';
 
             $('#default-plan').html('');
-            var snapshots = await database.collection('subscription_history').where('user_id', '==', id).orderBy('createdAt', 'desc').get();
+            var snapshots = await database.collection('subscription_history').where('user_id', '==', id).orderBy(
+                'createdAt', 'desc').get();
             if (snapshots.docs.length > 0) {
                 var data = snapshots.docs[0].data();
                 activeSubscriptionId = data.subscription_plan.id;
             }
-            database.collection('subscription_plans').where('isEnable', '==', true).where('sectionId', '==', sectionId).get().then(async function(snapshots) {
+            database.collection('subscription_plans').where('isEnable', '==', true).where('sectionId', '==', sectionId)
+                .get().then(async function(snapshots) {
 
-                let plans = [];
-                snapshots.docs.map(doc => {
-                    let data = doc.data();
-                    plans.push({
-                        ...data
-                    }); // Include document ID if needed
-                });
-                plans.sort((a, b) => b.isCommissionPlan - a.isCommissionPlan);
-                var html = '';
+                    let plans = [];
+                    snapshots.docs.map(doc => {
+                        let data = doc.data();
+                        plans.push({
+                            ...data
+                        }); // Include document ID if needed
+                    });
+                    plans.sort((a, b) => b.isCommissionPlan - a.isCommissionPlan);
+                    var html = '';
 
-                plans.map(async (data) => {
-                    var activeClass = (data.id == activeSubscriptionId) ? '<span class="badge badge-success">{{ trans('lang.active') }}</span>' : '';
-                    if (data.isCommissionPlan == true) {
-                        if (commisionModel) {
-                            commissionData = data;
-                            planId = data.id;
-                            html += `<div class="col-md-3 mb-5 pricing-card pricing-card-commission">
+                    plans.map(async (data) => {
+                        var activeClass = (data.id == activeSubscriptionId) ?
+                            '<span class="badge badge-success">{{ trans('lang.active') }}</span>' :
+                            '';
+                        if (data.isCommissionPlan == true) {
+                            if (commisionModel) {
+                                commissionData = data;
+                                planId = data.id;
+                                html += `<div class="col-md-3 mb-5 pricing-card pricing-card-commission">
                                             <div class="pricing-card-inner">
                                                 <div class="pricing-card-top">
                                                     <div class="d-flex align-items-center pb-4">
@@ -907,48 +1051,53 @@
                                                         <span class="price-day">${data.description}</span>
                                                         <div class="pricing-card-price">
                                             <h3 class="text-dark-2">`
-                            if (data.type == "paid")
-                                html += `${currencyAtRight? parseFloat(data.price).toFixed(decimal_degits)+currentCurrency:currentCurrency+parseFloat(data.price).toFixed(decimal_degits)}</h3>`
-                            else
+                                if (data.type == "paid")
+                                    html +=
+                                    `${currencyAtRight? parseFloat(data.price).toFixed(decimal_degits)+currentCurrency:currentCurrency+parseFloat(data.price).toFixed(decimal_degits)}</h3>`
+                                else
 
-                                html += `<h3 class="text-dark-2" style="color:red;">Free</h3>`
+                                    html += `<h3 class="text-dark-2" style="color:red;">Free</h3>`
 
-                            html += `<span class="price-day">${data.expiryDay==-1? "{{ trans('lang.unlimited') }}":data.expiryDay} Days</span></div>
+                                html += `<span class="price-day">${data.expiryDay==-1? "{{ trans('lang.unlimited') }}":data.expiryDay} Days</span></div>
                                                     </div>
                                                 </div>
                                                 <div class="pricing-card-content pt-3 mt-3 border-top">
                                                     <ul class="pricing-card-list text-dark-2">`;
-                            html += `<li><span class="mdi mdi-check"></span>{{ trans('lang.pay_commission_of') }} ${AdminCommission} {{ trans('lang.on_each_booking') }} </li>`
-                            data.plan_points.map(async (list) => {
-                                html += `<li><span class="mdi mdi-check"></span>${list}</li>`
-                            });
-                            html += `<li><span class="mdi mdi-check"></span>{{ trans('lang.unlimited') }} {{ trans('lang.bookings') }}</li>`
-                            html += `<li><span class="mdi mdi-check"></span>{{ trans('lang.unlimited') }} {{ trans('lang.services') }}</li>`
-                            html += `</ul>
+                                html +=
+                                    `<li><span class="mdi mdi-check"></span>{{ trans('lang.pay_commission_of') }} ${AdminCommission} {{ trans('lang.on_each_booking') }} </li>`
+                                data.plan_points.map(async (list) => {
+                                    html +=
+                                        `<li><span class="mdi mdi-check"></span>${list}</li>`
+                                });
+                                html +=
+                                    `<li><span class="mdi mdi-check"></span>{{ trans('lang.unlimited') }} {{ trans('lang.bookings') }}</li>`
+                                html +=
+                                    `<li><span class="mdi mdi-check"></span>{{ trans('lang.unlimited') }} {{ trans('lang.services') }}</li>`
+                                html += `</ul>
                                                 </div>`;
-                            var buttonText = (activeClass == '') ?
-                                "{{ trans('lang.select_plan') }}" :
-                                "{{ trans('lang.renew_plan') }}";
+                                var buttonText = (activeClass == '') ?
+                                    "{{ trans('lang.select_plan') }}" :
+                                    "{{ trans('lang.renew_plan') }}";
 
-                            html += `<div class="pricing-card-btm">
+                                html += `<div class="pricing-card-btm">
                                                     <a href="javascript:void(0)" onClick="chooseSubscriptionPlan('${data.id}')" class="btn rounded-full active-btn btn-primary">${buttonText}</a>
                                                 </div>`;
 
-                            html += `</div>
+                                html += `</div>
                                 </div>`;
-                        }
-                    } else {
-                        if (subscriptionModel) {
-                            const translations = {
-                                chatingOption: "{{ trans('lang.chating_option') }}",
-                                mobileAppAccess: "{{ trans('lang.mobile_app_access') }}"
-                            };
-                            var features = data.features;
-                            var buttonText = (activeClass == '') ?
-                                "{{ trans('lang.select_plan') }}" :
-                                "{{ trans('lang.renew_plan') }}";
+                            }
+                        } else {
+                            if (subscriptionModel) {
+                                const translations = {
+                                    chatingOption: "{{ trans('lang.chating_option') }}",
+                                    mobileAppAccess: "{{ trans('lang.mobile_app_access') }}"
+                                };
+                                var features = data.features;
+                                var buttonText = (activeClass == '') ?
+                                    "{{ trans('lang.select_plan') }}" :
+                                    "{{ trans('lang.renew_plan') }}";
 
-                            html += `<div class="col-md-3 mt-2 mb-4 pricing-card pricing-card-subscription ${data.name}">
+                                html += `<div class="col-md-3 mt-2 mb-4 pricing-card pricing-card-subscription ${data.name}">
                                     <div class="pricing-card-inner">
                                         <div class="pricing-card-top">
                                         <div class="d-flex align-items-center pb-4">
@@ -958,13 +1107,14 @@
                                         <p class="text-muted">${data.description}</p>
                                         <div class="pricing-card-price">
                                             <h3 class="text-dark-2">`
-                            if (data.type == "paid")
-                                html += `${currencyAtRight? parseFloat(data.price).toFixed(decimal_degits)+currentCurrency:currentCurrency+parseFloat(data.price).toFixed(decimal_degits)}</h3>`
-                            else
+                                if (data.type == "paid")
+                                    html +=
+                                    `${currencyAtRight? parseFloat(data.price).toFixed(decimal_degits)+currentCurrency:currentCurrency+parseFloat(data.price).toFixed(decimal_degits)}</h3>`
+                                else
 
-                                html += `<h3 class="text-dark-2" style="color:red;">Free</h3>`
+                                    html += `<h3 class="text-dark-2" style="color:red;">Free</h3>`
 
-                            html += `<span class="price-day">${data.expiryDay==-1? "{{ trans('lang.unlimited') }}":data.expiryDay} Days</span>
+                                html += `<span class="price-day">${data.expiryDay==-1? "{{ trans('lang.unlimited') }}":data.expiryDay} Days</span>
                                         </div>
                                         </div>
                                         <div class="pricing-card-content pt-3 mt-3 border-top">
@@ -976,17 +1126,17 @@
                                         </ul>
                                         </div>`;
 
-                            html += `<div class="pricing-card-btm">
+                                html += `<div class="pricing-card-btm">
                                                 <a href="javascript:void(0)" onClick="chooseSubscriptionPlan('${data.id}')" class="btn rounded-full">${buttonText}</a>
                                             </div>`;
 
-                            html += `</div>
+                                html += `</div>
                                 </div>`;
+                            }
                         }
-                    }
+                    });
+                    $('#default-plan').append(html);
                 });
-                $('#default-plan').append(html);
-            });
         }
 
         $('input[name="set_item_limit"]').on('change', function() {
@@ -1034,10 +1184,13 @@
             var order_limit = (set_order_limit == 'limited') ? $('#order_limit').val() : '-1';
 
             if (set_item_limit == 'limited' && ($('#item_limit').val() == '' || $('#item_limit').val() == 0)) {
-                $(".service_limit_err").html("<p>{{ trans('lang.enter_service_limit_can_not_empty_or_zero') }}</p>");
+                $(".service_limit_err").html(
+                    "<p>{{ trans('lang.enter_service_limit_can_not_empty_or_zero') }}</p>");
                 return false;
-            } else if (set_order_limit == 'limited' && ($('#order_limit').val() == '' || $('#order_limit').val() == 0)) {
-                $(".booking_limit_err").html("<p>{{ trans('lang.enter_booking_limit_can_not_empty_or_zero') }}</p>");
+            } else if (set_order_limit == 'limited' && ($('#order_limit').val() == '' || $('#order_limit')
+                .val() == 0)) {
+                $(".booking_limit_err").html(
+                    "<p>{{ trans('lang.enter_booking_limit_can_not_empty_or_zero') }}</p>");
                 return false;
             } else {
                 await database.collection('users').doc(id).update({
@@ -1047,19 +1200,22 @@
                 }).then(async function(result) {
 
 
-                    var providerServicesSnapshot = await database.collection('providers_services').where('author', '==', id).get();
+                    var providerServicesSnapshot = await database.collection('providers_services')
+                        .where('author', '==', id).get();
                     if (!providerServicesSnapshot.empty) {
                         providerServicesSnapshot.forEach(async (doc) => {
                             // Update each matching document
-                            await database.collection('providers_services').doc(doc.id).update({
-                                'subscription_plan.orderLimit': order_limit,
-                                'subscription_plan.itemLimit': item_limit,
-                                'subscriptionTotalOrders': order_limit
-                            }).then(() => {
-                                window.location.reload();
-                            }).catch((error) => {
-                                console.error("Error updating document:", error);
-                            });
+                            await database.collection('providers_services').doc(doc.id)
+                                .update({
+                                    'subscription_plan.orderLimit': order_limit,
+                                    'subscription_plan.itemLimit': item_limit,
+                                    'subscriptionTotalOrders': order_limit
+                                }).then(() => {
+                                    window.location.reload();
+                                }).catch((error) => {
+                                    console.error("Error updating document:",
+                                    error);
+                                });
                         });
                     }
                 });

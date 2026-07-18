@@ -70,17 +70,22 @@
     </div>
 </div>
 @include('layouts.footer')
+
 @include('layouts.nav')
+
 <script type="text/javascript">
+
     var currentCurrency = '';
     var currencyAtRight = false;
     var placeholderImage = '';
     var inValidProviders = [];
+
     var placeholder = database.collection('settings').doc('placeHolderImage');
     placeholder.get().then(async function(snapshotsimage) {
         var placeholderImageData = snapshotsimage.data();
         placeholderImage = placeholderImageData.image;
     })
+    
     var decimal_degits = 0;
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     refCurrency.get().then(async function(snapshots) {
@@ -91,35 +96,77 @@
             decimal_degits = currencyData.decimal_degits;
         }
     });
+    
     var serviceRef = database.collection('providers_services').where('sectionId', '==', section_id).where('publish', '==', true);
     var providerRef = database.collection('users').where('role', '==', 'provider');
     var append_list = document.getElementById('append_list1');
     var append_list2 = document.getElementById('append_list2');
+    
     var servicedata = [];
     var providerdata = [];
+    let zoneCache = {};
+    let limitCache = {}; 
 
     $(document).ready(async function() {
+
+        jQuery("#overlay").show();
+        
         inValidProviders = await getInvaidUserIds();
-        serviceRef.get().then(async function(serviceSanpshots) {
-            serviceSanpshots.docs.forEach((listval) => {
-                var val = listval.data();
-                if (!inValidProviders.includes(val.author)) {
+        
+        let servicesByProvider = {};
+        let serviceSnapshots = await serviceRef.get();
+        let docs = serviceSnapshots.docs;
+        const batchSize = 20;
+        for (let i = 0; i < docs.length; i += batchSize) {
+            let batch = docs.slice(i, i + batchSize);
+            await Promise.all(
+                batch.map(async (listval) => {
+                    let val = listval.data();
+                    let serviceInzone = await cachedGetZone(val.latitude, val.longitude);
+                    
+                    if (!serviceInzone) return;
+                    if (inValidProviders.length > 0 && inValidProviders.includes(val.author)) return;
+                    
+                    let inValidServiceIds = await cachedGetLimit(val.author);
+                    if (inValidServiceIds.length > 0 && inValidServiceIds.includes(val.id)) return;
+                    
+                    if (!servicesByProvider[val.author]) {
+                        servicesByProvider[val.author] = [];
+                    }
                     servicedata.push(val);
+                    servicesByProvider[val.author].push(val);
+                })
+            );
+        }
+
+        let providerSnapshots = await providerRef.get();
+        for (let doc of providerSnapshots.docs) {
+            let provider = doc.data();
+            let providerServices = servicesByProvider[provider.id] || [];
+            
+            if (providerServices.length === 0) continue;
+            if (inValidProviders.length > 0 && inValidProviders.includes(provider.id)) continue;
+            
+            let isProviderInZone = false;
+            for (let service of providerServices) {
+                let serviceInzone = await cachedGetZone(service.latitude, service.longitude);
+                let invalidLimit = await cachedGetLimit(service.author);
+                if (serviceInzone &&
+                    (invalidLimit.length === 0 || !invalidLimit.includes(service.id))) {
+                    isProviderInZone = true;
+                    break;
                 }
-            });
-        });
-        providerRef.get().then(async function(vendorsnapshot) {
-            vendorsnapshot.docs.forEach((listval) => {
-                var val = listval.data();
-                if (!inValidProviders.includes(val.id)) {
-                    providerdata.push(val);
-                }
-            });
-        });
+            }
+            if (isProviderInZone) {
+                providerdata.push(provider);
+            }
+        }
+        
         getResults();
+
         $(".search_input").keypress(function(e) {
             if (e.which == 13) {
-                getResults();
+               getResults();
             }
         })
         $(".search_food_btn").click(function() {
@@ -127,88 +174,95 @@
         });
     });
 
+    async function cachedGetZone(lat, lng) {
+        let key = lat + "," + lng;
+        if (zoneCache[key]) return zoneCache[key];
+
+        zoneCache[key] = await getUserZoneId(lat, lng);
+        return zoneCache[key];
+    }
+
+    async function cachedGetLimit(author) {
+        if (limitCache[author]) return limitCache[author];
+
+        limitCache[author] = await getProviderServiceLimit(author);
+        return limitCache[author];
+    }
+
     async function getResults() {
+
+        let search_input = $(".search_input").val().toLowerCase().trim();
+        let matchedProviders = new Set();
+        let matchedServices = [];
+
         var provider = [];
-        jQuery("#overlay").show();
-        var search_input = $(".search_input").val();
         var filter_service = [];
         var providers = [];
+
         if (search_input != '') {
-            let promises = servicedata.map(async (listval) => {
 
-                var data = listval;
-                
-                var Name = data.title.toLowerCase();
-                var Ans = Name.indexOf(search_input.toLowerCase());
-                
-                if (Ans > -1) {
-                var inValidServiceIds = await getProviderServiceLimit(data.author);
-                    if (inValidServiceIds.length == 0 || !inValidServiceIds.includes(data.id)) {
-                       
-                        if (providers.includes(data.author)) {
-                            //aleready exist
-                        } else {
-                            providers.push(data.author);
-                        }
-                        return data;
-                    }
-                    return null;
-
-                }
-                return null;
-            });
-            let results = await Promise.all(promises);
-            filter_service = results.filter(data => data !== null);
-            if (providers.length > 0) {
-                for (i = 0; i < providers.length; i++) {
-                    var providerId = providers[i];
-                    await database.collection('users').doc(providerId).get().then(async function(snapshotss) {
-                        if (snapshotss.data() != undefined) {
-                            var provider_data = snapshotss.data();
-                            provider.push(provider_data);
-                        }
-                    });
+            for (let service of servicedata) {
+                let name = service.title.toLowerCase();
+                if (name.includes(search_input)) {
+                    matchedProviders.add(service.author);
+                    matchedServices.push(service);
                 }
             }
-            providerdata.forEach((listval) => {
-                var data = listval;
-                var Name = (data.firstName + ' ' + data.lastName).toLowerCase();
-                var Ans = Name.indexOf(search_input.toLowerCase());
-                if (Ans > -1) {
-                    provider.push(data);
+
+            for (let provider of providerdata) {
+                let name = (provider.firstName + " " + provider.lastName).toLowerCase();
+                if (name.includes(search_input)) {
+                    matchedProviders.add(provider.id);
                 }
-            });
+            }
+
+            let finalProviders = [];
+            if (matchedProviders.size > 0) {
+                let providerIds = Array.from(matchedProviders);
+
+                let providerFetchPromises = providerIds.map(id =>
+                    database.collection('users').doc(id).get()
+                );
+                let snapshots = await Promise.all(providerFetchPromises);
+                snapshots.forEach(snap => {
+                    if (snap.exists) {
+                        finalProviders.push(snap.data());
+                    }
+                });
+                
+                renderResults(finalProviders, matchedServices);
+            } else {
+                renderResults([], []);
+            }
+
         } else {
-            await providerRef.get().then(async function(snapshots) {
-                if (snapshots != undefined) {
-                    snapshots.docs.forEach((listval) => {
-                        var datas = listval.data();
-                        if (!inValidProviders.includes(datas.id)) {
-                            provider.push(datas);
-                        }
-                    });
-                }
-            });
+            
+            let finalProviders = providerdata.filter(p =>
+                !inValidProviders.includes(p.id)
+            );
+            renderResults(finalProviders, []);
             $('#myTab2').hide();
         }
-        var html_keypress = '';
-        html_keypress = buildHTML(provider);
-        product_keypress = buildServiceHTML(filter_service);
-        if (html_keypress == '' && product_keypress == '') {
+    }
+
+    function renderResults(providers, services) {
+
+        let providerHTML = buildHTML(providers);
+        let serviceHTML = buildServiceHTML(services);
+
+        if (!providerHTML && !serviceHTML) {
             $(".not_found_div").show();
             append_list.innerHTML = '';
             append_list2.innerHTML = '';
-            $(".vendor_counts").text('{{ trans('lang.provider') }} (0)');
-            $(".services_counts").text('{{ trans('lang.services') }} (0)');
-            jQuery("#overlay").hide();
-        } else if (html_keypress != '' || product_keypress != '') {
+            $(".vendor_counts").text('Providers (0)');
+            $(".services_counts").text('Services (0)');
+        } else {
             $(".not_found_div").hide();
-            append_list.innerHTML = '';
-            append_list.innerHTML = html_keypress;
-            append_list2.innerHTML = '';
-            append_list2.innerHTML = product_keypress;
-            jQuery("#overlay").hide();
+            append_list.innerHTML = providerHTML;
+            append_list2.innerHTML = serviceHTML;
         }
+
+        $("#overlay").hide();
     }
 
     function buildHTML(alldata) {

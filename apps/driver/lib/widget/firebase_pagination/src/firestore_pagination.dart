@@ -1,26 +1,23 @@
 // Dart Packages
 import 'dart:async';
 
+// Firebase Packages
+import 'package:cloud_firestore/cloud_firestore.dart';
 // Flutter Packages
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-// Firebase Packages
-import 'package:cloud_firestore/cloud_firestore.dart';
-
+// Functions
+import 'functions/separator_builder.dart';
 // Data Models
 import 'models/page_options.dart';
 import 'models/view_type.dart';
 import 'models/wrap_options.dart';
-
 // Widgets
 import 'widgets/defaults/bottom_loader.dart';
 import 'widgets/defaults/empty_screen.dart';
 import 'widgets/defaults/initial_loader.dart';
 import 'widgets/views/build_pagination.dart';
-
-// Functions
-import 'functions/separator_builder.dart';
 
 /// A [StreamBuilder] that automatically loads more data when the user scrolls
 /// to the bottom.
@@ -174,12 +171,10 @@ class _FirestorePaginationState extends State<FirestorePagination> {
   StreamSubscription<QuerySnapshot>? _liveStreamSub;
 
   /// [ScrollController] to listen to scroll end and load more data.
-  late final ScrollController _controller =
-      widget.controller ?? ScrollController();
+  late final ScrollController _controller = widget.controller ?? ScrollController();
 
   /// [PageController] to listen to page changes and load more data.
-  late final PageController _pageController =
-      widget.pageController ?? PageController();
+  late final PageController _pageController = widget.pageController ?? PageController();
 
   /// Whether initial data is loading.
   bool _isInitialLoading = true;
@@ -245,8 +240,7 @@ class _FirestorePaginationState extends State<FirestorePagination> {
       // scroll to the bottom and load more data.
       if (_isInitialLoading || _isFetching || _isEnded) return;
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (_controller.hasClients &&
-            _controller.position.maxScrollExtent <= 0) {
+        if (_controller.hasClients && _controller.position.maxScrollExtent <= 0) {
           _loadDocuments();
         }
       });
@@ -265,12 +259,10 @@ class _FirestorePaginationState extends State<FirestorePagination> {
       latestDocQuery = latestDocQuery.endBeforeDocument(_docs.first);
     }
 
-    _liveStreamSub =
-        latestDocQuery.snapshots(includeMetadataChanges: true).listen(
+    _liveStreamSub = latestDocQuery.snapshots(includeMetadataChanges: true).listen(
       (QuerySnapshot snapshot) async {
         await tempSub?.cancel();
-        if (snapshot.docs.isEmpty ||
-            snapshot.docs.first.metadata.hasPendingWrites) return;
+        if (snapshot.docs.isEmpty || snapshot.docs.first.metadata.hasPendingWrites) return;
 
         _docs.insert(0, snapshot.docs.first);
 

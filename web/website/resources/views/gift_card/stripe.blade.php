@@ -128,21 +128,18 @@
                     <div class="siddhi-cart-item mb-3 rounded shadow-sm bg-white overflow-hidden">
                         <div class="siddhi-cart-item-profile bg-white p-3">
                             <div class="card card-default payment-wrap">
-                                <table class="payment-table">
+                                <table class="payment-table m-4">
                                     <thead>
                                     <tr>
-                                        <th>
-                                            {{trans('lang.pay')}}
-                                        </th>
-                                        <th class="text-right">
-                                            {{trans('lang.total')}}
+                                        <th class="p-1">
+                                            {{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}
                                         </th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     <tr>
                                         <td>
-                                            {{trans('lang.stripe_payment')}}
+                                            {{trans('lang.stripe')}} {{trans('lang.payment')}}
                                         </td>
                                         <td class="text-right payment-buttons">
                                             <form action="<?php echo route('process-stripe'); ?>" method="post">
@@ -473,7 +470,7 @@
                                                 </div>
                             </div>
                             <input type="hidden" name="token_id" id="token_id">
-                            <button type="submit">{{trans('lang.pay_$')}}<?php echo $amount; ?></button>
+                            <button type="submit">{{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}</button>
                             <div class="outcome">
                                 <div class="error" role="alert"></div>
                                 <div class="success">

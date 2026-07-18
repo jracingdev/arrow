@@ -1,14 +1,12 @@
 @include('layouts.app')
 @include('layouts.header')
-
 @php
-$cityToCountry = json_decode(file_get_contents(asset('tz-cities-to-countries.json')), true);
+$cityToCountry = json_decode(file_get_contents(public_path('tz-cities-to-countries.json')), true);
 $countriesJs = [];
 foreach ($cityToCountry as $key => $value) {
     $countriesJs[$key] = $value;
 }
 @endphp
-
 <div class="siddhi-checkout">
     <div class="container position-relative">
         <div class="py-5 row">

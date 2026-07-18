@@ -1,26 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:emartstore/widget/geoflutterfire/src/collection/with_converter.dart';
+import 'package:vendor/widget/geoflutterfire/src/collection/with_converter.dart';
+
 import 'collection/default.dart';
 import 'models/point.dart';
 
 class Geoflutterfire {
   Geoflutterfire();
 
-  GeoFireCollectionRef collection({
-    required Query<Map<String, dynamic>> collectionRef,
-  }) {
+  GeoFireCollectionRef collection({required Query<Map<String, dynamic>> collectionRef}) {
     return GeoFireCollectionRef(collectionRef);
   }
 
-  GeoFireCollectionWithConverterRef<T> collectionWithConverter<T>({
-    required Query<T> collectionRef,
-  }) {
+  GeoFireCollectionWithConverterRef<T> collectionWithConverter<T>({required Query<T> collectionRef}) {
     return GeoFireCollectionWithConverterRef<T>(collectionRef);
   }
 
-  GeoFireCollectionRef customCollection({
-    required Query<Map<String, dynamic>> collectionRef,
-  }) {
+  GeoFireCollectionRef customCollection({required Query<Map<String, dynamic>> collectionRef}) {
     return GeoFireCollectionRef(collectionRef);
   }
 

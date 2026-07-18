@@ -8,8 +8,6 @@ class EmptyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return  Center(
-      child: Text('Nothing found here...'),
-    );
+    return const Center(child: Text('Nothing found here...'));
   }
 }

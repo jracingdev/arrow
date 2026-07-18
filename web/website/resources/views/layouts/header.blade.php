@@ -1,4 +1,3 @@
-<meta name="csrf-token" content="{{ csrf_token() }}"/>
 <header class="section-header">
     <?php
     if (Session::get('takeawayOption') == 'true' || Session::get('takeawayOption') == true) {
@@ -17,7 +16,7 @@
             var check_val;
             if (takeaway_options == true) {
                 if (takeAway.checked == false) {
-                    let isExecuted = confirm("If you select take away option then it will empty cart. are you sure want to do ?");
+                    let isExecuted = confirm("{{trans('lang.take_away_select_error')}}");
                     if (isExecuted) {
                     } else {
                         return false;
@@ -36,7 +35,7 @@
                     takeawayOption: check_val,
                     "_token": "{{ csrf_token() }}",
                 },
-                url: 'takeaway',
+                url: '/takeaway',
                 type: 'POST',
                 success: function (result) {
                     result = $.parseJSON(result);
@@ -71,7 +70,7 @@
                 <div class="col-7 header-right">
                     <div class="d-flex align-items-center justify-content-end pr-5">
                         <?php if (@$_COOKIE['service_type'] == 'On Demand Service'){ ?>
-                        <a href="{{url('ondemand-search')}}" class="widget-header mr-4 text-dark">
+                        <a href="{{route('ondemand-search')}}" class="widget-header mr-4 text-dark">
                             <div class="icon d-flex align-items-center">
                                 <i class="feather-search h6 mr-2 mb-0"></i> <span>{{trans('lang.search')}}</span>
                             </div>
@@ -79,13 +78,13 @@
                         <?php }
                         if (@$_COOKIE['service_type'] == 'Multivendor Delivery Service' || @$_COOKIE['service_type'] == 'Ecommerce Service'){
                             ?>
-                        <a href="{{url('search')}}" class="widget-header mr-4 text-dark">
+                        <a href="{{route('search')}}" class="widget-header mr-4 text-dark">
                             <div class="icon d-flex align-items-center">
                                 <i class="feather-search h6 mr-2 mb-0"></i> <span>{{trans('lang.search')}}</span>
                             </div>
                         </a>
                         <?php } ?>
-                        <a href="{{url('offers')}}" class="widget-header mr-4 text-dark offer-link">
+                        <a href="{{route('offers')}}" class="widget-header mr-4 text-dark offer-link">
                             <div class="icon d-flex align-items-center">
                                 <img alt="#" class="img-fluid mr-2" src="{{asset('img/discount.png')}}">
                                 <span>{{trans('lang.offers')}}</span>
@@ -93,7 +92,7 @@
                         </a>
                         @auth
                         @else
-                            <a href="{{url('login')}}" class="widget-header mr-4 text-dark m-none">
+                            <a href="{{route('login')}}" class="widget-header mr-4 text-dark m-none">
                                 <div class="icon d-flex align-items-center">
                                     <i class="feather-user h6 mr-2 mb-0"></i> <span>{{trans('lang.sign_in')}}</span>
                                 </div>
@@ -105,26 +104,26 @@
                             </a>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
                                 @auth
-                                    <a class="dropdown-item" href="{{url('profile')}}">{{trans('lang.my_account')}}</a>
+                                    <a class="dropdown-item" href="{{route('profile')}}">{{trans('lang.my_account')}}</a>
                                     <?php
                                     if (@$_COOKIE['service_type'] == "Multivendor Delivery Service" || @$_COOKIE['service_type'] == 'Ecommerce Service') {
                                         ?>
-                                    <a class="dropdown-item" href="{{url('vendors')}}">{{trans('lang.all_store')}}</a>
+                                    <a class="dropdown-item" href="{{route('vendors')}}">{{trans('lang.all_store')}}</a>
                                         <?php
                                     }
                                     if (@$_COOKIE['service_type'] == "On Demand Service") {
                                         ?>
                                     <a class="dropdown-item"
-                                       href="{{url('ondemand-services')}}">{{trans('lang.all_services')}}</a>
+                                       href="{{route('ondemand-services')}}">{{trans('lang.all_services')}}</a>
                                         <?php
                                     }
                                     ?>
                                     @if (@$_COOKIE['dine_in_active'] && @$_COOKIE['dine_in_active'] == 'true')
                                         <a class="dropdown-item dine_in_menu"
-                                           href="{{url('vendors')}}?dinein=1">{{trans('lang.dine_in_vendor')}}</a>
+                                           href="{{route('vendors')}}?dinein=1">{{trans('lang.dine_in_vendor')}}</a>
                                     @endif
                                     <a class="dropdown-item"
-                                       href="{{ route('faq') }}">{{trans('lang.delivery_support')}}</a>
+                                       href="{{ route('deliveryofsupport') }}">{{trans('lang.delivery_support')}}</a>
                                     <a class="dropdown-item"
                                        href="{{route('contact_us')}}">{{trans('lang.contact_us')}}</a>
                                     <a class="dropdown-item" href="{{ route('terms') }}">{{trans('lang.terms_use')}}</a>
@@ -136,22 +135,22 @@
                                     <?php
                                     if (@$_COOKIE['service_type'] == "Multivendor Delivery Service" || @$_COOKIE['service_type'] == 'Ecommerce Service') {
                                         ?>
-                                    <a class="dropdown-item" href="{{url('vendors')}}">{{trans('lang.all_store')}}</a>
+                                    <a class="dropdown-item" href="{{route('vendors')}}">{{trans('lang.all_store')}}</a>
                                         <?php
                                     }
                                     if (@$_COOKIE['service_type'] == "On Demand Service") {
                                         ?>
                                     <a class="dropdown-item"
-                                       href="{{url('ondemand-services')}}">{{trans('lang.all_services')}}</a>
+                                       href="{{route('ondemand-services')}}">{{trans('lang.all_services')}}</a>
                                         <?php
                                     }
                                     ?>
                                     @if (@$_COOKIE['dine_in_active'] && @$_COOKIE['dine_in_active'] == 'true')
                                         <a class="dropdown-item dine_in_menu"
-                                           href="{{url('vendors')}}?dinein=1">{{trans('lang.dine_in_vendor')}}</a>
+                                           href="{{route('vendors')}}?dinein=1">{{trans('lang.dine_in_vendor')}}</a>
                                     @endif
                                     <a class="dropdown-item"
-                                       href="{{ route('faq') }}">{{trans('lang.delivery_support')}}</a>
+                                       href="{{ route('deliveryofsupport') }}">{{trans('lang.delivery_support')}}</a>
                                     <a class="dropdown-item"
                                        href="{{route('contact_us')}}">{{trans('lang.contact_us')}}</a>
                                     <a class="dropdown-item" href="{{ route('terms') }}">{{trans('lang.terms_use')}}</a>
@@ -161,7 +160,7 @@
                             </div>
                         </div>
                         <?php if (@$_COOKIE['service_type'] == "Multivendor Delivery Service" || @$_COOKIE['service_type'] == 'Ecommerce Service'){ ?>
-                        <a href="{{url('/checkout')}}" class="widget-header mr-4 text-dark">
+                        <a href="{{route('checkout')}}" class="widget-header mr-4 text-dark">
                             <div class="icon d-flex align-items-center">
                                 <i class="feather-shopping-cart h6 mr-2 mb-0"></i> <span>{{trans('lang.cart')}}</span>
                             </div>
@@ -207,20 +206,54 @@
     </section>
 </header>
 <div class="d-none">
-    <div class="bg-primary p-3 d-flex align-items-center">
+    <div class="bg-primary p-3">
         <a class="toggle togglew toggle-2" href="#"><span></span></a>
         <a href="{{url('/')}}" class="mobile-logo brand-wrap mb-0">
             <img alt="#" class="img-fluid" src="{{asset('img/logo_web.png')}}">
         </a>
-        <div
-                class="language-list icon d-flex align-items-center text-dark ml-2"
-                id="language_dropdown_box">
-            <div class="language-select">
-                <i class="feather-globe"></i>
-            </div>
-            <div class="language-options">
-                <select class="form-control changeLang text-dark" id="language_dropdown2"></select>
-            </div>
+
+        <!--  Start -->
+        <div class="mobile-header-loc-lang d-flex align-items-center justify-content-between pt-3">  
+            <?php if (Session::get('takeawayOption') == "true") { ?>
+                            <div class="icon d-flex align-items-center text-dark takeaway-div">
+                                            <span class="takeaway-btn">
+                                                <i class="fa fa-car h6 mr-1 mb-0"></i> <span> {{trans('lang.take_away')}} </span>
+                                                <input type="checkbox" onclick="takeAwayOnOff(this)"
+                                                       <?php if (Session::get('takeawayOption') == "true") { ?> checked <?php } ?>> <span
+                                                        class="slider round"></span>
+                                                </span>
+                            </div>
+                        <?php } else { ?>
+                            <div class="icon d-flex align-items-center text-dark takeaway-div">
+                                        <span class="takeaway-btn">
+                                            <i class="fa fa-car h6 mr-1 mb-0"></i> <span> {{trans('lang.delivery')}} </span>
+                                            <input type="checkbox" onclick="takeAwayOnOff(this)"> <span
+                                                    class="slider round"></span>
+                                            </span>
+                            </div>
+                        <?php } ?>
+             <div class="language-list icon d-flex align-items-center text-light w-50" id="language_dropdown_box"> 
+                <div class="language-select mr-2">
+                    <i class="feather-globe"></i>
+                </div>
+               <div class="language-options">
+                    <select class="form-control changeLang text-dark" id="language_dropdown2"></select>
+                </div>
+            </div>           
         </div>
+        
+        <div class="mobile-set-location d-flex align-items-center head-search pt-1 mt-3">
+            <div class="dropdown">
+                <a class="text-dark dropdown-toggle d-flex align-items-center p-0" href="#" id="navbarDropdown"
+                   role="button" aria-haspopup="true" aria-expanded="false">
+                    <div class="head-loc" onclick="getCurrentLocation('reload')">
+                        <i class="feather-map-pin mr-2 bg-light rounded-pill p-2 icofont-size"></i></div>
+                    <div>
+                        <input id="user_locationnew_mobile" type="text" size="50" class="user_locationnew pac-target-input">
+                    </div>
+                </a>
+            </div>
+    </div>
+   <!--  End -->
     </div>
 </div>

@@ -7,12 +7,6 @@
     </div>
 </div>
 <section class="py-4 siddhi-main-body" style="background: #f2f6f9;">
-    <input type="hidden" name="deliveryChargeMain" id="deliveryChargeMain">
-    <input type="hidden" name="specialDiscountMain" id="specialDiscountMain">
-    <input type="hidden" name="tax_active" id="tax_active">
-    <input type="hidden" name="tax_label" id="tax_label">
-    <input type="hidden" name="tax_amount" id="tax_amount">
-    <input type="hidden" name="tax_type" id="tax_type">
     <div class="container">
         <div class="row">
             <div class="col-md-12 top-nav mb-3">
@@ -105,13 +99,13 @@
                             <div class="form-group row text-center">
                                 <div class="col-sm-12">
                                     <textarea class="form-control review_comment" id="review_comment"
-                                              name="review_comment" placeholder="Type Comment..." value=""></textarea>
+                                              name="review_comment" placeholder="{{trans('lang.type_comment')}}" value=""></textarea>
                                 </div>
                             </div>
-                            <div class="review-sub-btn">
+                            {{-- <div class="review-sub-btn">
                                 <button type="button" class="btn btn-primary add_review_btn text-center"
                                         data-parent="modal-body">{{trans('lang.add_review')}}</button>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>
@@ -122,7 +116,9 @@
 </section>
 @include('layouts.footer')
 @include('layouts.nav')
+
 <script type="text/javascript">
+
     var append_categories = '';
     var rental_orders = database.collection('rental_orders');
     var completedorsersref = database.collection('rental_orders').where("authorID", "==", user_uuid).orderBy('createdAt', 'desc');
@@ -133,6 +129,7 @@
     var currencyAtRight = false;
     var decimal_degits = 0;
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
+    
     refCurrency.get().then(async function (snapshots) {
         var currencyData = snapshots.docs[0].data();
         currentCurrency = currencyData.symbol;
@@ -141,15 +138,37 @@
             decimal_degits = currencyData.decimal_degits;
         }
     });
+    
     var place_holder_image = '';
     var ref_placeholder_image = database.collection('settings').doc("placeHolderImage");
     ref_placeholder_image.get().then(async function (snapshots) {
         var placeHolderImage = snapshots.data();
         place_holder_image = placeHolderImage.image;
     });
+    
     $(document).ready(function () {
-        getOrders();
+        jQuery("#overlay").show();
+        var refDriver = database.collection('settings').doc("DriverNearBy");
+        refDriver.get().then(function (doc) {
+            if (doc.exists) {
+                var data = doc.data();
+                enableOTPTripStartForRental = data.enableOTPTripStartForRental !== false;
+            } else {
+                enableOTPTripStartForRental = true;
+            }
+        }).catch(function () {
+            enableOTPTripStartForRental = true; 
+        }).finally(function () {
+            getOrders();
+        });
     });
+    function buildOtpHtml(order) {
+        if (!enableOTPTripStartForRental) {
+            return '';
+        }
+        return `<h3>{{trans("lang.otp")}}</h3><p><img src="../img/done-icon.png"> ${order.otpCode}</p>`;
+    }
+
     $(document).on('shown.bs.modal', '#review-modal', function () {
         var rid = $(this).attr('data-rid');
         var cid = $(this).attr('data-cid');
@@ -170,16 +189,19 @@
             });
         }
     });
+    
     $(document).on('click', '.add-review', function () {
         $("#review-modal").attr('data-rid', $(this).data('rid')).attr('data-cid', $(this).data('cid')).attr('data-did', $(this).data('did')).attr('data-img', $(this).data('img')).attr('data-uname', $(this).data('uname')).modal("show");
         $('.add_review_btn').attr('data-rid', $(this).data('rid')).attr('data-cid', $(this).data('cid')).attr('data-did', $(this).data('did')).attr('data-img', $(this).data('img')).attr('data-uname', $(this).data('uname'));
     });
+    
     $(document).on('hide.bs.modal', '#review-modal', function () {
         $(this).removeAttr('data-rid').removeAttr('data-did').removeAttr('data-did');
         $(this).find("#attribute_review").empty();
         $(this).find('.rating').attr('data-rating', '');
         $(this).find('#review_comment').val('');
     });
+
     var star = document.querySelectorAll('input');
     for (var i = 0; i < star.length; i++) {
         star[i].addEventListener('click', function () {
@@ -188,9 +210,12 @@
             $("#default_review").find('.rating').attr('data-rating', rating);
         })
     }
+
     $(".add_review_btn").click(function () {
+        
         pageloadded = 0;
         addRentalReviewBtnClicked = true;
+        
         var rating = $('#rating-value').val();
         var pclass = $(this).data('parent');
         var default_review = $('.' + pclass).find('#default_review');
@@ -206,9 +231,11 @@
         var comment = $(".review_comment").val();
         var CustomerId = user_uuid;
         var reviewId = database.collection("tmp").doc().id;
+        
         if (typeof image !== 'undefined' && image !== false) {
             userProfile = image;
         }
+
         database.collection('items_review').where('orderid', '==', rid).where('driverId', '==', did).get().then((docSnapshot) => {
             if (docSnapshot.size) {
                 var itemReviewDoc = docSnapshot.docs[0].data();
@@ -322,6 +349,11 @@
         });
     })
 
+    $(document).ready(function () {
+        getOrders();
+         getActiveTab();
+    });
+    
     async function getOrders() {
         completedorsersref.get().then(async function (completedorderSnapshots) {
             completed_orders = document.getElementById('completed_orders');
@@ -333,12 +365,56 @@
             completedOrderHtml = buildHTMLCompletedOrders(completedorderSnapshots);
             pendingOrderHtml = buildHTMLPendingOrders(completedorderSnapshots);
             rejectedOrdersHtml = buildHTMLRejectedOrders(completedorderSnapshots);
-            completed_orders.innerHTML = completedOrderHtml;
-            pending_orders.innerHTML = pendingOrderHtml;
-            rejected_orders.innerHTML = rejectedOrdersHtml;
+            completed_orders.innerHTML = completedOrderHtml ? completedOrderHtml : '<p class="text-center font-weight-bold h5 mt-5">{{trans('lang.no_results')}}';
+            pending_orders.innerHTML = pendingOrderHtml ? pendingOrderHtml : '<p class="text-center font-weight-bold h5 mt-5">{{trans('lang.no_results')}}';
+            rejected_orders.innerHTML = rejectedOrdersHtml ? rejectedOrdersHtml : '<p class="text-center font-weight-bold h5 mt-5">{{trans('lang.no_results')}}';
+            jQuery("#overlay").hide();
         })
     }
 
+    function getActiveTab() {
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const activeTab = urlParams.get('activeTab');
+
+        const newUrl = window.location.href.replace(/[?&]activeTab=[^&]+/, '').replace(/&$/, '').replace(/\?$/, '');
+
+        history.replaceState(null, null, newUrl);
+
+        if (activeTab) {
+
+            const defaultActiveTab = document.querySelector('.tab-pane.fade.show.active');
+
+            const defaultActiveTabClass = document.querySelector('.nav-link.border-0.text-dark.py-3.active');
+
+            if (defaultActiveTab) {
+
+                defaultActiveTab.classList.remove('show', 'active');
+
+                defaultActiveTabClass.classList.remove('show', 'active');
+
+            }
+
+            const tabElement = document.querySelector(`#${activeTab}-tab`);
+
+            if (tabElement) {
+
+                tabElement.classList.add('active');
+
+                const tabContentElement = document.querySelector(`#${activeTab}`);
+
+                if (tabContentElement) {
+
+                    tabContentElement.classList.add('show', 'active');
+
+                }
+
+            }
+
+        }
+
+    }
     function buildHTMLCompletedOrders(completedorderSnapshots) {
         var html = '';
         var alldata = [];
@@ -352,101 +428,179 @@
             var val = listval;
             if (val.status == "Order Completed") {
                 var order_id = val.id;
-                if (val.hasOwnProperty('driver')) {
-                    reviewUserProfile = val.author.profilePictureURL;
-                    var orderRestaurantImage = '';
-                    if (val.driver.carInfo.car_image.length > 0) {
-                        orderRestaurantImage = val.driver.carInfo.car_image[0];
-                    } else {
-                        orderRestaurantImage = place_holder_image;
-                    }
+                var orderVehicleImage = '';
+                if (val.rentalVehicleType.rental_vehicle_icon) {
+                    orderVehicleImage = val.rentalVehicleType.rental_vehicle_icon;
+                } else {
+                    orderVehicleImage = place_holder_image;
                 }
+                
+                var order_subtotal = parseFloat(val.subTotal);
+
+                var includedHours = val.rentalPackageModel.includedHours;
+                var includedDistance = val.rentalPackageModel.includedDistance;
+                var extraKmFare = val.rentalPackageModel.extraKmFare;
+                var extraMinuteFare = val.rentalPackageModel.extraMinuteFare;
+                let platformFee = parseFloat(val.platformFee || 0);
+
+                var extraKm = 0;
+                var extraKmCharge = 0;
+                var extraMinutes = 0;
+                var extraMinuteCharge = 0;
+
+                //KM calculation
+                if(val.startTime != null && val.endTime != null){
+                    var current_km = val.startKitoMetersReading;
+                    var complete_km = val.endKitoMetersReading;
+                    var final_km = parseFloat(complete_km) - parseFloat(current_km);
+
+                    //Extra Km charge
+                    if (final_km > includedDistance) {
+                        extraKm = final_km - includedDistance;
+                        extraKmCharge = extraKm * extraKmFare;
+                    }
+
+                    //Extra minute calculation
+                    var startDateTime = val.startTime.toDate();
+                    var endDateTime   = val.endTime.toDate();
+                    var diffMs = endDateTime - startDateTime;
+                    var totalDurationMinutes = Math.floor(diffMs / (1000 * 60));
+                    
+                    var includedMinutes = includedHours * 60;
+
+                    //Extra Minute Charge
+                    if (totalDurationMinutes > includedMinutes) {
+                        extraMinutes = totalDurationMinutes - includedMinutes;
+                        extraMinuteCharge = extraMinutes * extraMinuteFare;
+                    }
+                    
+                    //Final amount
+                    order_subtotal = order_subtotal + extraKmCharge + extraMinuteCharge;
+                }
+                
                 var order_discount = 0;
                 if (val.hasOwnProperty('discount') && val.discount) {
                     if (val.discount) {
                         order_discount = parseFloat(val.discount);
                     }
                 }
-                order_subtotal = val.subTotal;
-                order_subtotal = (parseFloat(order_subtotal) - parseFloat(order_discount));
-                if (val.hasOwnProperty('driverRate') && val.driverRate) {
-                    var driverRate = parseFloat(val.driverRate);
-                    order_subtotal = (parseFloat(order_subtotal) + parseFloat(driverRate));
-                }
-                var total_tax_amount = 0;
-                if (val.hasOwnProperty('taxSetting')) {
-                    for (var i = 0; i < val.taxSetting.length; i++) {
-                        var data = val.taxSetting[i];
-                        if (data.type && data.tax) {
-                            if (data.type == "percentage") {
-                                tax = (data.tax * order_subtotal) / 100;
-                            } else {
-                                tax = data.tax;
-                            }
+                
+                order_subtotal = parseFloat(order_subtotal) - parseFloat(order_discount);
+
+                let total_tax_amount = 0;
+                let orderCombinedTax = 0;
+                (val.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * order_subtotal;
+                        } else {
+                            taxAmount = tax.tax;
                         }
-                        total_tax_amount += parseFloat(tax);
+                        total_tax_amount += parseFloat(taxAmount);
+                        orderCombinedTax += parseFloat(taxAmount);
                     }
+                });
+                if(orderCombinedTax > 0){
+                    taxBreakdownGrouped.order[''] = orderCombinedTax;
                 }
-                order_total = order_subtotal + parseFloat(total_tax_amount);
-                var subtotal = '';
-                if (currencyAtRight) {
-                    order_total_val = order_total.toFixed(decimal_degits) + '' + currentCurrency;
-                } else {
-                    order_total_val = currentCurrency + '' + order_total.toFixed(decimal_degits);
-                }
-                var rating = 0;
-                if (val.driver.reviewsSum && val.driver.reviewsCount) {
-                    rating = (val.driver.reviewsSum / val.driver.reviewsCount);
-                    rating = Math.round(rating * 10) / 10;
-                }
-                var passengers = 0;
-                if (val.driver.carInfo.passenger && val.driver.carInfo.passenger != null) {
-                    passengers = val.driver.carInfo.passenger;
-                }
-                var gear = "";
-                if (val.driver.carInfo.gear && val.driver.carInfo.gear != null) {
-                    gear = val.driver.carInfo.gear;
-                }
-                var gear = "";
-                if (val.driver.carInfo.gear && val.driver.carInfo.gear != null) {
-                    gear = val.driver.carInfo.gear;
-                }
-                var fuel_type = "";
-                if (val.driver.carInfo.fuel_type && val.driver.carInfo.fuel_type != null) {
-                    fuel_type = val.driver.carInfo.fuel_type;
-                }
-                payment = 'Done';
-                var bookWithDriver = '';
-                if (val.bookWithDriver == true) {
-                    bookWithDriver = '{{trans("lang.With_driver_trip")}}';
-                }
-                if (val.pickupDateTime._seconds != undefined) {
-                    var date = new Date(val.pickupDateTime._seconds * 1000);
-                    var pick_up_time = date.toLocaleTimeString('en-US');
-                } else {
-                    var pick_up_time = val.pickupDateTime.toDate().toLocaleTimeString('en-US');
-                }
-                if (val.dropDateTime._seconds != undefined) {
-                    var date_drop = new Date(val.dropDateTime._seconds * 1000);
-                    var drop_off_time = date_drop.toLocaleTimeString('en-US');
-                } else {
-                    var drop_off_time = val.dropDateTime.toDate().toLocaleTimeString('en-US');
-                }
+
+                // Platform taxes
+                let extraCharges = [
+                    {key: 'platform', amount: platformFee, taxes: val.platformTax || []},
+                ];
+
+                extraCharges.forEach(scope => {
+                    scope.taxes?.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * scope.amount;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                            taxBreakdownGrouped[scope.key][tax.title] = (taxBreakdownGrouped[scope.key][tax.title] || 0) + parseFloat(taxAmount);
+                        }
+                    });
+                });
+                
+                var order_total = order_subtotal + platformFee + total_tax_amount;;
+                
+                var pick_up_time = val.bookingDateTime.toDate().toLocaleTimeString('en-US');
                 var id = val.id;
                 var route1 = '{{route("rental_orders_detail",":id")}}';
                 route1 = route1.replace(':id', id);
-                html = html + '<div class="order-rental-list-right"><div class="rentalcar-list bg-white p-3 mb-4"><div class="row"><div class="col-md-2 car-img align-items-center d-flex">';
-                html = html + '<img alt="#" src="' + orderRestaurantImage + '" onerror="this.onerror=null;this.src=\'' + place_holder_image + '\'" class="img-fluid item-img"></div>';
-                html = html + '<div class="col-md-8 car-detail car-det-title"><h3>' + val.driver.carName + ' ' + val.driver.carMakes + '</h3>';
-                const ratings = ratings_get(val.driverID);
-                html = html + '<div class="ratings"><ul class="rating ' + val.driverID + '" data-rating=""><li class="rating__item"></li></ul><span  class="rate' + val.driverID + '"></span></div>';
-                html = html + '<div class="car-feture"><ul><li><img src="../img/user-icon.png">' + passengers + ' {{trans("lang.pessengers")}}</li><li><img src="../img/manual-icon.png">' + gear + '</li><li><img src="../img/fuel-icon.png">' + fuel_type + '</li></ul>';
-                html = html + '<div class="col-md-4"><a class="btn btn-outline-primary" href="' + route1 + '">View Details</a>&nbsp<a class="btn btn-primary add-review" data-uname="' + val.author.firstName + '" data-rid="' + val.id + '" data-cid="' + val.authorID + '" data-did="' + val.driverID + '" data-img="' + val.author.profilePictureURL + '" href="javascript:0">Add Review</a></div>';
-                html = html + '</div></div>';
-                html = html + '<div class="col-md-2 car-price"><span class="price">' + order_total_val + '<small></small></span><span class="car-price-with">' + bookWithDriver + '</span></div></div>';
-                html = html + '<div class="carbook-summary"><div class="row"><div class="carbook-summary-box mb-4 col-md-4"><h3>{{trans("lang.pick_up")}}</h3><p><img src="../img/time-icon.png">' + val.pickupDateTime.toDate().toDateString() + ' ' + pick_up_time + '</p><p><img src="../img/bk-location-icon.png">' + val.pickupAddress + '</p></div>';
-                html = html + '<div class="carbook-summary-box mb-4 col-md-4"><h3>{{trans("lang.drop_off")}}</h3><p><img src="../img/time-icon.png">' + val.dropDateTime.toDate().toDateString() + ' ' + drop_off_time + '</p><p><img src="../img/bk-location-icon.png">' + val.dropAddress + '</p></div>';
-                html = html + '<div class="carbook-summary-box mb-4 col-md-4"><h3>{{trans("lang.payment")}}</h3><p><img src="../img/done-icon.png">' + payment + '</p></div></div></div></div></div></div></div>';
+                //status check for only completed orders
+                html += `
+                    <div class="order-rental-list-right">
+                        <div class="rentalcar-list bg-white p-3 border-bottom">
+                            <div class="row">
+                                <div class="col-md-3 car-img align-items-center d-flex">
+                                    <img alt="#" 
+                                        src="${orderVehicleImage}" 
+                                        onerror="this.onerror=null;this.src='${place_holder_image}'" 
+                                        class="img-fluid item-img">
+                                </div>
+                                <div class="col-md-7 car-detail car-det-title">
+                                  <div class="car-det-title">  
+                                    <h3>
+                                        ${val.rentalVehicleType.name} 
+                                    </h3>
+
+                                    <div class="ratings">
+                                        <span class="rate">
+                                            ${val.rentalVehicleType.description} 
+                                        </span>
+                                    </div> 
+                                  </div>
+                                 <div class="car-feture">
+                                    <h3>{{trans("lang.package_info")}}</h3> 
+                                    <p>${val.rentalPackageModel.name}</p>
+                                    <p>${val.rentalPackageModel.description}</p>
+                                    <p>${getFormattedPrice(parseFloat(val.rentalPackageModel.baseFare))}</p>
+                                    
+                                </div>                   
+                                 <a class="btn btn-success" href="${route1}">View Details</a>                 
+                                </div>
+                                
+                                <div class="col-md-2 car-price">
+                                    <div><label class="badge rounded-pill text-white px-3 py-2 fw-bold badge-success">${val.status}</label></div>
+                                    <span class="price">${getFormattedPrice(parseFloat(order_total))}<small></small></span>
+                                </div>
+                            </div>
+                                
+                            <div class="carbook-summary">
+                                <div class="row">
+                                    <div class="carbook-summary-box mb-4 col-md-4">
+                                        <h3>{{trans("lang.pick_up")}}</h3>
+                                        <p>
+                                            <img src="../img/time-icon.png"> 
+                                            ${val.bookingDateTime.toDate().toLocaleString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: '2-digit',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: true
+                                            })}
+                                        </p>
+                                        <p>
+                                            <img src="../img/bk-location-icon.png"> ${val.sourceLocationName}
+                                        </p>
+                                    </div>
+                                    <div class="carbook-summary-box mb-4 col-md-4">
+                                        <h3>{{trans("lang.payment")}}</h3>
+                                        <p>
+                                            <img src="../img/done-icon.png"> ${val.paymentStatus ? "Done" : "Pending"}
+                                        </p>
+                                       ${buildOtpHtml(val)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
         });
         return html;
@@ -465,98 +619,192 @@
             var val = listval;
             if (val.status == "Order Placed" || val.status == "Order Accepted" || val.status == "Driver Pending" || val.status == "Driver Accepted" || val.status == "Order Shipped" || val.status == "In Transit") {
                 var order_id = val.id;
-                if (val.hasOwnProperty('driver')) {
-                    var orderRestaurantImage = '';
-                    if (val.driver.carInfo.car_image.length > 0) {
-                        orderRestaurantImage = val.driver.carInfo.car_image[0];
-                    } else {
-                        orderRestaurantImage = place_holder_image;
-                    }
+                var orderVehicleImage = '';
+                if (val.rentalVehicleType.rental_vehicle_icon) {
+                    orderVehicleImage = val.rentalVehicleType.rental_vehicle_icon;
+                } else {
+                    orderVehicleImage = place_holder_image;
                 }
+                
+                var order_subtotal = parseFloat(val.subTotal);
+
+                var includedHours = val.rentalPackageModel.includedHours;
+                var includedDistance = val.rentalPackageModel.includedDistance;
+                var extraKmFare = val.rentalPackageModel.extraKmFare;
+                var extraMinuteFare = val.rentalPackageModel.extraMinuteFare;
+                let platformFee = parseFloat(val.platformFee || 0);
+                
+                var extraKm = 0;
+                var extraKmCharge = 0;
+                var extraMinutes = 0;
+                var extraMinuteCharge = 0;
+
+                //KM calculation
+                if(val.startTime != null && val.endTime != null){
+                    var current_km = val.startKitoMetersReading;
+                    var complete_km = val.endKitoMetersReading;
+                    var final_km = parseFloat(complete_km) - parseFloat(current_km);
+
+                    //Extra Km charge
+                    if (final_km > includedDistance) {
+                        extraKm = final_km - includedDistance;
+                        extraKmCharge = extraKm * extraKmFare;
+                    }
+
+                    //Extra minute calculation
+                    var startDateTime = val.startTime.toDate();
+                    var endDateTime   = val.endTime.toDate();
+                    var diffMs = endDateTime - startDateTime;
+                    var totalDurationMinutes = Math.floor(diffMs / (1000 * 60));
+                    
+                    var includedMinutes = includedHours * 60;
+
+                    //Extra Minute Charge
+                    if (totalDurationMinutes > includedMinutes) {
+                        extraMinutes = totalDurationMinutes - includedMinutes;
+                        extraMinuteCharge = extraMinutes * extraMinuteFare;
+                    }
+                    
+                    //Final amount
+                    order_subtotal = order_subtotal + extraKmCharge + extraMinuteCharge;
+                }
+
                 var order_discount = 0;
                 if (val.hasOwnProperty('discount') && val.discount) {
                     if (val.discount) {
                         order_discount = parseFloat(val.discount);
                     }
                 }
-                order_subtotal = val.subTotal;
-                order_subtotal = (parseFloat(order_subtotal) - parseFloat(order_discount));
-                if (val.hasOwnProperty('driverRate') && val.driverRate) {
-                    var driverRate = parseFloat(val.driverRate);
-                    order_subtotal = (parseFloat(order_subtotal) + parseFloat(driverRate));
-                }
-                var total_tax_amount = 0;
-                if (val.hasOwnProperty('taxSetting')) {
-                    for (var i = 0; i < val.taxSetting.length; i++) {
-                        var data = val.taxSetting[i];
-                        if (data.type && data.tax) {
-                            if (data.type == "percentage") {
-                                tax = (data.tax * order_subtotal) / 100;
-                            } else {
-                                tax = data.tax;
-                            }
+                
+                order_subtotal = parseFloat(order_subtotal) - parseFloat(order_discount);
+                
+                let total_tax_amount = 0;
+                let orderCombinedTax = 0;
+                (val.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * order_subtotal;
+                        } else {
+                            taxAmount = tax.tax;
                         }
-                        total_tax_amount += parseFloat(tax);
+                        total_tax_amount += parseFloat(taxAmount);
+                        orderCombinedTax += parseFloat(taxAmount);
                     }
+                });
+                if(orderCombinedTax > 0){
+                    taxBreakdownGrouped.order[''] = orderCombinedTax;
                 }
-                order_total = order_subtotal + parseFloat(total_tax_amount);
-                var subtotal = '';
-                if (currencyAtRight) {
-                    order_total_val = order_total.toFixed(decimal_degits) + '' + currentCurrency;
-                } else {
-                    order_total_val = currentCurrency + '' + order_total.toFixed(decimal_degits);
-                }
-                var rating = 0;
-                if (val.driver.reviewsSum && val.driver.reviewsCount) {
-                    rating = (val.driver.reviewsSum / val.driver.reviewsCount);
-                    rating = Math.round(rating * 10) / 10;
-                }
-                var passengers = 0;
-                if (val.driver.carInfo.passenger && val.driver.carInfo.passenger != null) {
-                    passengers = val.driver.carInfo.passenger;
-                }
-                var gear = "";
-                if (val.driver.carInfo.gear && val.driver.carInfo.gear != null) {
-                    gear = val.driver.carInfo.gear;
-                }
-                var gear = "";
-                if (val.driver.carInfo.gear && val.driver.carInfo.gear != null) {
-                    gear = val.driver.carInfo.gear;
-                }
-                var fuel_type = "";
-                if (val.driver.carInfo.fuel_type && val.driver.carInfo.fuel_type != null) {
-                    fuel_type = val.driver.carInfo.fuel_type;
-                }
-                payment = 'Done';
-                var bookWithDriver = '';
-                if (val.bookWithDriver == true) {
-                    bookWithDriver = '{{trans("lang.With_driver_trip")}}';
-                }
-                if (val.pickupDateTime._seconds != undefined) {
-                    var date = new Date(val.pickupDateTime._seconds * 1000);
-                    var pick_up_time = date.toLocaleTimeString('en-US');
-                } else {
-                    var pick_up_time = val.pickupDateTime.toDate().toLocaleTimeString('en-US');
-                }
-                if (val.dropDateTime._seconds != undefined) {
-                    var date_drop = new Date(val.dropDateTime._seconds * 1000);
-                    var drop_off_time = date_drop.toLocaleTimeString('en-US');
-                } else {
-                    var drop_off_time = val.dropDateTime.toDate().toLocaleTimeString('en-US');
-                }
+                
+                // Platform taxes
+                let extraCharges = [
+                    {key: 'platform', amount: platformFee, taxes: val.platformTax || []},
+                ];
+
+                extraCharges.forEach(scope => {
+                    scope.taxes?.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * scope.amount;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                            taxBreakdownGrouped[scope.key][tax.title] = (taxBreakdownGrouped[scope.key][tax.title] || 0) + parseFloat(taxAmount);
+                        }
+                    });
+                });
+                
+                var order_total = order_subtotal + platformFee + total_tax_amount;;
+                
                 var id = val.id;
                 var route1 = '{{route("rental_orders_detail",":id")}}';
                 route1 = route1.replace(':id', id);
-                html = html + '<div class="order-rental-list-right"><div class="order-rental-list-right"><div class="rentalcar-list bg-white p-3 mb-4"><div class="row"><div class="col-md-2 car-img align-items-center d-flex">';
-                html = html + '<img alt="#" src="' + orderRestaurantImage + '" onerror="this.onerror=null;this.src=\'' + place_holder_image + '\'" class="img-fluid item-img"></div>';
-                html = html + '<div class="col-md-8 car-detail car-det-title"><h3>' + val.driver.carName + ' ' + val.driver.carMakes + '</h3>';
-                const ratings = ratings_get(val.driverID);
-                html = html + '<div class="ratings"><ul class="rating ' + val.driverID + '" data-rating=""><li class="rating__item"></li></ul><span class="rate' + val.driverID + '"></span></div>';
-                html = html + '<div class="car-feture"><ul><li><img src="../img/user-icon.png">' + passengers + ' {{trans("lang.pessengers")}}</li><li><img src="../img/manual-icon.png">' + gear + '</li><li><img src="../img/fuel-icon.png">' + fuel_type + '</li></ul><div class="col-md-4"><a class="btn btn-success" href="' + route1 + '">View Details</a></div></div></div>';
-                html = html + '<div class="col-md-2 car-price"><span class="price">' + order_total_val + '<small></small></span><span class="car-price-with">' + bookWithDriver + '</span></div></div>';
-                html = html + '<div class="carbook-summary"><div class="row"><div class="carbook-summary-box mb-4 col-md-4"><h3>{{trans("lang.pick_up")}}</h3><p><img src="../img/time-icon.png">' + val.pickupDateTime.toDate().toDateString() + ' ' + pick_up_time + '</p><p><img src="../img/bk-location-icon.png">' + val.pickupAddress + '</p></div>';
-                html = html + '<div class="carbook-summary-box mb-4 col-md-4"><h3>{{trans("lang.drop_off")}}</h3><p><img src="../img/time-icon.png">' + val.dropDateTime.toDate().toDateString() + ' ' + drop_off_time + '</p><p><img src="../img/bk-location-icon.png">' + val.dropAddress + '</p></div>';
-                html = html + '<div class="carbook-summary-box mb-4 col-md-4"><h3>{{trans("lang.payment")}}</h3><p><img src="../img/done-icon.png">' + payment + '</p></div></div></div></div></div></div></div></div>';
+
+                html += `
+                    <div class="order-rental-list-right">
+                        <div class="rentalcar-list bg-white p-3 border-bottom">
+                            <div class="row">
+                                <div class="col-md-3 car-img align-items-center d-flex">
+                                    <img alt="#" 
+                                        src="${orderVehicleImage}" 
+                                        onerror="this.onerror=null;this.src='${place_holder_image}'" 
+                                        class="img-fluid item-img">
+                                </div>
+                                <div class="col-md-7 car-detail">
+                                  <div class="car-det-title">  
+                                    <h3>
+                                        ${val.rentalVehicleType.name} 
+                                    </h3>
+
+                                    <div class="ratings">
+                                        <span class="rate">
+                                            ${val.rentalVehicleType.description} 
+                                        </span>
+                                    </div> 
+                                  </div>
+                                 <div class="car-feture">
+                                   <h3>{{trans("lang.package_info")}}</h3>
+                                        <p>${val.rentalPackageModel.name}</p>
+                                        <p>${val.rentalPackageModel.description}</p>
+                                        <p>${getFormattedPrice(parseFloat(val.rentalPackageModel.baseFare))}</p>
+                                  </div>  
+                                  <a class="btn btn-success" href="${route1}">View Details</a>
+                                  
+                                        ${val.status !== "In Transit" ? `<a class="btn btn-danger cancel_booking" data-id="${val.id}" href="javascript:void(0)">Cancel Bookings</a>` : ''} 
+                                        ${val.status === "In Transit" && val.endKitoMetersReading !== "" && val.paymentStatus === false  ? `<a class="btn btn-info"  href="${route1}">Pay Now</a>` : ''}                             
+                                </div>
+
+                                
+
+                                <div class="col-md-2 car-price">
+                                   <div>
+                                    <label class="badge rounded-pill text-white px-3 py-2 fw-bold ${
+                                        val.status === 'Order Placed' ? 'bg-warning' :
+                                        val.status === 'Order Accepted' ? 'bg-info' :
+                                        val.status === 'Driver Pending' ? 'bg-secondary' :
+                                        val.status === 'Driver Accepted' ? 'bg-primary' :
+                                        val.status === 'Order Shipped' ? 'bg-primary' :
+                                        val.status === 'In Transit' ? 'bg-info' : 'bg-dark'
+                                    }">
+                                        ${val.status}
+                                    </label></div>
+                                    <span class="price">${getFormattedPrice(parseFloat(order_total))}<small></small></span>
+                                </div>
+                            </div>
+                                
+                            <div class="carbook-summary">
+                                <div class="row">
+                                    <div class="carbook-summary-box mb-4 col-md-4">
+                                        <h3>{{trans("lang.pick_up")}}</h3>
+                                        <p>
+                                            <img src="../img/time-icon.png"> 
+                                            ${val.bookingDateTime.toDate().toLocaleString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: '2-digit',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: true
+                                            })}
+                                        </p>
+                                        <p>
+                                            <img src="../img/bk-location-icon.png"> ${val.sourceLocationName}
+                                        </p>
+                                    </div>
+                                    <div class="carbook-summary-box mb-4 col-md-4">
+                                        <h3>{{trans("lang.payment")}}</h3>
+                                        <p>
+                                            <img src="../img/done-icon.png"> ${val.paymentStatus ? "Done" : "Pending"}
+                                        </p>
+                                       ${buildOtpHtml(val)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
         });
         return html;
@@ -573,109 +821,191 @@
         });
         alldata.forEach((listval) => {
             var val = listval;
-            var order_id = val.id;
-            if (val.status == "Driver Rejected" || val.status == "Order Rejected") {
-                if (val.hasOwnProperty('driver')) {
-                    var order_id = val.id;
-                    var orderRestaurantImage = '';
-                    if (val.driver.carInfo.car_image.length > 0) {
-                        orderRestaurantImage = val.driver.carInfo.car_image[0];
-                    } else {
-                        orderRestaurantImage = place_holder_image;
-                    }
+            if (val.status == "Order Cancelled" || val.status == "Driver Rejected" || val.status == "Order Rejected") {
+
+                var order_id = val.id;
+                var orderVehicleImage = '';
+                if (val.rentalVehicleType.rental_vehicle_icon) {
+                    orderVehicleImage = val.rentalVehicleType.rental_vehicle_icon;
+                } else {
+                    orderVehicleImage = place_holder_image;
                 }
+                
+                var order_subtotal = parseFloat(val.subTotal);
+
+                var includedHours = val.rentalPackageModel.includedHours;
+                var includedDistance = val.rentalPackageModel.includedDistance;
+                var extraKmFare = val.rentalPackageModel.extraKmFare;
+                var extraMinuteFare = val.rentalPackageModel.extraMinuteFare;
+                let platformFee = parseFloat(val.platformFee || 0);
+                
+                var extraKm = 0;
+                var extraKmCharge = 0;
+                var extraMinutes = 0;
+                var extraMinuteCharge = 0;
+
+                //KM calculation
+                if(val.startTime != null && val.endTime != null){
+                    var current_km = val.startKitoMetersReading;
+                    var complete_km = val.endKitoMetersReading;
+                    var final_km = parseFloat(complete_km) - parseFloat(current_km);
+
+                    //Extra Km charge
+                    if (final_km > includedDistance) {
+                        extraKm = final_km - includedDistance;
+                        extraKmCharge = extraKm * extraKmFare;
+                    }
+
+                    //Extra minute calculation
+                    var startDateTime = val.startTime.toDate();
+                    var endDateTime   = val.endTime.toDate();
+                    var diffMs = endDateTime - startDateTime;
+                    var totalDurationMinutes = Math.floor(diffMs / (1000 * 60));
+                    
+                    var includedMinutes = includedHours * 60;
+
+                    //Extra Minute Charge
+                    if (totalDurationMinutes > includedMinutes) {
+                        extraMinutes = totalDurationMinutes - includedMinutes;
+                        extraMinuteCharge = extraMinutes * extraMinuteFare;
+                    }
+                    
+                    //Final amount
+                    order_subtotal = order_subtotal + extraKmCharge + extraMinuteCharge;
+                }
+
                 var order_discount = 0;
                 if (val.hasOwnProperty('discount') && val.discount) {
                     if (val.discount) {
                         order_discount = parseFloat(val.discount);
                     }
                 }
-                order_subtotal = val.subTotal;
-                order_subtotal = (parseFloat(order_subtotal) - parseFloat(order_discount));
-                if (val.hasOwnProperty('driverRate') && val.driverRate) {
-                    var driverRate = parseFloat(val.driverRate);
-                    order_subtotal = (parseFloat(order_subtotal) + parseFloat(driverRate));
-                }
-                var total_tax_amount = 0;
-                if (val.hasOwnProperty('taxSetting')) {
-                    for (var i = 0; i < val.taxSetting.length; i++) {
-                        var data = val.taxSetting[i];
-                        if (data.type && data.tax) {
-                            if (data.type == "percentage") {
-                                tax = (data.tax * order_subtotal) / 100;
-                            } else {
-                                tax = data.tax;
-                            }
+                
+                order_subtotal = parseFloat(order_subtotal) - parseFloat(order_discount);
+                
+                let total_tax_amount = 0;
+                let orderCombinedTax = 0;
+                (val.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * order_subtotal;
+                        } else {
+                            taxAmount = tax.tax;
                         }
-                        total_tax_amount += parseFloat(tax);
+                        total_tax_amount += parseFloat(taxAmount);
+                        orderCombinedTax += parseFloat(taxAmount);
                     }
+                });
+                if(orderCombinedTax > 0){
+                    taxBreakdownGrouped.order[''] = orderCombinedTax;
                 }
-                order_total = order_subtotal + parseFloat(total_tax_amount);
-                var subtotal = '';
-                if (currencyAtRight) {
-                    order_total_val = order_total.toFixed(decimal_degits) + '' + currentCurrency;
-                } else {
-                    order_total_val = currentCurrency + '' + order_total.toFixed(decimal_degits);
-                }
-                var rating = 0;
-                if (val.driver.reviewsSum && val.driver.reviewsCount) {
-                    rating = (val.driver.reviewsSum / val.driver.reviewsCount);
-                    rating = Math.round(rating * 10) / 10;
-                }
-                var passengers = 0;
-                if (val.driver.carInfo.passenger && val.driver.carInfo.passenger != null) {
-                    passengers = val.driver.carInfo.passenger;
-                }
-                var gear = "";
-                if (val.driver.carInfo.gear && val.driver.carInfo.gear != null) {
-                    gear = val.driver.carInfo.gear;
-                }
-                var gear = "";
-                if (val.driver.carInfo.gear && val.driver.carInfo.gear != null) {
-                    gear = val.driver.carInfo.gear;
-                }
-                var fuel_type = "";
-                if (val.driver.carInfo.fuel_type && val.driver.carInfo.fuel_type != null) {
-                    fuel_type = val.driver.carInfo.fuel_type;
-                }
-                payment = 'Done';
-                var bookWithDriver = '';
-                if (val.bookWithDriver == true) {
-                    bookWithDriver = '{{trans("lang.With_driver_trip")}}';
-                }
-                if (val.pickupDateTime._seconds != undefined) {
-                    var date = new Date(val.pickupDateTime._seconds * 1000);
-                    var pick_up_time = date.toLocaleTimeString('en-US');
-                } else {
-                    var pick_up_time = val.pickupDateTime.toDate().toLocaleTimeString('en-US');
-                }
-                if (val.dropDateTime._seconds != undefined) {
-                    var date_drop = new Date(val.dropDateTime._seconds * 1000);
-                    var drop_off_time = date_drop.toLocaleTimeString('en-US');
-                } else {
-                    var drop_off_time = val.dropDateTime.toDate().toLocaleTimeString('en-US');
-                }
+
+                // Platform taxes
+                let extraCharges = [
+                    {key: 'platform', amount: platformFee, taxes: val.platformTax || []},
+                ];
+
+                extraCharges.forEach(scope => {
+                    scope.taxes?.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * scope.amount;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                            taxBreakdownGrouped[scope.key][tax.title] = (taxBreakdownGrouped[scope.key][tax.title] || 0) + parseFloat(taxAmount);
+                        }
+                    });
+                });
+                
+                var order_total = order_subtotal + platformFee + total_tax_amount;;
+                
                 var id = val.id;
                 var route1 = '{{route("rental_orders_detail",":id")}}';
                 route1 = route1.replace(':id', id);
-                html = html + '<div class="order-rental-list-right"><div class="rentalcar-list bg-white p-3 mb-4"><div class="row"><div class="col-md-2 car-img align-items-center d-flex">';
-                html = html + '<img alt="#" src="' + orderRestaurantImage + '" onerror="this.onerror=null;this.src=\'' + place_holder_image + '\'" class="img-fluid item-img"></div>';
-                html = html + '<div class="col-md-8 car-detail car-det-title"><h3>' + val.driver.carName + ' ' + val.driver.carMakes + '</h3>';
-                const ratings = ratings_get(val.driverID);
-                html = html + '<div class="ratings"><ul class="rating ' + val.driverID + '" data-rating=""><li class="rating__item"></li></ul><span class="rate' + val.driverID + '"></span></div>';
-                html = html + '<div class="car-feture"><ul><li><img src="../img/user-icon.png">' + passengers + ' {{trans("lang.pessengers")}}</li><li><img src="../img/manual-icon.png">' + gear + '</li><li><img src="../img/fuel-icon.png">' + fuel_type + '</li></ul><div class="col-md-4"><a class="btn btn-success" href="' + route1 + '">View Details</a></div></div></div>';
-                html = html + '<div class="col-md-2 car-price"><span class="price">' + order_total_val + '<small></small></span><span class="car-price-with">' + bookWithDriver + '</span></div></div>';
-                html = html + '<div class="carbook-summary"><div class="row"><div class="carbook-summary-box mb-4 col-md-4"><h3>{{trans("lang.pick_up")}}</h3><p><img src="../img/time-icon.png">' + val.pickupDateTime.toDate().toDateString() + ' ' + pick_up_time + '</p><p><img src="../img/bk-location-icon.png">' + val.pickupAddress + '</p></div>';
-                html = html + '<div class="carbook-summary-box mb-4 col-md-4"><h3>{{trans("lang.drop_off")}}</h3><p><img src="../img/time-icon.png">' + val.dropDateTime.toDate().toDateString() + ' ' + drop_off_time + '</p><p><img src="../img/bk-location-icon.png">' + val.dropAddress + '</p></div>';
-                html = html + '<div class="carbook-summary-box mb-4 col-md-4"><h3>{{trans("lang.payment")}}</h3><p><img src="../img/done-icon.png">' + payment + '</p></div></div></div></div></div></div></div>';
+
+                html += `
+                    <div class="order-rental-list-right">
+                        <div class="rentalcar-list bg-white p-3 border-bottom">
+                            <div class="row">
+                                <div class="col-md-3 car-img align-items-center d-flex">
+                                    <img alt="#" 
+                                        src="${orderVehicleImage}" 
+                                        onerror="this.onerror=null;this.src='${place_holder_image}'" 
+                                        class="img-fluid item-img">
+                                </div>
+                                <div class="col-md-7 car-detail car-det-title">
+                                  <div class="car-det-title"> 
+                                    <h3>
+                                        ${val.rentalVehicleType.name} 
+                                    </h3>
+
+                                    <div class="ratings">
+                                        <span class="rate">
+                                            ${val.rentalVehicleType.description} 
+                                        </span>
+                                    </div>
+                                  </div>                                   
+
+                                    <div class="car-feture">
+                                       <h3>{{trans("lang.package_info")}}</h3>
+                                        <p>${val.rentalPackageModel.name}</p>
+                                        <p>${val.rentalPackageModel.description}</p>
+                                        <p>${getFormattedPrice(parseFloat(val.rentalPackageModel.baseFare))}</p>
+                                        
+                                    </div>
+                                   <a class="btn btn-success" href="${route1}">View Details</a>
+                                </div>
+
+                                <div class="col-md-2 car-price">
+                                    <div><label class="badge rounded-pill text-white px-3 py-2 fw-bold badge-danger">${val.status}</label></div>
+                                    <span class="price">${getFormattedPrice(parseFloat(order_total))}<small></small></span>
+                                </div>
+                            </div>
+                                
+                            <div class="carbook-summary">
+                                <div class="row">
+                                    <div class="carbook-summary-box mb-4 col-md-4">
+                                        <h3>{{trans("lang.pick_up")}}</h3>
+                                        <p>
+                                            <img src="../img/time-icon.png"> 
+                                            ${val.bookingDateTime.toDate().toLocaleString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: '2-digit',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: true
+                                            })}
+                                        </p>
+                                        <p>
+                                            <img src="../img/bk-location-icon.png"> ${val.sourceLocationName}
+                                        </p>
+                                    </div>
+                                    <div class="carbook-summary-box mb-4 col-md-4">
+                                        <h3>{{trans("lang.payment")}}</h3>
+                                        <p>
+                                            <img src="../img/done-icon.png"> ${val.paymentStatus ? "Done" : "Pending"}
+                                        </p>
+                                       ${buildOtpHtml(val)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
         });
         return html;
     }
 
-    async function ratings_get(ratings) {
+    async function ratings_get(driverId) {
+        if(!driverId) return '';
         var ratings_get = '';
-        await database.collection('users').where("id", "==", ratings).get().then(async function (snapshotss) {
+        await database.collection('users').where("id", "==", driverId).get().then(async function (snapshotss) {
             if (snapshotss.docs[0]) {
                 var rating_data = snapshotss.docs[0].data();
                 var rating = 0;
@@ -692,4 +1022,15 @@
         });
         return ratings_get;
     }
+
+    $(document).on('click', '.cancel_booking', function () {
+        var orderId = $(this).data('id');
+        if (confirm("{{trans("lang.cancel_booking_alert")}}")) {
+            database.collection('rental_orders').doc(orderId).update({
+                'status': 'Order Cancelled',
+            }).then(function () {
+                window.location.reload();
+            });
+        }
+    });
 </script>

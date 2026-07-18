@@ -1,207 +1,261 @@
-const functions = require('firebase-functions');
-const admin = require ("firebase-admin");
-const firestore = admin.firestore();
+const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+const { defineString } = require('firebase-functions/params');
+const { getFirestore } = require("firebase-admin/firestore");
+const admin = require("firebase-admin");
 
-/*
-** Dispatch multivendor orders to vendors and drivers
-*/
-exports.dispatch = functions.firestore
-.document("vendor_orders/{orderID}")
-.onWrite(async (change, context) => {
-    const orderData = change.after.data();
+// Initialize Admin SDK once
+if (admin.apps.length === 0) {
+    admin.initializeApp();
+}
+
+/**
+ * Get the correct Firestore instance based on the DATABASE parameter
+ */
+const getDb = () => getFirestore();
+
+exports.dispatch = onDocumentWritten({
+    document: "vendor_orders/{orderID}"
+}, async (event) => {
+
+    const firestore = getDb();
+    
+    const orderData = event.data.after.data();
+    const beforeData = event.data.before.data();
+    const orderId = event.params.orderID;
+    const documentRef = event.data.after.ref;
+
+    // 1. Guard Clauses & Skip Logic
     if (!orderData) {
-        console.log("No order data");
-        return;
+        console.log("No order data found for ID:", orderId);
+        return null;
+    }
+
+    if (beforeData && orderData) {
+        const keysChanged = Object.keys(orderData).filter(
+            key => JSON.stringify(orderData[key]) !== JSON.stringify(beforeData[key])
+        );
+        if (keysChanged.length === 1 && keysChanged.includes('orderAutoCancelAt')) {
+            console.log("orderAutoCancelAt update detected, skipping dispatch logic.");
+            return null;
+        }
     }
 
     if (orderData.status === "Order Cancelled") {
-        console.log("Order #" + change.after.ref.id + " was cancelled.")
-        return null
+        console.log(`Order #${orderId} was cancelled.`);
+        return null;
     }
 
     if (orderData.status === "Order Placed") {
-        // this is a new order, so we need to send it to the vendor for approval
-        console.log("Order #" + change.after.ref.id + " was sent to vendor for approval.")
-        return null
+        console.log(`Order #${orderId} was sent to vendor for approval.`);
+        return null;
     }
 
     if (orderData.takeAway === true) {
-        // this is a new order, so we need to send it to the vendor for approval
-        console.log("Order #" + change.after.ref.id + " was sent as takeAway to vendor for approval.")
-        return null
+        console.log(`Order #${orderId} was sent as takeAway to vendor for approval.`);
+        return null;
     }
 
+    // 2. Dispatch Logic
     if (orderData.status === "Order Accepted" || orderData.status === "Driver Rejected") {
-        // the vendor accepted the order, so we need to find an available driver
-        console.log("Finding a driver for order #" + change.after.ref.id)
+        console.log("Finding a driver for order #" + orderId + " ---");
 
-        const rejectedByDrivers = orderData.rejectedByDrivers ? orderData.rejectedByDrivers : []
+        const rejectedByDrivers = orderData.rejectedByDrivers || [];
+        const driverNearByData = await getDriverNearByData(firestore);
+        
+        let minimumDepositToRideAccept = 0;
+        let orderAcceptRejectDuration = 0;
+        let orderAutoCancelDuration = 0;
+        let kDistanceRadiusForDispatch = 50;
+        let singleOrderReceive = false;
+        
+        let zone_id = null;
+        if (orderData.address?.location?.longitude && orderData.address?.location?.latitude) {
+            zone_id = await getUserZoneId(firestore, orderData.address.location.longitude, orderData.address.location.latitude);
+            console.log('Zone id by address:', zone_id);
+        }
+        
+        if (driverNearByData !== undefined) {
+            minimumDepositToRideAccept = parseInt(driverNearByData.minimumDepositToRideAccept || 0);
+            orderAcceptRejectDuration = parseInt(driverNearByData.driverOrderAcceptRejectDuration || 0);
+            orderAutoCancelDuration = parseInt(driverNearByData.orderAutoCancelDuration || 0);
+            kDistanceRadiusForDispatch = parseInt(driverNearByData.driverRadios || 50);
+            if (driverNearByData.distanceType === 'miles') {
+                kDistanceRadiusForDispatch = Math.round(kDistanceRadiusForDispatch * 1.60934);
+            }
+            singleOrderReceive = Boolean(driverNearByData.singleOrderReceive);
+        }
 
-        var orderId = change.after.ref.id;
-        var driverNearByData = await getDriverNearByData();
-        var minimumDepositToRideAccept = 0;
-        var orderAcceptRejectDuration = 0;
-        var kDistanceRadiusForDispatchInMiles = 50;
-    
-        if(driverNearByData !== undefined){
-            if(driverNearByData.minimumDepositToRideAccept !== undefined){
-                minimumDepositToRideAccept = parseInt(driverNearByData.minimumDepositToRideAccept);
+        console.log('Config: minDeposit:', minimumDepositToRideAccept, 'acceptDuration:', orderAcceptRejectDuration);
+
+        const snapshot = await firestore.collection("users")
+            .where('role', '==', "driver")
+            .where('isActive', '==', true)
+            .where('serviceTypes', 'array-contains', 'delivery-service')
+            .where('wallet_amount', '>=', minimumDepositToRideAccept)
+            .get();
+
+        console.log(`Found ${snapshot.docs.length} drivers matching initial criteria.`);
+
+        let found = false;
+
+        for (const doc of snapshot.docs) {  
+            if (found) break;
+
+            const driver = doc.data();
+            const driverId = doc.id;
+
+            if (driver.vendorID || !driver.fcmToken) continue;
+
+            // Section Check
+            if (!driver.sectionIds?.includes(orderData.section_id)) {
+                console.log(`Driver ${driver.id} skipped (section mismatch)`);
+                continue;
             }
-            if(driverNearByData.driverOrderAcceptRejectDuration !== undefined){
-                 orderAcceptRejectDuration = parseInt(driverNearByData.driverOrderAcceptRejectDuration);
+
+            // Check Zone
+            if (driver.zoneId && zone_id !== null && driver.zoneId !== zone_id) {
+                continue;
             }
-            if(driverNearByData.driverRadios !== undefined){
-                 kDistanceRadiusForDispatchInMiles = parseInt(driverNearByData.driverRadios);
+
+            // Check Rejections and Proximity
+            if (driver.location && !rejectedByDrivers.includes(driverId)) {
+                const vendor = orderData.vendor;
+                if (vendor) {
+                    const distance = distanceRadius(driver.location.latitude, driver.location.longitude, vendor.latitude, vendor.longitude);
+                    
+                    // RESTORED LOGS
+                    console.log(`Checking Driver: ${driver.email}`);
+                    console.log(`Driver Location: lat ${driver.location.latitude} long ${driver.location.longitude}`);
+                    console.log(`Vendor Location: lat ${vendor.latitude} long ${vendor.longitude}`);
+                    console.log(`Calculated Distance: ${distance.toFixed(2)} (Limit: ${kDistanceRadiusForDispatch})`);
+
+                    if (distance < kDistanceRadiusForDispatch) {
+                        
+                        if (singleOrderReceive === true) {
+                            const hasPendingOrder = Array.isArray(driver.orderRequestData) && driver.orderRequestData.length > 0;
+                            const hasAcceptedOrder = Array.isArray(driver.inProgressOrderID) && driver.inProgressOrderID.length > 0;
+                            if (hasPendingOrder || hasAcceptedOrder) {
+                                console.log(`Driver ${driver.email} is currently busy.`);
+                                continue;
+                            }
+                        }
+                        
+                        found = true;
+
+                        console.log(`Match Found: Driver ${driver.email} assigned to order #${orderId}`);
+
+                        // Notify Driver
+                        const timeLabel = Math.floor(orderAcceptRejectDuration / 60) + ":" + (orderAcceptRejectDuration % 60 || '00');
+                        const message = {
+                            notification: {
+                                title: 'New order received',
+                                body: 'You have a new order, please accept in ' + timeLabel + ' mins'
+                            },
+                            token: driver.fcmToken
+                        };
+                        admin.messaging().send(message).catch(e => console.log("FCM Error", e));
+
+                        // Update Order Status
+                        // eslint-disable-next-line no-await-in-loop
+                        await documentRef.set({ status: "Driver Pending" }, { merge: true });
+
+                        // Handle timeout logic
+                        if (orderAcceptRejectDuration > 0) {
+                            setTimeout(async () => { 
+                                const snap = await firestore.collection("vendor_orders").doc(orderId).get();
+                                const latestOrder = snap.data();
+
+                                if (latestOrder && latestOrder.status === "Driver Pending") {
+                                    console.log(`Timeout: Driver ${driver.email} failed to accept. Resetting order.`);
+                                    const dSnap = await firestore.collection("users").doc(driverId).get();
+                                    const dData = dSnap.data();
+                                    
+                                    if (dData?.orderRequestData) {
+                                        const filteredRequests = dData.orderRequestData.filter(oid => oid !== orderId);
+                                        await firestore.collection('users').doc(driverId).update({ orderRequestData: filteredRequests });
+                                    }
+
+                                    rejectedByDrivers.push(driverId);
+                                    await firestore.collection('vendor_orders').doc(orderId).update({
+                                        status: 'Order Accepted',
+                                        rejectedByDrivers: rejectedByDrivers
+                                    });
+                                }
+                            }, orderAcceptRejectDuration * 1000);
+                        }
+
+                        // Assign order to driver request list
+                        let currentRequests = driver.orderRequestData || [];
+                        if (!currentRequests.includes(orderId)) {
+                            currentRequests.push(orderId);
+                        }
+                        // eslint-disable-next-line no-await-in-loop
+                        await firestore.collection('users').doc(driverId).update({ orderRequestData: currentRequests });
+                    }
+                }
             }
         }
 
-        console.log('minimumDepositToRideAccept',minimumDepositToRideAccept);
-        console.log('orderAcceptRejectDuration',orderAcceptRejectDuration);
-
-        // change.after.ref.set({ status: "Pending Driver" }, {merge: true})
-        return firestore
-            .collection("users")
-            .where('role', '==', "driver")
-            .where('isActive', '==', true)
-            .where('serviceType', '==', "delivery-service")
-            .where('wallet_amount', '>=', minimumDepositToRideAccept)
-            .get()
-            .then(snapshot => {
-                var found = false
-                snapshot.forEach(doc => {
-                    if (!found) {
-                        // We simply assign the first available driver who's within a reasonable distance from the vendor and who did not reject the order and who is not delivering already
-                        const driver = doc.data();
-                        console.log(driver)
-
-                        if (driver.location
-                            && rejectedByDrivers.indexOf(driver.id) === -1
-                            && (driver.inProgressOrderID === undefined || driver.inProgressOrderID === null)
-                            && (driver.orderRequestData === undefined || driver.orderRequestData === null)) {
-                            const vendor = orderData.vendor
-                            if (vendor) {
-                                const distance = distanceRadius(driver.location.latitude, driver.location.longitude, vendor.latitude, vendor.longitude)
-                                console.log("Driver (" + driver.email + " Location: ")
-                                console.log(driver.location)
-                                console.log("Vendor Location: lat " + vendor.latitude + " long" + vendor.longitude)
-                                console.log(distance)
-                                if (distance < kDistanceRadiusForDispatchInMiles) {
-                                    found = true
-                                    
-                                    //set data for notification
-                                    var time = Math.floor(orderAcceptRejectDuration / 60) + ":" + (orderAcceptRejectDuration % 60 ? orderAcceptRejectDuration % 60 : '00');
-                                    var message = {
-                                        notification:{
-                                          title: 'New order received',
-                                          body: 'You have a new order, please accept the order in '+time+' mins'
-                                        },
-                                        token: driver.fcmToken
-                                    };
-                                    //send notification to driver
-                                    admin.messaging().send(message).then((response) => {
-                                        console.log('Notification Success:',response);
-                                        return null
-                                    }).catch((error) => {
-                                        console.log('Notification Error:',error);
-                                        return null
-                                    });
-
-                                    // We update the order status
-                                    change.after.ref.set({ status: "Driver Pending" }, {merge: true})
-                                    .then(async function (result) {
-                                        // After update the order status get new updated status
-                                         firestore.collection("vendor_orders").doc(orderId).get().then((querySnapshot) => {	
-                                            var newOrderData = querySnapshot.data();
-                                            // Check if driver is accepting the order within defined time or not
-                                            if(orderAcceptRejectDuration > 0 && newOrderData.status === "Driver Pending"){
-                                                setTimeout(function(){ 
-                                                    // Re-check order status after time limit exceed before find out other driver
-                                                    firestore.collection("vendor_orders").doc(orderId).get().then((querySnapshot) => {
-                                                        var newOrderData2 = querySnapshot.data();
-                                                        // If order status is driver pending then and only we will find new driver and current driver will add to rejected list
-                                                        if(newOrderData2.status === "Driver Pending"){
-                                                            firestore.collection('users').doc(driver.id).update({
-                                                                'orderRequestData': null,
-                                                            });
-                                                            // Current driver is adding to rejected list so they will not receive order again and update status to find new driver
-                                                            rejectedByDrivers.push(driver.id);
-                                                            firestore.collection('vendor_orders').doc(orderId).update({
-                                                                'status': 'Order Accepted',
-                                                                'rejectedByDrivers': rejectedByDrivers
-                                                            })
-                                                            console.log("Order not accepted by driver #" + driver.id + " for order #" + orderId + " within " + orderAcceptRejectDuration + " seconds, searching for next driver.")
-                                                            return null
-                                                        }
-                                                        return null
-                                                    })
-                                                    .catch(error => {
-                                                        console.log(error)
-                                                    })
-
-                                                },orderAcceptRejectDuration*1000);
-                                            }
-                                            return null
-                                        })
-                                        .catch(error => {
-                                            console.log(error)
-                                        })
-                                        return null
-                                    })
-                                    .catch(error => {
-                                        console.log(error)
-                                    })
-                                    
-                                    // We send the order to the driver, by appending orderRequestData to the driver's user model in the users table
-                                    firestore.collection('users').doc(driver.id).update({
-                                        orderRequestData: orderData,
-                                    });
-                                    console.log("Order sent to driver #" + driver.id + " for order #" + change.after.ref.id + " with distance at " + distance)
-                                }
-                            }
-                        }
-                    }
-                })
-                if (!found) {
-                    // We did not find an available driver
-                    console.log("Could not find an available driver for order #" + change.after.ref.id)
-                }
-                return null
-            })
-            .catch(error => {
-                console.log(error)
-            })
+        if (!found) {
+            const futureTime = new Date(Date.now() + orderAutoCancelDuration * 60 * 1000);
+            await firestore.collection('vendor_orders').doc(orderId).update({
+                orderAutoCancelAt: admin.firestore.Timestamp.fromDate(futureTime)
+            });
+            console.log("No driver found for order #" + orderId);
+        }
     }
 
     if (orderData.status === "Driver Accepted") {
-        // Vendor accepted, driver accepted, so we update the delivery status
-        change.after.ref.set({ status: "Order Shipped" }, {merge: true})
-        console.log("Order #" + change.after.ref.id + " was shipped")
-        return null
+        await documentRef.set({ status: "Order Shipped" }, { merge: true });
+        console.log("Order #" + orderId + " shipped");
     }
-    return null
+
+    return null;
 });
 
+// --- HELPER FUNCTIONS ---
+
 const distanceRadius = (lat1, lon1, lat2, lon2) => {
-	if ((lat1 === lat2) && (lon1 === lon2)) {
-		return 0;
-	}
-	else {
-		var radlat1 = Math.PI * lat1/180;
-		var radlat2 = Math.PI * lat2/180;
-		var theta = lon1-lon2;
-		var radtheta = Math.PI * theta/180;
-		var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-		if (dist > 1) {
-			dist = 1;
-		}
-		dist = Math.acos(dist);
-		dist = dist * 180/Math.PI;
-		dist = dist * 60 * 1.1515;
-		return dist;
-	}
+    if (lat1 === lat2 && lon1 === lon2) return 0;
+    const radlat1 = Math.PI * lat1/180;
+    const radlat2 = Math.PI * lat2/180;
+    const theta = lon1-lon2;
+    const radtheta = Math.PI * theta/180;
+    let dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+    if (dist > 1) dist = 1;
+    dist = Math.acos(dist) * 180 / Math.PI * 60 * 1.1515 * 1.60934;
+    return dist;
+};
+
+async function getDriverNearByData(firestore) {
+    const snapshot = await firestore.collection("settings").doc('DriverNearBy').get();
+    return snapshot.data();
 }
 
-async function getDriverNearByData(){
-    var snapshot =  await firestore.collection("settings").doc('DriverNearBy').get();
-    return snapshot.data();
+async function getUserZoneId(firestore, address_lng, address_lat) {
+    let zone_id = null;
+    const snapshots = await firestore.collection('zone').where("publish", "==", true).get();
+    
+    for (const doc of snapshots.docs) {
+        const zone = doc.data();
+        const vertices_x = zone.area.map(p => p.longitude);
+        const vertices_y = zone.area.map(p => p.latitude);
+        
+        if (is_in_polygon(vertices_x.length, vertices_x, vertices_y, address_lng, address_lat)) {
+            zone_id = zone.id;
+            break;
+        }
+    }
+    return zone_id;
+}
+
+function is_in_polygon(nvert, vertx, verty, testx, testy) {
+    let c = false;
+    for (let i = 0, j = nvert - 1; i < nvert; j = i++) {
+        if (((verty[i] > testy) !== (verty[j] > testy)) &&
+            (testx < (vertx[j] - vertx[i]) * (testy - verty[i]) / (verty[j] - verty[i]) + vertx[i])) {
+            c = !c;
+        }
+    }
+    return c;
 }

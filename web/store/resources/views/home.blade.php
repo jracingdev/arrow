@@ -49,7 +49,7 @@ element.style {
              style="display: none;margin-top:20px;">{{trans('lang.processing')}}
         </div>
 
-		<div class="card mb-3 business-analytics">
+		<div class="card mb-3 business-analytics" style="display:none">
 
 			<div class="card-body">
 
@@ -177,7 +177,7 @@ element.style {
 
 		</div>
 
-		<div class="row">
+		<div class="row business-analytics-graph" style="display:none">
 
 			<div class="col-lg-4">
                 <div class="card">
@@ -300,7 +300,14 @@ element.style {
 	var vendorUserId = "<?php echo $id; ?>";
 	
 	var vendorId = '';
-
+    var authRole = "{{ $authRole }}";
+    if(authRole == 'vendor'){
+        $('.business-analytics').show();
+        $('.business-analytics-graph').show();
+    }else{
+        $('.business-analytics').hide();
+        $('.business-analytics-graph').hide();
+    }
     database.collection('users').doc(vendorUserId).get().then(async function(snapshots) {
         var userData = snapshots.data();
         if (userData.hasOwnProperty('vendorID') && userData.vendorID && userData.vendorID != '' && userData.vendorID != null) {
@@ -402,9 +409,9 @@ element.style {
 	        append_listrecent_order.innerHTML = '';
 
 	        ref = db.collection('vendor_orders');
-	        ref.orderBy('createdAt', 'desc').where('status','in',["Order Placed","Order Accepted","Driver Pending","Driver Accepted","Order Shipped","In Transit"]).where('vendorID',"==",vendorId).limit(inx).get().then((snapshots) => {
+	        ref.orderBy('createdAt', 'desc').where('status','in',["Order Placed","Order Accepted","Driver Pending","Driver Accepted","Order Shipped","In Transit"]).where('vendorID',"==",vendorId).limit(inx).get().then(async (snapshots) => {
 	            html = '';
-	            html = buildOrderHTML(snapshots);
+	            html = await buildOrderHTML(snapshots);
 	            if (html != '') {
 	                append_listrecent_order.innerHTML = html;
 	                start = snapshots.docs[snapshots.docs.length - 1];
@@ -424,10 +431,7 @@ element.style {
                             {orderable: false, targets: [6]},
                         ],
                         order: [['5', 'desc']],
-                        "language": {
-                            "zeroRecords": "{{trans("lang.no_record_found")}}",
-                            "emptyTable": "{{trans("lang.no_record_found")}}"
-                        },
+                        "language": datatableLang,
                         responsive: true,
                         paging: false,
                         info: false
@@ -451,193 +455,152 @@ element.style {
 	}
 
     async function getTotalEarnings() {
-        var intRegex = /^\d+$/;
-        var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
-        var v01 = 0;
-        var v02 = 0;
-        var v03 = 0;
-        var v04 = 0;
-        var v05 = 0;
-        var v06 = 0;
-        var v07 = 0;
-        var v08 = 0;
-        var v09 = 0;
-        var v10 = 0;
-        var v11 = 0;
-        var v12 = 0;
-        var currentYear = new Date().getFullYear();
-        await db.collection('vendor_orders').where('vendorID',"==",vendorId).where('status', 'in', ["Order Completed"]).get().then(async function (orderSnapshots) {
-            var paymentData = orderSnapshots.docs;
-            var totalEarning = 0;
-            var adminCommission = 0;
-            paymentData.forEach((order) => {
-                var orderData = order.data();
-                var price = 0;
-                var minprice = 0;
-                orderData.products.forEach((product) => {
 
-                    if (product.price && product.quantity != 0) {
-                        var extras_price = 0;
-                        if (product.extras_price != undefined && product.extras_price != null) {
-                            extras_price = parseFloat(product.extras_price) * parseInt(product.quantity);
-                        }
-                        if (!isNaN(extras_price)) {
-                            var productTotal = (parseFloat(product.price) * parseInt(product.quantity)) + extras_price;
-                        } else {
-                            var productTotal = (parseFloat(product.price) * parseInt(product.quantity));
-                        }
-                        if (!isNaN(productTotal)) {
-                            price = price + productTotal;
-                            minprice = minprice + productTotal;
-                        }
+        const months = Array(12).fill(0);
+        const currentYear = new Date().getFullYear();
 
-                    }
-                })
+        let totalEarning = 0;
+        let adminCommissionTotal = 0;
 
-                discount = orderData.discount;
-                if ((intRegex.test(discount) || floatRegex.test(discount)) && !isNaN(discount)) {
-                    discount = parseFloat(discount).toFixed(decimal_degits);
-                    price = price - parseFloat(discount);
-                    minprice = minprice - parseFloat(discount);
+        await database.collection('vendor_orders').where('vendorID', "==", vendorId).where('status', 'in', ["Order Completed"]).get().then((orderSnapshots) => {
+            orderSnapshots.docs.forEach((doc) => {
+
+                let order = doc.data();
+                
+                let order_subtotal = 0;
+                let total_discount = 0;
+                let total_tax_amount = 0;
+                let tip_amount = parseFloat(order.tip_amount || 0);
+                let deliveryCharge = parseFloat(order.deliveryCharge || 0);
+                let platformFee = parseFloat(order.platformFee || 0);
+                let packagingCharge = parseFloat(order.vendor.packagingCharge || 0);
+                let packagingChargeEnable = order.packagingChargeEnable;
+
+                //  Calculate subtotal and product extras
+                for (let i = 0; i < order.products.length; i++) {
+                    let product = order.products[i];
+                    let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                    let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+                    order_subtotal += itemGross;
                 }
 
-                tax = 0;
-                if (orderData.hasOwnProperty('taxSetting')) {
-                    if (orderData.taxSetting.type && orderData.taxSetting.tax) {
-                        if (orderData.taxSetting.type == "percent") {
-                            tax = (parseFloat(orderData.taxSetting.tax) * minprice) / 100;
-                        } else {
-                            tax = parseFloat(orderData.taxSetting.tax);
-                        }
-                    }
-                }
+                // Total discounts
+                let order_discount = parseFloat(order.discount || 0);
+                let special_discount = parseFloat(order.specialDiscount?.special_discount || 0);
+                    total_discount = order_discount + special_discount;
 
-                if (!isNaN(tax)) {
-                    price = price + tax;
-                }
-
-                if(orderData.deliveryCharge != undefined && orderData.deliveryCharge != "" && orderData.deliveryCharge > 0){
-                	price = price + parseFloat(orderData.deliveryCharge);
-                }
-
-                if (orderData.adminCommission != undefined && orderData.adminCommissionType != undefined && orderData.adminCommission > 0 && price > 0) {
-                    var commission = 0;
-                    if (orderData.adminCommissionType == "percentage") {
-                        commission = (price * parseFloat(orderData.adminCommission)) / 100;
-
-                    } else {
-                        commission = parseFloat(orderData.adminCommission);
-                    }
-
-                    adminCommission = commission + adminCommission;
-                } else if (orderData.adminCommission != undefined && orderData.adminCommission > 0 && price > 0) {
-                    var commission = parseFloat(orderData.adminCommission);
-                    adminCommission = commission + adminCommission;
-                }
-
-                totalEarning = parseFloat(totalEarning) + parseFloat(price);
-
-                try {
-
-                    if (orderData.createdAt) {
-                        var orderMonth = orderData.createdAt.toDate().getMonth() + 1;
-                        var orderYear = orderData.createdAt.toDate().getFullYear();
-                        if (currentYear == orderYear) {
-                            switch (parseInt(orderMonth)) {
-                                case 1:
-                                    v01 = parseInt(v01) + price;
-                                    break;
-                                case 2:
-                                    v02 = parseInt(v02) + price;
-                                    break;
-                                case 3:
-                                    v03 = parseInt(v03) + price;
-                                    break;
-                                case 4:
-                                    v04 = parseInt(v04) + price;
-                                    break;
-                                case 5:
-                                    v05 = parseInt(v05) + price;
-                                    break;
-                                case 6:
-                                    v06 = parseInt(v06) + price;
-                                    break;
-                                case 7:
-                                    v07 = parseInt(v07) + price;
-                                    break;
-                                case 8:
-                                    v08 = parseInt(v08) + price;
-                                    break;
-                                case 9:
-                                    v09 = parseInt(v09) + price;
-                                    break;
-                                case 10:
-                                    v10 = parseInt(v10) + price;
-                                    break;
-                                case 11:
-                                    v11 = parseInt(v11) + price;
-                                    break;
-                                default :
-                                    v12 = parseInt(v12) + price;
-                                    break;
+                // Calculate item-level taxes (if product-level)
+                if (order.taxScope === "product") {
+                    let itemSubtotal = order_subtotal;
+                    order.products.forEach(product => {
+                        let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                        let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+                        let itemDiscount = (itemSubtotal > 0) ? (itemGross / itemSubtotal) * total_discount : 0;
+                        let itemTaxable = Math.max(0, itemGross - itemDiscount);
+                        let itemTaxes = product.taxSetting || [];
+                        itemTaxes.forEach(tax => {
+                            if (tax.enable) {
+                                let taxAmount = 0;
+                                if (tax.type === "percentage") {
+                                    taxAmount = (tax.tax / 100) * itemTaxable;
+                                } else {
+                                    taxAmount = tax.tax;
+                                }
+                                total_tax_amount += parseFloat(taxAmount);
                             }
-                        }
-                    }
-
-                } catch (err) {
-
-
-                    var datas = new Date(orderData.createdAt._seconds * 1000);
-
-                    var dates = firebase.firestore.Timestamp.fromDate(datas);
-
-                    db.collection('vendor_orders').doc(orderData.id).update({'createdAt': dates}).then(() => {
-
-                        console.log('Provided document has been updated in Firestore');
-
-                    }, (error) => {
-
-                        console.log('Error: ' + error);
-
+                        });
                     });
+                } 
 
+                // Order-level taxes (if order-level)
+                if (order.taxScope === "order") {
+                    let orderTaxable = Math.max(0, order_subtotal - total_discount);
+                    (order.taxSetting || []).forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * orderTaxable;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                        }
+                    });
                 }
 
+                // Packaging taxes
+                if(packagingChargeEnable){
+                    let extraCharges = [
+                        {amount: packagingCharge, taxes: order.packagingTax || []},
+                    ];
+                    extraCharges.forEach(scope => {
+                        scope.taxes?.forEach(tax => {
+                            if (tax.enable) {
+                                let taxAmount = 0;
+                                if (tax.type === "percentage") {
+                                    taxAmount = (tax.tax / 100) * scope.amount;
+                                } else {
+                                    taxAmount = tax.tax;
+                                }
+                                total_tax_amount += parseFloat(taxAmount);
+                            }
+                        });
+                    });
+                }
 
-            })
+                //Final subtotal after discounts
+                order_subtotal = order_subtotal - total_discount;
 
-            if (currencyAtRight) {
-                totalEarning = parseFloat(totalEarning).toFixed(decimal_degits) + "" + currentCurrency;
-                adminCommission = parseFloat(adminCommission).toFixed(decimal_degits) + "" + currentCurrency;
-            } else {
-                totalEarning = currentCurrency + "" + parseFloat(totalEarning).toFixed(decimal_degits);
-                adminCommission = currentCurrency + "" + parseFloat(adminCommission).toFixed(decimal_degits);
-            }
+                // Final total
+                let order_total = order_subtotal + (packagingChargeEnable ? packagingCharge : 0) + total_tax_amount;
+                
+                // Total earning
+                totalEarning += order_total;
 
-            $("#earnings_count").append(totalEarning);
-            $("#earnings_count_graph").append(totalEarning);
-            $("#admincommission_count_graph").append(adminCommission);
-            $("#admincommission_count").append(adminCommission);
-            $("#total_earnings_header").text(totalEarning);
-            $(".earnings_over_time").append(totalEarning);
-            var data = [v01, v02, v03, v04, v05, v06, v07, v08, v09, v10, v11, v12];
-            var labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-            var $salesChart = $('#sales-chart');
-            var salesChart = renderChart($salesChart, data, labels);
-            setCommision();
-        })
+                // Monthly graph
+                if (order.createdAt) {
+                    let date = order.createdAt.toDate();
+                    if (date.getFullYear() === currentYear) {
+                        months[date.getMonth()] += order_total;
+                    }
+                }
+            });
+        });
+
+        let formattedTotal = currencyAtRight
+            ? totalEarning.toFixed(decimal_degits) + currentCurrency
+            : currentCurrency + totalEarning.toFixed(decimal_degits);
+    
+        $("#earnings_count, #earnings_count_graph, .earnings_over_time, #total_earnings_header").text(formattedTotal);
+
+        let labels = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        
+        renderChart($('#sales-chart'), months, labels);
+
+        setCommision();
+        
         jQuery("#data-table_processing").hide();
-
     }
-
-    function buildOrderHTML(snapshots) {
+    
+    async function buildOrderHTML(snapshots) {
         var html = '';
         var count = 1;
-        snapshots.docs.forEach((listval) => {
+        snapshots.docs.forEach(async (listval) => {
             val = listval.data();
             val.id = listval.id;
-            var route = '<?php echo route("orders.edit", ":id"); ?>';
-            route = route.replace(':id', val.id);
+            if(authRole == 'vendor'){
+                route = '<?php echo route("orders.edit", ":id"); ?>';
+                route = route.replace(':id', val.id);
+            }else{
+                const perm = await getEmployeePermissionForTitle(vendorUserId, "Manage Order");                 
+
+                if (perm.isActive) {
+                    route = '<?php echo route("orders.edit", ":id"); ?>';
+                    route = route.replace(':id', val.id);
+                } else{
+                    route = 'javascript:void(0)';
+                }
+            }
 
             html = html + '<tr>';
 
@@ -768,138 +731,102 @@ element.style {
         });
     });
 
-
     function buildHTMLProductstotal(snapshotsProducts) {
+        let order_subtotal = 0;
+        let total_discount = 0;
+        let total_tax_amount = 0;
+        let tip_amount = parseFloat(snapshotsProducts.tip_amount || 0);
+        let deliveryCharge = parseFloat(snapshotsProducts.deliveryCharge || 0);
+        let platformFee = parseFloat(snapshotsProducts.platformFee || 0);
+        let packagingCharge = parseFloat(snapshotsProducts.vendor.packagingCharge || 0);
+        let packagingChargeEnable = snapshotsProducts.packagingChargeEnable;
+        //  Calculate subtotal and product extras
+        for (let i = 0; i < snapshotsProducts.products.length; i++) {
+            let product = snapshotsProducts.products[i];
+            let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+            let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+            order_subtotal += itemGross;
+        }
 
-        var adminCommission = snapshotsProducts.adminCommission;
-        var discount = snapshotsProducts.discount;
-        var couponCode = snapshotsProducts.couponCode;
-        var extras = snapshotsProducts.extras;
-        var extras_price = snapshotsProducts.extras_price;
-        var rejectedByDrivers = snapshotsProducts.rejectedByDrivers;
-        var takeAway = snapshotsProducts.takeAway;
-        var tip_amount = snapshotsProducts.tip_amount;
-        var status = snapshotsProducts.status;
-        var products = snapshotsProducts.products;
-        var deliveryCharge = snapshotsProducts.deliveryCharge;
-        var totalProductPrice = 0;
-        var total_price = 0;
+        // Total discounts
+        let order_discount = parseFloat(snapshotsProducts.discount || 0);
+        let special_discount = parseFloat(snapshotsProducts.specialDiscount?.special_discount || 0);
+            total_discount = order_discount + special_discount;
 
-        var intRegex = /^\d+$/;
-        var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
+        // Calculate item-level taxes (if product-level)
+        if (snapshotsProducts.taxScope === "product") {
+            let itemSubtotal = order_subtotal;
+            snapshotsProducts.products.forEach(product => {
+                let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+                let itemDiscount = (itemSubtotal > 0) ? (itemGross / itemSubtotal) * total_discount : 0;
+                let itemTaxable = Math.max(0, itemGross - itemDiscount);
+                let itemTaxes = product.taxSetting || [];
+                itemTaxes.forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * itemTaxable;
+                        } else {
+                            taxAmount = tax.tax * product.quantity;
+                        }
+                        total_tax_amount += parseFloat(taxAmount);
+                    }
+                });
+            });
+        } 
 
-        if (products) {
-
-            products.forEach((product) => {
-
-                var val = product;
-
-                price_item = parseFloat(val.price).toFixed(decimal_degits);
-                extras_price_item = (parseFloat(val.extras_price) * parseInt(val.quantity)).toFixed(decimal_degits);
-
-                totalProductPrice = parseFloat(price_item) * parseInt(val.quantity);
-                var extras_price = 0;
-                if (parseFloat(extras_price_item) != NaN && val.extras_price != undefined) {
-                    extras_price = extras_price_item;
+        // Order-level taxes (if order-level)
+        if (snapshotsProducts.taxScope === "order") {
+            let orderTaxable = Math.max(0, order_subtotal - total_discount);
+            (snapshotsProducts.taxSetting || []).forEach(tax => {
+                if (tax.enable) {
+                    let taxAmount = 0;
+                    if (tax.type === "percentage") {
+                        taxAmount = (tax.tax / 100) * orderTaxable;
+                    } else {
+                        taxAmount = tax.tax;
+                    }
+                    total_tax_amount += parseFloat(taxAmount);
                 }
-                totalProductPrice = parseFloat(extras_price) + parseFloat(totalProductPrice);
-                totalProductPrice = parseFloat(totalProductPrice).toFixed(decimal_degits);
-
-                total_price += parseFloat(totalProductPrice);
-
             });
         }
 
-        if (intRegex.test(discount) || floatRegex.test(discount)) {
+        // Delivery, packaging, platform taxes
+        let extraCharges = [
+            {key: 'packaging', amount: packagingCharge, taxes: snapshotsProducts.packagingTax || []},
+        ];
 
-            discount = parseFloat(discount).toFixed(decimal_degits);
-            total_price -= parseFloat(discount);
-
-            if (currencyAtRight) {
-                discount_val = discount + "" + currentCurrency;
-            } else {
-                discount_val = currentCurrency + "" + discount;
+        extraCharges.forEach(scope => {
+            if (scope.key === "packaging" && !packagingChargeEnable) {
+                return;
             }
-
-        }
-
-          /* aarti's code */
-        var special_dicount = 0;
-       
-            if (snapshotsProducts.hasOwnProperty('specialDiscount')) {
-                
-                if (snapshotsProducts.specialDiscount.specialType && snapshotsProducts.specialDiscount.special_discount) {
-                    special_dicount = snapshotsProducts.specialDiscount.special_discount;
-                }
-            }
-      
-
-        if(special_dicount)    
-        {
-            total_price = total_price - special_dicount;
-        }
-
-        /* end code */
-
-
-        var tax = 0;
-        taxlabel = '';
-        taxlabeltype = '';
-
-        if (snapshotsProducts.hasOwnProperty('taxSetting')) {
-            var total_tax_amount = 0;
-            for (var i = 0; i < snapshotsProducts.taxSetting.length; i++) {
-                var data = snapshotsProducts.taxSetting[i];
-
-                if (data.type && data.tax) {
-                    if (data.type == "percentage") {
-                        tax = (data.tax * total_price) / 100;
-                        taxlabeltype = "%";
+            scope.taxes?.forEach(tax => {
+                if (tax.enable) {
+                    let taxAmount = 0;
+                    if (tax.type === "percentage") {
+                        taxAmount = (tax.tax / 100) * scope.amount;
                     } else {
-                        tax = data.tax;
-                        taxlabeltype = "fix";
+                        taxAmount = tax.tax;
                     }
-                    taxlabel = data.title;
+                    total_tax_amount += parseFloat(taxAmount);
                 }
-                total_tax_amount += parseFloat(tax);
-            }
-            total_price = parseFloat(total_price) + parseFloat(total_tax_amount);
-        }
+            });
+        });
 
-        if (intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge) && !isNaN(deliveryCharge)) {
+        //Final subtotal after discounts
+        order_subtotal = order_subtotal - total_discount;
 
-            deliveryCharge = parseFloat(deliveryCharge).toFixed(decimal_degits);
-            total_price += parseFloat(deliveryCharge);
+        // Final total
+        let order_total = order_subtotal + (packagingChargeEnable ? packagingCharge : 0) + total_tax_amount;
 
-            if (currencyAtRight) {
-                deliveryCharge_val = deliveryCharge + "" + currentCurrency;
-            } else {
-                deliveryCharge_val = currentCurrency + "" + deliveryCharge;
-            }
-        }
-
-
-        if (intRegex.test(tip_amount) || floatRegex.test(tip_amount) && !isNaN(tip_amount)) {
-
-            tip_amount = parseFloat(tip_amount).toFixed(decimal_degits);
-            total_price += parseFloat(tip_amount);
-            total_price = parseFloat(total_price).toFixed(decimal_degits);
-
-            if (currencyAtRight) {
-                tip_amount_val = tip_amount + "" + currentCurrency;
-            } else {
-                tip_amount_val = currentCurrency + "" + tip_amount;
-            }
-        }
-
-       if (currencyAtRight) {
-            var total_price_val = parseFloat(total_price).toFixed(decimal_degits) + "" + currentCurrency;
+        if (currencyAtRight) {
+            order_total_val = parseFloat(order_total).toFixed(decimal_degits) + '' + currentCurrency;
         } else {
-            var total_price_val = currentCurrency + "" + parseFloat(total_price).toFixed(decimal_degits);
+            order_total_val = currentCurrency + '' + parseFloat(order_total).toFixed(decimal_degits);
         }
 
-        
-        return total_price_val;
+        return order_total_val;
     }
 
     function setVisitors(){

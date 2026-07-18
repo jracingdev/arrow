@@ -34,6 +34,7 @@ class StoryItem {
 
   /// The page content
   final Widget view;
+
   StoryItem(
     this.view, {
     required this.duration,
@@ -79,10 +80,11 @@ class StoryItem {
             bottom: Radius.circular(roundedBottom ? 8 : 0),
           ),
         ),
-        padding: textOuterPadding?? const EdgeInsets.symmetric(
-          horizontal: 24,
-          vertical: 16,
-        ),
+        padding: textOuterPadding ??
+            const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 16,
+            ),
         child: Center(
           child: Text(
             title,
@@ -140,12 +142,13 @@ class StoryItem {
                   margin: const EdgeInsets.only(
                     bottom: 24,
                   ),
-                  padding: captionOuterPadding?? const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 8,
-                  ),
+                  padding: captionOuterPadding ??
+                      const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
                   color: caption != null ? Colors.black54 : Colors.transparent,
-                  child: caption?? const SizedBox.shrink(),
+                  child: caption ?? const SizedBox.shrink(),
                 ),
               ),
             )
@@ -197,12 +200,12 @@ class StoryItem {
                 ),
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
-                  padding: captionOuterPadding?? const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  padding: captionOuterPadding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                   child: Align(
                     alignment: Alignment.bottomLeft,
                     child: SizedBox(
                       width: double.infinity,
-                      child: caption?? const SizedBox.shrink(),
+                      child: caption ?? const SizedBox.shrink(),
                     ),
                   ),
                 ),
@@ -250,9 +253,8 @@ class StoryItem {
                     width: double.infinity,
                     margin: const EdgeInsets.only(bottom: 24),
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                    color:
-                        caption != null ? Colors.black54 : Colors.transparent,
-                    child: caption?? const SizedBox.shrink(),
+                    color: caption != null ? Colors.black54 : Colors.transparent,
+                    child: caption ?? const SizedBox.shrink(),
                   ),
                 ),
               )
@@ -300,8 +302,7 @@ class StoryItem {
                       horizontal: 24,
                       vertical: 8,
                     ),
-                    color:
-                        caption != null ? Colors.black54 : Colors.transparent,
+                    color: caption != null ? Colors.black54 : Colors.transparent,
                     child: caption != null
                         ? Text(
                             caption,
@@ -406,6 +407,7 @@ class StoryView extends StatefulWidget {
 
   /// Indicator Color
   final Color? indicatorColor;
+
   /// Indicator Foreground Color
   final Color? indicatorForegroundColor;
 
@@ -415,7 +417,8 @@ class StoryView extends StatefulWidget {
   /// Use this if you want to give outer padding to the indicator
   final EdgeInsetsGeometry indicatorOuterPadding;
 
-  const StoryView({super.key, 
+  const StoryView({
+    super.key,
     required this.storyItems,
     required this.controller,
     this.onComplete,
@@ -427,7 +430,10 @@ class StoryView extends StatefulWidget {
     this.indicatorColor,
     this.indicatorForegroundColor,
     this.indicatorHeight = IndicatorHeight.large,
-    this.indicatorOuterPadding = const EdgeInsets.symmetric(horizontal: 16, vertical: 8,),
+    this.indicatorOuterPadding = const EdgeInsets.symmetric(
+      horizontal: 16,
+      vertical: 8,
+    ),
   });
 
   @override
@@ -473,8 +479,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
       });
     }
 
-    _playbackSubscription =
-        widget.controller.playbackNotifier.listen((playbackStatus) {
+    _playbackSubscription = widget.controller.playbackNotifier.listen((playbackStatus) {
       switch (playbackStatus) {
         case PlaybackState.play:
           _removeNextHold();
@@ -531,8 +536,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
       widget.onStoryShow!(storyItem, storyItemIndex);
     }
 
-    _animationController =
-        AnimationController(duration: storyItem.duration, vsync: this);
+    _animationController = AnimationController(duration: storyItem.duration, vsync: this);
 
     _animationController!.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -546,8 +550,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
       }
     });
 
-    _currentAnimation =
-        Tween(begin: 0.0, end: 1.0).animate(_animationController!);
+    _currentAnimation = Tween(begin: 0.0, end: 1.0).animate(_animationController!);
 
     widget.controller.play();
   }
@@ -607,8 +610,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
       }
     } else {
       // this is the last page, progress animation should skip to end
-      _animationController!
-          .animateTo(1.0, duration: const Duration(milliseconds: 10));
+      _animationController!.animateTo(1.0, duration: const Duration(milliseconds: 10));
     }
   }
 
@@ -637,18 +639,14 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
           Visibility(
             visible: widget.progressPosition != ProgressPosition.none,
             child: Align(
-              alignment: widget.progressPosition == ProgressPosition.top
-                  ? Alignment.topCenter
-                  : Alignment.bottomCenter,
+              alignment: widget.progressPosition == ProgressPosition.top ? Alignment.topCenter : Alignment.bottomCenter,
               child: SafeArea(
                 bottom: widget.inline ? false : true,
                 // we use SafeArea here for notched and bezeles phones
                 child: Container(
                   padding: widget.indicatorOuterPadding,
                   child: PageBar(
-                    widget.storyItems
-                        .map((it) => PageData(it!.duration, it.shown))
-                        .toList(),
+                    widget.storyItems.map((it) => PageData(it!.duration, it.shown)).toList(),
                     _currentAnimation,
                     key: UniqueKey(),
                     indicatorHeight: widget.indicatorHeight,
@@ -701,10 +699,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                     : (details) {
                         widget.controller.play();
                         // finish up drag cycle
-                        if (!verticalDragInfo!.cancel &&
-                            widget.onVerticalSwipeComplete != null) {
-                          widget.onVerticalSwipeComplete!(
-                              verticalDragInfo!.direction);
+                        if (!verticalDragInfo!.cancel && widget.onVerticalSwipeComplete != null) {
+                          widget.onVerticalSwipeComplete!(verticalDragInfo!.direction);
                         }
 
                         verticalDragInfo = null;
@@ -790,12 +786,14 @@ class PageBarState extends State<PageBar> {
       children: widget.pages.map((it) {
         return Expanded(
           child: Container(
-            padding: EdgeInsets.only(
-                right: widget.pages.last == it ? 0 : spacing),
+            padding: EdgeInsets.only(right: widget.pages.last == it ? 0 : spacing),
             child: StoryProgressIndicator(
               isPlaying(it) ? widget.animation!.value : (it.shown ? 1 : 0),
-              indicatorHeight:
-                  widget.indicatorHeight == IndicatorHeight.large ? 5 : widget.indicatorHeight == IndicatorHeight.medium ? 3 : 2,
+              indicatorHeight: widget.indicatorHeight == IndicatorHeight.large
+                  ? 5
+                  : widget.indicatorHeight == IndicatorHeight.medium
+                      ? 3
+                      : 2,
               indicatorColor: widget.indicatorColor,
               indicatorForegroundColor: widget.indicatorForegroundColor,
             ),
@@ -816,7 +814,8 @@ class StoryProgressIndicator extends StatelessWidget {
   final Color? indicatorForegroundColor;
 
   const StoryProgressIndicator(
-    this.value, {super.key, 
+    this.value, {
+    super.key,
     this.indicatorHeight = 5,
     this.indicatorColor,
     this.indicatorForegroundColor,
@@ -829,11 +828,11 @@ class StoryProgressIndicator extends StatelessWidget {
         indicatorHeight,
       ),
       foregroundPainter: IndicatorOval(
-        indicatorForegroundColor?? Colors.white.withOpacity(0.8),
+        indicatorForegroundColor ?? Colors.white.withOpacity(0.8),
         value,
       ),
       painter: IndicatorOval(
-        indicatorColor?? Colors.white.withOpacity(0.4),
+        indicatorColor ?? Colors.white.withOpacity(0.4),
         1.0,
       ),
     );
@@ -849,11 +848,7 @@ class IndicatorOval extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
-    canvas.drawRRect(
-        RRect.fromRectAndRadius(
-            Rect.fromLTWH(0, 0, size.width * widthFactor, size.height),
-            const Radius.circular(3)),
-        paint);
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, size.width * widthFactor, size.height), const Radius.circular(3)), paint);
   }
 
   @override
@@ -867,16 +862,13 @@ class ContrastHelper {
   static double luminance(int? r, int? g, int? b) {
     final a = [r, g, b].map((it) {
       double value = it!.toDouble() / 255.0;
-      return value <= 0.03928
-          ? value / 12.92
-          : pow((value + 0.055) / 1.055, 2.4);
+      return value <= 0.03928 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4);
     }).toList();
 
     return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
   }
 
   static double contrast(rgb1, rgb2) {
-    return luminance(rgb2[0], rgb2[1], rgb2[2]) /
-        luminance(rgb1[0], rgb1[1], rgb1[2]);
+    return luminance(rgb2[0], rgb2[1], rgb2[2]) / luminance(rgb1[0], rgb1[1], rgb1[2]);
   }
 }

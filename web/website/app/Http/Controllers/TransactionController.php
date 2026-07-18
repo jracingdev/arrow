@@ -36,7 +36,8 @@ class TransactionController extends Controller
                 $razorpayKey = $user_wallet['data']['razorpayKey'];
                 $authorName = $user_wallet['user']['firstName'];
                 $total_pay = $user_wallet['data']['amount'];
-                return view('transactions.razorpay', ['is_checkout' => 1, 'user_wallet' => $user_wallet, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'razorpaySecret' => $razorpaySecret, 'razorpayKey' => $razorpayKey]);
+                $formatted_price = $user_wallet['data']['currencyData']['symbol'] . number_format($total_pay, $user_wallet['data']['currencyData']['decimal_degits']);
+                return view('transactions.razorpay', ['is_checkout' => 1, 'user_wallet' => $user_wallet, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'razorpaySecret' => $razorpaySecret, 'razorpayKey' => $razorpayKey, 'formatted_price' => $formatted_price]);
             } else if ($user_wallet['data']['payment_method'] == 'payfast') {
                 $payfast_merchant_key = $user_wallet['data']['payfast_merchant_key'];
                 $payfast_merchant_id = $user_wallet['data']['payfast_merchant_id'];
@@ -46,18 +47,12 @@ class TransactionController extends Controller
                 $payfast_cancel_url = route('pay-wallet');
                 $authorName = $user_wallet['user']['firstName'];
                 $total_pay = $user_wallet['data']['amount'];
-                $currency = "USD";
-                $decimal_digit = 2;
-                if (@$user_wallet['data']['currencyData']['code']) {
-                    $currency = $user_wallet['data']['currencyData']['code'];
-                    $decimal_digit = $user_wallet['data']['currencyData']['decimal_degits'];
-                }
-                $formatted_price =  $currency.number_format($total_pay,$decimal_digit) ;
+                $formatted_price = $user_wallet['data']['currencyData']['symbol'] . number_format($total_pay, $user_wallet['data']['currencyData']['decimal_degits']);
+                
                 $token = uniqid();
                 Session::put('payfast_payment_token', $token);
                 Session::save();
                 $payfast_return_url = $payfast_return_url . '?token=' . $token;
-                $amount = 0;
                 $amount = number_format($total_pay, 2, '.', '');
                 $data = [
                     'merchant_id' => $payfast_merchant_id,
@@ -123,12 +118,13 @@ class TransactionController extends Controller
                 $flutterWave_encryption_key = $user_wallet['data']['flutterWave_encryption_key'];
                 $authorName = $user_wallet['user']['firstName'];
                 $total_pay = $user_wallet['data']['amount'];
+                $formatted_price = $user_wallet['data']['currencyData']['symbol'] . number_format($total_pay, $user_wallet['data']['currencyData']['decimal_degits']);
                 Session::put('flutterwave_pay', 1);
                 Session::save();
                 $token = uniqid();
                 Session::put('flutterwave_pay_tx_ref', $token);
                 Session::save();
-                return view('transactions.flutterwave', ['is_checkout' => 1, 'user_wallet' => $user_wallet, 'id' => $user->uuid, 'email' => $userEmail, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'data' => $user_wallet['data'], 'currency' => $currency]);
+                return view('transactions.flutterwave', ['is_checkout' => 1, 'user_wallet' => $user_wallet, 'id' => $user->uuid, 'email' => $userEmail, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'data' => $user_wallet['data'], 'currency' => $currency, 'formatted_price' => $formatted_price]);
             } else if ($user_wallet['data']['payment_method'] == 'mercadopago') {
                 $currency = "USD";
                 if (@$user_wallet['data']['currencyData']['code']) {
@@ -178,15 +174,17 @@ class TransactionController extends Controller
                 $stripeSecret = $user_wallet['data']['stripeSecret'];
                 $authorName = $user_wallet['user']['firstName'];
                 $total_pay = $user_wallet['data']['amount'];
+                $formatted_price = $user_wallet['data']['currencyData']['symbol'] . number_format($total_pay, $user_wallet['data']['currencyData']['decimal_degits']);
                 $isStripeSandboxEnabled = $user_wallet['data']['isStripeSandboxEnabled'];
-                return view('transactions.stripe', ['is_checkout' => 1, 'cart' => $user_wallet, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'stripeSecret' => $stripeSecret, 'stripeKey' => $stripeKey, 'data' => $user_wallet['data']]);
+                return view('transactions.stripe', ['is_checkout' => 1, 'cart' => $user_wallet, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'stripeSecret' => $stripeSecret, 'stripeKey' => $stripeKey, 'data' => $user_wallet['data'], 'formatted_price' => $formatted_price]);
             } else if ($user_wallet['data']['payment_method'] == 'paypal') {
                 $paypalSecret = $user_wallet['data']['paypalSecret'];
                 $paypalKey = $user_wallet['data']['paypalKey'];
                 $ispaypalSandboxEnabled = $user_wallet['data']['ispaypalSandboxEnabled'];
                 $authorName = $user_wallet['user']['firstName'];
                 $total_pay = $user_wallet['data']['amount'];
-                return view('transactions.paypal', ['is_checkout' => 1, 'user_wallet' => $user_wallet, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'paypalSecret' => $paypalSecret, 'paypalKey' => $paypalKey, 'data' => $user_wallet['data']]);
+                $formatted_price = $user_wallet['data']['currencyData']['symbol'] . number_format($total_pay, $user_wallet['data']['currencyData']['decimal_degits']);
+                return view('transactions.paypal', ['is_checkout' => 1, 'user_wallet' => $user_wallet, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'paypalSecret' => $paypalSecret, 'paypalKey' => $paypalKey, 'data' => $user_wallet['data'], 'formatted_price' => $formatted_price]);
             } else if ($user_wallet['data']['payment_method'] == 'xendit') {
                 $xendit_enable = $user_wallet['data']['xendit_enable'];
                 $xendit_apiKey = $user_wallet['data']['xendit_apiKey'];
@@ -335,7 +333,6 @@ class TransactionController extends Controller
         }
     }
     
-
     public function notify() {
         if ($_POST) {
             $pfData = $_POST;
@@ -346,7 +343,7 @@ class TransactionController extends Controller
         }
     }
 
-    function generateSignature($data) {
+    public function generateSignature($data) {
         $getString = http_build_query($data, '', '&', PHP_QUERY_RFC3986);
         return md5( $getString );
     } 
@@ -454,21 +451,28 @@ class TransactionController extends Controller
         $payment = $api->payment->fetch($input['razorpay_payment_id']);
         if (count($input) && !empty($input['razorpay_payment_id'])) {
             try {
-                $response = $api->payment->fetch($input['razorpay_payment_id'])->capture(['amount' => $payment['amount']]);
+                if($payment['status'] !== 'captured'){
+                    $response = $api->payment->fetch($input['razorpay_payment_id'])->capture(['amount' => $payment['amount']]);
+                }
                 $user_wallet['transaction_id'] = $response->id;
                 $user_wallet['payment_status'] = true;
                 Session::put('user_wallet', $user_wallet);
                 Session::save();
             } catch (Exception $e) {
-                return $e->getMessage();
                 Session::put('error', $e->getMessage());
-                return redirect()->back();
+                return $e->getMessage();
             }
         }
         Session::put('success', 'Payment successful');
         return redirect()->route('wallet-success');
     }
     public function success() {
+        $requestUri = $_SERVER['REQUEST_URI'];
+        if (strpos($requestUri, 'status_code=') !== false || strpos($requestUri, '&midtrans_token') !== false) {
+            $fixedUri = preg_replace('/[?&]status_code=[^&]+/', '', $requestUri);
+            $fixedUri = preg_replace('/&/', '?', $fixedUri, 1);
+            return redirect($fixedUri);
+        }
         $user_wallet = Session::get('user_wallet', []);
         $email = Auth::user()->email;
         $user = VendorUsers::where('email', $email)->first();

@@ -15,8 +15,8 @@
                             <table class="payment-table m-4">
                                     <tbody>
                                     <tr>
-                                        <td style="display:flex">
-                                            {{ trans('lang.pay_total_amount') }} : {{$amount}} <div id="currency"></div>
+                                        <td>
+                                            {{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}
                                         </td>
                                         <td class="text-right payment-button">
                                             <form action="{{ route('razorpaywalletpayment') }}" method="POST">

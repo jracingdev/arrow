@@ -10,7 +10,7 @@
 
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item"><a href="{!! route('users') !!}">{{trans('lang.user_profile')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.user_edit')}}</li>
             </ol>
@@ -32,7 +32,7 @@
                     <div class="row vendor_payout_create">
                         <div class="vendor_payout_create-inner">
                             <fieldset>
-                                <legend>Profile Details</legend>
+                                <legend>{{ trans('lang.profile_details') }}</legend>
                                 <div class="form-group row">
                                     <label class="col-5 control-label">{{trans('lang.user_name')}}</label>
                                     <div class="col-7">

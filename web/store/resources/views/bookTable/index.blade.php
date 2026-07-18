@@ -5,18 +5,18 @@
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">{{trans('lang.book_table')}}</h3>
+            <h3 class="text-themecolor">{{trans('lang.dine_in_booking_history')}}</h3>
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                <li class="breadcrumb-item active">{{trans('lang.book_table')}}</li>
+                <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item active">{{trans('lang.dine_in_booking_history')}}</li>
             </ol>
         </div>
         <div>
         </div>
     </div>
-    <div class="container-fluid">
+    <div class="container-fluid page-menu">
         <div id="data-table_processing" class="dataTables_processing panel panel-default" style="display: none;">
         {{trans('lang.processing')}}
         </div>
@@ -26,7 +26,7 @@
                 <div class="d-flex top-title-section pb-4 justify-content-between"> 
                     <div class="d-flex top-title-left align-self-center">
                         <span class="icon mr-3"><img src="{{ asset('images/table_booking.png') }}"></span>
-                        <h3 class="mb-0">{{trans('lang.book_table')}}</h3>
+                        <h3 class="mb-0">{{trans('lang.dine_in_booking_history')}}</h3>
                         <span class="counter ml-3 total_count"></span>
                     </div>  
                 </div>
@@ -40,7 +40,7 @@
                <div class="card border">
                  <div class="card-header d-flex justify-content-between align-items-center border-0">
                    <div class="card-header-title">
-                    <h3 class="text-dark-2 mb-2 h4">{{trans('lang.book_table')}}</h3>
+                    <h3 class="text-dark-2 mb-2 h4">{{trans('lang.dine_in_booking_history')}}</h3>
                     <p class="mb-0 text-dark-2">{{trans('lang.book_table_text')}}</p>
                    </div>               
                  </div>
@@ -51,14 +51,13 @@
                                    cellspacing="0" width="100%">
                                 <thead>
                                 <tr>
-                                       
                                     <th>{{trans('lang.date')}}</th>
                                     <th>{{trans('lang.guestNumber')}}</th>
                                     <th>{{trans('lang.guestName')}}</th>
                                     <th>{{trans('lang.guestPhone')}}</th>
+                                    <th>{{trans('lang.discount')}}</th>
                                     <th>{{trans('lang.status')}}</th>
                                     <th>{{trans('lang.actions')}}</th>
-
                                 </tr>
                                 </thead>  
                                 <tbody id="append_list1">
@@ -99,6 +98,20 @@
     var dineInOrderRejectedSubject = '';
     var dineInOrderRejectedMsg = '';
 
+    var currentCurrency = '';
+    var currencyAtRight = false;
+    var authRole = "{{ $authRole }}";
+    let currentPermissions = {
+        isActive: true   
+    };
+    var empVendorId = "{{ $empVendorId }}";
+    var refCurrency = database.collection('currencies').where('isActive', '==', true);
+    refCurrency.get().then(async function(snapshots) {
+        var currencyData = snapshots.docs[0].data();
+        currentCurrency = currencyData.symbol;
+        currencyAtRight = currencyData.symbolAtRight;
+    });
+
     database.collection('dynamic_notification').where('type', 'in', ['dinein_accepted', 'dinein_canceled']).get().then(async function (snapshot) {
         if (snapshot.docs.length > 0) {
             snapshot.docs.map(async (listval) => {
@@ -116,11 +129,24 @@
         }
     });
 
-    getVendorId(vendorUserId).then(data => {
-        vendorId = data;
-        ref = database.collection('booked_table').where('vendorID', '==', vendorId).orderBy('createdAt', 'desc');
-        $(document).ready(function () {
+    document.addEventListener("DOMContentLoaded", async function() {
+       
+            vendorId = await getVendorId(vendorUserId);
+            ref = database.collection('booked_table').where('vendorID', '==', vendorId).orderBy('createdAt', 'desc');
+            
+            if (authRole === 'employee') {               
+                const perm = await getEmployeePermissionForTitle(vendorUserId, "Dine in Request");
+                currentPermissions = {
+                    isActive: perm.isActive ?? false
+                };                
 
+                if (!currentPermissions.isActive) {
+                    alert('{{ trans("lang.no_permission") }}');
+                    $('#example24').hide();
+                    $('.page-menu').html('<p class="text-center text-danger font-weight-bold">{{ trans("lang.no_permission") }}</p>');
+                    return;
+                }
+            }
             $(document.body).on('click', '.redirecttopage', function () {
                 var url = $(this).attr('data-url');
                 window.location.href = url;
@@ -168,13 +194,10 @@
                                 return data;
                             }
                         },
-                        {orderable: false, targets: [4,5]},
+                        {orderable: false, targets: [5,6]},
                     ],
                     order: [['0', 'desc']],
-                    "language": {
-                        "zeroRecords": "{{trans("lang.no_record_found")}}",
-                        "emptyTable": "{{trans("lang.no_record_found")}}"
-                    },
+                    "language": datatableLang,
                     responsive: true
                 });
                 table.on('search.dt', function() {
@@ -183,9 +206,7 @@
                 });
 
                 jQuery("#data-table_processing").hide();
-            });
-
-        });
+            });       
 
     })
     async function buildHTML(snapshots) {
@@ -197,43 +218,83 @@
             }));
             return html;
     }
-async function getListData(val) {
 
-            html='';
-            html = html + '<tr>';
-            newdate = '';
+    async function getListData(val) {
 
-            var id = val.id;
-            var route1 = '{{route("booktable.edit",":id")}}';
-            route1 = route1.replace(':id', id);
+        html = '';
+        html += '<tr>';
 
-            date = val.date.toDate().toDateString();
-            time = val.date.toDate().toLocaleTimeString('en-US');
+        var id = val.id;
+        var route1 = '{{route("booktable.edit",":id")}}';
+        route1 = route1.replace(':id', id);
 
+        const bookingDate = val.date.toDate();
+        const now = new Date();
+        const isFuture = bookingDate > now; // true if future
 
-            html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + date + ' ' + time + '</td>';
-            html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + val.totalGuest + '</td>';
-            html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + val.guestFirstName + ' ' + val.guestLastName + '</td>';
-            html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + val.guestPhone + '</td>';
+        const date = bookingDate.toDateString();
+        const time = bookingDate.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: 'numeric'
+        });
 
-            var statustext = "";
-            if (val.status == "Order Rejected") {
-                statustext = "Request Rejected";
-            } else if (val.status == "Order Placed") {
-                statustext = "Requested";
-            } else if (val.status == "Order Accepted") {
-                statustext = "Request Accepted";
+        html += '<td>' + date + ' ' + time + '</td>';
+        html += '<td>' + val.totalGuest + '</td>';
+        html += '<td>' + val.guestFirstName + ' ' + val.guestLastName + '</td>';
+        html += '<td>' + val.guestPhone + '</td>';
+
+        let statustext = "";
+        if (val.status == "Order Rejected") statustext = "Request Rejected";
+        else if (val.status == "Order Placed") statustext = "Requested";
+        else if (val.status == "Order Accepted") statustext = "Request Accepted";
+
+        const discount = val.discount ? `
+            ${currencyAtRight
+                ? val.discount + (val.discountType === "percentage" ? '%' : currentCurrency)
+                : (val.discountType === "percentage" ? val.discount + '%' : currentCurrency + val.discount)
             }
-            html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + statustext + '</td>';
+        ` : ``;
 
-            html = html + '<td class="action-btn"><a id="' + val.id + '" name="book-table-check" data-name="' + val.vendor.title + '" data-auth="' + val.author.id + '" href="javascript:void(0)"><i class="mdi mdi-check" ></i></a><a id="' + val.id + '" name="book-table-dismiss" data-auth="' + val.author.id + '" data-name="' + val.vendor.title + '" href="javascript:void(0)"><i class="mdi mdi-close" ></i></a><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a><a id="' + val.id + '" name="book-table-delete" class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a></td>';
+        html += '<td>' + discount + '</td>';
+        html += '<td>' + statustext + '</td>';
 
+        html += `<td class="action-btn">`;
 
-            html = html + '</tr>';
-            return html;
+        if (isFuture) {
+            if (val.status == "Order Placed") {
+                html += `
+                    <a id="${val.id}" name="book-table-check" data-name="${val.vendor.title}" data-auth="${val.author.id}" href="javascript:void(0)">
+                        <i class="mdi mdi-check"></i>
+                    </a>
+                    <a id="${val.id}" name="book-table-dismiss" data-auth="${val.author.id}" data-name="${val.vendor.title}" href="javascript:void(0)">
+                        <i class="mdi mdi-close"></i>
+                    </a>
+                `;
+            } else if (val.status == "Order Accepted") {
+                html += `
+                    <a id="${val.id}" name="book-table-dismiss" data-auth="${val.author.id}" data-name="${val.vendor.title}" href="javascript:void(0)">
+                        <i class="mdi mdi-close"></i>
+                    </a>
+                `;
+            }
+        }
+        html += `
+            <a href="${route1}">
+                <i class="mdi mdi-lead-pencil"></i>
+            </a>
+        `;
 
-}
+        html += `
+            <a id="${val.id}" name="book-table-delete" class="do_not_delete" href="javascript:void(0)">
+                <i class="mdi mdi-delete"></i>
+            </a>
+        `;
 
+        html += `</td>`;
+        html += '</tr>';
+
+        return html;
+    }
 
     function prev() {
         if (endarray.length == 1) {
@@ -435,10 +496,17 @@ async function getListData(val) {
     async function getVendorId(vendorUser) {
         var vendorId = '';
         var ref;
-        await database.collection('vendors').where('author', "==", vendorUser).get().then(async function (vendorSnapshots) {
+        if(authRole == 'vendor'){
+            var vendorSnapshots = await database.collection('vendors').where('author', "==", vendorUser).get();
             var vendorData = vendorSnapshots.docs[0].data();
             vendorId = vendorData.id;
-        })
+            
+        }else{
+            var vendorSnapshots = await database.collection('vendors').where('id', "==", empVendorId).get();
+            var vendorData = vendorSnapshots.docs[0].data();
+            vendorId = vendorData.id;
+           
+        }
 
         return vendorId;
     }

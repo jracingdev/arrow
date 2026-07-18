@@ -9,7 +9,7 @@
 
     <div class="col-md-7 align-self-center">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+        <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
         <li class="breadcrumb-item"><a href= "{!! route('orderReview') !!}" >{{trans('lang.order_review')}}</a></li>
         <li class="breadcrumb-item active">{{trans('lang.item_review_edit')}}</li>
       </ol>

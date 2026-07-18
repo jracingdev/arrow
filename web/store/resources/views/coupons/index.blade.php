@@ -9,14 +9,14 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.coupon_table')}}</li>
             </ol>
         </div>
         <div>
         </div>
     </div>
-    <div class="container-fluid">
+    <div class="container-fluid page-menu">
         <div id="data-table_processing" class="dataTables_processing panel panel-default" style="display: none;">
         {{trans('lang.processing')}}
         </div>
@@ -104,6 +104,11 @@
     var decimal_degits = 0;
     var currentCurrency = '';
     var currencyAtRight = false;
+    var authRole = "{{ $authRole }}";
+    var empVendorId = "{{ $empVendorId }}";
+    let currentPermissions = {
+        isActive: true   
+    };
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     refCurrency.get().then(async function (snapshots) {
         var currencyData = snapshots.docs[0].data();
@@ -116,12 +121,35 @@
     });
 
     var append_list = '';
-    var ref = '';
-    getVendorId(vendorUserId).then(data => {
-        vendorID = data;
-        ref = database.collection('coupons').where('vendorID', '==', vendorID);
-        $(document).ready(function () {
+    var ref = '';     
+    document.addEventListener("DOMContentLoaded", async function () {
+        try {
+            if (authRole === 'vendor') {  
+                vendorID = await getVendorId(vendorUserId);
+            }else{
+                vendorID = await getVendorId(empVendorId);
+            }
 
+            if (!vendorID) {
+                console.error("Vendor ID is null/undefined");
+                return;
+            }
+
+            ref = database.collection('coupons').where('vendorID', '==', vendorID);
+
+            if (authRole === 'employee') {               
+                const perm = await getEmployeePermissionForTitle(vendorUserId, "Offers");
+                currentPermissions = {
+                    isActive: perm.isActive ?? false
+                };
+
+                if (!currentPermissions.isActive) {
+                    alert('{{ trans("lang.no_permission") }}');
+                    $('#example24').hide();
+                    $('.page-menu').html('<p class="text-center text-danger font-weight-bold">{{ trans("lang.no_permission") }}</p>');
+                    return;
+                }
+            }  
             $(document.body).on('click', '.redirecttopage', function () {
                 var url = $(this).attr('data-url');
                 window.location.href = url;
@@ -271,11 +299,7 @@
                     },
                     {orderable: false, targets: [3,5,6]},
                 ],
-                "language": {
-                    "zeroRecords": "{{trans('lang.no_record_found')}}",
-                    "emptyTable": "{{trans('lang.no_record_found')}}",
-                    "processing": "" // Remove default loader
-                },
+                "language": datatableLang,
             });
             function debounce(func, wait) {
                 let timeout;
@@ -296,9 +320,11 @@
                 }
             }, 300));
 
-        });
-    })
-async function buildHTML(val) {
+        } catch (error) {
+            console.error("Init error:", error);
+        }
+    });
+    async function buildHTML(val) {
 
             html=[];
             newdate = '';
@@ -341,9 +367,9 @@ async function buildHTML(val) {
                 html.push('<td></td>');
             }
             if (val.isEnabled) {
-                html.push('<td><span class="badge badge-success">Yes</span></td>');
+                html.push('<td><span class="badge badge-success">{{trans("lang.yes")}}</span></td>');
             } else {
-                html.push('<td><span class="badge badge-danger">No</span></td>');
+                html.push('<td><span class="badge badge-danger">{{trans("lang.no")}}</span></td>');
             }
             html.push('<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a><a id="' + val.id + '" name="coupon_delete_btn" class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a></span>');
 
@@ -475,10 +501,17 @@ async function buildHTML(val) {
     async function getVendorId(vendorUser) {
         var vendorID = '';
         var ref;
-        await database.collection('vendors').where('author', "==", vendorUser).get().then(async function (vendorSnapshots) {
-            var vendorData = vendorSnapshots.docs[0].data();
-            vendorID = vendorData.id;
-        })
+        if(authRole == 'vendor'){
+            await database.collection('vendors').where('author', "==", vendorUser).get().then(async function (vendorSnapshots) {
+                var vendorData = vendorSnapshots.docs[0].data();
+                vendorID = vendorData.id;
+            })
+        }else{
+            await database.collection('vendors').where('id', "==", empVendorId).get().then(async function(vendorSnapshots) {
+                var vendorData = vendorSnapshots.docs[0].data();
+                vendorID = vendorData.id;
+            });            
+        }
 
         return vendorID;
     }

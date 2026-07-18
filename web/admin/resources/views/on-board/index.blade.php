@@ -8,7 +8,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.on_board_table')}}</li>
             </ol>
         </div>
@@ -165,7 +165,9 @@
                     const formattedRecords = await Promise.all(paginatedRecords.map(async (childData) => {
                         return await buildHTML(childData);
                     }));
-
+                        $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
                     $('#data-table_processing').hide();
                     callback({
                         draw: data.draw,
@@ -189,11 +191,7 @@
             columnDefs: [
                 { orderable: false, targets: [3] },
             ],
-            "language": {
-                "zeroRecords": "{{trans('lang.no_record_found')}}",
-                "emptyTable": "{{trans('lang.no_record_found')}}",
-                "processing": "" // Remove default loader
-            },
+           "language": datatableLang,
         });
         function debounce(func, wait) {
             let timeout;
@@ -241,7 +239,7 @@
             var type ="{{trans('lang.store_app')}}";
         }
         html.push('<td>' + type + '</td>');
-        html.push('<span class="action-btn"><a href="' + route1 + '" class="onboard-edit"><i class="mdi mdi-lead-pencil"></i></a></span>');
+        html.push('<span class="action-btn"><a href="' + route1 + '" class="onboard-edit" data-toggle="tooltip" title="{{trans("lang.edit")}}"><i class="mdi mdi-lead-pencil"></i></a></span>');
 
         return html;
     }

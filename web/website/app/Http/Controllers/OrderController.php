@@ -48,6 +48,11 @@ class OrderController extends Controller
         return view('my_order.cancelled_order');
     }
 
+    public function rejectedOrder()
+    {
+        return view('my_order.rejected_order');
+    }
+
     public function edit($id)
     {
         return view('my_order.edit', ['id' => $id]);

@@ -9,11 +9,17 @@
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">{{trans('lang.payout_request')}}</h3>
+            <div class="d-flex top-title-section justify-content-between">
+                <div class="d-flex top-title-left align-self-center">
+                    <span class="icon mr-3"><img src="{{ asset('images/payment.png') }}"></span>
+                    <h3 class="mb-0 page-title">{{trans('lang.driver_payout_request')}}</h3>
+                    <span class="counter ml-3 total_count"></span>
+                </div>
+            </div>
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.payout_request')}}</li>
             </ol>
         </div>
@@ -21,21 +27,8 @@
         </div>
     </div>
     <div class="container-fluid">
-       <div class="admin-top-section"> 
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex top-title-section pb-4 justify-content-between">
-                    <div class="d-flex top-title-left align-self-center">
-                        <span class="icon mr-3"><img src="{{ asset('images/payment.png') }}"></span>
-                        <h3 class="mb-0">{{trans('lang.driver_payout_request')}}</h3>
-                        <span class="counter ml-3 total_count"></span>
-                    </div>
-                 
-                </div>
-            </div>
-        </div> 
-       </div>
        <div class="table-list">
+
        <div class="row">
            <div class="col-12">
             
@@ -49,13 +42,13 @@
 
                             <li>
 
-                                <a href="{{route('drivers.view',$id)}}" class="basic">{{trans('lang.tab_basic')}}</a>
+                                <a href="{{route('drivers.view',$id)}}" class="basic"><i class="ri-list-indefinite"></i>{{trans('lang.tab_basic')}}</a>
 
                             </li>
 
-                            <li>
+                            <li class="vehicle_tab" style="display:none">
 
-                                <a href="{{route('drivers.vehicle',$id)}}" class="vehicle">{{trans('lang.vehicle')}}</a>
+                                <a href="{{route('drivers.vehicle',$id)}}" class="vehicle"><i class="ri-car-line"></i>{{trans('lang.vehicle')}}</a>
 
                             </li>
 
@@ -65,19 +58,19 @@
 
                             <li>
 
-                                <a href="{{route('driver.payouts',$id)}}" class="payout">{{trans('lang.tab_payouts')}}</a>
+                                <a href="{{route('driver.payouts',$id)}}" class="payout"><i class="ri-bank-card-line"></i>{{trans('lang.tab_payouts')}}</a>
 
                             </li>
 
                             <li class="active">
 
-                                <a href="{{route('payoutRequests.drivers.view',$id)}}" class="vendor_payout">{{trans('lang.tab_payout_request')}}</a>
+                                <a href="{{route('payoutRequests.drivers.view',$id)}}" class="vendor_payout"><i class="ri-refund-line"></i>{{trans('lang.tab_payout_request')}}</a>
 
                             </li>
 
                             <li>
 
-                                <a href="{{route('users.walletstransaction',$id)}}" class="wallet_transaction">{{trans('lang.wallet_transaction')}}</a>
+                                <a href="{{route('users.walletstransaction',$id)}}" class="wallet_transaction"><i class="ri-wallet-line"></i>{{trans('lang.wallet_transaction')}}</a>
 
                             </li>
 
@@ -96,52 +89,11 @@
                    </div>    
                     
                 </div>     
-              
-            
 
                  <div class="card-body">
                         <div class="table-responsive m-t-10">
-                        <ul class="nav nav-tabs align-items-end card-header-tabs w-100">
 
-                          
-
-                            @if($id == '')
-
-                            <li class="nav-item">
-
-                                <a class="nav-link" href="{!! url('payoutRequests/vendor') !!}"><i
-
-                                            class="mdi mdi-format-list-bulleted mr-2"></i>{{trans('lang.vendors_payout_request')}}</a>
-
-                            </li>
-
-                            @endif
-
-                            <li class="nav-item">
-
-                                <a class="nav-link active" href="{!! url('payoutRequests/drivers') !!}"><i
-
-                                            class="mdi mdi-format-list-bulleted mr-2"></i>{{trans('lang.drivers_payout_request')}}</a>
-
-                            </li>
-
-                            @if($id == '')
-
-
-                            <li class="nav-item">
-
-                                <a class="nav-link" href="{!! url('payoutRequests/providers') !!}"><i
-
-                                            class="mdi mdi-format-list-bulleted mr-2"></i>{{trans('lang.providers_payout_request')}}</a>
-
-                            </li>
-
-                            @endif
-
-
-
-                        </ul>
-                         <table id="example24"
+                        <table id="example24"
                                 class="display nowrap table table-hover table-striped table-bordered table table-striped"
                                 cellspacing="0" width="100%">
                                 <thead>
@@ -516,7 +468,7 @@
 
     var end = null;
 
-
+    var serviceType = getCookie('service_type');   
 
     var endarray = [];
 
@@ -543,6 +495,8 @@
 
                 var driver_data = snapshotss.docs[0].data();
 
+                $('.page-title').html("{{trans('lang.driver_payout_request')}}"+" - "+driver_data.firstName + " " + driver_data.lastName);
+
                 if (driver_data.serviceType != "parcel_delivery") {
 
                     $('.parcel-driver').removeClass('d-none');
@@ -556,6 +510,11 @@
             }
 
         });
+        if(serviceType !== 'delivery-service' && serviceType !== 'parcel_delivery'){
+            $('.vehicle_tab').show();
+        }else{
+            $('.vehicle_tab').hide();
+        }
 
         getDriverName(id);
 
@@ -637,8 +596,7 @@
 
 
 
-        });
-
+        });        
 
 
         $(document.body).on('click', '.redirecttopage', function () {
@@ -803,7 +761,7 @@
 
 
 
-                var paidDate = date + ' ' + time;
+                var paidDate = date + '<br> ' + time;
 
 
 
@@ -919,7 +877,9 @@
 
             }));
 
-
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
 
 
 
@@ -982,39 +942,32 @@
 
         <?php } ?>
 
-        "language": {
+        "language": datatableLang,
 
-            "zeroRecords": "{{trans("lang.no_record_found")}}",
-
-            "emptyTable": "{{trans("lang.no_record_found")}}",
-
-            "processing": "" // Remove default loader
-
-        },
         dom: 'lfrtipB',
             buttons: [
                     {
                         extend: 'collection',
-                        text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                        text: '<i class="mdi mdi-cloud-download"></i> {{ trans('lang.export_as') }}',
                         className: 'btn btn-info',
                         buttons: [
                             {
                                 extend: 'excelHtml5',
-                                text: 'Export Excel',
+                                text: '{{ trans('lang.export_excel') }}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'excel',fieldConfig);
                                 }
                             },
                             {
                                 extend: 'pdfHtml5',
-                                text: 'Export PDF',
+                                text: '{{ trans('lang.export_pdf') }}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'pdf',fieldConfig);
                                 }
                             },   
                             {
                                 extend: 'csvHtml5',
-                                text: 'Export CSV',
+                                text: '{{ trans('lang.export_csv') }}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'csv',fieldConfig);
                                 }
@@ -1024,7 +977,7 @@
             ],
             initComplete: function() {
                 $(".dataTables_filter").append($(".dt-buttons").detach());
-                $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+                $('.dataTables_filter input').attr('placeholder', '{{trans("lang.search_here")}}').attr('autocomplete','new-password').val('');
                 $('.dataTables_filter label').contents().filter(function() {
                     return this.nodeType === 3; 
                 }).remove();
@@ -1080,7 +1033,7 @@
 
                     url = url.replace('driverId', driverData.id);
 
-                    $('.service_type_orders').html('<a href="' + url + '">{{trans('lang.order_plural')}}</a>');
+                    $('.service_type_orders').html('<a href="' + url + '"><i class="ri-shopping-bag-line"></i>{{trans('lang.order_plural')}}</a>');
 
                 } else if (driverData.serviceType == "rental-service") {
 
@@ -1088,7 +1041,7 @@
 
                     url = url.replace("id", driverData.id);
 
-                    $('.service_type_orders').html('<a href="' + url + '">{{trans('lang.order_plural')}}</a>');
+                    $('.service_type_orders').html('<a href="' + url + '"><i class="ri-shopping-bag-line"></i>{{trans('lang.order_plural')}}</a>');
 
                 } else if (driverData.serviceType == "delivery-service" || driverData.serviceType == "ecommerce-service") {
 
@@ -1096,7 +1049,7 @@
 
                     url = url.replace("id", 'driverId=' + driverData.id);
 
-                    $('.service_type_orders').html('<a href="' + url + '">{{trans('lang.order_plural')}}</a>');
+                    $('.service_type_orders').html('<a href="' + url + '"><i class="ri-shopping-bag-line"></i>{{trans('lang.order_plural')}}</a>');
 
                 } else if (driverData.serviceType == "parcel_delivery") {
 
@@ -1104,7 +1057,7 @@
 
                     url = url.replace("id", driverData.id);
 
-                    $('.service_type_orders').html('<a href="' + url + '">{{trans('lang.order_plural')}}</a>');
+                    $('.service_type_orders').html('<a href="' + url + '"><i class="ri-shopping-bag-line"></i>{{trans('lang.order_plural')}}</a>');
 
                 }
 
@@ -1189,7 +1142,7 @@
 
 
 
-        html.push('<td>' + date + ' ' + time + '</td>');
+        html.push('<td>' + date + '<br> ' + time + '</td>');
 
 
 
@@ -1269,7 +1222,7 @@
 
         }
 
-        actionHtml = actionHtml + '<span class="action-btn"><a id="' + val.recid + '" class="delete-btn" name="driver_payouts-delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a></span>';
+        actionHtml = actionHtml + '<span class="action-btn"><a id="' + val.recid + '" class="delete-btn" name="driver_payouts-delete" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a></span>';
 
 
         actionHtml = actionHtml + '</td>';
@@ -1808,7 +1761,7 @@
 
             } else {
 
-                alert('Driver not found.');
+                alert('{{trans("lang.driver_not_found")}}');
 
             }
 

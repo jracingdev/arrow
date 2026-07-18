@@ -374,9 +374,9 @@ $(document).ready(function() {
 
             if (flutterWave.isEnable) {
 
-                jQuery(".wallet_active_label span").addClass('badge-success');
+                jQuery(".flutterWave_active_label span").addClass('badge-success');
 
-                jQuery(".wallet_active_label span").text('Active');
+                jQuery(".flutterWave_active_label span").text('Active');
 
             }
 

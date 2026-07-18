@@ -106,6 +106,8 @@
                             <div class="uploaded_image_owner" style="display:none;"><img id="uploaded_image_owner"
                                     src="" width="150px" height="150px;"></div>
                         </div>
+                        <input type="hidden" id="hidden_uuid" />
+                        <input type="hidden" id="hidden_loginType" />
 
                     </fieldset>
                   
@@ -119,7 +121,7 @@
             </button>
 
             <div class="or-line mb-4 ">
-                <span>OR</span>
+                <span>{{trans('lang.or')}}</span>
             </div>
 
             <div class="new-acc d-flex align-items-center justify-content-center">
@@ -149,17 +151,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-firestore.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-storage.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/geofirestore/dist/geofirestore.js"></script>
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
 <script src="{{ asset('assets/plugins/select2/dist/js/select2.min.js') }}"></script>
 
 <script src="{{ asset('js/crypto-js.js') }}"></script>
-@include('partials.firebase-init')
+<script src="{{ asset('js/jquery.cookie.js') }}"></script>
+<script src="{{ asset('js/jquery.validate.js') }}"></script>
 
 <script>
     var database = firebase.firestore();
@@ -204,14 +207,65 @@
     });
 
     var dine_in_active = false;
+    let isStoreVerification = false;
+
     $(document).ready(async function () {
         jQuery("#data-table_processing").show();
+
+        const urlParams = new URLSearchParams(window.location.search);          
+
+        const firstName = urlParams.get('firstName') ? decodeURIComponent(urlParams.get('firstName')) : '';
+        const lastName = urlParams.get('lastName') ? decodeURIComponent(urlParams.get('lastName')) : '';
+        const email = urlParams.get('email') ? decodeURIComponent(urlParams.get('email')) : '';
+        const uuid = urlParams.get('uuid') || '';
+        const loginType = urlParams.get('loginType') || '';  
+        
+        if (firstName) {
+            $(".user_first_name").val(firstName);          
+        }
+        if (lastName) {
+            $(".user_last_name").val(lastName);          
+        }
+        if (email) {
+            $(".user_email").val(email);
+            $(".user_email").attr("readonly", true);           
+        }
+        if (uuid) {
+            $("#hidden_uuid").val(uuid);
+        }
+        if (loginType) {
+            $("#hidden_loginType").val(loginType);
+        }
         jQuery("#country_selector").select2({
             templateResult: formatState,
             templateSelection: formatState2,
             placeholder: "Select Country",
             allowClear: true
         });
+        
+        // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
+        var globalSettingsRef = database.collection('settings').doc('globalSettings');
+        globalSettingsRef.get().then(async function (snapshot) {
+            var globalSettings = snapshot.data();
+            if (globalSettings && globalSettings.defaultCountryCode) {
+                var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
+
+                // Find the option with matching phoneCode
+                var $option = $("#country_selector option").filter(function() {
+                    return $(this).val() === defaultPhoneCode;
+                });
+
+                if ($option.length > 0) {
+                    $("#country_selector").val(defaultPhoneCode).trigger('change');
+                } else {
+                    console.warn("Default country code not found in list:", defaultPhoneCode);
+                }
+            }
+        }).catch(function (error) {
+            console.error("Error fetching global settings: ", error);
+        });
+        // --- END OF DEFAULT COUNTRY LOGIC ---
+
         await email_templates.get().then(async function (snapshots) {
             emailTemplatesData = snapshots.docs[0].data();
         });
@@ -228,9 +282,14 @@
     $(".create_vendor_btn").click(async function () {
         $(".error_top").hide();
 
+        let docRef = await database.collection('settings').doc('document_verification_settings').get();
+        let docData =  docRef.data();
+        isStoreVerification = docData.isStoreVerification;
+
         var userFirstName = $(".user_first_name").val();
         var userLastName = $(".user_last_name").val();
-        var email = $(".user_email").val();
+        // var email = $(".user_email").val();
+        var email = $(".user_email").val().toLowerCase().trim(); // Convert email to lowercase newly added
         var password = $(".user_password").val();
         var country_code = $("#country_selector").val();
         var userPhone = $(".user_phone").val();
@@ -244,10 +303,18 @@
             }
         });
 
-        var user_name = userFirstName + " " + userLastName;
-        var user_id = "<?php echo uniqid(); ?>";
-        
+        var user_name = userFirstName + " " + userLastName;        
+        var user_id = '';
         var name = userFirstName + " " + userLastName;
+        var existingUUID = $("#hidden_uuid").val();
+        var loginType = $("#hidden_loginType").val();
+
+        // If coming from Google, use the passed UUID; else, create new one
+        if (loginType === "google" && existingUUID) {
+            user_id = existingUUID;
+        } else {
+            user_id = "<?php echo uniqid(); ?>";
+        }
 
         if (userFirstName == '') {
             $(".error_top").show();
@@ -275,16 +342,90 @@
             $(".error_top").append("<p>{{trans('lang.enter_owners_phone')}}</p>");
             window.scrollTo(0, 0);
         }  else {
-            jQuery("#data-table_processing").show();
-            firebase.auth().createUserWithEmailAndPassword(email, password)
-                 .then(async function (firebaseUser) {
-                    user_id = firebaseUser.user.uid;
+            jQuery("#data-table_processing").show();         
+
+
+                if (loginType === "google" && existingUUID) {
+                    // Directly store user in Firestore using passed Google UUID
                     await storeImageData().then(async (IMG) => {
+                        database.collection('users').doc(existingUUID).set({
+                            'firstName': userFirstName,
+                            'lastName': userLastName,
+                            'email': email,
+                            'phoneNumber': userFullPhoneNumber,
+                            'profilePictureURL': IMG.ownerImage,
+                            'role': 'vendor',
+                            'id': existingUUID,
+                            'active': vendor_active,
+                            'vendorID': null,
+                            'createdAt': createdAt,
+                            'sectionId': '',
+                            'isDocumentVerify': isStoreVerification === true ? false : true,
+                            'isAutoVerify': isStoreVerification === false ? true : false,
+                        }).then(async function () {
+                            autoAprroveVendor.get().then(async function (snapshots) {
+                                var formattedDate = new Date();
+                                var month = formattedDate.getMonth() + 1;
+                                var day = formattedDate.getDate();
+                                var year = formattedDate.getFullYear();
+
+                                month = month < 10 ? '0' + month : month;
+                                day = day < 10 ? '0' + day : day;
+
+                                formattedDate = day + '-' + month + '-' + year;
+
+                                var message = emailTemplatesData.message;
+                                message = message.replace(/{userid}/g, user_id);
+                                message = message.replace(/{username}/g, userFirstName + ' ' + userLastName);
+                                message = message.replace(/{useremail}/g, email);
+                                message = message.replace(/{userphone}/g, userPhone);
+                                message = message.replace(/{date}/g, formattedDate);
+
+                                emailTemplatesData.message = message;
+
+                                var url = "{{url('send-email')}}";
+
+                                var sendEmailStatus = await sendEmail(url, emailTemplatesData.subject, emailTemplatesData.message, [adminEmail]);
+
+                                if (sendEmailStatus) {
+
+                                    var vendordata = snapshots.data();
+                                    if (vendordata.auto_approve_vendor == false) {
+                                        $(".alert-success").show();
+                                        $(".alert-success").html("");
+                                        $(".alert-success").append("<p>{{trans('lang.signup_waiting_approval')}}</p>");
+                                        window.scrollTo(0, 0);
+                                        setTimeout(function () {
+                                            window.location.href = '{{ route("login")}}';
+                                        }, 5000);
+                                    } else {
+                                        $(".alert-success").show();
+                                        $(".alert-success").html("");
+                                        $(".alert-success").append("<p>{{trans('lang.thank_you_signup_msg')}}</p>");
+                                        window.scrollTo(0, 0);
+                                        setTimeout(function () {
+                                            window.location.href = '{{ route("login")}}';
+                                        }, 5000);
+                                    }
+                                }
+                            });
+
+                        });
+                    }).catch(err => {
+                        jQuery("#data-table_processing").hide();
+                        $(".error_top").show().html("<p>" + err + "</p>");
+                        window.scrollTo(0, 0);
+                    });
+                } else {
+                    firebase.auth().createUserWithEmailAndPassword(email, password)
+                        .then(async function (firebaseUser) {
+                            user_id = firebaseUser.user.uid;
+                            await storeImageData().then(async (IMG) => {
                                 database.collection('users').doc(user_id).set({
-                                    
                                     'firstName': userFirstName,
                                     'lastName': userLastName,
-                                    'email': email,
+                                    // 'email': email,
+                                    'email': email.toLowerCase().trim(),// Store email in lowercase newly added
                                     'phoneNumber': userFullPhoneNumber,
                                     'profilePictureURL': IMG.ownerImage,
                                     'role': 'vendor',
@@ -292,70 +433,66 @@
                                     'active': vendor_active,
                                     'vendorID': null,
                                     createdAt: createdAt,
-                                }).then(function (result) {
-
+                                    'sectionId': '',
+                                    'isDocumentVerify': isStoreVerification === true ? false : true,
+                                    'isAutoVerify': isStoreVerification === false ? true : false,
+                                }).then(async function () {
                                     autoAprroveVendor.get().then(async function (snapshots) {
-                                            var formattedDate = new Date();
-                                            var month = formattedDate.getMonth() + 1;
-                                            var day = formattedDate.getDate();
-                                            var year = formattedDate.getFullYear();
+                                        var formattedDate = new Date();
+                                        var month = formattedDate.getMonth() + 1;
+                                        var day = formattedDate.getDate();
+                                        var year = formattedDate.getFullYear();
 
-                                            month = month < 10 ? '0' + month : month;
-                                            day = day < 10 ? '0' + day : day;
+                                        month = month < 10 ? '0' + month : month;
+                                        day = day < 10 ? '0' + day : day;
 
-                                            formattedDate = day + '-' + month + '-' + year;
+                                        formattedDate = day + '-' + month + '-' + year;
 
-                                            var message = emailTemplatesData.message;
-                                            message = message.replace(/{userid}/g, user_id);
-                                            message = message.replace(/{username}/g, userFirstName + ' ' + userLastName);
-                                            message = message.replace(/{useremail}/g, email);
-                                            message = message.replace(/{userphone}/g, userPhone);
-                                            message = message.replace(/{date}/g, formattedDate);
+                                        var message = emailTemplatesData.message;
+                                        message = message.replace(/{userid}/g, user_id);
+                                        message = message.replace(/{username}/g, userFirstName + ' ' + userLastName);
+                                        message = message.replace(/{useremail}/g, email);
+                                        message = message.replace(/{userphone}/g, userPhone);
+                                        message = message.replace(/{date}/g, formattedDate);
 
-                                            emailTemplatesData.message = message;
+                                        emailTemplatesData.message = message;
 
-                                            var url = "{{url('send-email')}}";
+                                        var url = "{{url('send-email')}}";
 
-                                            var sendEmailStatus = await sendEmail(url, emailTemplatesData.subject, emailTemplatesData.message, [adminEmail]);
+                                        var sendEmailStatus = await sendEmail(url, emailTemplatesData.subject, emailTemplatesData.message, [adminEmail]);
 
-                                            if (sendEmailStatus) {
+                                        if (sendEmailStatus) {
 
-                                                var vendordata = snapshots.data();
-                                                if (vendordata.auto_approve_vendor == false) {
-                                                    $(".alert-success").show();
-                                                    $(".alert-success").html("");
-                                                    $(".alert-success").append("<p>{{trans('lang.signup_waiting_approval')}}</p>");
-                                                    window.scrollTo(0, 0);
-                                                    setTimeout(function () {
-                                                        window.location.href = '{{ route("login")}}';
-                                                    }, 5000);
-                                                } else {
-                                                    $(".alert-success").show();
-                                                    $(".alert-success").html("");
-                                                    $(".alert-success").append("<p>{{trans('lang.thank_you_signup_msg')}}</p>");
-                                                    window.scrollTo(0, 0);
-                                                    setTimeout(function () {
-                                                        window.location.href = '{{ route("login")}}';
-                                                    }, 5000);
-                                                }
+                                            var vendordata = snapshots.data();
+                                            if (vendordata.auto_approve_vendor == false) {
+                                                $(".alert-success").show();
+                                                $(".alert-success").html("");
+                                                $(".alert-success").append("<p>{{trans('lang.signup_waiting_approval')}}</p>");
+                                                window.scrollTo(0, 0);
+                                                setTimeout(function () {
+                                                    window.location.href = '{{ route("login")}}';
+                                                }, 5000);
+                                            } else {
+                                                $(".alert-success").show();
+                                                $(".alert-success").html("");
+                                                $(".alert-success").append("<p>{{trans('lang.thank_you_signup_msg')}}</p>");
+                                                window.scrollTo(0, 0);
+                                                setTimeout(function () {
+                                                    window.location.href = '{{ route("login")}}';
+                                                }, 5000);
                                             }
-                                        });
+                                        }
+                                    });
 
-                                })
-                            
-                    }).catch(err => {
-                        jQuery("#data-table_processing").hide();
-                        $(".error_top").show();
-                        $(".error_top").html("");
-                        $(".error_top").append("<p>" + err + "</p>");
-                        window.scrollTo(0, 0);
-                    });
-                }).catch(function (error) {
-                    jQuery("#data-table_processing").hide();
-                    $(".error_top").show();
-                    $(".error_top").html("");
-                    $(".error_top").append("<p>" + error + "</p>");
-                });
+                                });
+                            });
+                        })
+                        .catch(function (error) {
+                            jQuery("#data-table_processing").hide();
+                            $(".error_top").show().html("<p>" + error.message + "</p>");
+                        });
+                }
+
         }
 
     })
@@ -439,7 +576,7 @@
 
     function chkAlphabets(event, msg) {
         if (!(event.which >= 97 && event.which <= 122) && !(event.which >= 65 && event.which <= 90)) {
-            document.getElementById(msg).innerHTML = "Accept only Alphabets";
+            document.getElementById(msg).innerHTML = "{{trans('lang.accept_only_alphabets')}}";
             return false;
         } else {
             document.getElementById(msg).innerHTML = "";
@@ -450,7 +587,7 @@
     function chkAlphabets2(event, msg) {
         if (!(event.which >= 48 && event.which <= 57)
         ) {
-            document.getElementById(msg).innerHTML = "Accept only Number";
+            document.getElementById(msg).innerHTML = "{{trans('lang.accept_only_number')}}";
             return false;
         } else {
             document.getElementById(msg).innerHTML = "";
@@ -460,7 +597,7 @@
 
     function chkAlphabets3(event, msg) {
         if (!((event.which >= 48 && event.which <= 57) || (event.which >= 97 && event.which <= 122))) {
-            document.getElementById(msg).innerHTML = "Special characters not accepted ";
+            document.getElementById(msg).innerHTML = "{{trans('lang.special_characters_not_accepted')}}";
             return false;
         } else {
             document.getElementById(msg).innerHTML = "";

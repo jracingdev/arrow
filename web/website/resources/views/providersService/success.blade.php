@@ -1,13 +1,5 @@
 @include('layouts.app')
 @include('layouts.header')
-@php
-    $cityToCountry = file_get_contents(asset('tz-cities-to-countries.json'));
-    $cityToCountry = json_decode($cityToCountry, true);
-    $countriesJs = array();
-    foreach ($cityToCountry as $key => $value) {
-        $countriesJs[$key] = $value;
-    }
-@endphp
 <div class="siddhi-checkout">
     <div class="container position-relative">
         <div class="py-5 row">
@@ -49,9 +41,13 @@
 </div>
 @include('layouts.footer')
 @include('layouts.nav')
+
 @if($message = Session::get('success'))
+
     <script src="{{ asset('js/geofirestore.js') }}"></script>
+
     <script type="text/javascript">
+
         var fcmToken = '';
         var id_order = database.collection("tmp").doc().id;
         var userId = "<?php echo $id; ?>";
@@ -61,39 +57,22 @@
         var razorpaySettings = database.collection('settings').doc('razorpaySettings');
         var firestore = firebase.firestore();
         var geoFirestore = new GeoFirestore(firestore);
-        var cityToCountry = '<?php echo json_encode($countriesJs); ?>';
-        cityToCountry = JSON.parse(cityToCountry);
-        var userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        var userCity = userTimeZone.split('/')[1];
-        var userCountry = cityToCountry[userCity];
-        var taxSetting = [];
-        var reftaxSetting = database.collection('tax').where('country', '==', userCountry).where('enable', '==', true).where('sectionId', '==', section_id);
-        reftaxSetting.get().then(async function (snapshots) {
-            if (snapshots.docs.length > 0) {
-                snapshots.docs.forEach((val) => {
-                    val = val.data();
-                    var obj = '';
-                    obj = {
-                        'country': val.country,
-                        'enable': val.enable,
-                        'id': val.id,
-                        'tax': val.tax,
-                        'title': val.title,
-                        'type': val.type,
-                    };
-                    taxSetting.push(obj);
-                })
-            }
-        });
-            <?php if (@$cart['paymentStatus'] == true && !empty(@$cart['cart_order']['order_json'])) { ?>
-        $("#data-table_processing_order").show();
-        var order_json = '<?php echo json_encode($cart['cart_order']['order_json']); ?>';
-        order_json = JSON.parse(order_json);
-        var provider_id = order_json.provider_id;
-        var service_id = order_json.service_id;
-        if (provider_id) {
-            try {
-                database.collection('users').where('id', "==", provider_id).get().then(async function (Snapshots) {
+        
+        var cart = @json($cart);
+        var taxSetting = cart?.taxSetting ?? [];
+        var taxScope = cart?.taxScope ?? 'order';
+        var platformTax        = cart?.taxesByScope?.platform ?? [];
+        var platformCharge = cart?.platformCharge ?? '0';
+        
+        <?php if (@$cart['paymentStatus'] == true && !empty(@$cart['cart_order']['order_json'])) { ?>
+            $("#data-table_processing_order").show();
+            var order_json = '<?php echo json_encode($cart['cart_order']['order_json']); ?>';
+            order_json = JSON.parse(order_json);
+            var provider_id = order_json.provider_id;
+            var service_id = order_json.service_id;
+            if (provider_id) {
+                try {
+                    database.collection('users').where('id', "==", provider_id).get().then(async function (Snapshots) {
                     if (Snapshots.docs.length) {
                         var userDetails = Snapshots.docs[0].data();
                         if (userDetails && userDetails.fcmToken) {
@@ -190,10 +169,13 @@
                             "scheduleDateTime": scheduleDateTime,
                             'sectionId': order_json.sectionId,
                             'status': order_json.status,
-                            'taxSetting': taxSetting,
                             "workerId": '',
                             "otp": otp.toString(),
-                            'extraChargesDescription': ''
+                            'extraChargesDescription': '',
+                            'taxSetting': taxSetting,
+                            'taxScope': taxScope,
+                            'platformFee': platformCharge,
+                            'platformTax': platformTax,
                         }).then(function (result) {
                             $.ajax({
                                 type: 'POST',
@@ -207,11 +189,10 @@
                                 },
                                 success: async function (data) {
                                     $("#data-table_processing_order").hide();
-                                    var emailUserData = await sendOnDemandMailData(userDetails.email, userDetails.firstName, id_order, order_json.address, payment_method, serviceDetails, order_json.quantity, order_json.couponCode, order_json.discount, taxSetting);
+                                    var emailUserData = await sendOnDemandMailData(id_order, service_id, order_json.authorID);
                                     if (providerDetails && providerDetails != undefined) {
-                                        var emailVendorData = await sendOnDemandMailData(providerDetails.email, providerDetails.firstName + ' ' + providerDetails.lastName, id_order, address, payment_method, serviceDetails, order_json.quantity, order_json.couponCode, order_json.discount, taxSetting);
+                                        var emailUserData = await sendOnDemandMailData(id_order, service_id, provider_id);
                                     }
-                                    data = JSON.parse(data);
                                 }
                             });
                         });

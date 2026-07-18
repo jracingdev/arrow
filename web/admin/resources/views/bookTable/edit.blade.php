@@ -17,7 +17,7 @@
 
             <div class="col-md-7 align-self-center">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                     <li class="breadcrumb-item"><a href="{{ $back_url }}">{{trans('lang.book_table_table')}}</a></li>
                     <li class="breadcrumb-item active">{{trans('lang.bookig_edit')}}</li>
                 </ol>
@@ -69,13 +69,13 @@
 
                             <div class="form-group row width-50">
                                 <div class="col-7">
-                                    <input class="form-control guest_email" type="email" placeholder="Email" disabled>
+                                    <input class="form-control guest_email" type="email" placeholder="{{trans('lang.email')}}" disabled>
                                 </div>
                             </div>
 
                             <div class="form-group row width-50">
                                 <div class="col-7">
-                                    <input class="form-control guest_phone" placeholder="Phone" disabled>
+                                    <input class="form-control guest_phone" placeholder="{{trans('lang.user_phone')}}" disabled>
                                 </div>
                             </div>
                             <div class="form-group row width-50">

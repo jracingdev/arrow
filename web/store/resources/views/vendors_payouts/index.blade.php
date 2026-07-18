@@ -15,7 +15,7 @@ error_reporting(E_ALL ^ E_NOTICE);
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.vendors_payout_plural')}}</li>
             </ol>
         </div>
@@ -105,7 +105,8 @@ error_reporting(E_ALL ^ E_NOTICE);
     var currentCurrency = '';
     var currencyAtRight = false;
     var decimal_degits = 0;
-
+    var authRole = "{{ $authRole }}";
+    var empVendorId = "{{ $empVendorId }}";
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     refCurrency.get().then(async function (snapshots) {
         var currencyData = snapshots.docs[0].data();
@@ -276,35 +277,31 @@ error_reporting(E_ALL ^ E_NOTICE);
                     },
                     {orderable: false, targets: [4]},
                 ],
-                "language": {
-                    "zeroRecords": "{{trans('lang.no_record_found')}}",
-                    "emptyTable": "{{trans('lang.no_record_found')}}",
-                    "processing": "" // Remove default loader
-                },
+                "language": datatableLang,
                 dom: 'lfrtipB',
                 buttons: [
                     {
                         extend: 'collection',
-                        text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                        text: '<i class="mdi mdi-cloud-download"></i> {{trans('lang.export_as')}}',
                         className: 'btn btn-info',
                         buttons: [
                             {
                                 extend: 'excelHtml5',
-                                text: 'Export Excel',
+                                text: '{{trans('lang.export_excel')}}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'excel',fieldConfig);
                                 }
                             },
                             {
                                 extend: 'pdfHtml5',
-                                text: 'Export PDF',
+                                text: '{{trans('lang.export_pdf')}}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'pdf',fieldConfig);
                                 }
                             },   
                             {
                                 extend: 'csvHtml5',
-                                text: 'Export CSV',
+                                text: '{{trans('lang.export_csv')}}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'csv',fieldConfig);
                                 }
@@ -314,7 +311,7 @@ error_reporting(E_ALL ^ E_NOTICE);
                 ],
                 initComplete: function() {
                     $(".dataTables_filter").append($(".dt-buttons").detach());
-                    $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+                    $('.dataTables_filter input').attr('placeholder', '{{trans("lang.search_here")}}').attr('autocomplete','new-password').val('');
                     $('.dataTables_filter label').contents().filter(function() {
                         return this.nodeType === 3; 
                     }).remove();
@@ -486,10 +483,17 @@ async function buildHTML(val) {
     async function getVendorId(vendorUser) {
         var vendorId = '';
         var ref;
-        await database.collection('vendors').where('author', "==", vendorUser).get().then(async function (vendorSnapshots) {
-            var vendorData = vendorSnapshots.docs[0].data();
-            vendorId = vendorData.id;
-        })
+        if(authRole == 'vendor'){
+            await database.collection('vendors').where('author', "==", vendorUser).get().then(async function (vendorSnapshots) {
+                var vendorData = vendorSnapshots.docs[0].data();
+                vendorId = vendorData.id;
+            })
+        }else{
+            await database.collection('vendors').where('id', "==", empVendorId).get().then(async function(vendorSnapshots) {
+                var vendorData = vendorSnapshots.docs[0].data();
+                vendorId = vendorData.id;
+            });
+        }
 
         return vendorId;
     }

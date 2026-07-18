@@ -20,7 +20,7 @@
 
             <ol class="breadcrumb">
 
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
                 <li class="breadcrumb-item"><a href="{!! route('carMake') !!}">{{trans('lang.car_make')}}</a>
 
@@ -31,6 +31,7 @@
             </ol>
 
         </div>
+    </div>
 
 
 
@@ -105,12 +106,6 @@
                 trans('lang.cancel')}}</a>
 
         </div>
-
-
-
-    </div>
-
-
 
 </div>
 

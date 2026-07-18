@@ -60,9 +60,7 @@
         <div class="siddhi-cart-item-profile bg-white p-0">
             <div class="mapouter pt-0">
                 <div class="gmap_canvas">
-                    <iframe width="100%" height="450" id="gmap_canvas"
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6084.772831870492!2d72.52684476258722!3d23.073179147007263!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e8349581307df%3A0x85dda8269e834d5!2sSiddhi%20Infosoft!5e0!3m2!1sen!2sin!4v1648036249302!5m2!1sen!2sin"
-                            frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
+                    <iframe width="100%" height="450" id="gmap_canvas" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src=""></iframe>
                 </div>
             </div>
         </div>
@@ -70,21 +68,42 @@
     @include('layouts.footer')
     @include('layouts.nav')
     <script type="text/javascript">
+
         var currentCurrency = '';
         var currencyAtRight = false;
         var placeholderImage = '';
+        var Address = '';
+        
         var refCurrency = database.collection('currencies').where('isActive', '==', true);
         refCurrency.get().then(async function (snapshots) {
             var currencyData = snapshots.docs[0].data();
             currentCurrency = currencyData.symbol;
             currencyAtRight = currencyData.symbolAtRight;
         });
+        
         var placeholder = database.collection('settings').doc('placeHolderImage');
         placeholder.get().then(async function (snapshotsimage) {
             var placeholderImageData = snapshotsimage.data();
             placeholderImage = placeholderImageData.image;
         })
+        
+        var contactUsRef = database.collection('settings').doc('ContactUs');
+        contactUsRef.get().then(async function (snapshotsimage) {
+            var contactUsData = snapshotsimage.data();
+            if (contactUsData.Address) {
+                updateMapByAddress(contactUsData.Address);
+            } 
+            $("#overlay").hide();
+        })
+
+        function updateMapByAddress(address, zoom = 15) {
+            if (!address) return;
+            const url = 'https://maps.google.com/maps?q=' + encodeURIComponent(address) + '&t=&z=' + zoom + '&ie=UTF8&iwloc=&output=embed';
+            $('#gmap_canvas').attr('src', url);
+        };
+        
         $(document).ready(function () {
+            $("#overlay").show();
             if (user_uuid) {
                 database.collection('users').where("id", "==", user_uuid).get().then((usersnapshot) => {
                     var user = usersnapshot.docs[0].data();

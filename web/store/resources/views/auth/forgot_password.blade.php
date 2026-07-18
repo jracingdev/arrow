@@ -106,7 +106,7 @@
                     <div class="form-group">
                         <div class="col-xs-12">
                             <label for="email_address" class="text-dark">{{trans('lang.user_email')}}</label>
-                            <input class="form-control" placeholder="{{ __('Enter Email') }}" id="email_address"
+                            <input class="form-control" placeholder="{{ trans('lang.enter_email') }}" id="email_address"
                                    type="email"
                                    name="email_address"
                                    autocomplete="email" autofocus></div>
@@ -120,7 +120,7 @@
                         <div class="col-xs-12">
                             <button type="button" onclick="callForgotPassword()" id="login_btn"
                                     class="btn btn-dark btn-lg btn-block text-uppercase waves-effect waves-light btn btn-primary">
-                                {{ __('Send Link') }}
+                                {{ trans('lang.send_link') }}
                             </button>
                             <a href="{{route('login')}}" id="signup_btn"
                                class="btn btn-dark btn-lg btn-block text-uppercase waves-effect waves-light btn btn-primary">
@@ -144,13 +144,14 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="{{ asset('assets/plugins/bootstrap/js/bootstrap.min.js') }}"></script>
 <script src="{{ asset('assets/plugins/select2/dist/js/select2.min.js') }}"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-firestore.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-storage.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="{{ asset('js/crypto-js.js') }}"></script>
-@include('partials.firebase-init')
+<script src="{{ asset('js/jquery.cookie.js') }}"></script>
+<script src="{{ asset('js/jquery.validate.js') }}"></script>
 
 <script type="text/javascript">
 

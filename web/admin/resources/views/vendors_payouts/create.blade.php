@@ -23,7 +23,7 @@
 
             <ol class="breadcrumb">
 
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
                 <?php if ($id != '') { ?>
 
@@ -58,7 +58,7 @@
 
                         <div class="form-group row width-100">
 
-                            <label class="col-3 control-label">{{ trans('lang.vendors_payout_vendor_id')}}</label>
+                            <label class="col-3 control-label">{{ trans('lang.select_vendor')}}</label>
 
                             <div class="col-7">
 
@@ -70,7 +70,7 @@
 
                                 <div class="form-text text-muted">
 
-                                    {{ trans("lang.vendors_payout_vendor_id_help") }}
+                                    {{ trans("lang.select_vendor") }}
 
                                 </div>
 
@@ -134,7 +134,7 @@
 
         <?php } else { ?>
 
-            <a href="{!! route('vendorsPayouts') !!}" class="btn btn-default"><i
+            <a href="{!! route('payoutRequests.vendor.disbursement') !!}" class="btn btn-default"><i
                         class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
 
         <?php } ?> 
@@ -154,6 +154,7 @@
 
 <script type="text/javascript">
 
+    var section_id = getCookie('section_id') || '';
 
     var vendors = [];
 
@@ -295,7 +296,7 @@
             adminEmail = emailSettingData.userName;
         });
 
-        database.collection('vendors').get().then(async function (snapshots) {
+        database.collection('vendors').where('section_id', '==', section_id).get().then(async function (snapshots) {
 
             snapshots.docs.forEach((listval) => {
 
@@ -334,7 +335,8 @@
 
             if (remaining > 0) {
 
-                var amount = parseFloat($(".payout_amount").val());
+                // var amount = parseFloat($(".payout_amount").val());
+                var amount = $(".payout_amount").val();
 
                 var note = $(".payout_note").val();
 
@@ -348,12 +350,14 @@
                         'adminNote': note,
                         'id': payoutId,
                         'paidDate': date,
-                        'paymentStatus': 'Success'
+                        'paymentStatus': 'Success',
+                        'withdrawMethod':'bank',
+                        'note':''
                     }).then(function () {
 
                         price = remaining - amount;
 
-                        database.collection('users').where("vendorID", "==", vendorID).get().then(function (snapshotss) {
+                        database.collection('users').where("vendorID", "==", vendorID).where('role','==','vendor').get().then(function (snapshotss) {
                             if (snapshotss.docs.length) {
                                 userdata = snapshotss.docs[0].data();
                                 database.collection('users').doc(userdata.id).update({'wallet_amount': price}).then(async function (result) {
@@ -394,14 +398,14 @@
 
                                     if (sendEmailStatus) {
                                         <?php if ($id == '') { ?>
-                                        window.location.href = "{{route("vendorsPayouts")}}";
+                                        window.location.href = "{{route("payoutRequests.vendor.disbursement")}}";
                                         <?php } else { ?>
                                         window.location.href = '{{route('vendors.payout',$id)}}';
                                         <?php } ?>
                                      }
                                     }else{
                                         <?php if ($id == '') { ?>
-                                        window.location.href = "{{route("vendorsPayouts")}}";
+                                        window.location.href = "{{route("payoutRequests.vendor.disbursement")}}";
                                         <?php } else { ?>
                                         window.location.href = '{{route('vendors.payout',$id)}}';
                                         <?php } ?>
@@ -445,7 +449,7 @@
     async function remainingPrice(vendorID) {
         var remaining = 0;
 
-        await database.collection('users').where("vendorID", "==", vendorID).get().then(async function (snapshotss) {
+        await database.collection('users').where("vendorID", "==", vendorID).where('role','==','vendor').get().then(async function (snapshotss) {
             if (snapshotss.docs.length) {
                 userdata = snapshotss.docs[0].data();
                 if (isNaN(userdata.wallet_amount) || userdata.wallet_amount == undefined) {
@@ -474,7 +478,7 @@
     async function getVendorEmail(vendorUser) {
         var userEmail = '';
 
-        await database.collection('users').where('vendorID', "==", vendorUser).get().then(async function (vendorSnapshots) {
+        await database.collection('users').where('vendorID', "==", vendorUser).where('role','==','vendor').get().then(async function (vendorSnapshots) {
 
             if (vendorSnapshots.docs[0]) {
                 var vendorData = vendorSnapshots.docs[0].data();

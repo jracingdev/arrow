@@ -12,21 +12,10 @@
                     <div class="siddhi-cart-item mb-3 rounded shadow-sm bg-white overflow-hidden">
                         <div class="siddhi-cart-item-profile bg-white p-3">
                             <div class="card card-default payment-wrap">
-                                <table class="payment-table">
-                                    <thead>
-                                    <tr>
-                                        <th>
-                                            {{trans('lang.pay')}}
-                                        </th>
-                                        <th class="text-right">
-                                            {{trans('lang.total')}}
-                                        </th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
+                                <table class="payment-table m-4">
                                     <tr>
                                         <td>
-                                            {{trans('lang.pay_with_flutterwave')}}
+                                            {{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}
                                         </td>
                                         <td class="text-right payment-button">
                                             <form method="POST" action="https://checkout.flutterwave.com/v3/hosted/pay">
@@ -42,7 +31,7 @@
                                                 <input type="hidden" name="meta[token]" value="<?php echo $token; ?>"/>
                                                 <input type="hidden" name="redirect_url"
                                                        value="<?php echo route('ondemand-success'); ?>"/>
-                                                <button type="submit" id="start-payment-button">
+                                                 <button type="submit" id="start-payment-button" class="btn btn-primary">
                                                     {{trans('lang.pay_now')}}
                                                 </button>
                                             </form>

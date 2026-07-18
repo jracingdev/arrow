@@ -9,8 +9,8 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                <li class="breadcrumb-item"><a href="{{url('/parcel_orders')}}">{{trans('lang.parcel_plural')}}
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{route('parcel_orders')}}">{{trans('lang.parcel_plural')}}
                         {{trans('lang.order_plural')}}</a></li>
                 <li class="breadcrumb-item">{{trans('lang.order_edit')}}</li>
             </ol>
@@ -18,8 +18,8 @@
     </div>
 
     <div class="card-body">
-    
-        <?php if (in_array('parcel.orders.print', json_decode(@session('user_permissions')))) { ?>
+
+        <?php if (in_array('parcel.orders.print', json_decode(@session('user_permissions'),true))) { ?>
 
             <div class="text-right print-btn non-printable">
                 <button type="button" class="fa fa-print" onclick="PrintElem('printableArea')"></button>
@@ -110,21 +110,31 @@
 
                                         </tbody>
                                     </table>
+                                    <div class="form-group row width-50">
+
+                                       <label class="col-12 control-label"><strong>{{ trans('lang.parcel_image') }}</strong></label>
+
+                                        <div class="placeholder_img_thumb user_image">
+                                            <img class="rounded" style="width:50px" src="" alt="Parcel_image" id="parcel_image">
+                                            <span id="no-image-text" style="display:none; color:gray;">{{ trans('lang.parcel_images_not_found') }}</span>
+                                        </div>
+
+                                    </div>
                                 </div>
                             </div>
-                           </div>
-                                    <div class="order-data-row order-totals-items">
-                                        <div class="card">
-                                            <div class="card-body">
-                                                <table class="order-totals">
+                        </div>
+                        <div class="order-data-row order-totals-items">
+                            <div class="card">
+                                <div class="card-body">
+                                    <table class="order-totals">
 
-                                                    <tbody id="order_products_total">
+                                        <tbody id="order_products_total">
 
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
 
 
 
@@ -158,7 +168,9 @@
                                     <p><strong>{{trans('lang.phone')}}:</strong>
                                         <span id="sender_phone"></span>
                                     </p>
-
+                                    <p><strong>{{trans('lang.note')}}:</strong>
+                                        <span id="sender_note"></span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -191,6 +203,9 @@
                                     <p><strong>{{trans('lang.phone')}}:</strong>
                                         <span id="receiver_phone"></span>
                                     </p>
+                                    <p><strong>{{trans('lang.note')}}:</strong>
+                                        <span id="receiver_note"></span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -214,12 +229,12 @@
                                         <p><strong>{{trans('lang.phone')}}:</strong>
                                             <span id="driver_phone"></span>
                                         </p>
-                                        <p id="para_carName"><strong>{{trans('lang.car_name')}}:</strong>
+                                        {{-- <p id="para_carName"><strong>{{trans('lang.car_name')}}:</strong>
                                             <span id="driver_carName"></span>
                                         </p>
                                         <p><strong>{{trans('lang.car_number')}}:</strong>
                                             <span id="driver_carNumber"></span>
-                                        </p>
+                                        </p> --}}
                                     </div>
                                 </div>
                             </div>
@@ -283,7 +298,7 @@
     var payment_shared = false;
     var vendorname = '';
     var vendorId = '';
-    var driverId = '';
+    
     var deliveryChargeVal = 0;
     var tip_amount_val = 0;
     var tip_amount = 0;
@@ -308,11 +323,11 @@
     var manname = '';
     var decimal_degits = 0;
     var vendorAuthor = '';
+    var currencyData = '';
     refCurrency.get().then(async function(snapshots) {
-        var currencyData = snapshots.docs[0].data();
+        currencyData = snapshots.docs[0].data();
         currentCurrency = currencyData.symbol;
         currencyAtRight = currencyData.symbolAtRight;
-
         if (currencyData.decimal_degits) {
             decimal_degits = currencyData.decimal_degits;
         }
@@ -328,14 +343,17 @@
     });
 
     var user_permissions = '<?php echo @session('user_permissions') ?>';
-
-    user_permissions = JSON.parse(user_permissions);
-
+    user_permissions = Object.values(JSON.parse(user_permissions));
     var checkPrintPermission = false;
-
     if ($.inArray('parcel.orders.print', user_permissions) >= 0) {
         checkPrintPermission = true;
     }
+
+    let taxBreakdownGrouped = {
+        order: {},
+        platform: {}
+    };
+
     $(document).ready(function() {
 
         //hide this status for admin
@@ -370,6 +388,16 @@
 
             $("#sender_name").text(order.sender.name);
             $("#sender_address").text(order.sender.address);
+            $("#sender_note").text(order.note ? order.note : '');
+            $("#receiver_note").text(order.receiverNote ? order.receiverNote : '');
+          if (Array.isArray(order.parcelImages) && order.parcelImages.length > 0 && order.parcelImages[0].trim() !== '') {
+                $("#parcel_image").attr("src", order.parcelImages[0]).show();
+                $("#no-image-text").hide();
+            } else {
+                $("#parcel_image").hide();
+                $("#no-image-text").text("Parcel Images Not Found").show();
+            }
+           
             var date = "";
             var time = "";
             if (order.senderPickupDateTime) {
@@ -378,11 +406,16 @@
             }
             $("#sender_datetime").text(date + " " + time);
 
-            if(order.sender.phone.includes('+')){
-                $("#sender_phone").text('+' + EditPhoneNumber(order.sender.phone.slice(1)));
-            }else{
-                $("#sender_phone").text(EditPhoneNumber(order.sender.phone));
+
+            let cleanedPhone = order.sender.phone.replace(/[()\s]/g, '').replace(/^(\+)?/, '+');
+
+
+            if (cleanedPhone.startsWith('+')) {
+                $("#sender_phone").text(EditPhoneNumber(cleanedPhone));
+            } else {
+                $("#sender_phone").text(EditPhoneNumber('+' + cleanedPhone));
             }
+
             $("#receiver_name").text(order.receiver.name);
 
             $("#receiver_address").text(order.receiver.address);
@@ -395,11 +428,16 @@
 
             }
             $("#receiver_datetime").text(date + " " + time);
-            if(order.receiver.phone.includes('+')){
-                $("#receiver_phone").text('+' + EditPhoneNumber(order.receiver.phone.slice(1)));
-            }else{
-                $("#receiver_phone").text(EditPhoneNumber(order.receiver.phone));
+
+            let cleanedReceiverPhone = order.receiver.phone.replace(/[()\s]/g, '').replace(/^(\+)?/, '+');
+
+            if (cleanedReceiverPhone.startsWith('+')) {
+                $("#receiver_phone").text(EditPhoneNumber(cleanedReceiverPhone));
+            } else {
+                $("#receiver_phone").text(EditPhoneNumber('+' + cleanedReceiverPhone));
             }
+
+
 
             if (order.createdAt) {
                 var date1 = order.createdAt.toDate().toDateString();
@@ -421,18 +459,18 @@
                     payment_method = '<img alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'" width="30%" height="30%">';
 
                 } else if (order.payment_method == "xendit") {
-                        image = '{{asset("images/payment/xendit.png")}}';
-                        payment_method = '<img alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'" width="30%" height="30%">';
+                    image = '{{asset("images/payment/xendit.png")}}';
+                    payment_method = '<img alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'" width="30%" height="30%">';
 
-                    } else if (order.payment_method == "midtrans") {
-                        image = '{{asset("images/payment/midtrans.png")}}';
-                        payment_method = '<img alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'"  width="30%" height="30%">';
+                } else if (order.payment_method == "midtrans") {
+                    image = '{{asset("images/payment/midtrans.png")}}';
+                    payment_method = '<img alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'"  width="30%" height="30%">';
 
-                    } else if (order.payment_method == "orangepay") {
-                        image = '{{asset("images/payment/orangepay.png")}}';
-                        payment_method = '<img alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'" width="30%" height="30%">';
+                } else if (order.payment_method == "orangepay") {
+                    image = '{{asset("images/payment/orangepay.png")}}';
+                    payment_method = '<img alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'" width="30%" height="30%">';
 
-                    } else if (order.payment_method == "cod") {
+                } else if (order.payment_method == "cod") {
                     image = '{{asset("images/payment/cashondelivery.png")}}';
                     payment_method = '<img alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'"  width="30%" height="30%">';
 
@@ -485,19 +523,13 @@
             $('#payment_method').html('<span>' + payment_method + '</span>');
 
             if (order.driver != '' && order.driver != undefined) {
-                if (order.driver.carName != '') {
-                    $('#driver_carName').text(order.driver.carName);
-                } else {
-                    $('#para_carName').hide();
-                }
-
-                $('#driver_carNumber').text(order.driver.carNumber);
+              
                 $('#driver_email').html('<a href="mailto:' + order.driver.email + '">' + shortEmail(order.driver.email) + '</a>');
                 $('#driver_firstName').text(order.driver.firstName);
                 $('#driver_lastName').text(order.driver.lastName);
-                if(order.driver.phoneNumber.includes('+')){
+                if (order.driver.phoneNumber.includes('+')) {
                     $('#driver_phone').text('+' + EditPhoneNumber(order.driver.phoneNumber.slice(1)));
-                }else{
+                } else {
                     $('#driver_phone').text(EditPhoneNumber(order.driver.phoneNumber));
                 }
 
@@ -506,13 +538,8 @@
                 $('.driver_details_hide').empty();
             }
 
-            if (order.driverID != '' && order.driverID != undefined) {
-                driverId = order.driverID;
-            }
-
             fcmToken = order.author.fcmToken;
             customername = order.author.firstName;
-
             old_order_status = order.status;
 
             if (order.payment_shared != undefined) {
@@ -524,12 +551,9 @@
             if (productsListHTML != '') {
                 append_procucts_list.innerHTML = productsListHTML;
             }
-
             if (productstotalHTML != '') {
                 append_procucts_total.innerHTML = productstotalHTML;
             }
-
-
             orderPreviousStatus = order.status;
             if (order.hasOwnProperty('payment_method')) {
                 orderPaymentMethod = order.payment_method;
@@ -539,8 +563,6 @@
             if (order.status == "Order Rejected" || order.status == "Driver Rejected") {
                 $("#order_status").prop("disabled", true);
             }
-            var price = 0;
-
 
             jQuery("#data-table_processing").hide();
         })
@@ -647,34 +669,26 @@
 
     function buildHTMLParcelList(snapshotsParcel) {
         var html = '';
-        var parcelCategoryID = parcelCategoryID;
-        var alldata = [];
-        var number = [];
-        var totalProductPrice = 0;
-
-
+        
         html = html + '<tr>';
-
-        var extra_html = '';
 
         html = html + '<td class="order-product"><div class="order-product-box">';
 
         html = html + '</div><div class="orders-tracking"><h6>' + snapshotsParcel.parcelWeight + '</h6><div class="orders-tracking-item-details">';
 
         html = html + '</div></div></td>';
+        
         var parcelWeightCharge = "";
         var subTotal = "";
         if (currencyAtRight) {
             parcelWeightCharge = parseFloat(snapshotsParcel.parcelWeightCharge).toFixed(decimal_degits) + "" + currentCurrency;
             subTotal = parseFloat(snapshotsParcel.subTotal).toFixed(decimal_degits) + "" + currentCurrency;
-
         } else {
             parcelWeightCharge = currentCurrency + "" + parseFloat(snapshotsParcel.parcelWeightCharge).toFixed(decimal_degits);
             subTotal = currentCurrency + "" + parseFloat(snapshotsParcel.subTotal).toFixed(decimal_degits);
-
         }
 
-        if (snapshotsParcel.hasOwnProperty('parcelType')  && snapshotsParcel.parcelType != '') {
+        if (snapshotsParcel.hasOwnProperty('parcelType') && snapshotsParcel.parcelType != '') {
             $('#parcel_type').text(snapshotsParcel.parcelType);
         } else {
             $('#div_parcel_category').hide();
@@ -687,183 +701,138 @@
         return html;
     }
 
+    function buildParcelTotal(orderData) {
 
-    function buildParcelTotal(snapshotsProducts) {
+        var html = '';
+    
+        let adminCommission =  parseFloat(orderData.adminCommission || 0);;
+        let adminCommissionType = orderData.adminCommissionType;
+        let order_subtotal = parseFloat(orderData.subTotal || 0);
+        let total_discount = 0;
+        let total_tax_amount = 0;
 
-        var intRegex = /^\d+$/;
-        var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
+        // Discount
+        let discount = parseFloat(orderData.discount || 0);
+        total_discount = isNaN(discount) ? 0 : discount;
 
-        var adminCommission = snapshotsProducts.adminCommission;
-        var adminCommissionType = snapshotsProducts.adminCommissionType;
-        var discount = snapshotsProducts.discount;
-        var discountType = snapshotsProducts.discountType;
-        var discountLabel = "";
-        var subTotal = snapshotsProducts.subTotal;
-        var notes = snapshotsProducts.note;
+        // Order tax
+        let orderTaxable = Math.max(0, order_subtotal - total_discount);
+        let orderCombinedTax = 0;
+        (orderData.taxSetting || []).forEach(tax => {
+            if (tax.enable) {
+                let taxAmount = tax.type === "percentage"
+                    ? (parseFloat(tax.tax) / 100) * orderTaxable
+                    : parseFloat(tax.tax);
 
-        var html = "";
-        var intRegex = /^\d+$/;
-        var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
-        var total_price = subTotal;
-        if (currencyAtRight) {
-            var sub_total = parseFloat(total_price).toFixed(decimal_degits) + "" + currentCurrency;
-        } else {
-            var sub_total = currentCurrency + "" + parseFloat(total_price).toFixed(decimal_degits);
-        }
-        html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.sub_total")}}</span></td></tr>';
-
-        html = html + '<tr class="final-rate"><td class="label">{{trans("lang.sub_total")}}</td><td class="sub_total" style="color:green">(' + sub_total + ')</td></tr>';
-
-
-        var discount_price = subTotal;
-
-        if (intRegex.test(discount) || floatRegex.test(discount)) {
-            html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.discount")}}</span></td></tr>';
-            discount = parseFloat(discount).toFixed(decimal_degits);
-
-            total_price = subTotal - parseFloat(discount);
-            discount_price = subTotal - parseFloat(discount);
-
-            if (discountType == "Percentage") {
-                discountLabel = "(" + snapshotsProducts.discountLabel + "%)";
-
+                total_tax_amount += isNaN(taxAmount) ? 0 : taxAmount;
+                orderCombinedTax += parseFloat(taxAmount);
             }
+        });
+        taxBreakdownGrouped.order[''] = orderCombinedTax;
 
-            if (currencyAtRight) {
+        // Extra charges
+        let platformFee = parseFloat(orderData.platformFee || 0);
 
-                discount = discount + "" + currentCurrency;
-            } else {
-                discount = currentCurrency + "" + discount;
-            }
-
-            html = html + '<tr><td class="label"> {{trans("lang.discount")}} ' + discountLabel + ' </td><td style="color:red">( - ' + discount + ')</td></tr>';
-
-        }
-
-        var tax = 0;
-        var taxlabel = '';
-        var taxlabeltype = '';
-        var total_tax_amount = 0;
-
-        var taxHtml = '';
-
-        if (snapshotsProducts.hasOwnProperty('taxSetting'))
-        {
-            html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.tax_calculation")}}</span></td></tr>';
-            for (var i = 0; i < snapshotsProducts.taxSetting.length; i++) {
-                var data = snapshotsProducts.taxSetting[i];
-
-                if (data.type && data.tax) {
-                    if (data.type == "percentage") {
-
-                        tax = (data.tax * total_price) / 100;
-                        taxlabeltype = "%";
-                        var taxvalue = data.tax;
-
-                    } else {
-                        tax = data.tax;
-                        taxlabeltype = "";
-                        if (currencyAtRight) {
-                            var taxvalue = parseFloat(data.tax).toFixed(decimal_degits) + "" + currentCurrency;
-                        } else {
-                            var taxvalue = currentCurrency + "" + parseFloat(data.tax).toFixed(decimal_degits);
-
-                        }
-
+        // Extra taxes
+        [
+            {key: 'platform', amount: platformFee, taxes: orderData.platformTax || []},
+        ].forEach(scope => {
+            scope.taxes?.forEach(tax => {
+                if (tax.enable) {
+                    let taxAmount = 0;
+                    if(scope.amount > 0){
+                        taxAmount = tax.type === "percentage"
+                        ? (parseFloat(tax.tax) / 100) * scope.amount
+                        : parseFloat(tax.tax);
                     }
-                    taxlabel = data.title;
+                    total_tax_amount += isNaN(taxAmount) ? 0 : taxAmount;
+                    taxBreakdownGrouped[scope.key][tax.title] = (taxBreakdownGrouped[scope.key][tax.title] || 0) + parseFloat(taxAmount);
                 }
-                total_tax_amount += parseFloat(tax);
+            });
+        });
 
-                if (!isNaN(tax) && tax != 0) {
-                    if (currencyAtRight) {
-                        html = html + '<tr><td class="label">' + taxlabel + '(' + taxvalue + taxlabeltype + ')' + '</td><td> + ' + parseFloat(tax).toFixed(decimal_degits) + "" + currentCurrency + '</td></tr>';
+        // Final price
+        let order_total = (order_subtotal - total_discount) + platformFee + total_tax_amount;
+        
+        html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.sub_total') }}</span></td></tr>';
+        html = html +
+            '<tr class="final-rate"><td class="label">{{ trans('lang.sub_total') }}</td><td class="sub_total" style="color:green">(' +
+            formatCurrency(order_subtotal, currencyData) + ')</td></tr>';
 
-                    } else {
-                        html = html + '<tr><td class="label">' + taxlabel + '(' + taxvalue + taxlabeltype + ')' + '</td><td> + ' + currentCurrency + "" + parseFloat(tax).toFixed(decimal_degits) + '</td></tr>';
-
-
-                    }
-                }
-            }
+        html = html +
+            '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.discount') }}</span></td></tr>';
+        
+        let couponCode_html = '';
+        if (discount > 0) {
+            let discountLabel = "(" + orderData.discountLabel + "%)";
+            couponCode_html = '</br><small>{{ trans('lang.coupon_codes') }} :' + discountLabel + '</small>';
         }
+        html = html + '<tr><td class="label">{{ trans('lang.discount') }}' + couponCode_html +
+            '</td><td class="discount text-danger">(-' + formatCurrency(total_discount, currencyData) + ')</td></tr>';
 
-        total_price = total_price + parseFloat(total_tax_amount);
+        html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.platform_charge') }}</span></td></tr>';
+        html = html +'<tr><td class="label">{{ trans('lang.platform_charge') }}</td><td class="platform_charge " id="greenColor">+' +
+                formatCurrency(platformFee, currencyData) + '</td></tr>';
 
+        html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.tax_calculation') }}</span></td></tr>';
+        html = html + renderTaxSection('order', 'Tax on Order Total');
+        html = html + renderTaxSection('platform', 'Tax on Platform Fee');
+        html = html +'<tr><td class="label"><strong>{{ trans('lang.total_tax') }}</strong></td><td class="total_tax " id="greenColor"><strong>+' +
+        formatCurrency(total_tax_amount, currencyData) + '</strong></td></tr>';
+        
         html += '<tr><td class="seprater" colspan="2"><hr></td></tr>';
-        if (currencyAtRight) {
+        
+        html = html +
+            '<tr class="grand-total"><td class="label">{{ trans('lang.total_amount') }}</td><td class="total_price_val " id="greenColor">' +
+            formatCurrency(order_total, currencyData) + '</td></tr>';
 
-            var total_price_val = total_price.toFixed(decimal_degits) + "" + currentCurrency;
-        } else {
-            var total_price_val = currentCurrency + "" + total_price.toFixed(decimal_degits);
-        }
-
-        html = html + '<tr class="grand-total"><td class="label">{{trans("lang.total_amount")}}</td><td class="total_price_val">' + total_price_val + '</td></tr>';
-
-        if (intRegex.test(adminCommission) || floatRegex.test(adminCommission)) {
-            var adminCommHtml = "";
-            if (discount != 0 && discount != '') {
-                if (adminCommissionType == "percentage") {
-                    adminCommHtml = "(" + adminCommission + "%)";
-                    var adminCommission_val = parseFloat(parseFloat(discount_price * adminCommission) / 100).toFixed(decimal_degits);
-                } else {
-                    var adminCommission_val = parseFloat(adminCommission).toFixed(decimal_degits);
-                }
-            } else {
-                if (adminCommissionType == "percentage") {
-                    commission = (subTotal * parseFloat(adminCommission)) / 100;
-                } else {
-                    commission = parseFloat(adminCommission);
-                }
-                adminCommission = commission;
+        if (adminCommission > 0) {
+            let adminCommHtml = "";
+            let adminCommission_val = 0;
+            if (adminCommissionType === "percentage") {
+                adminCommHtml = "(" + adminCommission + "%)";
             }
-
-
-            if (currencyAtRight) {
-
-                adminCommission = parseFloat(adminCommission_val).toFixed(decimal_degits) + "" + currentCurrency;
+            let commissionBase = (discount != 0 && discount != '') ? orderTaxable : order_subtotal;
+            if (adminCommissionType === "percentage") {
+                adminCommission_val = (commissionBase * adminCommission) / 100;
             } else {
-                adminCommission = currentCurrency + "" + parseFloat(adminCommission_val).toFixed(decimal_degits);
+                adminCommission_val = parseFloat(adminCommission);
             }
-
-            html = html + '<tr><td class="label"><small>{{trans("lang.admin_commission")}} ' + adminCommHtml + '</small> </td><td style="color:red"><small>( ' + adminCommission + ' )</small></td></tr>';
-
+            html = html + '<tr><td class="label"><small>{{ trans('lang.admin_commission') }} ' + adminCommHtml +
+            '</small> </td><td style="color:red"><small>( ' +  formatCurrency(adminCommission_val, currencyData) + ' )</small></td></tr>';
         }
 
-        if (notes != "") {
-            html = html + '<tr><td class="label">{{trans("lang.notes")}}</td><td> ' + notes + ' </td></tr>';
-
-        }
         return html;
     }
 
+
     function PrintElem(elem) {
         var css = '@page { size: portrait; }',
-                head = document.head || document.getElementsByTagName('head')[0],
-                style = document.createElement('style');
+            head = document.head || document.getElementsByTagName('head')[0],
+            style = document.createElement('style');
 
-            style.type = 'text/css';
-            style.media = 'print';
+        style.type = 'text/css';
+        style.media = 'print';
 
-            if (style.styleSheet) {
-                style.styleSheet.cssText = css;
-            } else {
-                style.appendChild(document.createTextNode(css));
-            }
+        if (style.styleSheet) {
+            style.styleSheet.cssText = css;
+        } else {
+            style.appendChild(document.createTextNode(css));
+        }
 
-            head.appendChild(style);
-            var printContents = $('.printableArea').html();
-            var originalContents = document.body.innerHTML;
-            document.body.innerHTML = printContents;
-            window.print();
-            document.body.innerHTML = originalContents;
+        head.appendChild(style);
+        var printContents = $('.printableArea').html();
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
 
     }
 
 
 
     function getUserReview(Order) {
-        refUserReview.limit(page_size).get().then(async function (userreviewsnapshot) {
+        refUserReview.limit(page_size).get().then(async function(userreviewsnapshot) {
             var reviewHTML = '';
             reviewHTML = buildRatingsAndReviewsHTML(Order, userreviewsnapshot);
             if (userreviewsnapshot.docs.length > 0) {
@@ -889,8 +858,8 @@
             review_user_view = review_user_view.replace(':id', val.CustomerId);
             rating = val.rating;
             reviewhtml = reviewhtml + '<div class="reviews-members py-3 border mb-3"><div class="media">';
-            reviewhtml = reviewhtml + '<a href="' + review_user_view + '"><img alt="#" src="'+val.profile+'" onerror="this.onerror=null;this.src=\'' + place_image + '\'" class=" img-circle img-size-32 mr-2" style="width:60px;height:60px"></a>';
-            reviewhtml = reviewhtml + '<div class="media-body d-flex"><div class="reviews-members-header"><h6 class="mb-0"><a class="text-dark" href="' + review_user_view + '">'+val.uname+'</a></h6><div class="star-rating"><div class="d-inline-block" style="font-size: 14px;">';
+            reviewhtml = reviewhtml + '<a href="' + review_user_view + '"><img alt="#" src="' + val.profile + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'" class=" img-circle img-size-32 mr-2" style="width:60px;height:60px"></a>';
+            reviewhtml = reviewhtml + '<div class="media-body d-flex"><div class="reviews-members-header"><h6 class="mb-0"><a class="text-dark" href="' + review_user_view + '">' + val.uname + '</a></h6><div class="star-rating"><div class="d-inline-block" style="font-size: 14px;">';
             reviewhtml = reviewhtml + ' <ul class="rating" data-rating="' + rating + '">';
             reviewhtml = reviewhtml + '<li class="rating__item"></li>';
             reviewhtml = reviewhtml + '<li class="rating__item"></li>';
@@ -922,6 +891,16 @@
         return reviewhtml;
     }
 
+    function renderTaxSection(section, labelSuffix) {
+        let html = '';
+        if (!taxBreakdownGrouped[section]) return '';
+        for (let title in taxBreakdownGrouped[section]) {
+            let taxlabel = title;
+            let taxAmount = parseFloat(taxBreakdownGrouped[section][title]);
+            html = html + '<tr><td class="label">' + taxlabel + " " + labelSuffix + '</td><td class="tax_amount" id="greenColor">+' + formatCurrency(taxAmount, currencyData) + '</td></tr>';
+        }
+        return html;
+    }
 </script>
 
 @endsection

@@ -6,8 +6,8 @@ import 'package:rxdart/rxdart.dart';
 
 import '../models/distance_doc_snapshot.dart';
 import '../models/point.dart';
-import '../utils/math.dart';
 import '../utils/arrays.dart';
+import '../utils/math.dart';
 
 class BaseGeoFireCollectionRef<T> {
   final Query<T> _collectionReference;
@@ -33,9 +33,7 @@ class BaseGeoFireCollectionRef<T> {
   }
 
   /// add a document to collection with [data]
-  Future<DocumentReference<T>> add(
-    T data,
-  ) {
+  Future<DocumentReference<T>> add(T data) {
     try {
       final colRef = _collectionReference as CollectionReference<T>;
       return colRef.add(data);
@@ -65,12 +63,7 @@ class BaseGeoFireCollectionRef<T> {
   }
 
   /// set a geo point with [latitude] and [longitude] using [field] as the object key to the document with [id]
-  Future<void> setPoint(
-    String id,
-    String field,
-    double latitude,
-    double longitude,
-  ) {
+  Future<void> setPoint(String id, String field, double latitude, double longitude) {
     try {
       CollectionReference colRef = _collectionReference as CollectionReference;
       var point = GeoFirePoint(latitude, longitude).data;
@@ -87,14 +80,13 @@ class BaseGeoFireCollectionRef<T> {
     required String field,
     required GeoPoint? Function(T t) geopointFrom,
     required bool? strictMode,
-  }) =>
-      protectedWithinWithDistance(
-        center: center,
-        radius: radius,
-        field: field,
-        geopointFrom: geopointFrom,
-        strictMode: strictMode,
-      ).map((snapshots) => snapshots.map((snapshot) => snapshot.documentSnapshot).toList());
+  }) => protectedWithinWithDistance(
+    center: center,
+    radius: radius,
+    field: field,
+    geopointFrom: geopointFrom,
+    strictMode: strictMode,
+  ).map((snapshots) => snapshots.map((snapshot) => snapshot.documentSnapshot).toList());
 
   /// query firestore documents based on geographic [radius] from geoFirePoint [center]
   /// [field] specifies the name of the key in the document
@@ -134,35 +126,26 @@ class BaseGeoFireCollectionRef<T> {
         if (geoPoint == null) return null;
         // We will handle it to fail gracefully
 
-        final kmDistance = center.kmDistance(
-          lat: geoPoint.latitude,
-          lng: geoPoint.longitude,
-        );
-        return DistanceDocSnapshot(
-          documentSnapshot: documentSnapshot,
-          kmDistance: kmDistance,
-        );
+        final kmDistance = center.kmDistance(lat: geoPoint.latitude, lng: geoPoint.longitude);
+        return DistanceDocSnapshot(documentSnapshot: documentSnapshot, kmDistance: kmDistance);
       });
 
       final nullableFilteredList = nonNullStrictMode
           ? mappedList
-              .where((doc) => doc != null && doc.kmDistance <= radius * 1.02 // buffer for edge distances;
-                  )
-              .toList()
+                .where(
+                  (doc) => doc != null && doc.kmDistance <= radius * 1.02, // buffer for edge distances;
+                )
+                .toList()
           : mappedList.toList();
       final filteredList = nullableFilteredList.whereNotNull().toList();
 
-      filteredList.sort(
-        (a, b) => (a.kmDistance * 1000).toInt() - (b.kmDistance * 1000).toInt(),
-      );
+      filteredList.sort((a, b) => (a.kmDistance * 1000).toInt() - (b.kmDistance * 1000).toInt());
       return filteredList;
     });
     return filtered.asBroadcastStream();
   }
 
-  Stream<List<QueryDocumentSnapshot<T>>> mergeObservable(
-    Iterable<Stream<List<QueryDocumentSnapshot<T>>>> queries,
-  ) {
+  Stream<List<QueryDocumentSnapshot<T>>> mergeObservable(Iterable<Stream<List<QueryDocumentSnapshot<T>>>> queries) {
     final mergedObservable = Rx.combineLatest<List<QueryDocumentSnapshot<T>>, List<QueryDocumentSnapshot<T>>>(queries, (originalList) {
       final reducedList = <QueryDocumentSnapshot<T>>[];
       for (final t in originalList) {

@@ -1,13 +1,5 @@
 @include('layouts.app')
 @include('layouts.header')
-@php
-    $cityToCountry= file_get_contents(public_path('tz-cities-to-countries.json'));
-    $cityToCountry=json_decode($cityToCountry,true);
-    $countriesJs=array();
-    foreach($cityToCountry as $key=>$value){
-    $countriesJs[$key]=$value;
-    }
-@endphp
 <div class="rentalcar-detail-page pt-5 product-detail-page mb-4">
     <div class="container position-relative">
         <div class="car-detail-inner">
@@ -16,7 +8,7 @@
                 </div>
                 <div class="hidden-inputs">
                     <input type="hidden" name="vendor_id" id="vendor_id" value="">
-                    <input type="hidden" name="vendor_name" id="vendor_name" value="">
+                    <input type="hidden" name="vendor_name" id="vendor_name" class="vendor_name" value="">
                     <input type="hidden" name="vendor_location" id="vendor_location" value="">
                     <input type="hidden" name="vendor_latitude" id="vendor_latitude" value="">
                     <input type="hidden" name="vendor_longitude" id="vendor_longitude" value="">
@@ -116,11 +108,15 @@
     </div>
 </div>
 @include('layouts.footer')
+
 <script src="{{ asset('js/geofirestore.js') }}"></script>
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
+
 <script type="text/javascript">
+
     var firestore = firebase.firestore();
     var id = '<?php echo $id; ?>';
+    
     var productsRef = database.collection('vendor_products').doc(id);
     var geoFirestore = new GeoFirestore(firestore);
     var review_pagesize = 5;
@@ -130,12 +126,53 @@
     var reviewAttributes = {};
     var vendorLongitude = '';
     var vendorLatitude = '';
+    var isSelfDeliveryGlobally = false;
+    var isSelfDeliveryByVendor = false;
+    let adminCommissionSettings = localStorage.getItem('adminCommissionSettings');
+
+    var taxScope = '';
+    var relatedRadius = 10; 
+    var distanceType = 'km';
+    var refGlobal = database.collection('settings').doc("globalSettings");
+    refGlobal.get().then(async function(
+        settingSnapshots) {
+        if (settingSnapshots.data()) {
+            var settingData = settingSnapshots.data();
+            if (settingData.isSelfDelivery) {
+                isSelfDeliveryGlobally = true;
+            }
+            taxScope = settingData.taxScope;
+        }
+    });
+
+    var taxSetting = [];
+
+    let userCountry = getCookie('userCountryName');
+    const scopes = ['delivery', 'order', 'packaging', 'platform', 'product'];
+    const taxesByScope = {};
+    database.collection('tax').where('country', '==', userCountry).where('enable', '==', true).where('scope', 'in', scopes).where('sectionId', '==', section_id).get().then(snapshot => {
+        snapshot.forEach(doc => {
+            const tax = doc.data();
+            (taxesByScope[tax.scope] ??= []).push(tax);
+        });
+    });
+    
+    var platformCharge = '0';
+    let platformFeeSettings = JSON.parse(localStorage.getItem('platformFeeSettings'));
+    if (platformFeeSettings && platformFeeSettings.enable) {
+        platformCharge = platformFeeSettings.fee;
+    }
+
+    var packagingCharge = '0';
+    let packagingChargeEnable = localStorage.getItem('packagingChargeEnable') === 'true' || false;
+    
     var placeholderImageRef = database.collection('settings').doc('placeHolderImage');
     var placeholderImageSrc = '';
-    placeholderImageRef.get().then(async function (placeholderImageSnapshots) {
+    placeholderImageRef.get().then(async function(placeholderImageSnapshots) {
         var placeHolderImageData = placeholderImageSnapshots.data();
         placeholderImageSrc = placeHolderImageData.image;
     });
+
     var specialOfferRef = database.collection('settings').doc('specialDiscountOffer');
     var enableSpecialOfferAdmin = false;
     specialOfferRef.get().then(async function (snapShots) {
@@ -144,21 +181,27 @@
             enableSpecialOfferAdmin = specialOfferData.isEnable;
         }
     });
+
     var DeliveryCharge = database.collection('settings').doc('DeliveryCharge');
     var distanceType='km';
     var radiusRef=database.collection('settings').doc('DriverNearBy');
     radiusRef.get().then(async function(snapshot) {
         var radiusData=snapshot.data();
         distanceType=radiusData.distanceType;
-    })
+    });
+
+    var currencyData = '';
     var currentCurrency = '';
     var currencyAtRight = false;
+    var decimal_degits = 0;
+
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     var deliveryChargemain = [];
+
     var ecommerce_delivery_charge = 0;
     var decimal_degits = 0;
     refCurrency.get().then(async function (snapshots) {
-        var currencyData = snapshots.docs[0].data();
+        currencyData = snapshots.docs[0].data();
         currentCurrency = currencyData.symbol;
         currencyAtRight = currencyData.symbolAtRight;
         loadcurrency();
@@ -166,6 +209,7 @@
             decimal_degits = currencyData.decimal_degits;
         }
     });
+
     var refReviewAttributes = database.collection('review_attributes');
     refReviewAttributes.get().then(async function (snapshots) {
         if (snapshots != undefined) {
@@ -175,35 +219,25 @@
             });
         }
     });
-    var cityToCountry = '<?php echo json_encode($countriesJs); ?>';
-    cityToCountry = JSON.parse(cityToCountry);
-    var userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    var userCity = userTimeZone.split('/')[1];
-    var userCountry = cityToCountry[userCity];
-    var taxSetting = [];
-    var reftaxSetting = database.collection('tax').where('country', '==', userCountry).where('enable', '==', true).where('sectionId', '==', section_id);
-    reftaxSetting.get().then(async function (snapshots) {
-        if (snapshots.docs.length > 0) {
-            snapshots.docs.forEach((val) => {
-                val = val.data();
-                var obj = '';
-                obj = {
-                    'country': val.country,
-                    'enable': val.enable,
-                    'id': val.id,
-                    'tax': val.tax,
-                    'title': val.title,
-                    'type': val.type,
-                };
-                taxSetting.push(obj);
-            })
+    
+    var isProductDetails = false;
+    var sectionData = '';
+    database.collection("sections").doc(section_id).get().then(function (sectionSnapshot) {
+        if (sectionSnapshot.exists) {
+            sectionData = sectionSnapshot.data();           
+            isProductDetails = sectionData.is_product_details === true;
         }
     });
+
     let final_price='';
+
     $(document).ready(async function () {
+
         priceData = await fetchVendorPriceData();
         final_price=priceData[id];
+
         getProductDetail();
+
         $(document).on('swipe, afterChange', '.nav-slider', function (event, slick, direction) {
             $('.main-slider').slick('slickGoTo', slick.currentSlide);
         });
@@ -220,11 +254,14 @@
             view_product_details = view_product_details.replace(':id', pid);
             window.location.href = view_product_details;
         });
+
         $(document).on("click", '.add-to-cart', async function (event) {
+
             @guest
                 window.location.href = '<?php echo route('login'); ?>';
             return false;
             @endguest
+            
             var $elem = $(this);
             var id = $(this).attr('data-id');
             var quantity = $('input[name="quantity_' + id + '"]').val();
@@ -232,15 +269,11 @@
                 Swal.fire({text: "{{trans('lang.invalid_qty')}}", icon: "error"});
                 return false;
             }
-            var extra = [];
-            var size = $('input[name="size_' + id + '"]:checked').val();
-            if (size) {
-                var price = parseFloat($('input[name="size_' + id + '"]:checked').attr('data-price'));
-            } else {
-                var price = parseFloat($('input[name="price_' + id + '"]').val());
-            }
-            var dis_price = parseFloat($('input[name="dis_price_' + id + '"]').val());
-            var item_price = price;
+            
+            var price = parseFloat($('input[name="price_' + id + '"]').val()) || 0;
+            var dis_price = parseFloat($('input[name="dis_price_' + id + '"]').val()) || 0;
+            var item_price = (dis_price > 0) ? dis_price : price;
+
             var stock_quantity = $('#quantity_' + id).val();
             var variant_info = {};
             if ($('#variation_info_' + id).length > 0) {
@@ -264,14 +297,31 @@
                 variant_info['variant_price'] = variant_price;
                 variant_info['variant_qty'] = variant_qty;
                 variant_info['variant_image'] = variant_img;
-                item_price = variant_price;
-                price = variant_price;
+
+                item_price = variant_price > 0 ? variant_price : item_price;
+                price = variant_price > 0 ? variant_price : price;
+                
             } else {
-                if (stock_quantity != undefined && stock_quantity != -1 && quantity > stock_quantity) {
-                    Swal.fire({text: "{{trans('lang.invalid_stock_qty')}}", icon: "error"});
+                if (stock_quantity != undefined && stock_quantity != -1 && parseInt(quantity) > parseInt(
+                        stock_quantity)) {
+                    Swal.fire({
+                        text: "{{ trans('lang.invalid_stock_qty') }}",
+                        icon: "error"
+                    });
                     return false;
                 }
             }
+
+            var extra = [];
+            var extra_price = 0;
+            $('input:checkbox.extra_' + id).each(function () {
+                var sThisVal = (this.checked ? $(this).val() : "");
+                if (sThisVal != '') {
+                    extra_price = parseFloat($(this).attr('data-price')) + extra_price;
+                    extra.push(sThisVal);
+                }
+            });
+
             var category_id = $('input[name="category_id_' + id + '"]').val();
             var vendor_id = $('input[name="vendor_id"]').val();
             var vendor_name = $('input[name="vendor_name"]').val();
@@ -292,51 +342,50 @@
             var delivery_option = $('input[name="delivery_option"]').val();
             var name = $('input[name="name_' + id + '"]').val();
             var veg = $('input[name="veg_' + id + '"]').val();
-            price = price * quantity;
             var image = $('input[name="image_' + id + '"]').val();
-            var extra_price = 0;
-            $('input:checkbox.extra_' + id).each(function () {
-                var sThisVal = (this.checked ? $(this).val() : "");
-                if (sThisVal != '') {
-                    extra_price = parseFloat($(this).attr('data-price')) + extra_price;
-                    extra.push(sThisVal);
-                }
-            });
-            var iteam_extra_price = extra_price;
-            var total_price = price + extra_price;
-            image = image ? image : placeholderImageSrc;
+                image = image ? image : placeholderImageSrc;
+
+            const payload = {
+                _token: '<?php echo csrf_token(); ?>',
+                vendor_id,
+                extra,
+                id,
+                quantity,
+                stock_quantity,
+                name,
+                price,
+                dis_price,
+                image,
+                extra_price,
+                item_price,
+                vendor_location,
+                vendor_name,
+                vendor_image,
+                veg,
+                taxSetting,
+                taxScope,
+                taxesByScope,
+                packagingCharge,
+                packagingChargeEnable,
+                platformCharge,
+                currencyData,
+                vendor_latitude,
+                vendor_longitude,
+                variant_info,
+                category_id,
+                specialOfferForHour,
+                decimal_degits,
+                distanceType,
+                isSelfDelivery: (isSelfDeliveryByVendor && isSelfDeliveryGlobally) ? true : false,
+            };
+
             $.ajax({
                 type: 'POST',
                 url: "<?php echo route('add-to-cart'); ?>",
-                data: {
-                    _token: '<?php echo csrf_token(); ?>',
-                    vendor_id: vendor_id,
-                    extra: extra,
-                    size: size,
-                    id: id,
-                    quantity: quantity,
-                    stock_quantity: stock_quantity,
-                    name: name,
-                    price: price,
-                    dis_price: dis_price,
-                    image: image,
-                    extra_price: extra_price,
-                    item_price: item_price,
-                    vendor_location: vendor_location,
-                    vendor_name: vendor_name,
-                    vendor_image: vendor_image,
-                    veg: veg,
-                    taxValue: taxSetting,
-                    vendor_latitude: vendor_latitude,
-                    vendor_longitude: vendor_longitude,
-                    variant_info: variant_info,
-                    category_id: category_id,
-                    specialOfferForHour: specialOfferForHour,
-                    decimal_degits: decimal_degits,
-                    distanceType: distanceType
-                },
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify(payload),
                 success: function (data) {
-                    data = JSON.parse(data);
                     $('#cart_list').html(data.html);
                     loadcurrency();
                     $('#close_' + id).trigger("click");
@@ -348,6 +397,7 @@
                 }
             });
         });
+
         $(document).on("click", '.remove_item', function (event) {
             var id = $(this).attr('data-id');
             var vendor_id = $(this).attr('data-vendor');
@@ -362,6 +412,7 @@
                 }
             });
         });
+        
         $(document).on("click", '.count-number-input-cart', function (event) {
             var id = $(this).attr('data-id');
             var vendor_id = $(this).attr('data-vendor');
@@ -483,12 +534,18 @@
         productsRef.get().then(async function (snapshots) {
             if (snapshots != undefined) {
                 var html = '';
-                html = buildHTML(snapshots);
+                html = await buildHTML(snapshots);
                 jQuery("#overlay").hide();
                 if (html != '') {
                     var append_list = document.getElementById('product-detail');
                     append_list.innerHTML = html;
                     jQuery("#overlay").hide();
+
+                    const vendorProduct = snapshots.data();
+                    if (vendorProduct && vendorProduct.vendorID) {
+                        await getVendorDetails(vendorProduct.vendorID);   // This will now update .vendor_name correctly
+                    }
+
                     slickCarousel();
                 }
             }
@@ -513,8 +570,17 @@
             deliveryChargemain = deliveryChargeSnapshots.data();
         });
         var sectionName = getCookie('service_type');
-        vendorDetailsRef.get().then(async function (vendorSnapshots) {
-            var vendorDetails = vendorSnapshots.docs[0].data();
+        vendorSnapshots = await vendorDetailsRef.get();/*.then(async function (vendorSnapshots) {*/
+            var vendorDetails = vendorSnapshots.docs[0].data();   
+             
+            adminCommissionSettings = vendorDetails.adminCommission || adminCommissionSettings;
+         
+            if(packagingChargeEnable){
+                packagingCharge = vendorDetails.packagingCharge ?? '0';
+            }
+            if (vendorDetails.hasOwnProperty('isSelfDelivery') && vendorDetails.isSelfDelivery) {
+                isSelfDeliveryByVendor = true;
+            }
             var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             var currentdate = new Date();
             var currentDay = days[currentdate.getDay()];
@@ -562,6 +628,8 @@
             }
             $("#seller-image").html('<a href="' + view_vendor_details + '"><img style="height: 65px; width: 65px; border-radius: 50%" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'"></a>');
             $(".vendor_name").html('<a href="' + view_vendor_details + '">' + vendorDetails.title + '</a>');
+            $("#vendor_name").html('<a href="' + view_vendor_details + '">' + vendorDetails.title + '</a>');   // ← Add this line
+            $("#vendor_name_loading").html('<a href="' + view_vendor_details + '">' + vendorDetails.title + '</a>'); // safety
             $(".store_url").attr("href", view_vendor_details);
             $(".vendor-total-review").text(reviewsCount);
             try {
@@ -604,7 +672,7 @@
                 }
             }
             setCookie('specialOfferForHourMain', JSON.stringify(specialOfferForHour), 365);
-        })
+        // })
     }
 
     function getVendorProducts(vendorID) {
@@ -953,33 +1021,31 @@
     });
 
     /* Add to favorite code Ends */
-    function buildHTML(snapshots) {
+    async function buildHTML(snapshots) {
         var vendorProduct = snapshots.data();
         if (vendorProduct != undefined) {
             var vendorID = vendorProduct.vendorID;
             var productID = vendorProduct.id;
+            taxSetting = vendorProduct.taxSetting;
             checkFavoriteProduct(productID);
-            getVendorDetails(vendorID);
+            await getVendorDetails(vendorID);
             getVendorProducts(vendorID);
             getUsersReviews(vendorProduct, true);
             getRelatedProducts(vendorProduct);
             if (vendorProduct.brandID) {
                 getBrandData(vendorProduct.brandID);
             }
+           
             var html = '';
-            
-            var price = final_price.price;
-            if (vendorProduct.hasOwnProperty('disPrice') && vendorProduct.disPrice != '0') {
-                price = final_price.dis_price;
-            }
             if (vendorProduct.photo != null && vendorProduct.photo != "") {
                 photo = vendorProduct.photo;
             } else {
                 photo = placeholderImageSrc;
             }
+            
             var view_product_details = "{{ route('productdetail',':id')}}";
             view_product_details = view_product_details.replace(':id', 'id=' + vendorProduct.id);
-            /*---start row---*/
+            
             html = html + '<div class="col-md-6 rent-cardet-left">';
             if (vendorProduct.photos != null && vendorProduct.photos.length > 0) {
                 html = html + '<div class="main-slider">';
@@ -1001,6 +1067,7 @@
                 html = html + '<img alt="#" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" class="img-fluid item-img w-100">';
                 html = html + '</div>';
             }
+             
             html = html + '</div>';
             html = html + '<div class="col-md-6 rent-cardet-right">';
             html = html + '<div class="carrent-det-rg-inner">';
@@ -1086,12 +1153,34 @@
                     }
                 });
             }
+
             html = html + '<div class="store mt-2 mb-3">';
-            html = html + '<h3>{{trans("lang.store")}} | <span class="vendor_name"></span></h3>';
+            
+            html = html + '<h3>{{trans("lang.store")}} | <span class="vendor_name" id="vendor_name_loading">' + 
+              (vendorProduct.vendorName || vendorProduct.vendor_title || 'Loading...') + 
+              '</span></h3>';
             html = html + '</div>';
             html = html + '<div class="description mt-2 mb-3">';
             html = html + '<p>' + vendorProduct.description + '</p>';
             html = html + '</div>';
+            if (isProductDetails) {
+                html = html + '<div class="row quantity-row"><div class="col-6 grams mt-1 mb-1">';
+                html = html + '<h3>{{ trans('lang.grams') }} : <span class="gram quantity-count">' + vendorProduct
+                    .grams + '</span></h3>';
+                html = html + '</div>';
+                html = html + '<div class="col-6 calories mt-1 mb-1">';
+                html = html + '<h3>{{ trans('lang.calories') }} : <span class="calories quantity-count">' +
+                    vendorProduct.calories + '</span></h3>';
+                html = html + '</div></div>';
+                html = html + '<div class="row quantity-row"><div class="col-6 proteins mt-1 mb-1">';
+                html = html + '<h3>{{ trans('lang.proteins') }} : <span class="proteins quantity-count">' +
+                    vendorProduct.proteins + '</span></h3>';
+                html = html + '</div>';
+                html = html + '<div class="col-6 fats mt-1 mb-1">';
+                html = html + '<h3>{{ trans('lang.fats') }} : <span class="fats quantity-count">' + vendorProduct
+                    .fats + '</span></h3>';
+                html = html + '</div></div>';
+            }
             if (vendorProduct.item_attribute != null && vendorProduct.item_attribute != "" && vendorProduct.item_attribute.attributes.length > 0 && vendorProduct.item_attribute.variants.length > 0) {
                 var attributes = vendorProduct.item_attribute.attributes;
                 var variants = vendorProduct.item_attribute.variants;
@@ -1101,31 +1190,60 @@
                 html = html + '<div class="attribute_list" id="attribute-list-' + vendorProduct.id + '" data-pid="' + vendorProduct.id + '" data-product="' + btoa(JSON.stringify(vendorProduct)) + '"></div>';
                 html = html + '</div>';
                 html = html + '</div>';
-                getVariantsHtml(vendorProduct, attributes, variants)
-            }
+               
+                setTimeout(() => {
+                    getVariantsHtml(vendorProduct, attributes, variants);
+                }, 1500);
+            }           
+          
             if (vendorProduct.hasOwnProperty('addOnsPrice') && vendorProduct.addOnsPrice.length > 0) {
+
                 html = html + '<div class="addons mt-2 mb-3">';
-                if (vendorProduct.hasOwnProperty('sizePrice')) {
-                    var label_addon = "{{trans('lang.addons')}}";
-                    if (vendorProduct.sizePrice.length > 0) {
-                        html += '<h3 class="font-weight-bold mt-4">' + label_addon + '</h3>';
-                    } else {
-                        html += '<h3 class="font-weight-bold">' + label_addon + '</h3>';
-                    }
-                }
+
+                html += '<h3 class="font-weight-bold">{{trans('lang.addons')}}</h3>';
+
                 var total = 0;
-                vendorProduct.addOnsPrice.forEach(async (product_price) => {
+
+                vendorProduct.addOnsPrice.forEach((product_price) => {
+
                     var PRICE = parseFloat(product_price);
+                    var FINAL_ADDON_PRICE = PRICE; 
+
+                    if (adminCommissionSettings &&                           
+                            adminCommissionSettings.enable === true) {
+
+                            let commission = parseFloat(adminCommissionSettings.commission) || 0;
+
+                            if (adminCommissionSettings.type === "fixed") {
+                                FINAL_ADDON_PRICE = PRICE + commission;
+                            } else if (adminCommissionSettings.type === "percentage") {
+                                FINAL_ADDON_PRICE = PRICE + (PRICE * commission / 100);
+                            }
+
+                            FINAL_ADDON_PRICE = parseFloat(FINAL_ADDON_PRICE.toFixed(2));
+                     }
                     html += '<div class="addons-option">';
                     html += '<div class="custom-control custom-checkbox border-bottom py-2">';
-                    html += '<input data-price="' + PRICE + '" type="checkbox" id="' + vendorProduct.id + '_extra_' + total + '" name="extra_' + vendorProduct.id + '" value="' + vendorProduct.addOnsTitle[total] + '" class="custom-control-input extra_' + vendorProduct.id + '">';
-                    html += '<label class="custom-control-label" for="' + vendorProduct.id + '_extra_' + total + '">' + vendorProduct.addOnsTitle[total] + ' <span class="">+$' + PRICE + '</span></label>';
+
+                    html += '<input data-price="' + FINAL_ADDON_PRICE + '" type="checkbox" id="' +
+                        vendorProduct.id + '_extra_' + total +
+                        '" name="extra_' + vendorProduct.id +
+                        '" value="' + vendorProduct.addOnsTitle[total] +
+                        '" class="custom-control-input extra_' + vendorProduct.id + '">';
+
+                    html += '<label class="custom-control-label" for="' + vendorProduct.id + '_extra_' + total + '">'
+                        + vendorProduct.addOnsTitle[total] +
+                        ' <span class="">+$' + FINAL_ADDON_PRICE + '</span></label>';
+
                     html += '</div>';
                     html += '</div>';
+
                     total++;
                 });
+
                 html = html + '</div>';
             }
+
             html = html + '<div class="quantity mt-2 mb-3">';
             html += '<div class="d-flex align-items-center product-item-box">';
             var label_qty = "{{trans('lang.quantity')}}";
@@ -1140,13 +1258,24 @@
             html += '</div>';
             html = html + '</div>';
 
-            var disPrice = final_price.dis_price;
+            var main_price = final_price.price || 0;
+            var dis_price = final_price.dis_price || 0;
+            if (
+                vendorProduct.item_attribute &&
+                vendorProduct.item_attribute.attributes &&
+                vendorProduct.item_attribute.attributes.length > 0 &&
+                vendorProduct.item_attribute.variants &&
+                vendorProduct.item_attribute.variants.length > 0
+            ) {
+                main_price = 0;
+                dis_price = 0;
+            }
 
             html = html + '<div class="addtocart mt-2 mb-3">';
             html += "<button data-id='" + String(vendorProduct.id) + "' type='button' class='add-to-cart btn btn-primary btn-lg btn-block' >{{trans('lang.add_to_cart')}}</button>";
             html += '<input type="hidden" name="name_' + vendorProduct.id + '" id="name_' + vendorProduct.id + '" value="' + vendorProduct.name + '">';
-            html += '<input type="hidden" id="price_' + vendorProduct.id + '" name="price_' + vendorProduct.id + '" value="' + price + '">';
-            html += '<input type="hidden" id="dis_price_' + vendorProduct.id + '" name="dis_price_' + vendorProduct.id + '" value="' + vendorProduct.disPrice + '">';
+            html += '<input type="hidden" id="price_' + vendorProduct.id + '" name="price_' + vendorProduct.id + '" value="' + main_price + '">';
+            html += '<input type="hidden" id="dis_price_' + vendorProduct.id + '" name="dis_price_' + vendorProduct.id + '" value="' + dis_price + '">';
             html += '<input type="hidden" id="quantity_' + vendorProduct.id + '" name="quantity_' + vendorProduct.id + '" value="' + vendorProduct.quantity + '">';
             html += '<input type="hidden" id="image_' + vendorProduct.id + '" name="image_' + vendorProduct.id + '" value="' + vendorProduct.photo + '">';
             html += '<input type="hidden" id="veg_' + vendorProduct.id + '" name="veg_' + vendorProduct.id + '" value="' + vendorProduct.veg + '">';
@@ -1165,40 +1294,121 @@
             return result.exists ? result.data() : null;
         });
     }
-
+   
     async function getRelatedProducts(vendorProduct) {
-        var html = '';
-        database.collection('vendor_products').where('categoryID', "==", vendorProduct.categoryID).where("publish", "==", true).where('id', "!=", vendorProduct.id).orderBy('id','asc').orderBy('createdAt','asc').limit(4).get().then(async function (snapshots) {
-            html = await buildHTMLRelatedProducts(snapshots);
-            if (html != '') {
-                var append_list = document.getElementById('related_products');
-                append_list.innerHTML = html;
+        try {
+            var html = '';
+            
+            var currentVendorLat = parseFloat($('#vendor_latitude').val());
+            var currentVendorLng = parseFloat($('#vendor_longitude').val());
+            var takeawayOption = '{{ Session::get('takeawayOption') }}';
+            var takeawayOptionVal = takeawayOption === 'true' ? true : false ;
+            
+            
+            if (!currentVendorLat || !currentVendorLng || isNaN(currentVendorLat) || isNaN(currentVendorLng)) {
+                console.log('Vendor coordinates not available');
+                $('#related_products').html('<p class="text-muted">Vendor location not available to find nearby products.</p>');
+                return;
             }
-        });
+            
+            await getRadiusSettings();
+            
+            var vendorsRef = geoFirestore.collection('vendors')
+                .near({
+                    center: new firebase.firestore.GeoPoint(currentVendorLat, currentVendorLng),
+                    radius: relatedRadius
+                })
+                .where('section_id', '==', section_id)
+                .where('zoneId', '==', user_zone_id);
+            
+            const vendorsSnapshot = await vendorsRef.get();
+            const vendorIds = vendorsSnapshot.docs.map(doc => doc.id);
+            
+            
+            if (vendorIds.length === 0) {
+                let message = 'No related products found' ;
+                $('#related_products').html('<h3>{{trans("lang.related_products")}}</h3><div class="row"><p class="text-muted">' + message + '</p></div>');
+                return;
+            }
+           
+            const chunkSize = 10;
+            let allProducts = [];
+            
+            for (let i = 0; i < vendorIds.length; i += chunkSize) {
+                const chunk = vendorIds.slice(i, i + chunkSize);
+                
+                let productsQuery = database.collection('vendor_products')
+                    .where('categoryID', "==", vendorProduct.categoryID)
+                    .where("publish", "==", true)
+                    .where('id', "!=", vendorProduct.id)
+                    .where('vendorID', 'in', chunk);
+                
+                if (!takeawayOptionVal) {
+                    productsQuery = productsQuery.where('takeawayOption', '==', false);
+                    
+                } 
+                
+                const productsSnapshot = await productsQuery.get();
+                
+                productsSnapshot.forEach(doc => {
+                    const productData = doc.data();
+                    productData.id = doc.id;
+                    allProducts.push(productData);
+                });
+            }            
+            allProducts.sort((a, b) => {
+                const ratingA = a.reviewsSum && a.reviewsCount ? (a.reviewsSum / a.reviewsCount) : 0;
+                const ratingB = b.reviewsSum && b.reviewsCount ? (b.reviewsSum / b.reviewsCount) : 0;
+                return ratingB - ratingA;
+            });
+            
+            allProducts = allProducts.slice(0, 4);
+            
+            if (allProducts.length > 0) {
+                html = await buildRelatedProductsHTML(allProducts);
+                if (html != '') {
+                    $('#related_products').html(html);
+                }
+            } else {
+                let message ='No related products found' ;
+                $('#related_products').html('<h3>{{trans("lang.related_products")}}</h3><div class="row"><p class="text-muted">' + message + '</p></div>');
+            }
+            
+        } catch (error) {
+            console.error('Error in getRelatedProducts:', error);
+            $('#related_products').html('<h3>{{trans("lang.related_products")}}</h3><div class="row"><p class="text-muted">Error loading related products.</p></div>');
+        }
     }
-
-    async function buildHTMLRelatedProducts(snapshots) {
+   
+    async function buildRelatedProductsHTML(products) {
+        if (!products || products.length === 0) {
+            return '';
+        }
+        
         var html = '';
         var alldata = [];
         
-        await Promise.all(snapshots.docs.map(async (listval) => {
-            var datas = listval.data();
-            datas.id = listval.id;
-            inValidProductIds=await getUserItemLimit(datas.vendorID); 
-                    if(inValidProductIds.length === 0 || !inValidProductIds.includes(datas.id)) { 
-                      alldata.push(datas);                      
-                    }  
-            
+        // Filter invalid products
+        await Promise.all(products.map(async (product) => {
+            inValidProductIds = await getUserItemLimit(product.vendorID); 
+            if(inValidProductIds.length === 0 || !inValidProductIds.includes(product.id)) { 
+                alldata.push(product);                      
+            }  
         }));
-        var count = 0;
-        var popularFoodCount = 0;
-        html = html + '<h3>{{trans("lang.related_products")}}</h3>';
-        html = html + '<div class="row">';
-        alldata.forEach((listval) => {
-            var val = listval;
+        
+        if (alldata.length === 0) {
+            return '';
+        }
+        
+        html += '<h3>{{trans("lang.related_products")}}';        
+        html += '</h3>';
+        html += '<div class="row">';
+        
+        alldata.forEach((val) => {
             var vendor_id_single = val.id;
             var view_vendor_details = "{{ route('productdetail',':id')}}";
             view_vendor_details = view_vendor_details.replace(':id', vendor_id_single);
+            
             var rating = 0;
             var reviewsCount = 0;
             if (val.hasOwnProperty('reviewsSum') && val.reviewsSum != 0 && val.hasOwnProperty('reviewsCount') && val.reviewsCount != 0) {
@@ -1206,19 +1416,21 @@
                 rating = Math.round(rating * 10) / 10;
                 reviewsCount = val.reviewsCount;
             }
-            html = html + '<div class="col-md-3 product-list"><div class="list-card position-relative"><div class="list-card-image">';
-            if (val.photo) {
-                photo = val.photo;
-            } else {
-                photo = placeholderImageSrc;
-            }
-            html = html + '<a href="' + view_vendor_details + '"><img alt="#" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" class="img-fluid item-img w-100"></a></div><div class="py-2 position-relative"><div class="list-card-body position-relative"><h6 class="product-title mb-1"><a href="' + view_vendor_details + '" class="text-black">' + val.name + '</a></h6>';
-            html = html + '<h6 class="mb-1 popular_food_category_ pro-cat" id="popular_food_category_' + val.categoryID + '_' + val.id + '" ></h6>';
-            let relatedProductPrice=priceData[val.id];
+            
+            html += '<div class="col-md-3 product-list"><div class="list-card position-relative"><div class="list-card-image">';
+            
+            var photo = val.photo ? val.photo : placeholderImageSrc;
+            
+            html += '<a href="' + view_vendor_details + '"><img alt="#" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" class="img-fluid item-img w-100"></a>';
+            html += '</div><div class="py-2 position-relative"><div class="list-card-body position-relative">';
+            html += '<h6 class="product-title mb-1"><a href="' + view_vendor_details + '" class="text-black">' + val.name + '</a></h6>';
+            
+            let relatedProductPrice = priceData[val.id];
+            
             if (val.hasOwnProperty('disPrice') && val.disPrice != '' && val.disPrice != '0' && val.item_attribute == null) {
                 var or_price = getProductFormattedPrice(parseFloat(relatedProductPrice.price));
-				var dis_price = getProductFormattedPrice(parseFloat(relatedProductPrice.dis_price));
-                html = html + '<span class="pro-price">' + dis_price + '  <s>' + or_price + '</s></span>';
+                var dis_price = getProductFormattedPrice(parseFloat(relatedProductPrice.dis_price));
+                html += '<span class="pro-price">' + dis_price + '  <s>' + or_price + '</s></span>';
             } else {
                 if (val.item_attribute != null && val.item_attribute != "" && val.item_attribute.attributes.length > 0 && val.item_attribute.variants.length > 0) {
                     var variants_prices = [];
@@ -1226,23 +1438,25 @@
                     for(variant of variants){
                         variants_prices.push(variant.variant_price);
                     }
-                    var min_price = Math.min.apply(Math,variants_prices);
-                    var max_price = Math.max.apply(Math,variants_prices);
+                    var min_price = Math.min.apply(Math, variants_prices);
+                    var max_price = Math.max.apply(Math, variants_prices);
                     if(min_price != max_price){
-                        var or_price = getProductFormattedPrice(parseFloat(relatedProductPrice.min)) + " - "+getProductFormattedPrice(parseFloat(relatedProductPrice.max));
-                    }else{
+                        var or_price = getProductFormattedPrice(parseFloat(relatedProductPrice.min)) + " - " + getProductFormattedPrice(parseFloat(relatedProductPrice.max));
+                    } else {
                         var or_price = getProductFormattedPrice(parseFloat(relatedProductPrice.max));    
                     }
-                }else{
+                } else {
                     var or_price = getProductFormattedPrice(parseFloat(relatedProductPrice.price));
                 }
-                html = html + '<span class="pro-price">' + or_price + '</span>'
+                html += '<span class="pro-price">' + or_price + '</span>';
             }
-            html = html + '<div class="star position-relative mt-3"><span class="badge badge-success"><i class="feather-star"></i>' + rating + ' (' + reviewsCount + ')</span></div>';
-            html = html + '</div>';
-            html = html + '</div></div></div>';
+            
+            html += '<div class="star position-relative mt-3"><span class="badge badge-success"><i class="feather-star"></i>' + rating + ' (' + reviewsCount + ')</span></div>';
+            html += '</div>';
+            html += '</div></div></div>';
         });
-        html = html + '</div>';
+        
+        html += '</div>';
         return html;
     }
 
@@ -1377,6 +1591,49 @@
                     $('#variation_info_' + vendorProduct.id).find('#variant_qty').html('{{trans("lang.qty_left")}}: ' + variant_quantity);
                 }
             }
+        }
+    }
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = distanceType === 'km' ? 6371 : 3959; 
+        const dLat = deg2rad(lat2 - lat1);
+        const dLon = deg2rad(lon2 - lon1);
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c;
+        return distance;
+    }
+
+    function deg2rad(deg) {
+        return deg * (Math.PI/180);
+    }
+
+    async function getRadiusSettings() {
+        try {
+            var radiusRef = database.collection('settings').doc('DriverNearBy');
+            var radiusSnapshot = await radiusRef.get();
+            if (radiusSnapshot.exists) {
+                var radiusData = radiusSnapshot.data();
+                if (radiusData && radiusData.distanceType) {
+                    distanceType = radiusData.distanceType;
+                }
+            }
+            
+            var vendorNearByRef = database.collection('sections').doc(section_id);
+            var sectionSnapshot = await vendorNearByRef.get();
+            if (sectionSnapshot.exists) {
+                var vendorNearByRefData = sectionSnapshot.data();
+                if (vendorNearByRefData && vendorNearByRefData.hasOwnProperty('nearByRadius') && vendorNearByRefData.nearByRadius != '') {
+                    relatedRadius = parseInt(vendorNearByRefData.nearByRadius);
+                    if (distanceType == 'Miles') {
+                        relatedRadius = parseInt(relatedRadius * 1.60934);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading radius settings:', error);
         }
     }
 </script>

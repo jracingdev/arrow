@@ -12,24 +12,13 @@ use Google\Client as Google_Client;
 
 class OnDemandController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         if (!isset($_COOKIE['section_id']) && !isset($_COOKIE['address_name'])) {
             \Redirect::to('set-location')->send();
         }
-        $this->middleware('auth');
     }
 
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
     public function index($id)
     {
         $ondemand_cart = session()->get('ondemand_cart', []);
@@ -50,19 +39,27 @@ class OnDemandController extends Controller
     {
         $req = $request->all();
         $ondemand_cart = Session::get('ondemand_cart', []);
-        $ondemand_cart['taxValue'] = @$req['taxValue'];
+        $ondemand_cart['currencyData'] = $req['currencyData'] ?? [];
+        $ondemand_cart['taxScope'] = $req['taxScope'] ?? 'order';
+        $ondemand_cart['taxesByScope'] = $req['taxesByScope'] ?? [];
+        $ondemand_cart['taxSetting'] = $ondemand_cart['taxScope'] == "order" ? ($ondemand_cart['taxesByScope']['order'] ?? []) : [];
+        $ondemand_cart['platformCharge'] = $req['platformCharge'] ?? 0;
         $ondemand_cart['id'] = $req['id'];
         $ondemand_cart['providerId'] = $req['providerId'];
         $ondemand_cart['name'] = $req['name'];
         $ondemand_cart['quantity'] = $req['quantity'];
         $ondemand_cart['serviceCategoryId'] = $req['category_id'];
         $ondemand_cart['price'] = $req['price'];
-        $ondemand_cart['total_price'] = floatval($req['price']) * floatval($req['quantity']);
+        $ondemand_cart['quantity'] = $req['quantity'];
+        $ondemand_cart['total_item_price'] = floatval($req['price']) * floatval($req['quantity']);
         $ondemand_cart['dis_price'] = $req['dis_price'];
         $ondemand_cart['image'] = $req['image'];
         $ondemand_cart['decimal_degits'] = $req['decimal_degits'];
         $ondemand_cart['price_unit'] = $req['price_unit'];
         $ondemand_cart['coupon'] = [];
+
+        $ondemand_cart = $this->calculateTax($ondemand_cart);
+
         Session::put('ondemand_cart', $ondemand_cart);
         Session::save();
         $res = array('status' => true, 'html' => view('providersService.cart_item', ['ondemand_cart' => $ondemand_cart])->render());
@@ -75,7 +72,7 @@ class OnDemandController extends Controller
         $email = Auth::user()->email;
         $user = VendorUsers::where('email', $email)->first();
         $ondemand_cart = Session::get('ondemand_cart', []);
-        return view('providersService.ondemand_checkout', ['is_checkout' => 1, 'ondemand_cart' => $ondemand_cart, 'id' => $user->uuid]);
+        return view('providersService.ondemand_checkout', ['is_checkout' => 1, 'ondemand_cart' => $ondemand_cart, 'id' => $user->uuid, 'errorMessage' => Session::get('payment_error', '')]);
     }
 
     public function setExtraCharge(Request $request)
@@ -95,7 +92,7 @@ class OnDemandController extends Controller
         $email = Auth::user()->email;
         $user = VendorUsers::where('email', $email)->first();
         $extra_charge_cart = Session::get('extra_charge_cart');
-        return view('providersService.extra_charge.pay_extra_charge', ['is_checkout' => 1, 'extra_charge_cart' => $extra_charge_cart, 'id' => $user->uuid]);
+        return view('providersService.extra_charge.pay_extra_charge', ['is_checkout' => 1, 'extra_charge_cart' => $extra_charge_cart, 'id' => $user->uuid, 'errorMessage' => Session::get('payment_error', '')]);
     }
 
     public function changeQuantityCart(Request $request)
@@ -103,18 +100,54 @@ class OnDemandController extends Controller
         $req = $request->all();
         $id = $req['id'];
         $ondemand_cart = Session::get('ondemand_cart');
+
         if (isset($ondemand_cart['id']) && $ondemand_cart['id'] != '') {
+
+            // If quantity is 0 then remove cart
             if ($req['quantity'] == 0) {
                 session()->forget('ondemand_cart');
-            } else {
-                $ondemand_cart['quantity'] = $req['quantity'];
-                $ondemand_cart['total_price'] = $ondemand_cart['price'] * $ondemand_cart['quantity'];
-                Session::put('ondemand_cart', $ondemand_cart);
+                Session::save();
+                $res = [
+                    'status' => true,
+                    'html' => view('providersService.cart_item', ['ondemand_cart' => null])->render()
+                ];
+                echo json_encode($res);
+                exit;
             }
+
+            // Normal update
+            $ondemand_cart['quantity'] = $req['quantity'];
+            $ondemand_cart['total_item_price'] = $ondemand_cart['price'] * $ondemand_cart['quantity'];
         }
+
+        // Recalculate coupon if exists
+        if (!empty($ondemand_cart['coupon'])) {
+
+            $total_item_price = floatval($ondemand_cart['total_item_price']);
+
+            $discount_amount = 0;
+            $discount = $ondemand_cart['coupon']['discount'];
+            $discountType = $ondemand_cart['coupon']['discountType'];
+
+            if ($discountType == "Fix Price") {
+                $discount_amount = min($discount, $total_item_price);
+            } else {
+                $discount_amount = round(($total_item_price * $discount) / 100, 2);
+                $discount_amount = min($discount_amount, $total_item_price);
+            }
+
+            $ondemand_cart['coupon']['discount_amount'] = $discount_amount;
+        }
+
+        $ondemand_cart = $this->calculateTax($ondemand_cart);
+
+        Session::put('ondemand_cart', $ondemand_cart);
         Session::save();
-        $ondemand_cart = Session::get('ondemand_cart');
-        $res = array('status' => true, 'html' => view('providersService.cart_item', ['ondemand_cart' => $ondemand_cart])->render());
+
+        $res = [
+            'status' => true,
+            'html' => view('providersService.cart_item', ['ondemand_cart' => $ondemand_cart])->render()
+        ];
         echo json_encode($res);
         exit;
     }
@@ -127,12 +160,109 @@ class OnDemandController extends Controller
             $ondemand_cart['coupon']['coupon_id'] = $request->coupon_id;
             $ondemand_cart['coupon']['discount'] = $request->discount;
             $ondemand_cart['coupon']['discountType'] = $request->discountType;
+
+            $total_item_price = floatval($ondemand_cart['total_item_price']);
+            $total_item_price = round($total_item_price, 2);
+            
+            $discount_amount = 0;
+            if (@$ondemand_cart['coupon'] && $ondemand_cart['coupon']['discountType']) {
+                $discountType = $ondemand_cart['coupon']['discountType'];
+                $discount = $ondemand_cart['coupon']['discount'];
+                if ($discountType == "Fix Price") {
+                    $discount_amount = $ondemand_cart['coupon']['discount'];
+                    if ($discount_amount > $total_item_price) {
+                        $discount_amount = $total_item_price;
+                    }
+                } else {
+                    $discount_amount = $ondemand_cart['coupon']['discount'];
+                    $discount_amount = round((($total_item_price * $discount_amount) / 100), 2);
+                    if ($discount_amount > $total_item_price) {
+                        $discount_amount = $total_item_price;
+                    }
+                }
+            }
+            $ondemand_cart['coupon']['discount_amount'] = $discount_amount;
+
+            $ondemand_cart = $this->calculateTax($ondemand_cart);
             Session::put('ondemand_cart', $ondemand_cart);
             Session::save();
+            
             $res = array('status' => true, 'html' => view('providersService.cart_item', ['ondemand_cart' => $ondemand_cart])->render());
             echo json_encode($res);
             exit;
         }
+    }
+
+    public function removeCoupon(Request $request)
+    {
+        $ondemand_cart = Session::get('ondemand_cart');
+        $ondemand_cart['coupon'] = [];
+        
+        $ondemand_cart = $this->calculateTax($ondemand_cart);
+        Session::put('ondemand_cart', $ondemand_cart);
+        Session::save();
+        
+        exit;
+    }
+    
+    public function calculateTax($cart){
+
+        $cart['taxBreakdownGrouped'] = [
+            'order' => [],
+            'platform' => []
+        ];
+        
+        // Item subtotal before discount
+        $itemSubtotal = $cart['total_item_price'];
+        
+        // Calculate discount (coupon + special offer)
+        $discount_amount = 0;
+        if (!empty($cart['coupon'])) {
+            if ($cart['coupon']['discountType'] === 'Fix Price') {
+                $discount_amount = min($cart['coupon']['discount'], $itemSubtotal);
+            } else {
+                $discount_amount = min(($itemSubtotal * $cart['coupon']['discount']) / 100, $itemSubtotal);
+            }
+        }
+
+        $totalDiscount = $discount_amount;
+
+        // Item subtotal after discount
+        $finalSubtotal = $totalDiscount > 0 ? $itemSubtotal - $totalDiscount : $itemSubtotal;
+
+        $totalTax = 0;
+
+        // ORDER-LEVEL TAX
+        if ($cart['taxScope'] === 'order') {
+            $orderTaxable = max(0, $itemSubtotal - $totalDiscount);
+            foreach ($cart['taxesByScope']['order'] ?? [] as $tax) {
+                if ($tax['enable'] ?? true) {
+                    $taxAmount = $this->applyTax($orderTaxable, $tax);
+                    $totalTax += $taxAmount;
+                    $cart['taxBreakdownGrouped']['order'][$tax['title']] =
+                        ($cart['taxBreakdownGrouped']['order'][$tax['title']] ?? 0) + $taxAmount;
+                }
+            }
+        }
+
+        // PLATFORM TAXES
+        $extraScopes = ['platform'];
+        foreach ($extraScopes as $scope) {
+            $charge = $cart[$scope . 'Charge'] ?? 0;
+            foreach ($cart['taxesByScope'][$scope] ?? [] as $tax) {
+                if (!isset($cart['taxBreakdownGrouped'][$scope][$tax['title']])) {
+                    $cart['taxBreakdownGrouped'][$scope][$tax['title']] = 0;
+                }
+                $taxAmount = ($charge > 0) ? $this->applyTax($charge, $tax) : 0;
+                $totalTax += $taxAmount;
+                $cart['taxBreakdownGrouped'][$scope][$tax['title']] += $taxAmount;
+            }
+        }
+
+        $cart['total_tax'] = $totalTax;
+        $cart['total_price'] = $finalSubtotal + $cart['platformCharge'] + $totalTax;
+
+        return $cart;
     }
 
     public function remove(Request $request)
@@ -256,5 +386,16 @@ class OnDemandController extends Controller
     public function providerDetail($id)
     {
         return view('providersService.providerDetail', ['id' => $id]);
+    }
+
+    public function applyTax($amount, $tax) {
+        if (!$tax['enable']) return 0;
+        if ($tax['type'] === 'percentage') {
+            return ($amount * $tax['tax']) / 100;
+        }
+        if ($tax['type'] === 'fix') {
+            return $tax['tax'];
+        }
+        return 0;
     }
 }

@@ -16,7 +16,8 @@ class OrderController extends Controller
 
     public function index($id = '')
     {
-        return view("orders.index")->with('id', $id);
+        $service_type = $_COOKIE['service_type'] ?? '';
+        return view("orders.index")->with('id', $id)->with('service_type', $service_type);
     }
 
     public function edit($id, $oid = '')
@@ -107,6 +108,11 @@ class OrderController extends Controller
     public function orderprint($id = '')
     {
         return view('orders.print')->with('id', $id);
+    }
+
+    public function ownerOrderList($id = '')
+    {
+        return view("orders.owner_index")->with('id', $id);
     }
 
 }

@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.brand_table')}}</li>
             </ol>
         </div>
@@ -59,7 +59,6 @@
                                     class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i> {{trans('lang.all')}}</a></label></th>
                                     <?php } ?>  
                                     <th>{{trans('lang.brand_info')}}</th>
-                                    <th>{{trans('lang.section')}}</th>
                                     <th>{{trans('lang.item')}}</th>
                                     <th>{{trans('lang.item_publish')}}</th>
                                     <th>{{trans('lang.actions')}}</th>
@@ -83,10 +82,12 @@
 
 
 <script type="text/javascript">
-    var user_permissions = '<?php echo @session('user_permissions') ?>';
-    user_permissions = JSON.parse(user_permissions);
-    var checkDeletePermission = false;
 
+    var section_id = getCookie('section_id') || '';
+    var user_permissions = '<?php echo @session('user_permissions') ?>';
+    user_permissions = Object.values(JSON.parse(user_permissions));
+
+    var checkDeletePermission = false;
     if ($.inArray('brands.delete', user_permissions) >= 0) {
         checkDeletePermission = true;
     }
@@ -100,6 +101,11 @@
     var start = null;
     var user_number = [];
     var ref = database.collection('brands');
+
+    if(section_id){
+        ref = ref.where('sectionId', '==', section_id);
+    }
+
     var append_list = '';
     var placeholderImage = '';
     var placeholder = database.collection('settings').doc('placeHolderImage');
@@ -125,6 +131,9 @@
             
             }
             html = await buildHTML(snapshots);
+             $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
             jQuery("#data-table_processing").hide();
             if (html != '') {
                 append_list.innerHTML = html;
@@ -137,26 +146,14 @@
 
             $('#brandTable').DataTable({
                 order: [],
-                columnDefs: [{
-                        targets: (checkDeletePermission==true) ? 4 : 3,
-                        type: 'date',
-                        render: function(data) {
-                            return data;
-                        }
-                    },
-
+                columnDefs: [
                     {
                         orderable: false,
-                        targets: (checkDeletePermission==true) ? [0, 4, 5] : [3,4]
+                        targets: (checkDeletePermission==true) ? [0, 3, 4] : [2,3]
                     },
-
                 ],
-
                 order: (checkDeletePermission==true) ? [1, 'asc'] : [0,'asc'],
-                "language": {
-                    "zeroRecords": "{{trans('lang.no_record_found')}}",
-                    "emptyTable": "{{trans('lang.no_record_found')}}"
-                },
+               "language": datatableLang,
                 responsive: true
             });
         });
@@ -202,7 +199,7 @@
             html = html + '<td><img alt="" width="100%" style="width:70px;height:70px;" src="' + placeholderImage + '" alt="image">  <a href="' + route1 + '" class="left_space">' + val.title + '</a></td>';
         }
         var section = await getSectionName(val.sectionId);
-        html = html + '<td>' + section + '</td>';
+        
         var total= await getProductTotal(val.id);
         var brandId = val.id;
         var url = '{{url("items?brandID=id")}}';
@@ -215,10 +212,10 @@
             html = html + '<td><label class="switch"><input type="checkbox" id="' + val.id + '" name="isSwitch"><span class="slider round"></span></label></td>';
 
         }
-        html = html + '<td><span class="vendor-action-btn action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
+        html = html + '<td><span class="vendor-action-btn action-btn"><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';
 
         if(checkDeletePermission){
-            html= html+'<a id="' + val.id + '" name="vendor-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
+            html= html+'<a id="' + val.id + '" name="vendor-delete" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a>';
 
         }
         html=html+'</span></td>';

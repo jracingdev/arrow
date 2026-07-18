@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
-import 'package:easy_localization/easy_localization.dart';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class MidtransScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class MidtransScreen extends StatefulWidget {
 class _MidtransScreenState extends State<MidtransScreen> {
   WebViewController controller = WebViewController();
   bool isLoading = true;
+
   @override
   void initState() {
     controller.clearCache();
@@ -24,7 +26,7 @@ class _MidtransScreenState extends State<MidtransScreen> {
     super.initState();
   }
 
-  initController() {
+  void initController() {
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
@@ -39,16 +41,16 @@ class _MidtransScreenState extends State<MidtransScreen> {
             log("Midtrans :: ${navigation.url}");
             if (Platform.isIOS) {
               if (navigation.url.contains('/success')) {
-                Navigator.of(context).pop(true);
+                Get.back(result: true);
               } else if (navigation.url.contains('/failed')) {
-                Navigator.of(context).pop(false);
+                Get.back(result: false);
               }
             } else {
               String? orderId = Uri.parse(navigation.url).queryParameters['merchant_order_id'];
               if (orderId != null) {
-                Navigator.of(context).pop(true);
+                Get.back(result: true);
               } else {
-                Navigator.of(context).pop(false);
+                Get.back(result: false);
               }
             }
             return NavigationDecision.navigate;
@@ -90,28 +92,28 @@ class _MidtransScreenState extends State<MidtransScreen> {
       barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Cancel Payment'.tr()),
+          title: Text('Cancel Payment'.tr),
           content: SingleChildScrollView(
-            child: Text("cancelPayment?".tr()),
+            child: Text("cancelPayment?".tr),
           ),
           actions: <Widget>[
             TextButton(
               child: Text(
-                'Cancel'.tr(),
+                'Cancel'.tr,
                 style: const TextStyle(color: Colors.red),
               ),
               onPressed: () {
-                Navigator.of(context).pop(false);
-                Navigator.of(context).pop(false);
+                Get.back(result: false);
+                Get.back(result: false);
               },
             ),
             TextButton(
               child: Text(
-                'Continue'.tr(),
+                'Continue'.tr,
                 style: const TextStyle(color: Colors.green),
               ),
               onPressed: () {
-                Navigator.of(context).pop(false);
+                Get.back(result: false);
               },
             ),
           ],

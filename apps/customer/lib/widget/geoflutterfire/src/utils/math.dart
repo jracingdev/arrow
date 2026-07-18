@@ -146,10 +146,8 @@ class MathUtils {
   /// [1,1] - northeast
   String neighbor(String hashString, var direction) {
     var lonLat = decode(hashString);
-    var neighborLat =
-        lonLat['latitude']! + direction[0] * lonLat['latitudeError'] * 2;
-    var neighborLon =
-        lonLat['longitude']! + direction[1] * lonLat['longitudeError'] * 2;
+    var neighborLat = lonLat['latitude']! + direction[0] * lonLat['latitudeError'] * 2;
+    var neighborLon = lonLat['longitude']! + direction[1] * lonLat['longitudeError'] * 2;
     return encode(neighborLat, neighborLon, hashString.length);
   }
 
@@ -252,23 +250,17 @@ class MathUtils {
 
   /// distance in km
   static double kmDistance(Coordinates location1, Coordinates location2) {
-    return kmCalcDistance(location1.latitude, location1.longitude,
-        location2.latitude, location2.longitude);
+    return kmCalcDistance(location1.latitude, location1.longitude, location2.latitude, location2.longitude);
   }
 
   /// distance in km
-  static double kmCalcDistance(
-      double lat1, double long1, double lat2, double long2) {
+  static double kmCalcDistance(double lat1, double long1, double lat2, double long2) {
     // Earth's mean radius in meters
     const radius = (earthEqRadius + earthPolarRadius) / 2;
     double latDelta = _toRadians(lat1 - lat2);
     double lonDelta = _toRadians(long1 - long2);
 
-    double a = (sin(latDelta / 2) * sin(latDelta / 2)) +
-        (cos(_toRadians(lat1)) *
-            cos(_toRadians(lat2)) *
-            sin(lonDelta / 2) *
-            sin(lonDelta / 2));
+    double a = (sin(latDelta / 2) * sin(latDelta / 2)) + (cos(_toRadians(lat1)) * cos(_toRadians(lat2)) * sin(lonDelta / 2) * sin(lonDelta / 2));
     double distance = radius * 2 * atan2(sqrt(a), sqrt(1 - a)) / 1000;
     return double.parse(distance.toStringAsFixed(3));
   }

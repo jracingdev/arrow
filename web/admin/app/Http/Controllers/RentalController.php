@@ -20,6 +20,25 @@ class RentalController extends Controller
         return view('rental_orders.edit')->with('id', $id);
     }
 
+    public function rentalPackage()
+    {
+        return view('rental_packages.index');
+    }
+
+    public function rentalPackageCreate()
+    {
+        return view('rental_packages.create');
+    }
+
+    public function rentalPackageEdit($id)
+    {
+        return view('rental_packages.edit')->with('id', $id);
+    }
+    public function rentalOrdersOwner($id = '')
+    {
+        return view("rental_orders.owner_index")->with('id', $id);
+    }
+
 }
 
 

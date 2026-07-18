@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-      <?php if (str_replace('_', '-', app()->getLocale()) == 'ar' || @$_COOKIE['is_rtl'] == 'true'){ ?> dir="rtl"
-    <?php } ?>>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" <?php if (str_replace('_', '-', app()->getLocale()) == 'ar' || @$_COOKIE['is_rtl'] == 'true'){ ?> dir="rtl" <?php } ?>>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="<?php echo env('APP_NAME'); ?>">
     <meta name="author" content="<?php echo env('APP_NAME'); ?>">
+    <meta name="csrf-token" content="{{ csrf_token() }}"/>
+    
     <link rel="icon" type="image/png" href="{{asset('img/fav.png')}}">
     <title><?php echo env('APP_NAME'); ?> - Online Item Ordering System</title>
     <link rel="stylesheet" type="text/css" href="{{asset('vendor/slick/slick.min.css')}}"/>
@@ -16,12 +16,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700&display=swap"
           rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
     <script type="text/javascript">
         var section_id = '';
         <?php if (isset($_COOKIE['section_id'])){ ?>
             section_id = '<?php echo $_COOKIE['section_id']; ?>';
         <?php } ?>
     </script>
+    
     <link href="{{asset('vendor/icons/feather.css')}}" rel="stylesheet" type="text/css">
     <link href="{{asset('vendor/bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
     <?php if (str_replace('_', '-', app()->getLocale()) == 'ar' || @$_COOKIE['is_rtl'] == 'true'){ ?>
@@ -33,6 +35,7 @@
     <?php } ?>
     <link href="{{asset('css/font-awesome.min.css')}}" rel="stylesheet">
     <link href="{{asset('vendor/sidebar/demo.css')}}" rel="stylesheet">
+    
     <?php if (isset($_COOKIE['section_color'])){ ?>
     <style type="text/css">
         a, .list-card a:hover, a:hover {
@@ -254,6 +257,11 @@
         .swal2-actions .swal2-confirm.swal2-styled {
             background: <?php echo $_COOKIE['section_color']; ?>;
         }
+
+        .slick-dots li.slick-active button::before{
+            color: <?php echo $_COOKIE['section_color']; ?> !important;
+            background: <?php echo $_COOKIE['section_color']; ?> !important; 
+        }
     </style>
     <?php } ?>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
@@ -263,8 +271,8 @@
 
 </head>
 <body class="fixed-bottom-bar">
-<div id="overlay" style="display:none">
-    <img src="{{ asset('img/spinner.gif') }}">
-</div>
+    <div id="overlay" style="display:none">
+        <img src="{{ asset('img/spinner.gif') }}">
+    </div>
 </body>
 </html>

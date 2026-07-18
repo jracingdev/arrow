@@ -15,7 +15,7 @@
 
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.vendor_filter')}}</li>
             </ol>
         </div>
@@ -55,7 +55,7 @@
                                     <option value="title">{{ trans('lang.name')}}</option>
                                 </select>
                                 <div class="form-group">
-                                    <input type="search" id="search" class="search form-control" placeholder="Search"
+                                    <input type="search" id="search" class="search form-control" placeholder="{{trans('lang.search')}}"
                                         aria-controls="users-table">
                             </label>&nbsp;<button onclick="searchtext();"
                                 class="btn btn-warning btn-flat">{{trans('lang.search')}}</button>&nbsp;<button
@@ -145,6 +145,9 @@ $(document).ready(function () {
         html = '';
 
         html = buildHTML(snapshots);
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
         jQuery("#data-table_processing").hide();
         if (html != '') {
             append_list.innerHTML = html;
@@ -184,7 +187,7 @@ function buildHTML(snapshots) {
 
         html = html + '<td>' + val.name + '</td>';
         html = html + '<td>' + val.options + '</td>';
-        html = html + '<td class="action-btn"><a href="' + route1 + '"><i class="fa fa-edit"></i></a><a id="' + val.id + '" name="vendor-filter-delete" href="javascript:void(0)"><i class="fa fa-trash"></i></a></td>';
+        html = html + '<td class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="fa fa-edit"></i></a><a id="' + val.id + '" name="vendor-filter-delete" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="fa fa-trash"></i></a></td>';
 
 
 

@@ -10,10 +10,10 @@
     <div class="col-md-7 align-self-center">
       <ol class="breadcrumb">
         <li class="breadcrumb-item">
-          <a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a>
+          <a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a>
         </li>
         <li class="breadcrumb-item">
-          <a href="{{url('/vendorFilters')}}">{{trans('lang.vendor_filter')}}</a>
+          <a href="{{route('vendorFilters')}}">{{trans('lang.vendor_filter')}}</a>
         </li>
         <li class="breadcrumb-item">{{trans('lang.vendor_filter_create')}}</li>
       </ol>

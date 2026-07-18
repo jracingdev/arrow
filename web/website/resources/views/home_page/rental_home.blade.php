@@ -24,67 +24,43 @@
                 <div class="rental-login-form">
                     <h3 class="text-center">{{trans('lang.luxury_car_rental')}}</h3>
                     <div class="rental-login-form-inner">
-                        <div class="row align-items-center form-row drop-check">
+                        <div class="row align-items-center form-row">
                             <div class="col-sm-12">
-                                <div class="form-check">
-                                    <span class="switch-label noData"
-                                          style="display: none;">{{trans('lang.drop_off_same_location')}}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-row row">
-                            <div class="col-sm-12">
-                                <div class="form-check bg-dark">
-                          <span class="switch-label">{{trans('lang.book_with_driver')}}
-                            <small>{{trans('lang.dont_have_driver')}}</small>
-                            </span>
-                                    <label class="switch">
-                                        <input type="checkbox" class="isDriver">
-                                        <span class="slider round"></span>
-                                    </label>
-                                </div>
+                                <label>{{trans('lang.pickup_location')}}</label>
+                                <input type="text" class="form-control pickLocation" id="pickLocation" placeholder="Pick-up location" onchange="pickLocation()">
                             </div>
                         </div>
                         <div class="row align-items-center form-row">
                             <div class="col-sm-12">
-                                <label style="color: white">{{trans('lang.pickup_dropoff_date')}}</label>
+                                <label>{{trans('lang.select_date')}}</label>
                                 <input type="text" name="driverDates" class="form-control driverDates">
                             </div>
                         </div>
                         <div class="row align-items-center form-row">
-                            <div class="col-sm-6">
-                                <label style="color: white">{{trans('lang.pickup_time')}}</label>
-                                <input type="time" class="form-control startTime">
-                            </div>
-                            <div class="col-sm-6">
-                                <label style="color: white">{{trans('lang.dropoff_time')}}</label>
-                                <input type="time" class="form-control endTime"
-                                       placeholder="{{trans('lang.end_time')}}">
+                            <div class="col-sm-12">
+                                <div class="vehicle-selection">
+                                    <label>{{trans('lang.select_vehicle_type')}}</label>
+                                    <select name="vehicle_type" id="vehicle_type" class="form-control">
+                                        <option value="">{{ trans('lang.select_vehicle_type')}}</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <div class="row align-items-center form-row">
                             <div class="col-sm-12">
-                                <label style="color: white">{{trans('lang.pickup_location')}}</label>
-                                <input type="text" class="form-control pickLocation" id="pickLocation"
-                                       placeholder="Pick-up location" onchange="pickLocation()">
+                                <div class="vehicle-selection">
+                                    <label>{{trans('lang.select_rental_package')}}</label>
+                                    <select name="rental_package" id="rental_package" class="form-control">
+                                        <option value="">{{ trans('lang.select_rental_package')}}</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <div class="row align-items-center form-row drop-check">
                             <div class="col-sm-12">
                                 <div class="form-check">
-                                    <span class="switch-label">{{trans('lang.drop_off_same_location')}}</span>
-                                    <label class="switch">
-                                        <input type="checkbox" class="isDropSameLocation">
-                                        <span class="slider round"></span>
-                                    </label>
+                                    <span class="text-danger noData"></span>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="row align-items-center form-row dropOffDiv">
-                            <div class="col-sm-12">
-                                <label style="color: white">{{trans('lang.dropoff_location')}}</label>
-                                <input type="text" class="form-control dropLocation" id="dropLocation"
-                                       placeholder="Drop-off location" onchange="dropLocation()">
                             </div>
                         </div>
                         <div class="row align-items-center form-row form-btn">
@@ -99,34 +75,174 @@
         </div>
     </div>
 </div>
+
 @include('layouts.footer')
+
 <script src="{{ asset('js/geofirestore.js') }}"></script>
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
 <script type="text/javascript" src="{{asset('vendor/slick/slick.min.js')}}"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css"/>
+
 <script type="text/javascript">
+
     var firestore = firebase.firestore();
     var geoFirestore = new GeoFirestore(firestore);
     var database = firebase.firestore();
+
     $('input[name="driverDates"]').daterangepicker({
+        singleDatePicker: true,
+        timePicker: true,
+        timePicker24Hour: false,
+        timePickerIncrement: 5,
+        minDate: new Date(),
         locale: {
-            format: 'DD/MM/YYYY',
+            format: 'YYYY-MM-DD hh:mm A'
         },
-        minDate: new Date()
     });
-    var address_lat = "";
-    var address_lng = "";
-    var drop_address_lat = "";
-    var drop_address_lng = "";
-    var rentalVehicleType = false;
-    var rentalVehicleTypeRef = database.collection('rental_vehicle_type');
-    rentalVehicleTypeRef.get().then(async function (snapshots) {
-        if (snapshots.docs.length > 0) {
-            rentalVehicleType = true;
+
+    var section_id = getCookie('section_id');
+    let userCountry = getCookie('userCountryName');
+
+    var taxScope = 'order';
+    const scopes = ['order', 'platform'];
+    const taxesByScope = {};
+    database.collection('tax').where('country', '==', userCountry).where('enable', '==', true).where('scope', 'in', scopes).where('sectionId', '==', section_id).get().then(snapshot => {
+        snapshot.forEach(doc => {
+            const tax = doc.data();
+            (taxesByScope[tax.scope] ??= []).push(tax);
+        });
+    });
+    
+    var adminCommission = '';
+    var commissionType = '';
+    var adminCommissionRef = database.collection('sections').where('id', '==', section_id);
+    adminCommissionRef.get().then(async function (AdminCommissionSnapshots) {
+        if (AdminCommissionSnapshots.docs.length > 0) {
+            AdminCommissionRes = AdminCommissionSnapshots.docs[0].data();
+            var data = AdminCommissionRes.adminCommision;
+            if (data.enable) {
+                adminCommission = data.commission;
+                commissionType = data.type;
+            }
         }
     });
+
+    var currencyData = '';
+    var decimal_degits = 0;
+    var currentCurrency = '';
+    var currencyAtRight = false;
+    var refCurrency = database.collection('currencies').where('isActive', '==', true);
+    refCurrency.get().then(async function (snapshots) {
+        currencyData = snapshots.docs[0].data();
+        currentCurrency = currencyData.symbol;
+        currencyAtRight = currencyData.symbolAtRight;
+        if (currencyData.decimal_degits) {
+            decimal_degits = currencyData.decimal_degits;
+        }
+    });
+
+    var placeholderImageRef = database.collection('settings').doc('placeHolderImage');
+    var placeholderImageSrc = '';
+    placeholderImageRef.get().then(async function(placeholderImageSnapshots) {
+        var placeHolderImageData = placeholderImageSnapshots.data();
+        placeholderImageSrc = placeHolderImageData.image;
+    })
+
+    var address_lat = "";
+    var address_lng = "";
+    
+    $('#vehicle_type').select2();
+    $('#rental_package').select2();
+    
+    var rentalVehicleTypeRef = database.collection('rental_vehicle_type').where('sectionId', '==', section_id).where('isActive','==',true);
+    rentalVehicleTypeRef.get().then(async function (snapshots) {
+        if (snapshots.docs.length > 0) {
+             snapshots.docs.forEach((listval) => {
+                var data = listval.data();
+                $('#vehicle_type').append(
+                    $("<option></option>")
+                        .attr("value", data.id)
+                        .attr("data-image", data.rental_vehicle_icon)
+                        .attr("data-description", data.short_description)
+                        .attr("data-vehicle", JSON.stringify(data))
+                        .text(data.name)
+                );
+            });
+            $('#vehicle_type').select2({
+                templateResult: formatOption,
+                templateSelection: formatSelection
+            });
+        }
+    });
+
+    $(document).on('change', '#vehicle_type', function () {
+        let vehicleTypeId = $(this).val();
+        var rentalVehicleTypeRef = database.collection('rental_packages').where('vehicleTypeId','==',vehicleTypeId).where('published','==',true);
+        rentalVehicleTypeRef.get().then(async function (snapshots) {
+            $('#rental_package').empty().append("<option value=''>{{ trans('lang.select_rental_package')}}</option>");
+            if (snapshots.docs.length > 0) {
+                snapshots.docs.forEach((listval) => {
+                    var data = listval.data();
+                    $('#rental_package').append(
+                        $("<option></option>")
+                            .attr("value", data.id)
+                            .attr("data-description", data.description)
+                            .attr("data-price", data.baseFare)
+                            .attr("data-price-format", getProductFormattedPrice(parseFloat(data.baseFare)))
+                            .attr("data-package", JSON.stringify(data))
+                            .text(data.name)
+                    );
+                });
+                $('#rental_package').select2({
+                    templateResult: formatOption,
+                    templateSelection: formatSelection
+                });
+            }
+        });
+    });
+
+    // Format dropdown list options
+    function formatOption(option) {
+        if (!option.id) return option.text;
+        var image = $(option.element).data('image');
+        var desc  = $(option.element).data('description');
+        var price  = $(option.element).data('price-format');
+        var name  = option.text;
+        var imageHtml = image 
+            ? `<img src="${image}" onerror="this.onerror=null;this.src='${placeholderImageSrc}'" style="width:40px; height:40px; object-fit:cover; border-radius:4px;" />` 
+            : "";
+        return $(
+            `<div class="vehicle-option">
+                <div class="vehicle-list-left">
+                    ${imageHtml}
+                    <div class="vehicle-detail">
+                        <div class="vehicle-name">${name}</div>
+                        ${ desc ? `<div class="vehicle-description">${desc}</div>` : ""}
+                     </div>
+                </div>
+                ${ price ? `<div class="vehicle-price">${price}</div>` : ""}
+            </div>`
+        );
+    }
+
+    // Format selected value (top input area)
+    function formatSelection(option) {
+        if (!option.id) return option.text;
+        var image = $(option.element).data('image');
+        var name  = option.text;
+        var imageHtml = image 
+            ? `<img src="${image}" onerror="this.onerror=null;this.src='${placeholderImageSrc}'" style="width:24px; height:24px; object-fit:cover; border-radius:3px;" />` 
+            : "";
+        return $(
+            `<div class="vehicle-option">
+                ${imageHtml}
+                <span>${name}</span>
+            </div>`
+        );
+    }
+
     $(document).on('change', '.isDropSameLocation', function () {
         if ($(this).is(':checked') == true) {
             $('.dropOffDiv').hide();
@@ -134,114 +250,76 @@
             $('.dropOffDiv').show();
         }
     });
-    $(document).on('click', '#find_car', function () {
-        var isDriver = $('.isDriver').is(':checked');
-        var startEndDate = $('.driverDates').val();
-        var startTime = $('.startTime').val();
-        var endTime = $('.endTime').val();
-        var pickLocation = $('.pickLocation').val();
-        var dropLocation = $('.dropLocation').val();
-        var isDropSameLocation = $('.isDropSameLocation').is(':checked');
-        startEndDate = startEndDate.split('-');
-        var startDate = $.trim(startEndDate[0]);
-        var endDate = $.trim(startEndDate[1]);
-        var dt = new Date();
-        var currentTime = (dt.getHours() < 10 ? '0' + dt.getHours() : dt.getHours()) + ":" + (dt.getMinutes() < 10 ? '0' + dt.getMinutes() : dt.getMinutes());
-        const day = dt.getDate();
-        const month = dt.getMonth() + 1;
-        const year = dt.getFullYear();
-        var currentDate = `${day < 10 ? '0' + day : day}/${month < 10 ? '0' + month : month}/${year}`;
-        if (isDropSameLocation == true) {
-            dropLocation = pickLocation;
-            drop_address_lat = address_lat;
-            drop_address_lng = address_lng;
+    
+    $(document).on('click', '#find_car', async function () {
+        
+        var platformCharge = '0';
+        let platformFeeSettings = JSON.parse(localStorage.getItem('platformFeeSettings'));
+        if (platformFeeSettings && platformFeeSettings.enable) {
+            platformCharge = platformFeeSettings.fee;
         }
+        
+        var startDate = $('.driverDates').val();
+        var pickLocation = $('.pickLocation').val();
+        var vehicleTypeId = $('#vehicle_type').val();
+        var rentalPackageId = $('#rental_package').val();
+        var user_zone_id = await getUserZoneId();
+       
         $('.noData').show();
         $('.noData').html("");
-        if (startTime == "" || endTime == "") {
-            $('.noData').html("{{trans('lang.start_end_time_error')}}");
-            window.scroll(0, 0);
-        } else if (startDate == currentDate && startTime < currentTime) {
-            $('.noData').html("{{trans('lang.start_greater_time_error')}}");
-            window.scroll(0, 0);
-        } else if ((startDate == endDate) && (startTime > endTime || endTime < startTime)) {
-            $('.noData').html("{{trans('lang.start_end_greater_time_error')}}");
-            window.scroll(0, 0);
-        } else if (pickLocation == "") {
+
+        if (pickLocation == "") {
             $('.noData').html("{{trans('lang.pickup_location_error')}}");
             window.scroll(0, 0);
-        } else if (isDropSameLocation == false && dropLocation == "") {
-            $('.noData').html("{{trans('lang.dropoff_location_error')}}");
-            window.scroll(0, 0);
+        }else if (vehicleTypeId == "") {
+            $('.noData').html("{{trans('lang.vehicle_type_error')}}");
+            window.scroll(0, 0);            
+        }else if (rentalPackageId == "") {
+            $('.noData').html("{{trans('lang.rental_package_error')}}");
+            window.scroll(0, 0);            
+        }else if (user_zone_id == null) {
+            $('.noData').html("{{trans('lang.user_zone_error')}}");
+            window.scroll(0, 0);            
         } else {
+
+            $('.noData').hide();
             $('.noData').html("");
-            if (rentalVehicleType) {
-                var rentalServiceDriverRef = "";
-                rentalServiceDriverRef = geoFirestore.collection('users').where("role", "==", "driver").where('serviceType', '==', "rental-service").near({
-                    center: new firebase.firestore.GeoPoint(parseFloat(address_lat), parseFloat(address_lng)),
-                    radius: 50
-                }).limit(200);
-                rentalServiceDriverRef.get().then(async function (snapShots) {
-                    if (snapShots.docs.length > 0) {
-                        var checkFlag = true;
-                        var count = 0;
-                        snapShots.docs.forEach((listval) => {
-                            var data = listval.data();
-                            if (data.rentalBookingDate && data.rentalBookingDate.length > 0 && data.rentalBookingDate != null && data.rentalBookingDate != "") {
-                                for (var i = 0; i < data.rentalBookingDate.length; i++) {
-                                    var rentalBookingDate = data.rentalBookingDate[i].toDate().toDateString();
-                                    rentalBookingDate = new Date(rentalBookingDate);
-                                    rentalBookingDate = rentalBookingDate.getDate() + '/' + (rentalBookingDate.getMonth() + 1) + '/' + rentalBookingDate.getFullYear();
-                                    if ((rentalBookingDate <= startDate && rentalBookingDate >= startDate) || (rentalBookingDate <= endDate && rentalBookingDate >= endDate)) {
-                                        checkFlag = false;
-                                    }
-                                }
-                                if (checkFlag == false) {
-                                    count++;
-                                }
-                            }
-                        });
-                        if (snapShots.docs.length > count) {
-                            $.ajax({
-                                type: 'POST',
-                                url: "<?php echo route('find_rental_cars'); ?>",
-                                data: {
-                                    _token: '<?php echo csrf_token(); ?>',
-                                    isDriver: isDriver,
-                                    startDate: startDate,
-                                    endDate: endDate,
-                                    startTime: startTime,
-                                    endTime: endTime,
-                                    pickLocation: pickLocation,
-                                    dropLocation: dropLocation,
-                                    isDropSameLocation: isDropSameLocation,
-                                    address_lat: address_lat,
-                                    address_lng: address_lng,
-                                    drop_address_lat: drop_address_lat,
-                                    drop_address_lng: drop_address_lng
-                                },
-                                success: function (data) {
-                                    data = JSON.parse(data);
-                                    var url = "{{route('rental_cars')}}";
-                                    window.location.href = url;
-                                }
-                            });
-                        } else {
-                            $('.noData').show();
-                            $('.noData').html("No Car Found for this date period!!");
-                            window.scroll(0, 0);
-                        }
-                    } else {
-                        $('.noData').show();
-                        $('.noData').html("No Car Found in this Location!!");
-                        window.scroll(0, 0);
-                    }
-                });
-            } else {
-                $('.noData').show();
-                $('.noData').html("No Rental Vehicle Found!!");
-                window.scroll(0, 0);
-            }
+            var baseFarePrice = $('#rental_package option:selected').data('price');
+            var rentalVehicleType = JSON.parse($('#vehicle_type option:selected').attr('data-vehicle'));
+            var rentalPackageModel = JSON.parse($('#rental_package option:selected').attr('data-package'));
+
+            const payload = {
+                    _token: '<?php echo csrf_token(); ?>',
+                    startDate,
+                    pickLocation,
+                    address_lat,
+                    address_lng,
+                    vehicleTypeId,
+                    rentalPackageId,
+                    rentalPackageModel,
+                    rentalVehicleType,
+                    baseFarePrice,
+                    adminCommissionType: commissionType,
+                    adminCommission,
+                    decimal_degits,
+                    zoneId:user_zone_id,
+                    taxScope,
+                    taxesByScope,
+                    platformCharge,
+                    currencyData,
+                };
+
+             $.ajax({
+                type: 'POST',
+                url: "<?php echo route('find_rental_cars'); ?>",
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify(payload),
+                success: function (data) {
+                    var url = "{{route('rental_cars_checkout')}}";
+                    window.location.href = url;
+                }
+            });
         }
     });
 </script>

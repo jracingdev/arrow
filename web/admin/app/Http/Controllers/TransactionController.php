@@ -16,4 +16,8 @@ class TransactionController extends Controller
     {
         return view("transactions.index")->with('id',$id);
     }
+    public function ownerWalletTranscation($id='')
+    {
+        return view("owners.wallet_transaction")->with('id',$id);
+    }
 }

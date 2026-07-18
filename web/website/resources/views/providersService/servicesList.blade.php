@@ -122,6 +122,7 @@
         $('#provider').select2();
     });
     $(document).ready(async function () {
+        jQuery("#overlay").show();
         inValidProviders = await getInvaidUserIds();
         callService('All', 'All', 'All');
         $("#search").keypress(function (e) {
@@ -141,7 +142,6 @@
     });
 
     async function callService(categoryId, providerId, searchTxt) {
-        jQuery("#overlay").show();
         if (address_lat == '' || address_lng == '' || address_lng == NaN || address_lat == NaN || address_lat == null || address_lng == null) {
             return false;
         }
@@ -199,6 +199,37 @@
         var datas = '';
         var filter_service = [];
         
+        //provider filter dropdown code
+        let providerIds = [];
+        const zoneCache = {};
+        const initialPromises = nearestServicesSnapshot.docs.map(async (doc) => {
+            const d = doc.data();
+            const key = `${d.latitude},${d.longitude}`;
+            let serviceInzone = zoneCache[key];
+            if (serviceInzone === undefined) {
+                serviceInzone = await getUserZoneId(d.latitude, d.longitude);
+                zoneCache[key] = serviceInzone;
+            }
+            if (!serviceInzone) return null;
+            const inValidServiceIds = await getProviderServiceLimit(d.author);
+            if (inValidProviders.length && inValidProviders.includes(d.author)) return null;
+            if (inValidServiceIds.length && inValidServiceIds.includes(d.id)) return null;
+            return d.author ? d.author : null;
+        });
+        let initialProviderIds = (await Promise.all(initialPromises)).filter(Boolean);
+        initialProviderIds = [...new Set(initialProviderIds)];
+        if (!window.providerDropdownUpdated) {
+            const selectedProvider = $('#provider').val();
+            $('#provider option').each(function () {
+                const val = $(this).val();
+                if (!val || val === 'All') return;
+                if (!initialProviderIds.includes(val) && val !== selectedProvider) {
+                    $(this).remove();
+                }
+            });
+            window.providerDropdownUpdated = true;
+        }
+        
         nearestServicesSnapshot.docs.forEach((listval) => {
             datas = listval.data();
             serviceName = datas.title.toLowerCase();
@@ -211,13 +242,14 @@
                 filter_service.push(datas);
             }
         });
-        
-         let promises = filter_service.map(async (listval) => {
-        
+
+        let promises = filter_service.map(async (listval) => {
             var datas = listval;
-            
             var rating = 0;
             var reviewsCount = 0;
+            let serviceInzone = await getUserZoneId(datas.latitude, datas.longitude);
+            if (!serviceInzone) return null;
+
             if ('<?php echo @$_GET['popular'] && @$_GET['popular'] == "yes" ?>') {
                 if (datas.hasOwnProperty('reviewsSum') && datas.reviewsSum != 0 && datas.hasOwnProperty('reviewsCount') && datas.reviewsCount != 0) {
                     rating = (datas.reviewsSum / datas.reviewsCount);
@@ -225,9 +257,9 @@
                 }
                 datas.rating = rating;
                 var inValidServiceIds = await getProviderServiceLimit(datas.author);
-                           
                 if(inValidProviders.length == 0 || !inValidProviders.includes(datas.author)) {  
                      if (inValidServiceIds.length == 0 || !inValidServiceIds.includes(datas.id)) {
+                        if (datas.author) providerIds.push(datas.author);
                         return datas;
                     }
                 }
@@ -236,14 +268,17 @@
                 var inValidServiceIds = await getProviderServiceLimit(datas.author);
                 if(inValidProviders.length == 0 || !inValidProviders.includes(datas.author)) { 
                      if (inValidServiceIds.length == 0 || !inValidServiceIds.includes(datas.id)) {
+                        if (datas.author) providerIds.push(datas.author);
                         return datas;
                     }
                 }
                 return null;
             }
         });
+
         let results = await Promise.all(promises);
         alldata = results.filter(data => data !== null);
+
         if ('<?php echo @$_GET['popular'] && @$_GET['popular'] == "yes" ?>') {
             if (alldata.length) {
                 alldata = sortArrayOfObjects(alldata, "rating");

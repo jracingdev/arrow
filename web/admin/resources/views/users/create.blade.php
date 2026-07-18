@@ -22,13 +22,13 @@ foreach ($countries as $keycountry => $valuecountry) {
 
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item"><a href="{!! route('users') !!}">{{trans('lang.user_plural')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.user_create')}}</li>
             </ol>
-        </div>
+        </div>        
+    </div>
 
-        <div>
             <div class="card-body">
             
                 <div class="error_top"></div>
@@ -84,17 +84,17 @@ foreach ($countries as $keycountry => $valuecountry) {
                                 <label class="col-md-3 control-label">{{trans('lang.user_phone')}}</label>
                                 <div class="col-7">
                                     <div class="phone-box position-relative" id="phone-box">
-											<select name="country" id="country_selector">
-												<?php foreach ($newcountries as $keycy => $valuecy) { ?>
-												<?php $selected = ""; ?>
-												<option <?php echo $selected; ?> code="<?php echo $valuecy->code; ?>"
-														value="<?php echo $keycy; ?>">
-													+<?php echo $valuecy->phoneCode; ?> {{$valuecy->countryName}}</option>
-												<?php } ?>
-											</select>
-											<input type="text" class="form-control user_phone"  onkeypress="return chkAlphabets2(event,'error1')">
-											<div id="error1" class="err"></div>
-									</div>
+                                            <select name="country" id="country_selector">
+                                                <?php foreach ($newcountries as $keycy => $valuecy) { ?>
+                                                <?php $selected = ""; ?>
+                                                <option <?php echo $selected; ?> code="<?php echo $valuecy->code; ?>"
+                                                        value="<?php echo $keycy; ?>">
+                                                    +<?php echo $valuecy->phoneCode; ?> {{$valuecy->countryName}}</option>
+                                                <?php } ?>
+                                            </select>
+                                            <input type="text" class="form-control user_phone"  onkeypress="return chkAlphabets2(event,'error1')">
+                                            <div id="error1" class="err"></div>
+                                    </div>
                                 </div>
                                     <div class="form-text text-muted w-50">
                                         {{ trans("lang.user_phone_help") }}
@@ -133,8 +133,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                     trans('lang.cancel')}}</a>
             </div>
 
-        </div>
-    </div>
+        
 
 </div>
 
@@ -152,6 +151,28 @@ foreach ($countries as $keycountry => $valuecountry) {
             allowClear: true
         });
     });
+    // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
+    var globalSettingsRef = database.collection('settings').doc('globalSettings');
+    globalSettingsRef.get().then(async function (snapshot) {
+        var globalSettings = snapshot.data();
+        if (globalSettings && globalSettings.defaultCountryCode) {
+            var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
+
+            // Find the option with matching phoneCode
+            var $option = $("#country_selector option").filter(function() {
+                return $(this).val() === defaultPhoneCode;
+            });
+
+            if ($option.length > 0) {
+                $("#country_selector").val(defaultPhoneCode).trigger('change');
+            } else {
+                console.warn("Default country code not found in list:", defaultPhoneCode);
+            }
+        }
+    }).catch(function (error) {
+        console.error("Error fetching global settings: ", error);
+    });
+    // --- END OF DEFAULT COUNTRY LOGIC ---
 
     var database = firebase.firestore();
     var geoFirestore = new GeoFirestore(database);

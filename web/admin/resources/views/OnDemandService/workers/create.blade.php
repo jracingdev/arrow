@@ -26,7 +26,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
 
                 <li class="breadcrumb-item"><a href="{!! route('ondemand.workers.index') !!}">{{trans('lang.worker_table')}}</a>
@@ -177,6 +177,7 @@
     var photo = "";
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     var provider_id="{{@$_GET['id']}}";
+    var section_id = getCookie('section_id');
 
     var mapType = 'ONLINE';
     database.collection('settings').doc('DriverNearBy').get().then(async function (snapshots) {
@@ -197,7 +198,7 @@
 
     $(document).ready(function () {
 
-        database.collection('users').where('role', '==', 'provider').get().then(async function (snapshots) {
+        database.collection('users').where('role', '==', 'provider').where('section_id','==',section_id).get().then(async function (snapshots) {
             snapshots.docs.forEach((listval) => {
                 var data = listval.data();
                 $('#provider_select').append($("<option></option>")

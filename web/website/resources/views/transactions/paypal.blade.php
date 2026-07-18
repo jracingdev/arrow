@@ -13,17 +13,20 @@
                         <div class="siddhi-cart-item-profile bg-white p-3">
                             <div class="card card-default payment-wrap">
                                 <table class="payment-table m-4">
+                                    <thead>
+                                    <tr>
+                                         <th class="p-1">
+                                            {{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}
+                                        </th>
+                                    </tr>
+                                    </thead>
                                     <tbody>
-                                        <tr>
-                                        <td style="display:flex">
-                                            {{ trans('lang.pay_total_amount') }} : {{$amount}} <div id="currency"></div>
+                                    <tr>
+                                        <td>
+                                            <div id="paypal-button-container"></div>
                                         </td>
-                                            <td>
-                                                <div id="paypal-button-container"></div>
-                                            </td>
-                                        </tr>
+                                    </tr>
                                     </tbody>
-
                                 </table>
                             </div>
                         </div>

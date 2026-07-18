@@ -21,6 +21,12 @@ foreach ($countries as $keycountry => $valuecountry) {
         background: <?php echo $_COOKIE['section_color']; ?>;
         border-color: <?php echo $_COOKIE['section_color']; ?>;
     }
+    .error {
+        color: red;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
 </style>
 <?php } ?>
 <link href="{{ asset('vendor/select2/dist/css/select2.min.css')}}" rel="stylesheet">
@@ -37,32 +43,46 @@ foreach ($countries as $keycountry => $valuecountry) {
                         <input type="email" placeholder="{{trans('lang.user_email_help_2')}}" class="form-control"
                                id="email" aria-describedby="emailHelp" name="email">
                         <div id="emil_required"></div>
+                        <div class="error email_error"></div>
+                        @error('email')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
                     </div>
                     <div class="form-group">
                         <label for="password" class="text-dark">{{trans('lang.password')}}</label>
                         <input type="password" placeholder="{{trans('lang.user_password_help_2')}}" class="form-control"
                                id="password" name="password">
                         <div class="error" id="password_required"></div>
+                        <div class="error password_error"></div>
+                        @error('password')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
                     </div>
                     <div class="forgot-password">
                         <p><a href="{{url('forgot-password')}}" class="standard-link"
                               target="_blank">{{trans('lang.forgot_password')}}?</a></p>
                     </div>
                     <div class="error" id="password_required_new"></div>
-                    <button type="submit" class="btn btn-primary btn-lg btn-block"
-                            id="login_btn">{{trans('lang.log_in')}}</button>
+                    <button type="submit" class="btn btn-primary btn-lg btn-block" onclick="loginClick()" id="login_btn">{{trans('lang.log_in')}}</button>
                     <a href="{{route('signup')}}" class="btn btn-primary btn-lg btn-block">{{trans('lang.sign_up')}}</a>
-                    <div class="or-line mb-3 mt-3"><span>OR</span></div>
+                    <button type="button" onclick="googleAuth()" class="btn btn-dark btn-lg btn-block text-uppercase waves-effect waves-light btn btn-primary">
+                        <i class="fa fa-google"> </i> {{trans('lang.continue_with_google')}}
+                    </button>
+                    <div class="or-line mb-3 mt-3"><span>{{trans('lang.or')}}</span></div>
                     <button type="button" onclick="loginWithPhoneClick()" id="loginphon_btn"
                             class="btn btn-dark btn-lg btn-block text-uppercase waves-effect waves-light btn btn-primary">
-                        <i class="fa fa-phone mr-2"> </i> {{ __('Login') }} {{trans('lang.with_phone')}}</button>
+                        <i class="fa fa-phone mr-2"> </i> {{trans('lang.login')}} {{trans('lang.with_phone')}}</button>
                 </form>
                 <form class="form-horizontal form-material" name="loginwithphon" id="login-with-phone-box" action="#"
                       style="display:none;">
                     @csrf
-                    <div class="box-title m-b-20">{{ __('Login') }}</div>
+                    <div class="box-title m-b-20">{{trans('lang.login')}}</div>
                     <div class="form-group " id="phone-box">
-                        <div class="col-xs-12">
+                        <div class="col-xs-12 country_size phone-box position-relative">
                             <select name="country" id="country_selector">
                                 <?php foreach ($newcountries as $keycy => $valuecy) { ?>
                                     <?php $selected = ""; ?>
@@ -94,7 +114,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                             <button type="button" style="display:none;" onclick="sendOTP()" id="sendotp_btn"
                                     class="btn btn-dark btn-lg btn-block text-uppercase waves-effect waves-light btn btn-primary">{{trans('lang.otp_send')}}</button>
                             <button type="button" onclick="loginBackClick()"
-                                    class="btn btn-dark btn-lg btn-block text-uppercase waves-effect waves-light btn btn-primary">{{ __('Login') }} {{trans('lang.with_email')}}</button>
+                                    class="btn btn-dark btn-lg btn-block text-uppercase waves-effect waves-light btn btn-primary">{{trans('lang.login')}} {{trans('lang.with_email')}}</button>
                         </div>
                     </div>
                 </form>
@@ -105,19 +125,34 @@ foreach ($countries as $keycountry => $valuecountry) {
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="{{ asset('vendor/select2/dist/js/select2.min.js') }}"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-firestore.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-storage.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-auth.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.9.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="{{ asset('js/crypto-js.js') }}"></script>
-@include('partials.firebase-init')
+<script src="{{ asset('js/jquery.cookie.js') }}"></script>
+<script src="{{ asset('js/jquery.validate.js') }}"></script>
 <script type="text/javascript">
     var database = firebase.firestore();
 
     function loginClick() {
-        var email = $("#email").val();
+          var email = $("#email").val();
         var password = $("#password").val();
+        $("#email_required").css('display', 'none');
+        $("#password_required").html("");
+        if (email == '') {
+            $("#email_required").css('display','block');
+            jQuery("#email_required").html("{{trans('lang.please_enter_email_id')}}").css("color", "red");
+            return false;    
+        }
+        else if (password == '') {
+            $("#email_required").css('display','none');
+            jQuery("#password_required").html("{{trans('lang.please_enter_valid_password')}}").css("color", "red");
+            return false;
+        }
+                $("#email_required").css('display', 'none');
+
         firebase.auth().signInWithEmailAndPassword(email, password).then(function (result) {
             var userEmail = result.user.email;
             database.collection("users").where("email", "==", userEmail).get().then(async function (snapshots) {
@@ -152,14 +187,15 @@ foreach ($countries as $keycountry => $valuecountry) {
                         }
                     });
                 } else {
-                    $("#password_required_new").html("<p>Your account has been disabled, Please contact to Admin.</p>");
+                    $("#password_required_new").html("<p>{{trans('lang.your_account_has_been_disabled_please_contact_to_admin')}}</p>");
                 }
             })
         })
-            .catch(function (error) {
-                console.log(error.message);
-                $("#password_required").html(error.message);
-            });
+        .catch(function (error) {
+                //$(".password_error").html('<p class="error">' + error.message + '</p>').show();
+                //  $("#password_required").html(error.message);
+                $("#password_required").html("{{trans('lang.the_entered_password_is_invalid_please_check_and_try_again')}}").css("color", "red");
+        });
         return false;
     }
 
@@ -201,10 +237,10 @@ foreach ($countries as $keycountry => $valuecountry) {
                                 }
                             });
                     } else {
-                        $("#password_required_new1").html("Your account has been disabled, Please contact to Admin");
+                        $("#password_required_new1").html("{{trans('lang.your_account_has_been_disabled_please_contact_to_admin')}}");
                     }
                 } else {
-                    jQuery("#password_required_new1").html("User not found.");
+                    jQuery("#password_required_new1").html("{{trans('lang.user_not_found')}}");
                 }
             });
         }
@@ -245,7 +281,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                                 }
                             });
                         } else {
-                            jQuery("#password_required_new").html("User not found.");
+                            jQuery("#password_required_new").html("{{trans('lang.user_not_found')}}");
                         }
                     }
                 })
@@ -282,11 +318,133 @@ foreach ($countries as $keycountry => $valuecountry) {
     }
 
     jQuery(document).ready(function () {
+
         jQuery("#country_selector").select2({
             templateResult: formatState,
             templateSelection: formatState2,
             placeholder: "Select Country",
             allowClear: true
         });
+        
+        // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
+        var globalSettingsRef = database.collection('settings').doc('globalSettings');
+        globalSettingsRef.get().then(async function (snapshot) {
+            var globalSettings = snapshot.data();
+            if (globalSettings && globalSettings.defaultCountryCode) {
+                var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
+
+                // Find the option with matching phoneCode
+                var $option = $("#country_selector option").filter(function() {
+                    return $(this).val() === defaultPhoneCode;
+                });
+
+                if ($option.length > 0) {
+                    $("#country_selector").val(defaultPhoneCode).trigger('change');
+                } else {
+                    console.warn("Default country code not found in list:", defaultPhoneCode);
+                }
+            }
+        }).catch(function (error) {
+            console.error("Error fetching global settings: ", error);
+        });
+        // --- END OF DEFAULT COUNTRY LOGIC ---
     });
+    function googleAuth() {
+        var provider=new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+            .then(function(result) {
+                var user=result.user;
+                saveUserData(user);
+            }).catch(function(error) {
+                console.error("Google Sign-In Error:",error.message);
+
+            });
+    }
+
+    function saveUserData(user) {
+        jQuery('#data-table_processing').show();
+        database.collection("users").doc(user.uid).get().then(async function(snapshots_login) {
+            var userData=snapshots_login.data();
+            if(userData) {
+                if(userData.role=="customer"&&userData.active) {
+                    var uid = userData.id;
+                    var firstName = userData.firstName || '';
+                    var lastName = userData.lastName || '';
+                    var email = userData.email || '';
+                    var imageURL = '';
+                    $.ajax({
+                        type: 'POST',
+                        url: "{{ route('setToken') }}",
+                        data: {
+                            id: uid,
+                            userId: uid,
+                            email: email,
+                            password: '',
+                            firstName: firstName,
+                            lastName: lastName,
+                            profilePicture: imageURL,
+                            provider: "google",
+                        },
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(data) {
+                            if(data.access) {
+                                jQuery('#data-table_processing').hide();
+                                window.location = "{{url('/')}}";
+                            } else {
+                                jQuery('#data-table_processing').hide();
+                                $(".email_error").hide();
+                                $(".password_error").show();
+                                $(".password_error").html("");
+                                window.scrollTo(0,0);
+                                $(".password_error").append( "<p>{{ trans('lang.set_token_error') }}</p>");
+                            }
+                        },
+                        error: function() {
+                            jQuery('#data-table_processing').hide();
+                            $(".email_error").hide();
+                            $(".password_error").show();
+                            $(".password_error").html("");
+                            window.scrollTo(0,0);
+                            $(".password_error").append(
+                                "<p>{{ trans('lang.set_token_error') }}</p>");
+                        }
+                    });
+                } else {
+                    jQuery('#data-table_processing').hide();
+                    $(".email_error").hide();
+                    $(".password_error").show();
+                    $(".password_error").html("");
+                    window.scrollTo(0,0);
+                    $(".password_error").append("<p class='error'>User is not active or not found</p>");
+                }
+
+            } else {
+                var loginType='google';
+                var phoneNumber=user.phoneNumber||'';
+                var firstName=user.displayName? user.displayName.split(' ')[0]:'';
+                var lastName=user.displayName? user.displayName.split(' ')[1]:'';
+                var uuid=user.uid;
+                var email=user.email||'';
+                var photoURL=user.photoURL||'';
+                var createdAtman=firebase.firestore.Timestamp.fromDate(new Date());
+                var redirectUrl=
+                    `{{ url('signup') }}?uuid=${encodeURIComponent(uuid)}&loginType=${encodeURIComponent(loginType)}&phoneNumber=${encodeURIComponent(phoneNumber)}&firstName=${encodeURIComponent(firstName)}&lastName=${encodeURIComponent(lastName)}&email=${encodeURIComponent(email)}&photoURL=${encodeURIComponent(photoURL)}&createdAt=${createdAtman.toDate()}`;
+                jQuery('#data-table_processing').hide();
+                window.location.href=redirectUrl;
+            }
+
+        }).catch(function(error) {
+            console.log(error);
+            jQuery('#data-table_processing').hide();
+            $(".email_error").hide();
+            $(".password_error").show();
+            $(".password_error").html("");
+            window.scrollTo(0,0);
+            $(".password_error").append("<p>"+error.message+"</p>");
+
+        });
+    }
+
 </script>

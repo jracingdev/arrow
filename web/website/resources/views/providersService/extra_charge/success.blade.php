@@ -86,9 +86,8 @@
                 });
             })
         }
-
         <?php } else { ?>
-        $('.payment-status').html('your payment is unsuccesfull..Try Again');
+            $('.payment-status').html('{{ trans("lang.payment_failed") }}');
         <?php } ?>
     </script>
 @endif

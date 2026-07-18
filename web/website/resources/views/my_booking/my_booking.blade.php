@@ -1,13 +1,5 @@
 @include('layouts.app')
 @include('layouts.header')
-@php
-    $cityToCountry = file_get_contents(asset('tz-cities-to-countries.json'));
-    $cityToCountry = json_decode($cityToCountry, true);
-    $countriesJs = [];
-    foreach ($cityToCountry as $key => $value) {
-        $countriesJs[$key] = $value;
-    }
-@endphp
 <style type="text/css">
     .order_assigned {
         background: #9b59b6;
@@ -81,40 +73,15 @@
         </div>
     </div>
 </section>
+
 @include('layouts.footer')
 @include('layouts.nav')
+
 <script type="text/javascript">
-    <?php if (isset($_COOKIE['section_id'])) { ?>
-    var section_id = "<?php echo $_COOKIE['section_id']; ?>";
-    <?php } ?>
-    var cityToCountry = '<?php echo json_encode($countriesJs); ?>';
-    cityToCountry = JSON.parse(cityToCountry);
-    var userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    var userCity = userTimeZone.split('/')[1];
-    var userCountry = cityToCountry[userCity];
-    var taxSetting = [];
-    if (section_id != "") {
-        var reftaxSetting = database.collection('tax').where('country', '==', userCountry).where('enable', '==', true).where('sectionId', '==', section_id);
-        reftaxSetting.get().then(async function(snapshots) {
-            if (snapshots.docs.length > 0) {
-                snapshots.docs.forEach((val) => {
-                    val = val.data();
-                    var obj = '';
-                    obj = {
-                        'country': val.country,
-                        'enable': val.enable,
-                        'id': val.id,
-                        'tax': val.tax,
-                        'title': val.title,
-                        'type': val.type,
-                    };
-                    taxSetting.push(obj);
-                })
-            }
-        });
-    }
+
     var append_categories = '';
     var bookingRef = database.collection('provider_orders').where("authorID", "==", user_uuid).where('sectionId', '==', section_id).orderBy('createdAt', 'desc');
+    
     var currentCurrency = '';
     var currencyAtRight = false;
     var decimal_degits = 0;
@@ -128,53 +95,17 @@
             decimal_degits = currencyData.decimal_degits;
         }
     });
+
     var place_holder_image = '';
     var ref_placeholder_image = database.collection('settings').doc("placeHolderImage");
     ref_placeholder_image.get().then(async function(snapshots) {
         var placeHolderImage = snapshots.data();
         place_holder_image = placeHolderImage.image;
     });
+    
     $(document).ready(function() {
-        jQuery("#overlay").show();
-
         getBookings();
         getActiveTab();
-        $(document).on("click", '.reorder-add-to-cart', async function(event) {
-            var id = $(this).attr('data-id');
-            var order_id = $(this).attr('data-orderid');
-            var quantity = $('input[name="quantity_' + String(order_id) + '"]').val();
-            var providerId = $('input[name="provider_id_' + String(order_id) + '"]').val();
-            var price = parseFloat($('input[name="price_' + String(order_id) + '"]').val());
-            var dis_price = parseFloat($('input[name="dis_price_' + String(order_id) + '"]').val());
-            var item_price = price;
-            var category_id = $('input[name="category_id_' + String(order_id) + '"]').val();
-            var name = $('.name_' + String(order_id)).val();
-            var image = $('.image_' + String(order_id)).val();
-            $.ajax({
-                type: 'POST',
-                url: "<?php echo route('ondemand-cart'); ?>",
-                data: {
-                    _token: '<?php echo csrf_token(); ?>',
-                    id: id,
-                    quantity: quantity,
-                    name: name,
-                    price: price,
-                    dis_price: dis_price,
-                    image: image,
-                    item_price: item_price,
-                    taxValue: taxSetting,
-                    category_id: category_id,
-                    decimal_degits: decimal_degits,
-                    providerId: providerId
-                },
-                success: function(data) {
-                    data = JSON.parse(data);
-                    $('#service_cart_list').html(data.html);
-                    window.location.href = '<?php echo route('ondemand-checkout'); ?>';
-                }
-            });
-        });
-        jQuery("#overlay").hide();
     });
 
     async function getBookings() {
@@ -248,7 +179,7 @@
                 }
                 html = html + '<div class="pb-3"><div class="p-3 rounded shadow-sm bg-white"><div class="d-flex border-bottom pb-3 m-d-flex"><div class="text-muted mr-3"><a href="' + view_service_details + '" class="text-dark check_service_' + val.provider.id + '"><img alt="#" src="' + ServiceImage + '" onerror="this.onerror=null;this.src=\'' + place_holder_image + '\'" class="img-fluid order_img rounded"></a></div><div><p class="mb-0 font-weight-bold"><a href="' + view_service_details +
                     '" class="text-dark check_service_' + val.provider.id + '">' + val.provider.title + '</a></p><p class="mb-0"><span class="fa fa-map-marker"></span> ' + val.provider.address + '</p><p>{{ trans('lang.booking_id') }} : ' + val.id + '</p><p class="mb-0 small view-det"><a href="' + view_details + '">View Details</a></p></div><div class="ml-auto ord-com-btn"><p class="order_completed text-white py-1 px-2 rounded small mb-1">' + val.status +
-                    '</p><p class="small font-weight-bold text-center"><i class="feather-clock"></i> ' + val.newScheduleDateTime.toDate().toDateString() + ' ' + val.newScheduleDateTime.toDate().toLocaleTimeString('en-US') + '</p></div></div><div class="d-flex pt-3 m-d-flex"><div class="small">';
+                    '</p><p class="small font-weight-bold text-center"><i class="feather-clock"></i> ' + (val.newScheduleDateTime ? val.newScheduleDateTime.toDate().toDateString() : '') + ' ' + (val.newScheduleDateTime ? val.newScheduleDateTime.toDate().toLocaleTimeString('en-US') : '') + '</p></div></div><div class="d-flex pt-3 m-d-flex"><div class="small">';
                 html = html + '<p class="text- font-weight-bold mb-0">{{ trans('lang.provider') }}: ' + val.provider.authorName + '</p>';
                 var totalHours = 0;
                 if (val.hasOwnProperty('startTime') && val.hasOwnProperty('endTime')) {
@@ -286,25 +217,41 @@
                     booking_discount = 0;
                 }
                 booking_subtotal = (parseFloat(booking_subtotal) - parseFloat(booking_discount));
-                var tax = 0;
-                var total_tax_amount = 0;
-                if (val.hasOwnProperty('taxSetting')) {
-                    for (var i = 0; i < val.taxSetting.length; i++) {
-                        var data = val.taxSetting[i];
-                        if (data.type && data.tax) {
-                            if (data.type == "percentage") {
-                                tax = (data.tax * booking_subtotal) / 100;
-                                taxlabeltype = "%";
-                            } else {
-                                tax = data.tax;
-                                taxlabeltype = "fix";
-                            }
-                            taxlabel = data.title;
+                
+                let platformFee = parseFloat(val.platformFee || 0);
+                let total_tax_amount = 0;
+                (val.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * booking_subtotal;
+                        } else {
+                            taxAmount = tax.tax;
                         }
-                        total_tax_amount += parseFloat(tax);
+                        total_tax_amount += parseFloat(taxAmount);
                     }
-                }
-                booking_total = booking_subtotal + parseFloat(total_tax_amount);
+                });
+                
+                // Platform taxes
+                let extraCharges = [
+                    {key: 'platform', amount: platformFee, taxes: val.platformTax || []},
+                ];
+
+                extraCharges.forEach(scope => {
+                    scope.taxes?.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * scope.amount;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                        }
+                    });
+                });
+
+                booking_total = booking_subtotal + platformFee + parseFloat(total_tax_amount);
                 var booking_total_val = '';
                 if (currencyAtRight) {
                     booking_total_val = booking_total.toFixed(decimal_degits) + '' + currentCurrency;
@@ -319,7 +266,6 @@
         if (html == '') {
             html = html + "<p class='font-weight-bold text-center h5'>{{ trans('lang.no_results') }}</p>";
         }
-        jQuery("#data-table_processing").hide();
         return html;
     }
 
@@ -346,7 +292,7 @@
                 }
                 html = html + '<div class="pb-3"><div class="p-3 rounded shadow-sm bg-white"><div class="d-flex border-bottom pb-3 m-d-flex"><div class="text-muted mr-3"><a href="' + view_service_details + '" class="text-dark check_service_' + val.provider.id + '"><img alt="#" src="' + ServiceImage + '" onerror="this.onerror=null;this.src=\'' + place_holder_image + '\'" class="img-fluid order_img rounded"></a></div><div><p class="mb-0 font-weight-bold"><a href="' + view_service_details +
                     '" class="text-dark check_service_' + val.provider.id + '">' + val.provider.title + '</a></p><p class="mb-0"><span class="fa fa-map-marker"></span> ' + val.provider.address + '</p><p class="mb-0">{{ trans('lang.booking_id') }} : ' + val.id + '</p><p>{{ trans('lang.otp') }} : ' + val.otp + '</p><p class="mb-0 small view-det"><a href="' + view_details +
-                    '">View Details</a></p></div><div class="ml-auto ord-com-btn"><p class="order_ongoing text-white py-1 px-2 rounded small mb-1">' + val.status + '</p><p class="small font-weight-bold text-center"><i class="feather-clock"></i> ' + val.newScheduleDateTime.toDate().toDateString() + ' ' + val.newScheduleDateTime.toDate().toLocaleTimeString('en-US') + '</p></div></div><div class="d-flex pt-3 m-d-flex"><div class="small">';
+                    '">View Details</a></p></div><div class="ml-auto ord-com-btn"><p class="order_ongoing text-white py-1 px-2 rounded small mb-1">' + val.status + '</p><p class="small font-weight-bold text-center"><i class="feather-clock"></i> ' + (val.newScheduleDateTime ? val.newScheduleDateTime.toDate().toDateString() : '' ) + ' ' + ( val.newScheduleDateTime ? val.newScheduleDateTime.toDate().toLocaleTimeString('en-US') : '') + '</p></div></div><div class="d-flex pt-3 m-d-flex"><div class="small">';
                 html = html + '<p class="text- font-weight-bold mb-0">{{ trans('lang.provider') }}: ' + val.provider.authorName + '</p>';
                 var price = val.provider.price;
                 var booking_subtotal = booking_total = 0;
@@ -374,25 +320,41 @@
                     booking_discount = 0;
                 }
                 booking_subtotal = (parseFloat(booking_subtotal) - parseFloat(booking_discount));
-                var tax = 0;
-                var total_tax_amount = 0;
-                if (val.hasOwnProperty('taxSetting')) {
-                    for (var i = 0; i < val.taxSetting.length; i++) {
-                        var data = val.taxSetting[i];
-                        if (data.type && data.tax) {
-                            if (data.type == "percentage") {
-                                tax = (data.tax * booking_subtotal) / 100;
-                                taxlabeltype = "%";
-                            } else {
-                                tax = data.tax;
-                                taxlabeltype = "fix";
-                            }
-                            taxlabel = data.title;
+
+                let platformFee = parseFloat(val.platformFee || 0);
+                let total_tax_amount = 0;
+                (val.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * booking_subtotal;
+                        } else {
+                            taxAmount = tax.tax;
                         }
-                        total_tax_amount += parseFloat(tax);
+                        total_tax_amount += parseFloat(taxAmount);
                     }
-                }
-                booking_total = booking_subtotal + parseFloat(total_tax_amount);
+                });
+                
+                // Platform taxes
+                let extraCharges = [
+                    {key: 'platform', amount: platformFee, taxes: val.platformTax || []},
+                ];
+
+                extraCharges.forEach(scope => {
+                    scope.taxes?.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * scope.amount;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                        }
+                    });
+                });
+
+                booking_total = booking_subtotal + platformFee + parseFloat(total_tax_amount);
                 var booking_total_val = '';
                 if (currencyAtRight) {
                     booking_total_val = booking_total.toFixed(decimal_degits) + '' + currentCurrency;
@@ -413,7 +375,6 @@
         if (html == '') {
             html = html + "<p class='font-weight-bold text-center h5'>{{ trans('lang.no_results') }}</p>";
         }
-        jQuery("#data-table_processing").hide();
         return html;
     }
 
@@ -446,7 +407,7 @@
                 }
                 html = html + '<div class="pb-3"><div class="p-3 rounded shadow-sm bg-white"><div class="d-flex border-bottom pb-3 m-d-flex"><div class="text-muted mr-3"><a href="' + view_service_details + '" class="text-dark check_service_' + val.provider.id + '"><img alt="#" src="' + ServiceImage + '" onerror="this.onerror=null;this.src=\'' + place_holder_image + '\'" class="img-fluid order_img rounded"></a></div><div><p class="mb-0 font-weight-bold"><a href="' + view_service_details +
                     '" class="text-dark check_service_' + val.provider.id + '">' + val.provider.title + '</a></p><p class="mb-0"><span class="fa fa-map-marker"></span> ' + val.provider.address + '</p><p>{{ trans('lang.booking_id') }} : ' + val.id + '</p><p class="mb-0 small view-det"><a href="' + view_details + '">View Details</a></p></div><div class="ml-auto ord-com-btn"><p class="text-white py-1 px-2 rounded small mb-1 ' + stus_clr + '">' + val.status +
-                    '</p><p class="small font-weight-bold text-center"><i class="feather-clock"></i> ' + val.newScheduleDateTime.toDate().toDateString() + ' ' + val.newScheduleDateTime.toDate().toLocaleTimeString('en-US') + '</p></div></div><div class="d-flex pt-3 m-d-flex"><div class="small">';
+                    '</p><p class="small font-weight-bold text-center"><i class="feather-clock"></i> ' + (val.newScheduleDateTime ? val.newScheduleDateTime.toDate().toDateString() : '') + ' ' + ( val.newScheduleDateTime ? val.newScheduleDateTime.toDate().toLocaleTimeString('en-US') : '' )+ '</p></div></div><div class="d-flex pt-3 m-d-flex"><div class="small">';
                 html = html + '<p class="text- font-weight-bold mb-0">{{ trans('lang.provider') }}: ' + val.provider.authorName + '</p>';
                 var price = val.provider.price;
                 if (val.provider.hasOwnProperty('disPrice') && val.provider.disPrice != '0') {
@@ -474,25 +435,41 @@
                     booking_discount = 0;
                 }
                 booking_subtotal = (parseFloat(booking_subtotal) - parseFloat(booking_discount));
-                var tax = 0;
-                var total_tax_amount = 0;
-                if (val.hasOwnProperty('taxSetting')) {
-                    for (var i = 0; i < val.taxSetting.length; i++) {
-                        var data = val.taxSetting[i];
-                        if (data.type && data.tax) {
-                            if (data.type == "percentage") {
-                                tax = (data.tax * booking_subtotal) / 100;
-                                taxlabeltype = "%";
-                            } else {
-                                tax = data.tax;
-                                taxlabeltype = "fix";
-                            }
-                            taxlabel = data.title;
+                
+                let platformFee = parseFloat(val.platformFee || 0);
+                let total_tax_amount = 0;
+                (val.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * booking_subtotal;
+                        } else {
+                            taxAmount = tax.tax;
                         }
-                        total_tax_amount += parseFloat(tax);
+                        total_tax_amount += parseFloat(taxAmount);
                     }
-                }
-                booking_total = booking_subtotal + parseFloat(total_tax_amount);
+                });
+                
+                // Platform taxes
+                let extraCharges = [
+                    {key: 'platform', amount: platformFee, taxes: val.platformTax || []},
+                ];
+
+                extraCharges.forEach(scope => {
+                    scope.taxes?.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * scope.amount;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                        }
+                    });
+                });
+
+                booking_total = booking_subtotal + platformFee + parseFloat(total_tax_amount);
                 var booking_total_val = '';
                 if (currencyAtRight) {
                     booking_total_val = booking_total.toFixed(decimal_degits) + '' + currentCurrency;
@@ -513,7 +490,6 @@
         if (html == '') {
             html = html + "<p class=' font-weight-bold text-center h5'>{{ trans('lang.no_results') }}</p>";
         }
-        jQuery("#data-table_processing").hide();
         return html;
     }
 
@@ -531,6 +507,7 @@
             var view_service_details = "{{ route('service', ':id') }}";
             view_service_details = view_service_details.replace(':id', val.provider.id);
             checkServiceExist(val.provider.id);
+            
             if (val.status == "Order Placed") {
                 var ServiceImage = '';
                 if (val.provider.hasOwnProperty('photos') && val.provider.photos != '') {
@@ -568,25 +545,42 @@
                     booking_discount = 0;
                 }
                 booking_subtotal = (parseFloat(booking_subtotal) - parseFloat(booking_discount));
-                var tax = 0;
-                var total_tax_amount = 0;
-                if (val.hasOwnProperty('taxSetting')) {
-                    for (var i = 0; i < val.taxSetting.length; i++) {
-                        var data = val.taxSetting[i];
-                        if (data.type && data.tax) {
-                            if (data.type == "percentage") {
-                                tax = (data.tax * booking_subtotal) / 100;
-                                taxlabeltype = "%";
-                            } else {
-                                tax = data.tax;
-                                taxlabeltype = "fix";
-                            }
-                            taxlabel = data.title;
+
+                let platformFee = parseFloat(val.platformFee || 0);
+                let total_tax_amount = 0;
+                (val.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * booking_subtotal;
+                        } else {
+                            taxAmount = tax.tax;
                         }
-                        total_tax_amount += parseFloat(tax);
+                        total_tax_amount += parseFloat(taxAmount);
                     }
-                }
-                booking_total = booking_subtotal + parseFloat(total_tax_amount);
+                });
+                
+                // Platform taxes
+                let extraCharges = [
+                    {key: 'platform', amount: platformFee, taxes: val.platformTax || []},
+                ];
+
+                extraCharges.forEach(scope => {
+                    scope.taxes?.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * scope.amount;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                        }
+                    });
+                });
+
+                booking_total = booking_subtotal + platformFee + parseFloat(total_tax_amount);
+
                 var booking_total_val = '';
                 if (currencyAtRight) {
                     booking_total_val = booking_total.toFixed(decimal_degits) + '' + currentCurrency;
@@ -607,7 +601,6 @@
         if (html == '') {
             html = html + "<p class=' font-weight-bold text-center h5'>{{ trans('lang.no_results') }}</p>";
         }
-        jQuery("#data-table_processing").hide();
         return html;
     }
 
@@ -662,25 +655,41 @@
                     booking_discount = 0;
                 }
                 booking_subtotal = (parseFloat(booking_subtotal) - parseFloat(booking_discount));
-                var tax = 0;
-                var total_tax_amount = 0;
-                if (val.hasOwnProperty('taxSetting')) {
-                    for (var i = 0; i < val.taxSetting.length; i++) {
-                        var data = val.taxSetting[i];
-                        if (data.type && data.tax) {
-                            if (data.type == "percentage") {
-                                tax = (data.tax * booking_subtotal) / 100;
-                                taxlabeltype = "%";
-                            } else {
-                                tax = data.tax;
-                                taxlabeltype = "fix";
-                            }
-                            taxlabel = data.title;
+                
+                let platformFee = parseFloat(val.platformFee || 0);
+                let total_tax_amount = 0;
+                (val.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * booking_subtotal;
+                        } else {
+                            taxAmount = tax.tax;
                         }
-                        total_tax_amount += parseFloat(tax);
+                        total_tax_amount += parseFloat(taxAmount);
                     }
-                }
-                booking_total = booking_subtotal + parseFloat(total_tax_amount);
+                });
+                
+                // Platform taxes
+                let extraCharges = [
+                    {key: 'platform', amount: platformFee, taxes: val.platformTax || []},
+                ];
+
+                extraCharges.forEach(scope => {
+                    scope.taxes?.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * scope.amount;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                        }
+                    });
+                });
+
+                booking_total = booking_subtotal + platformFee + parseFloat(total_tax_amount);
                 var booking_total_val = '';
                 if (currencyAtRight) {
                     booking_total_val = booking_total.toFixed(decimal_degits) + '' + currentCurrency;
@@ -701,7 +710,6 @@
         if (html == '') {
             html = html + "<p class=' font-weight-bold text-center h5'>{{ trans('lang.no_results') }}</p>";
         }
-        jQuery("#data-table_processing").hide();
         return html;
     }
 

@@ -11,13 +11,23 @@
     </div>
 </div>
 @include('layouts.footer')
+<script src="https://unpkg.com/geofirestore/dist/geofirestore.js"></script>
+<script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
+
 <script type="text/javascript">
+    var firestore = firebase.firestore();
+    var geoFirestore = new GeoFirestore(firestore);
     var placeholderImageRef = database.collection('settings').doc('placeHolderImage');
     var placeholderImageSrc = '';
     placeholderImageRef.get().then(async function(placeholderImageSnapshots) {
         var placeHolderImageData = placeholderImageSnapshots.data();
         placeholderImageSrc = placeHolderImageData.image;
     })
+    
+    var inValidVendors = [];
+    var VendorNearBy='';
+    var DriverNearByRef=database.collection('settings').doc('DriverNearBy');
+    
     var decimal_degits = 0;
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     refCurrency.get().then(async function(snapshots) {
@@ -29,19 +39,77 @@
         }
     });
     var productsRef = database.collection('vendor_products').where('section_id', '==', section_id).where("publish", "==", true);
-    jQuery("#overlay").show();
-    var product_list = document.getElementById('product-list');
-    product_list.innerHTML = '';
-    var html = '';
-    productsRef.get().then(async function(snapshots) {
-        priceData=await fetchVendorPriceData();
 
-        html = await buildProductsHTML(snapshots);
-        if (html != '') {
-            product_list.innerHTML = html;
-            jQuery("#overlay").hide();
-        }
+    var vendorIds=[];
+    var myInterval='';
+    $(document).ready(async function() {
+        jQuery("#overlay").show();
+        inValidVendors = await getInvaidUserIds();
+        myInterval=setInterval(callStore,1000);
     });
+
+    function myStopTimer() {
+        clearInterval(myInterval);
+    }
+
+    async function callStore() {
+        if(address_lat==''||address_lng==''||address_lng==NaN||address_lat==NaN||address_lat== null||address_lng==null) {
+            return false;
+        }
+        DriverNearByRef.get().then(async function(DriverNearByRefSnapshots) {
+            var DriverNearByRefData=DriverNearByRefSnapshots.data();
+            VendorNearBy=parseInt(DriverNearByRefData.driverRadios);
+            radiusUnit=DriverNearByRefData.distanceType;
+            if(radiusUnit=='miles') {
+                VendorNearBy=parseInt(VendorNearBy*1.60934)
+            }
+            address_lat=parseFloat(address_lat);
+            address_lng=parseFloat(address_lng);
+            if(user_zone_id==null) {
+                jQuery("#overlay").hide();
+                return false;
+            }
+            priceData=await fetchVendorPriceData();
+            getProductList();
+            myStopTimer();
+        })
+    }
+
+    async function getProductList() {
+        var product_list=document.getElementById('product-list');
+        product_list.innerHTML='';
+        var html='';
+        if(VendorNearBy) {
+            var vendorsSnapshots=geoFirestore.collection('vendors').near({
+                center: new firebase.firestore.GeoPoint(address_lat,address_lng),
+                radius: VendorNearBy
+            }).where('section_id', '==', section_id).where('zoneId','==',user_zone_id);
+        } else {
+            var vendorsSnapshots=geoFirestore.collection('vendors').where('section_id', '==', section_id).where('zoneId','==',user_zone_id);
+        }
+        vendorsSnapshots.get().then(async function(vendorsSnaps) {
+            if(vendorsSnaps.docs.length>0) {
+                vendorsSnaps.docs.forEach((listval) => {
+                    if (!inValidVendors.includes(listval.author)) {
+                        vendorIds.push(listval.id);
+                    }
+                });
+                productsRef.get().then(async function(snapshots) {
+                    if(snapshots.docs.length>0) {
+                        html=await buildProductsHTML(snapshots);
+                        product_list.innerHTML=html;
+                    }else{
+                        html=html+ "<h5 class='font-weight-bold text-center mt-3'>{{ trans('lang.no_results') }}</h5>";
+                        product_list.innerHTML=html;        
+                    }
+                });
+            } else {
+                html=html+ "<h5 class='font-weight-bold text-center mt-3'>{{ trans('lang.no_results') }}</h5>";
+                product_list.innerHTML=html;
+            }
+        });
+        jQuery("#overlay").hide();
+    }
 
     async function buildProductsHTML(snapshots) {
         var html = '';
@@ -50,15 +118,13 @@
         snapshots.docs.forEach((listval) => {
             var datas = listval.data();
             datas.id = listval.id;
-            if (!groupedData[datas.vendorID]) {
-                groupedData[datas.vendorID] = [];
+            if (vendorIds.map(String).includes(String(datas.vendorID))) {
+                if (!groupedData[datas.vendorID]) groupedData[datas.vendorID] = [];
+                groupedData[datas.vendorID].push(datas);
             }
-            groupedData[datas.vendorID].push(datas);
         });
-       
         await Promise.all(Object.keys(groupedData).map(async (vendorID) => {
             let products = groupedData[vendorID];
-            
             inValidProductIds = await getUserItemLimit(vendorID);
             products = products.filter(product => !inValidProductIds.includes(product.id));
             alldata=alldata.concat(products);
@@ -72,8 +138,7 @@
                 var val = listval;
                 var rating = 0;
                 var reviewsCount = 0;
-                if (val.hasOwnProperty('reviewsSum') && val.reviewsSum != 0 && val.hasOwnProperty('reviewsCount') &&
-                    val.reviewsCount != 0) {
+                if (val.hasOwnProperty('reviewsSum') && val.reviewsSum > 0 && val.hasOwnProperty('reviewsCount') && val.reviewsCount > 0) {
                     rating = (val.reviewsSum / val.reviewsCount);
                     rating = Math.round(rating * 10) / 10;
                     reviewsCount = val.reviewsCount;

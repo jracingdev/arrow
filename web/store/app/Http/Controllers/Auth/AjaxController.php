@@ -135,7 +135,41 @@ class AjaxController extends Controller
         return $data;
 
     }
+    public function setTokenEmployee(Request $request)
+    {
 
+        $uuid = $request->id;
+        $password = $request->password;
+        $exist = VendorUsers::where('email', $request->email)->get();
+        $data = $exist->isEmpty();
+       
+        if ($exist->isEmpty()) {
+            
+            $user = User::create([
+                'name' => $request->firstName . ' ' . $request->lastName,
+                'email' => $request->email,
+                'password' => Hash::make($password),
+            ]);
+
+            DB::table('vendor_users')->insert([
+                'user_id' => $user->id,
+                'uuid' => $uuid,
+                'email' => $request->email,
+            ]);
+
+        } else {
+            $user = DB::table('vendor_users')->select('id')->where('email', $request->email)->first();
+            DB::table('vendor_users')->where('id', $user->id)
+                ->update([
+                    'uuid' => $uuid,
+                    'email' => $request->email
+                ]);
+        }
+        
+        return response()->json([
+            'access' => true,
+        ]);
+    }
     public function setSubcriptionFlag(Request $request)
 
     {

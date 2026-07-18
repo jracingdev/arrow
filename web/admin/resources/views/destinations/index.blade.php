@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.destination_table')}}</li>
             </ol>
         </div>
@@ -58,7 +58,7 @@
                                     class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i> {{trans('lang.all')}}</a></label></th>
                                     <?php } ?>
                                     <th>{{trans('lang.location_info')}}</th>
-                                    <th>{{trans('lang.section')}}</th>
+                                    
                                     <th>{{trans('lang.item_publish')}}</th>
                                     <th>{{trans('lang.actions')}}</th>
                                 </tr>
@@ -80,14 +80,13 @@
 @section('scripts')
 
 <script type="text/javascript">
+    
+    var section_id = getCookie('section_id') || '';
     var user_permissions = '<?php echo @session('user_permissions') ?>';
-        
-    user_permissions = JSON.parse(user_permissions);
-        
-        var checkDeletePermission = false;
-        
-        if ($.inArray('destinations.delete', user_permissions) >= 0) {
-            checkDeletePermission = true;
+    user_permissions = Object.values(JSON.parse(user_permissions));
+    var checkDeletePermission = false;
+    if ($.inArray('destinations.delete', user_permissions) >= 0) {
+        checkDeletePermission = true;
     }    
     var database = firebase.firestore();
 
@@ -106,6 +105,10 @@
     });
 
     var refData = database.collection('popular_destinations');
+    if(section_id){
+        refData = refData.where('sectionId', '==', section_id);
+    }
+    
     var append_list = '';
 
     $(document).ready(function() {
@@ -131,6 +134,9 @@
             
             }
             html = await buildHTML(snapshots);
+             $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
             jQuery("#data-table_processing").hide();
             if (html != '') {
                 append_list.innerHTML = html;
@@ -139,33 +145,24 @@
                 if (snapshots.docs.length < pagesize) {
                     jQuery("#data-table_paginate").hide();
                 }
-            }
-            const table =  $('#destinationTable').DataTable({
-                order: [],
-                columnDefs: [{
-                        targets: (checkDeletePermission==true) ? 4 : 3,
-                        type: 'date',
-                        render: function(data) {
-
-                            return data;
-                        }
-                    },
+            }            
+            const table = $('#destinationTable').DataTable({
+                order: (checkDeletePermission==true) ? [[1, 'asc']] : [[0,'asc']],
+                columnDefs: [
                     {
                         orderable: false,
-                        targets: (checkDeletePermission==true) ? [0,3,4] : [2, 3]
-                    },
+                        targets: (checkDeletePermission==true) ? [0, 2, 3] : [1, 2]
+                    }
                 ],
-                order: (checkDeletePermission==true) ? ['1', 'asc'] : ['0','asc'],
-                "language": {
-                    "zeroRecords": "{{trans('lang.no_record_found')}}",
-                    "emptyTable": "{{trans('lang.no_record_found')}}"
-                },
+               "language": datatableLang,
                 responsive: true
             });
+
             table.on('search.dt', function() {
                 var filteredCount = table.rows({ search: 'applied' }).count();
-                $('.total_count').text(filteredCount);  // Update count
+                $('.total_count').text(filteredCount);
             });
+
         });
 
     })
@@ -219,8 +216,7 @@
                 html = html + '<td><img alt="" width="100%" style="width:70px;height:70px;" src="' + placeholderImage + '" alt="image">  <a href="' + route1 + '" class="left_space">' + val.title + '</a></td>';
             }
 
-            const section = getSectionName(val.sectionId);
-            html = html + '<td class="sectionName_' + val.sectionId + '"></td>';
+          
 
             if (val.is_publish) {
                 html = html + '<td><label class="switch"><input type="checkbox" checked id="' + val.id +
@@ -230,9 +226,9 @@
                     '" name="isActive"><span class="slider round"></span></label></td>';
             }
 
-           html = html + '<td><span class="vendor-action-btn action-btn"><a href="' + route1 +'"><i class="mdi mdi-lead-pencil"></i></a>';
+           html = html + '<td><span class="vendor-action-btn action-btn"><a href="' + route1 +'" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';
            if(checkDeletePermission){
-           html=html+'<a id="' + val.id +'" name="vendor-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
+           html=html+'<a id="' + val.id +'" name="vendor-delete" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a>';
            }
            html=html+'</span></td>';
 

@@ -20,7 +20,6 @@ class OnDemandOrderController extends Controller
             \Redirect::to('set-location')->send();
         }
         $this->middleware('auth');
-        error_reporting(0);
     }
 
     /**

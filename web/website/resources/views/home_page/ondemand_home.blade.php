@@ -1,7 +1,7 @@
 @include('layouts.app')
 @include('layouts.header')
 <div class="siddhi-home-page">
-    <div class="bg-primary px-3 d-none mobile-filter pb-3">
+    <div class="bg-primary px-3 d-none mobile-filter pb-3 section-content">
         <div class="row align-items-center">
             <div class="input-group rounded shadow-sm overflow-hidden col-md-9 col-sm-9">
                 <div class="input-group-prepend">
@@ -18,12 +18,12 @@
             </div>
         </div>
     </div>
-    <div class="ecommerce-banner multivendor-banner">
+    <div class="ecommerce-banner multivendor-banner section-content">
         <div class="ecommerce-inner">
             <div class="" id="top_banner"></div>
         </div>
     </div>
-    <div class="ecommerce-content multi-vendore-content">
+    <div class="ecommerce-content multi-vendore-content section-content">
         <section class="top-categories">
             <div class="container">
                 <div class="title d-flex align-items-center">
@@ -80,6 +80,15 @@
                 </div>
             </div>
         </section>
+    </div>
+    <div class="zone-error m-5 p-5" style="display: none;">
+        <div class="zone-image text-center">
+            <img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" src="{{ asset('img/zone_logo.png') }}" width="100">
+        </div>
+        <div class="zone-content text-center text-center font-weight-bold text-danger">
+            <h3 class="title">{{ trans('lang.zone_error_title') }}</h3>
+            <h6 class="text">{{ trans('lang.zone_error_text') }}</h6>
+        </div>
     </div>
     @include('layouts.footer')
     <link rel="stylesheet" href="{{ asset('css/dist/zuck.min.css') }}">
@@ -247,9 +256,6 @@
             jQuery("#overlay").show();
             inValidProviders = await getInvaidUserIds();
             myInterval = setInterval(callStore, 1000);
-            getServiceCategories();
-            getCouponsList();
-            getAllServices();
         });
 
         async function callStore() {
@@ -266,23 +272,36 @@
                 }
                 address_lat = parseFloat(address_lat);
                 address_lng = parseFloat(address_lng);
-                myStopTimer();
+                if (user_zone_id == null) {
+                    jQuery(".section-content").remove();
+                    jQuery(".zone-error").show();
+                    jQuery("#overlay").hide();
+                    return false;
+                }
+                getServiceCategories();
+                getCouponsList();
+                getAllServices();
                 getMostPopularServices();
+                myStopTimer();
             })
         }
 
         async function getServiceCategories() {
             serviceCategoriesref.get().then(async function(serviceCategories) {
-                append_categories = document.getElementById('append_categories');
-                append_categories.innerHTML = '';
-                serviceCategorieshtml = buildHTMLServiceCategory(serviceCategories);
-                append_categories.innerHTML = serviceCategorieshtml;
+                if(serviceCategories.docs.length > 0){
+                    append_categories = document.getElementById('append_categories');
+                    append_categories.innerHTML = '';
+                    serviceCategorieshtml = buildHTMLServiceCategory(serviceCategories);
+                    append_categories.innerHTML = serviceCategorieshtml;
+                }else{
+                    jQuery(".top-categories").remove();
+                }
             })
         }
 
         async function getAllServices() {
             refs.get().then(async function(snapshots) {
-                if (snapshots != undefined) {
+                if(snapshots.docs.length > 0){
                     var html = await buildAllServicesHTML(snapshots);
                     var append_list = document.getElementById('all_services');
                     append_list.innerHTML = html;
@@ -303,8 +322,9 @@
                 let promises = snapshots.docs.map(async (listval) => {
                     var datas = listval.data();
                     datas.id = listval.id;
+                    let serviceInzone = await getUserZoneId(datas.latitude, datas.longitude);
                     var inValidServiceIds = await getProviderServiceLimit(datas.author);
-                    if (inValidProviders.length == 0 || !inValidProviders.includes(datas.author)) {
+                    if (serviceInzone && ( inValidProviders.length == 0 || !inValidProviders.includes(datas.author) )) {
                         if (inValidServiceIds.length == 0 || !inValidServiceIds.includes(datas.id)) {
                             return datas;
                         }
@@ -496,13 +516,13 @@
                     rating = Math.round(rating * 10) / 10;
                 }
                 datas.rating = rating;
+                let serviceInzone = await getUserZoneId(datas.latitude, datas.longitude);
                 var inValidServiceIds = await getProviderServiceLimit(datas.author);
-                if (inValidProviders.length == 0 || !inValidProviders.includes(datas.author)) {
+                if (serviceInzone && ( inValidProviders.length == 0 || !inValidProviders.includes(datas.author) )) {
                     if (inValidServiceIds.length == 0 || !inValidServiceIds.includes(datas.id)) {
                         return datas;
                     }
                 }
-
                 return null;
             });
             let results = await Promise.all(promises);

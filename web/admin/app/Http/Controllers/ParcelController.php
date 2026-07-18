@@ -12,22 +12,17 @@ class ParcelController extends Controller
 
     public function index()
     {
-        return view("parcel.parcelCategory");
+        return view("parcel_category.index");
     }
 
     public function create()
     {
-        return view("parcel.create");
+        return view("parcel_category.create");
     }
 
     public function edit($id)
     {
-        return view('parcel.edit')->with('id', $id);
-    }
-
-    public function view($id)
-    {
-        return view('parcel.view')->with('id', $id);
+        return view('parcel_category.edit')->with('id', $id);
     }
 
     public function parcelWeight()
@@ -58,6 +53,11 @@ class ParcelController extends Controller
     public function parcelOrderEdit($id)
     {
         return view('parcel_orders.edit')->with('id', $id);
+    }
+
+    public function parcelOrdersOwners($id = '')
+    {
+        return view("parcel_orders.owner_index")->with('id', $id);
     }
 
 }

@@ -7,7 +7,6 @@ use App\Models\VendorUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Razorpay\Api\Api;
-use Session;
 use Illuminate\Support\Facades\Storage;
 use Google\Client as Google_Client;
 use Xendit\Configuration;
@@ -15,6 +14,7 @@ use Xendit\Invoice\InvoiceApi;
 use Xendit\Invoice\CreateInvoiceRequest;
 use Xendit\XenditSdkException;
 use GuzzleHttp\Client;
+use Session;
 
 class PayLaterServiceChargeController extends Controller
 {
@@ -38,16 +38,27 @@ class PayLaterServiceChargeController extends Controller
         $service_total = @$request->get('serviceTotal');
         $decimal_degits = $request->get('decimal_degits');
         $taxSetting = $request->get('taxSetting');
+        $taxScope = $request->get('taxScope');
         $subTotal = $request->get('subTotal');
+        $platformCharge = $request->get('platformCharge');
+        $platformTax = $request->get('platformTax');
+        $currencyData = $request->get('currencyData');
         $providerId = $request->get('providerId');
         $service_charge_cart = [];
         $service_charge_cart['extra_charge'] = $extra_charge;
         $service_charge_cart['order_id'] = $order_id;
         $service_charge_cart['service_total'] = $service_total;
         $service_charge_cart['decimal_degits'] = $decimal_degits;
-        $service_charge_cart['taxValue'] = $taxSetting;
+        $service_charge_cart['taxSetting'] = $taxSetting;
+        $service_charge_cart['taxScope'] = $taxScope;
+        $service_charge_cart['currencyData'] = $currencyData;
         $service_charge_cart['sub_total'] = $subTotal;
+        $service_charge_cart['platformCharge'] = $platformCharge;
+        $service_charge_cart['platformTax'] = $platformTax;
         $service_charge_cart['provider_id'] = $providerId;
+        
+        $service_charge_cart = $this->calculateTax($service_charge_cart);
+
         Session::put('service_charge_cart', $service_charge_cart);
         Session::save();
         return response()->json(['success' => true]);
@@ -58,7 +69,7 @@ class PayLaterServiceChargeController extends Controller
         $email = Auth::user()->email;
         $user = VendorUsers::where('email', $email)->first();
         $service_charge_cart = Session::get('service_charge_cart');
-        return view('providersService.service_charge.pay_service_charge', ['is_checkout' => 1, 'service_charge_cart' => $service_charge_cart, 'id' => $user->uuid]);
+        return view('providersService.service_charge.pay_service_charge', ['is_checkout' => 1, 'service_charge_cart' => $service_charge_cart, 'id' => $user->uuid, 'errorMessage' => Session::get('payment_error', '')]);
     }
 
     public function applyCoupon(Request $request)
@@ -69,12 +80,103 @@ class PayLaterServiceChargeController extends Controller
             $service_charge_cart['coupon']['coupon_id'] = $request->coupon_id;
             $service_charge_cart['coupon']['discount'] = $request->discount;
             $service_charge_cart['coupon']['discountType'] = $request->discountType;
+           
+            $service_charge_cart = $this->calculateTax($service_charge_cart);
+
             Session::put('service_charge_cart', $service_charge_cart);
             Session::save();
             $res = array('status' => true, 'html' => view('providersService.service_charge.cart_item', ['service_charge_cart' => $service_charge_cart])->render());
             echo json_encode($res);
             exit;
         }
+    }
+
+    public function removeCoupon(Request $request)
+    {
+        $service_charge_cart = Session::get('service_charge_cart');
+        $service_charge_cart['coupon'] = [];
+        
+        $service_charge_cart = $this->calculateTax($service_charge_cart);
+        Session::put('service_charge_cart', $service_charge_cart);
+        Session::save();
+        
+        $res = array('status' => true, 'html' => view('providersService.service_charge.cart_item', ['service_charge_cart' => $service_charge_cart])->render());
+        echo json_encode($res);
+        exit;
+    }
+
+    public function calculateTax($cart){
+        
+        $cart['taxBreakdownGrouped'] = [
+            'order' => [],
+            'platform' => []
+        ];
+        
+        // Item subtotal before discount
+        $itemSubtotal = $cart['sub_total'];
+        
+        // Calculate discount
+        $discount_amount = 0;
+        if (!empty($cart['coupon'])) {
+            if ($cart['coupon']['discountType'] === 'Fix Price') {
+                $discount_amount = min($cart['coupon']['discount'], $itemSubtotal);
+            } else {
+                $discount_amount = min(($itemSubtotal * $cart['coupon']['discount']) / 100, $itemSubtotal);
+            }
+        }
+
+        $totalDiscount = $discount_amount;
+
+        // Item subtotal after discount
+        $finalSubtotal = $totalDiscount > 0 ? $itemSubtotal - $totalDiscount : $itemSubtotal;
+
+        $totalTax = 0;
+
+        $cart['taxesByScope']['order'] = $cart['taxSetting'] ?? [];
+        $cart['taxesByScope']['platform'] = $cart['platformTax'] ?? [];
+
+        // ORDER-LEVEL TAX
+        if ($cart['taxScope'] === 'order') {
+            $orderTaxable = max(0, $itemSubtotal - $totalDiscount);
+            foreach ($cart['taxesByScope']['order'] ?? [] as $tax) {
+                if ($tax['enable'] ?? true) {
+                    $taxAmount = $this->applyTax($orderTaxable, $tax);
+                    $totalTax += $taxAmount;
+                    $cart['taxBreakdownGrouped']['order'][$tax['title']] =
+                        ($cart['taxBreakdownGrouped']['order'][$tax['title']] ?? 0) + $taxAmount;
+                }
+            }
+        }
+
+        // PLATFORM TAXES
+        $extraScopes = ['platform'];
+        foreach ($extraScopes as $scope) {
+            $charge = $cart[$scope . 'Charge'] ?? 0;
+            foreach ($cart['taxesByScope'][$scope] ?? [] as $tax) {
+                if (!isset($cart['taxBreakdownGrouped'][$scope][$tax['title']])) {
+                    $cart['taxBreakdownGrouped'][$scope][$tax['title']] = 0;
+                }
+                $taxAmount = ($charge > 0) ? $this->applyTax($charge, $tax) : 0;
+                $totalTax += $taxAmount;
+                $cart['taxBreakdownGrouped'][$scope][$tax['title']] += $taxAmount;
+            }
+        }
+
+        $cart['total_tax'] = $totalTax;
+        $cart['total_price'] = $finalSubtotal + $cart['platformCharge'] + $totalTax;
+
+        return $cart;
+    }
+
+    public function applyTax($amount, $tax) {
+        if (!$tax['enable']) return 0;
+        if ($tax['type'] === 'percentage') {
+            return ($amount * $tax['tax']) / 100;
+        }
+        if ($tax['type'] === 'fix') {
+            return $tax['tax'];
+        }
+        return 0;
     }
 
     public function proccesstopay()
@@ -88,9 +190,11 @@ class PayLaterServiceChargeController extends Controller
                 $razorpayKey = $service_charge_cart['cart_order']['razorpayKey'];
                 $authorName = $service_charge_cart['cart_order']['authorName'];
                 $total_pay = $service_charge_cart['cart_order']['total_pay'];
-                $amount = 0;
-                return view('providersService.service_charge.razorpay', ['is_checkout' => 1, 'cart' => $service_charge_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'razorpaySecret' => $razorpaySecret, 'razorpayKey' => $razorpayKey, 'cart_order' => $service_charge_cart['cart_order']]);
+                $formatted_price = $service_charge_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $service_charge_cart['cart_order']['currencyData']['decimal_degits']);
+                return view('providersService.service_charge.razorpay', ['is_checkout' => 1, 'cart' => $service_charge_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'razorpaySecret' => $razorpaySecret, 'razorpayKey' => $razorpayKey, 'cart_order' => $service_charge_cart['cart_order'], 'formatted_price' => $formatted_price]);
+
             } else if ($service_charge_cart['cart_order']['payment_method'] == 'payfast') {
+
                 $payfast_merchant_key = $service_charge_cart['cart_order']['payfast_merchant_key'];
                 $payfast_merchant_id = $service_charge_cart['cart_order']['payfast_merchant_id'];
                 $payfast_isSandbox = $service_charge_cart['cart_order']['payfast_isSandbox'];
@@ -99,19 +203,46 @@ class PayLaterServiceChargeController extends Controller
                 $payfast_cancel_url = route('service-charge-pay');
                 $authorName = $service_charge_cart['cart_order']['authorName'];
                 $total_pay = $service_charge_cart['cart_order']['total_pay'];
-                $amount = 0;
+                $formatted_price = $service_charge_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $service_charge_cart['cart_order']['currencyData']['decimal_degits']);
                 $token = uniqid();
                 Session::put('payfast_payment_token', $token);
                 Session::save();
+                
                 $payfast_return_url = $payfast_return_url . '?token=' . $token;
-                return view('providersService.service_charge.payfast', ['is_checkout' => 1, 'cart' => $service_charge_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'payfast_merchant_key' => $payfast_merchant_key, 'payfast_merchant_id' => $payfast_merchant_id, 'payfast_isSandbox' => $payfast_isSandbox, 'payfast_return_url' => $payfast_return_url, 'payfast_notify_url' => $payfast_notify_url, 'payfast_cancel_url' => $payfast_cancel_url, 'cart_order' => $service_charge_cart['cart_order']]);
+                $amount = number_format($total_pay, 2, '.', '');
+                $data = [
+                    'merchant_id' => $payfast_merchant_id,
+                    'merchant_key' => $payfast_merchant_key,
+                    'return_url' => $payfast_return_url,
+                    'cancel_url' => $payfast_cancel_url,
+                    'notify_url' => $payfast_notify_url,
+                    'name_first' => $authorName,
+                    'm_payment_id' => $token,
+                    'amount' => $amount,
+                    'item_name' => 'Test',
+                ];
+                $signature = $this->generateSignature($data);
+                $data['signature'] = $signature;
+                $pfHost = $payfast_isSandbox == 'true' ? 'sandbox.payfast.co.za' : 'www.payfast.co.za';
+                return view('providersService.service_charge.payfast', [
+                    'amount' => $amount,
+                    'pfHost' => $pfHost,
+                    'data' => $data,
+                    'payfast_merchant_key' => $payfast_merchant_key,
+                    'payfast_merchant_id' => $payfast_merchant_id,
+                    'payfast_return_url' => $payfast_return_url,
+                    'payfast_notify_url' => $payfast_notify_url,
+                    'payfast_cancel_url' => $payfast_cancel_url,
+                    'formatted_price' => $formatted_price,
+                ]);
+                
             } else if ($service_charge_cart['cart_order']['payment_method'] == 'paystack') {
+
                 $paystack_public_key = $service_charge_cart['cart_order']['paystack_public_key'];
                 $paystack_secret_key = $service_charge_cart['cart_order']['paystack_secret_key'];
                 $paystack_isSandbox = $service_charge_cart['cart_order']['paystack_isSandbox'];
                 $authorName = $service_charge_cart['cart_order']['authorName'];
                 $total_pay = $service_charge_cart['cart_order']['total_pay'];
-                $amount = 0;
           
                 \Paystack\Paystack::init($paystack_secret_key);
                 $payment = \Paystack\Transaction::initialize([
@@ -143,14 +274,17 @@ class PayLaterServiceChargeController extends Controller
                 $flutterWave_encryption_key = $service_charge_cart['cart_order']['flutterWave_encryption_key'];
                 $authorName = $service_charge_cart['cart_order']['authorName'];
                 $total_pay = $service_charge_cart['cart_order']['total_pay'];
+                $formatted_price = $service_charge_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $service_charge_cart['cart_order']['currencyData']['decimal_degits']);
                 Session::put('flutterwave_pay', 1);
                 Session::save();
                 $token = uniqid();
                 Session::put('flutterwave_pay_tx_ref', $token);
                 Session::save();
-                return view('providersService.service_charge.flutterwave', ['is_checkout' => 1, 'cart' => $service_charge_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'cart_order' => $service_charge_cart['cart_order'], 'currency' => $currency]);
+                return view('providersService.service_charge.flutterwave', ['is_checkout' => 1, 'cart' => $service_charge_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'cart_order' => $service_charge_cart['cart_order'], 'currency' => $currency, 'formatted_price' => $formatted_price]);
+
             } else if ($service_charge_cart['cart_order']['payment_method'] == 'stripe') {
-                $stripeKey = $service_charge_cart['cart_order']['stripeKey'];
+                
+            $stripeKey = $service_charge_cart['cart_order']['stripeKey'];
                 $stripeSecret = $service_charge_cart['cart_order']['stripeSecret'];
                 $authorName = $service_charge_cart['cart_order']['authorName'];
                 $total_pay = $service_charge_cart['cart_order']['total_pay'];
@@ -164,8 +298,9 @@ class PayLaterServiceChargeController extends Controller
                 $isStripeSandboxEnabled = $service_charge_cart['cart_order']['isStripeSandboxEnabled'];
                 $authorName = $service_charge_cart['cart_order']['authorName'];
                 $total_pay = $service_charge_cart['cart_order']['total_pay'];
-                $amount = 0;
-                return view('providersService.service_charge.stripe', ['is_checkout' => 1, 'cart' => $service_charge_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'stripeSecret' => $stripeSecret, 'stripeKey' => $stripeKey, 'cart_order' => $service_charge_cart['cart_order']]);
+                $formatted_price = $service_charge_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $service_charge_cart['cart_order']['currencyData']['decimal_degits']);
+                return view('providersService.service_charge.stripe', ['is_checkout' => 1, 'cart' => $service_charge_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'stripeSecret' => $stripeSecret, 'stripeKey' => $stripeKey, 'cart_order' => $service_charge_cart['cart_order'], 'formatted_price' => $formatted_price]);
+
             } else if ($service_charge_cart['cart_order']['payment_method'] == 'paypal') {
                 $paypalKey = $service_charge_cart['cart_order']['paypalKey'];
                 $paypalSecret = $service_charge_cart['cart_order']['paypalSecret'];
@@ -181,8 +316,8 @@ class PayLaterServiceChargeController extends Controller
                 $ispaypalSandboxEnabled = $service_charge_cart['cart_order']['ispaypalSandboxEnabled'];
                 $authorName = $service_charge_cart['cart_order']['authorName'];
                 $total_pay = $service_charge_cart['cart_order']['total_pay'];
-                $amount = 0;
-                return view('providersService.service_charge.paypal', ['is_checkout' => 1, 'cart' => $service_charge_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'paypalSecret' => $paypalSecret, 'paypalKey' => $paypalKey, 'cart_order' => $service_charge_cart['cart_order']]);
+                $formatted_price = $service_charge_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $service_charge_cart['cart_order']['currencyData']['decimal_degits']);
+                return view('providersService.service_charge.paypal', ['is_checkout' => 1, 'cart' => $service_charge_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'paypalSecret' => $paypalSecret, 'paypalKey' => $paypalKey, 'cart_order' => $service_charge_cart['cart_order'], 'formatted_price' => $formatted_price]);
             } else if ($service_charge_cart['cart_order']['payment_method'] == 'mercadopago') {
                 $currency = "USD";
                 if (@$service_charge_cart['cart_order']['currencyData']['code']) {
@@ -214,12 +349,20 @@ class PayLaterServiceChargeController extends Controller
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json", "Authorization:Bearer " . $mercadopago_access_token));
                 $response = curl_exec($ch);
+                if ($response === false) {
+                    $error = curl_error($ch);
+                    curl_close($ch);
+                    Session::put('payment_error', 'Unable to initialize payment, credentials are invalid or not authorized. Please check credentials, environment (sandbox/live), and account region.');
+                    return redirect()->route('pay-service-charge');
+                }
+                curl_close($ch);
                 $mercadopago = json_decode($response);
+                if (!isset($mercadopago->id)) {
+                    Session::put('payment_error', 'Unable to initialize payment, credentials are invalid or not authorized. Please check credentials, environment (sandbox/live), and account region.');
+                    return redirect()->route('pay-service-charge');
+                }
                 Session::put('mercadopago_preference_id', $mercadopago->id);
                 Session::save();
-                if ($mercadopago === null) {
-                    die (curl_error($ch));
-                }
                 $authorName = $service_charge_cart['cart_order']['authorName'];
                 $total_pay = $service_charge_cart['cart_order']['total_pay'];
                 if ($mercadopago_isSandbox == "true") {
@@ -378,11 +521,11 @@ class PayLaterServiceChargeController extends Controller
         }
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
+    public function generateSignature($data) {
+        $getString = http_build_query($data, '', '&', PHP_QUERY_RFC3986);
+        return md5( $getString );
+    } 
+
     public function processStripePayment(Request $request)
     {
         $email = Auth::user()->email;
@@ -459,14 +602,15 @@ class PayLaterServiceChargeController extends Controller
         $payment = $api->payment->fetch($input['razorpay_payment_id']);
         if (count($input) && !empty ($input['razorpay_payment_id'])) {
             try {
-                $response = $api->payment->fetch($input['razorpay_payment_id'])->capture(array('amount' => $payment['amount']));
+                if($payment['status'] !== 'captured'){
+                    $response = $api->payment->fetch($input['razorpay_payment_id'])->capture(array('amount' => $payment['amount']));
+                }
                 $service_charge_cart['paymentStatus'] = true;
                 Session::put('service_charge_cart', $service_charge_cart);
                 Session::save();
             } catch (Exception $e) {
-                return $e->getMessage();
                 Session::put('error', $e->getMessage());
-                return redirect()->back();
+                return $e->getMessage();
             }
         }
         Session::put('success', 'Payment successful');
@@ -497,6 +641,12 @@ class PayLaterServiceChargeController extends Controller
     }
     public function success()
     {
+        $requestUri = $_SERVER['REQUEST_URI'];
+        if (strpos($requestUri, 'status_code=') !== false || strpos($requestUri, '&midtrans_token') !== false) {
+            $fixedUri = preg_replace('/[?&]status_code=[^&]+/', '', $requestUri);
+            $fixedUri = preg_replace('/&/', '?', $fixedUri, 1);
+            return redirect($fixedUri);
+        }
         $service_charge_cart = Session::get('service_charge_cart', []);
         $order_json = array();
         $email = Auth::user()->email;

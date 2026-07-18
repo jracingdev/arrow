@@ -8,7 +8,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.payment_plural')}}</li>
             </ol>
         </div>
@@ -248,11 +248,7 @@ $(document).ready(function () {
                 });
             },
             order:[0, 'desc'],
-            "language": {
-                "zeroRecords": "{{trans("lang.no_record_found")}}",
-                "emptyTable": "{{trans("lang.no_record_found")}}",
-                "processing": "" // Remove default loader
-            },
+           "language": datatableLang,
             dom: 'lfrtipB',
             buttons: [
                     {
@@ -286,7 +282,7 @@ $(document).ready(function () {
             ],
             initComplete: function() {
                 $(".dataTables_filter").append($(".dt-buttons").detach());
-                $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+                $('.dataTables_filter input').attr('placeholder', '{{trans("lang.search_here")}}').attr('autocomplete','new-password').val('');
                 $('.dataTables_filter label').contents().filter(function() {
                     return this.nodeType === 3; 
                 }).remove();
@@ -310,7 +306,7 @@ $(document).ready(function () {
         var html = [];
         newdate = '';
         var id = val.id;
-        var route1 = '{{route("vendors.view",":id")}}';
+        var route1 = '{{route("stores.view",":id")}}';
         route1 = route1.replace(':id', id);
 
         html.push('<td><a href="' + route1 + '">' + val.title + '</a></td>');
@@ -410,7 +406,7 @@ $(document).ready(function () {
 
             });
 
-            await database.collection('users').where('vendorID', '==', vendorID).get().then(async function (vendorSnapshots) {
+            await database.collection('users').where('vendorID', '==', vendorID).where('role','==','vendor').get().then(async function (vendorSnapshots) {
                 var vendor = [];
                 var wallet_amount = 0;
                 if (vendorSnapshots.docs.length) {

@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.role_table')}}</li>
             </ol>
         </div>
@@ -66,7 +66,7 @@
                         
                                     @foreach($roles as $role)
                                         <tr>
-                                            <?php if (in_array('role.delete', json_decode(@session('user_permissions')))) { ?>                                             
+                                            <?php if (in_array('role.delete', json_decode(@session('user_permissions'),true))) { ?>                                             
                                                 <td class="delete-all">
                                                     @if($role->role_name!="Super Administrator")
                                                     <input type="checkbox" id="is_open_{{$role->id}}" class="is_open" dataid="{{$role->id}}">
@@ -78,10 +78,10 @@
                                                 <a href="{{route('role.edit', ['id' => $role->id])}}">{{ $role->role_name}}</a>
                                             </td>
                                             <td><span class="action-btn">
-                                                <a href="{{route('role.edit', ['id' => $role->id])}}"><i class="mdi mdi-lead-pencil"></i></a>
+                                                <a href="{{route('role.edit', ['id' => $role->id])}}" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>
                                                 @if($role->role_name!="Super Administrator")
-                                                    @if(in_array('role.delete', json_decode(@session('user_permissions'))))
-                                                        <a href="{{route('role.delete', ['id' => $role->id])}}" class="delete-btn"><i
+                                                    @if(in_array('role.delete', json_decode(@session('user_permissions'),true)))
+                                                        <a href="{{route('role.delete', ['id' => $role->id])}}" class="delete-btn" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i
                                                                 class="mdi mdi-delete"></i></a>
                                                     @endif
                                                 @endif            
@@ -104,10 +104,9 @@
 @section('scripts')
 
 <script type="text/javascript">
+
     var user_permissions = '<?php echo @session('user_permissions') ?>';
-
-    user_permissions = JSON.parse(user_permissions);
-
+    user_permissions = Object.values(JSON.parse(user_permissions));
     var checkDeletePermission = false;
 
     if ($.inArray('role.delete', user_permissions) >= 0) {
@@ -120,10 +119,8 @@
             { orderable: false, targets: (checkDeletePermission==true) ? [0,2] : [1] },
 
         ],
-        "language": {
-            "zeroRecords": "{{trans("lang.no_record_found")}}",
-            "emptyTable": "{{trans("lang.no_record_found")}}"
-        },
+        "language": datatableLang,
+
         responsive: true
     });
     table.on('search.dt', function() {

@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.parcel_plural')}} {{trans('lang.coupon_table')}}</li>
             </ol>
         </div>
@@ -40,7 +40,14 @@
                    <div class="card-header-title">
                     <h3 class="text-dark-2 mb-2 h4">{{trans('lang.parcel_plural')}} {{trans('lang.coupon_table')}}</h3>
                     <p class="mb-0 text-dark-2">{{trans('lang.parcelcoupon_table_text')}}</p>
-                   </div>             
+                   </div>   
+                   <div class="card-header-right d-flex align-items-center">
+                    <div class="card-header-btn mr-3"> 
+                 
+                        <a class="btn-primary btn rounded-full" href="{!! route('parcel_coupons.create') !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.coupon_create')}}</a>
+                           
+                     </div>
+                   </div>          
                  </div>
                  <div class="card-body">
                          <div class="table-responsive m-t-10">
@@ -79,13 +86,10 @@
 
 <script type="text/javascript">
 var user_permissions = '<?php echo @session('user_permissions') ?>';
-
-user_permissions = JSON.parse(user_permissions);
-
- var checkDeletePermission = false;
-
+user_permissions = Object.values(JSON.parse(user_permissions));
+var checkDeletePermission = false;
 if ($.inArray('parcel.coupons.delete', user_permissions) >= 0) {
-            checkDeletePermission = true;
+    checkDeletePermission = true;
 }
 
 var database = firebase.firestore();
@@ -94,12 +98,13 @@ var pagesize = 10;
 var end = null;
 var endarray = [];
 var start = null;
-
-var ref = database.collection('parcel_coupons');
+var sectionid = getCookie('section_id');
+var ref = database.collection('parcel_coupons').where('sectionId', '==', sectionid);
 
 var currentCurrency = '';
 var currencyAtRight = false;
 var decimal_degits = 0;
+
 
 var refCurrency = database.collection('currencies').where('isActive', '==', true);
 refCurrency.get().then(async function (snapshots) {
@@ -173,7 +178,7 @@ $(document).ready(function () {
 
                         }
                     }
-                    var expiresAt = date + ' ' + time ;
+                    var expiresAt = date + '<br> ' + time ;
                     if (searchValue) {
                         if (
                             (childData.code && childData.code.toLowerCase().includes(searchValue)) ||
@@ -216,7 +221,9 @@ $(document).ready(function () {
                 const formattedRecords = await Promise.all(paginatedRecords.map(async (childData) => {
                     return await buildHTML(childData);
                 }));
-
+                    $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
                 $('#data-table_processing').hide();
                 callback({
                     draw: data.draw,
@@ -247,11 +254,7 @@ $(document).ready(function () {
             },
             {orderable: false, targets: [4, 5]},
         ],
-        "language": {
-            "zeroRecords": "{{trans('lang.no_record_found')}}",
-            "emptyTable": "{{trans('lang.no_record_found')}}",
-            "processing": "" // Remove default loader
-        },
+       "language": datatableLang,
     });
     function debounce(func, wait) {
         let timeout;
@@ -304,7 +307,7 @@ async function buildHTML(val) {
             } catch (err) {
 
             }
-            html.push('<td class="dt-time">' + date + ' ' + time + '</td>');
+            html.push('<td class="dt-time">' + date + '<br> ' + time + '</td>');
         } else {
             html.push('<td></td>');
         }
@@ -314,9 +317,9 @@ async function buildHTML(val) {
             html.push('<td><label class="switch"><input type="checkbox" id="' + val.id + '" name="isActive"><span class="slider round"></span></label></td>');
         }
         var action = '';
-        action = action + '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
+        action = action + '<span class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';
         if(checkDeletePermission){
-            action=action+'<a id="' + val.id + '" name="coupon_delete_btn" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
+            action=action+'<a id="' + val.id + '" name="coupon_delete_btn" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a>';
         }
         action=action+'</span>';
         html.push(action);

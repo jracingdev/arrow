@@ -4,358 +4,310 @@
 
     <div id="main-wrapper" class="page-wrapper" style="min-height: 207px;">
 
-        <div class="row cat-slider mb-4 mt-3" id="sections">
 
+        <div class="row page-titles">
+            <div class="col-md-5 align-self-center">
+                <h3 class="text-themecolor" id="section_title"></h3>
+            </div>
         </div>
 
         <div class="container-fluid">
-            <div class="card mb-3 business-analytics">
 
-                <div class="card-body">
+            <div class="top-filter">
+                <div class="row">
+                    <div class="col-lg-12">
 
-                    <div class="row flex-between align-items-center g-2 mb-3 order_stats_header">
-                        <div class="col-sm-6">
-                            <h4 class="d-flex align-items-center text-capitalize gap-10 mb-0">{{trans('lang.dashboard_business_analytics')}}</h4>
+                        <div class="sis-card-head-select-box d-flex align-items-center gap-2 mb-4">
+                            <div class="head-select-box">
+                                <label class="mb-0 text-dark-2">{{ trans('lang.filter_by') }}:</label>
+                                <select id="viewFilter" name="view" class="form-control">
+                                    <option value="">{{ trans('lang.all') }}</option>
+                                    <option value="year">{{ trans('lang.view_full_year') }}</option>
+                                    <option value="month">{{ trans('lang.view_by_month') }}</option>
+                                    <option value="custom">{{ trans('lang.custom_date_range') }}</option>
+                                </select>
+                            </div>
+
+                            <div id="monthYearFilters" class="head-select-box" style="display:inline-block;">
+                                <select id="monthFilter" name="month" class="form-control" style="display: none;">
+                                    <option value="1">{{ trans('lang.january') }}</option>
+                                    <option value="2">{{ trans('lang.february') }}</option>
+                                    <option value="3">{{ trans('lang.march') }}</option>
+                                    <option value="4">{{ trans('lang.april') }}</option>
+                                    <option value="5">{{ trans('lang.may') }}</option>
+                                    <option value="6">{{ trans('lang.june') }}</option>
+                                    <option value="7">{{ trans('lang.july') }}</option>
+                                    <option value="8">{{ trans('lang.august') }}</option>
+                                    <option value="9">{{ trans('lang.september') }}</option>
+                                    <option value="10">{{ trans('lang.october') }}</option>
+                                    <option value="11">{{ trans('lang.november') }}</option>
+                                    <option value="12">{{ trans('lang.december') }}</option>
+
+                                </select>
+                                <select id="yearFilter" name="year" class="form-control" style="display:none">
+
+                                </select>
+                            </div>
+
+                            <div id="customDateFilters" class="head-select-box" style="display: none;">
+                                <input class="form-control" type="date" name="start_date" id="startDate" value="">
+                                <input class="form-control" type="date" name="end_date" id="endDate" value="">
+                            </div>
+                            <button type="button" id="applyFilterBtn" class="btn btn-primary">{{trans('lang.apply_filter')}}</button>
+                            <a href="#" class="btn btn-secondary" onclick="window.location.reload();">{{trans('lang.clear_filter')}}</a>
                         </div>
                     </div>
-
-                    <div class="row business-analytics_list">
-
-                        <div class="col-sm-6 col-lg-3 mb-3">
-                            <div class="card card-box-with-icon bg--8" onclick="location.href='{!! route('payments') !!}'">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="card-box-with-content">
-                                        <h2 class="text-dark-2 mb-1 h4 earnings_count" id="earnings_count"></h2>
-                                        <p class="mb-0 small text-dark-2">{{trans('lang.dashboard_total_earnings')}}</p>
-                                    </div>
-                                
-                                    <span class="box-icon ab">
-                                        <img src="{{asset('images/total_earning.png')}}"/>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3 mb-3">
-                            <div class="card card-box-with-icon bg--1" onclick="location.href='{!! route('vendors') !!}'">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="card-box-with-content">
-                                        <h2 class="text-dark-2 mb-1 h4 vendor_count" id="vendor_count"></h2>
-                                        <p class="mb-0 small text-dark-2">{{trans('lang.dashboard_total_stores')}}</p>
-                                    </div>
-                                
-                                    <span class="box-icon ab">
-                                        <img src="{{asset('images/dstore.png')}}"/>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3 mb-3">
-                            <div class="card card-box-with-icon bg--5" onclick="location.href='{!! route('orders') !!}'">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="card-box-with-content">
-                                        <h2 class="text-dark-2 mb-1 h4 order_count" id="order_count"></h2>
-                                        <p class="mb-0 small text-dark-2">{{trans('lang.dashboard_total_orders')}}</p>
-                                    </div>
-                                
-                                    <span class="box-icon ab">
-                                        <img src="{{asset('images/active_restaurant.png')}}"/>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3 mb-3">
-                            <div class="card card-box-with-icon bg--24" onclick="location.href='{!! route('items') !!}'">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="card-box-with-content">
-                                        <h2 class="text-dark-2 mb-1 h4 product_count" id="product_count"></h2>
-                                        <p class="mb-0 small text-dark-2">{{trans('lang.dashboard_total_products')}}</p>
-                                    </div>
-                                
-                                    <span class="box-icon ab">
-                                        <img src="{{asset('images/dproduct.png')}}"/>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3 mb-3">
-                            <div class="card card-box-with-icon bg--14" onclick="location.href='{!! route('payments') !!}'">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="card-box-with-content">
-                                        <h2 class="text-dark-2 mb-1 h4 admincommission_count" id="admincommission_count"></h2>
-                                        <p class="mb-0 small text-dark-2">{{trans('lang.admin_commission')}}</p>
-                                    </div>
-                                
-                                    <span class="box-icon ab">
-                                        <img src="{{asset('images/total_payment.png')}}"/>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3 mb-3">
-                            <div class="card card-box-with-icon bg--6" onclick="location.href='{!! route('users') !!}'">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="card-box-with-content">
-                                        <h2 class="text-dark-2 mb-1 h4 users_count" id="users_count"></h2>
-                                        <p class="mb-0 small text-dark-2">{{trans('lang.dashboard_total_clients')}}</p>
-                                    </div>
-                                
-                                    <span class="box-icon ab">
-                                        <img src="{{asset('images/dcustomer.png')}}"/>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3 mb-3">
-                            <div class="card card-box-with-icon bg--15" onclick="location.href='{!! route('drivers') !!}'">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div class="card-box-with-content">
-                                        <h2 class="text-dark-2 mb-1 h4 driver_count" id="driver_count"></h2>
-                                        <p class="mb-0 small text-dark-2">{{trans('lang.dashboard_total_drivers')}}</p>
-                                    </div>
-                                
-                                    <span class="box-icon ab">
-                                        <img src="{{asset('images/total_driver.png')}}"/>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3 mb-3">
-
-                        </div>
-
-
-                        <div class="col-sm-6 col-lg-3">
-                            <a class="order-status pending" href="{!!route('orders','status=order-placed') !!}">
-                                <div class="data">
-                                    <i class="mdi mdi-lan-pending"></i>
-                                    <h6 class="status">{{trans('lang.dashboard_order_placed')}}</h6>
-                                </div>
-                                <span class="count" id="placed_count"></span> </a>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3">
-                            <a class="order-status confirmed" href="{!! route('orders','status=order-confirmed') !!}">
-                                <div class="data">
-                                    <i class="mdi mdi-check-circle"></i>
-                                    <h6 class="status">{{trans('lang.dashboard_order_confirmed')}}</h6>
-                                </div>
-                                <span class="count" id="confirmed_count"></span> </a>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3">
-                            <a class="order-status packaging" href="{!! route('orders','status=order-shipped') !!}">
-                                <div class="data">
-                                    <i class="mdi mdi-clipboard-outline"></i>
-                                    <h6 class="status">{{trans('lang.dashboard_order_shipped')}}</h6>
-                                </div>
-                                <span class="count" id="shipped_count"></span> </a>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3">
-                            <a class="order-status delivered" href="{!! route('orders','status=order-completed') !!}">
-                                <div class="data">
-                                    <i class="mdi mdi-check-circle-outline"></i>
-                                    <h6 class="status">{{trans('lang.dashboard_order_completed')}}</h6>
-                                </div>
-                                <span class="count" id="completed_count"></span>
-                            </a>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3">
-                            <a class="order-status canceled" href="{!! route('orders','status=order-canceled') !!}">
-                                <div class="data">
-                                    <i class="mdi mdi-window-close"></i>
-                                    <h6 class="status">{{trans('lang.dashboard_order_canceled')}}</h6>
-                                </div>
-                                <span class="count" id="canceled_count"></span>
-                            </a>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3">
-                            <a class="order-status failed" href="{!! route('orders','status=order-failed') !!}">
-                                <div class="data">
-                                    <i class="mdi mdi-alert-circle-outline"></i>
-                                    <h6 class="status">{{trans('lang.dashboard_order_failed')}}</h6>
-                                </div>
-                                <span class="count" id="failed_count"></span>
-                            </a>
-                        </div>
-
-                        <div class="col-sm-6 col-lg-3">
-                            <a class="order-status failed" href="{!! route('orders','status=order-pending') !!}">
-                                <div class="data">
-                                    <i class="mdi mdi-car-connected"></i>
-                                    <h6 class="status">{{trans('lang.dashboard_order_pending')}}</h6>
-                                </div>
-                                <span class="count" id="pending_count"></span>
-                            </a>
-                        </div>
-
-                    </div>
-
                 </div>
-
             </div>
 
             <div class="row">
+                <div class="col-md-7">
+                    <div class="row">
+                        <div class="col-sm-6 col-lg-6 mb-3">
+                            <div class="card card-box-with-icon border " onclick="javascript:void(0)">
+                                <div class="card-body p-3">
+                                    <span class="box-icon ab"><img src="{{ asset('images/total_earnings.png') }}"></span>
+                                    <div class="card-box-with-content mt-3">
+                                        <h4 class="card-left-title text-dark font-medium">
+                                            {{ trans('lang.dashboard_total_earnings') }}
+                                        </h4>
+                                        <h2 class="m-b-0 text-dark-2 font-bold mb-2 total_earning" id="earnings_count"></h2>
+                                        <h6 id="earning_percent" class="up-down-list font-semibold"></h6>
+                                    </div>
 
-                <div class="col-lg-4">
-                    <div class="card">
-                        <div class="card-header no-border">
-                            <div class="d-flex justify-content-between">
-                                <h3 class="card-title">{{trans('lang.total_sales')}}</h3>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <div class="position-relative">
-                                <canvas id="sales-chart" height="200"></canvas>
-                            </div>
 
-                            <div class="d-flex flex-row justify-content-end">
-                                <span class="mr-2"> <i class="fa fa-square" style="color:#2EC7D9"></i> {{trans('lang.dashboard_this_year')}} </span>
+                        <div class="col-sm-6 col-lg-6 mb-3">
+                            <div class="card card-box-with-icon border " onclick="javascript:void(0)">
+                                <div class="card-body p-3">
+                                    <span class="box-icon ab"><img src="{{ asset('images/admin_commission.png') }}"></span>
+                                    <div class="card-box-with-content mt-3">
+                                        <h4 class="card-left-title text-dark font-medium">
+                                            {{ trans('lang.admin_commission') }}
+                                        </h4>
+                                        <h2 class="m-b-0 text-dark-2 font-bold mb-2 total_earning"
+                                            id="admincommission_count"></h2>
+                                        <h6 id="commission_percent" class="up-down-list font-semibold"></h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-lg-6 mb-3">
+                            <div class="card card-box-with-icon border cursor-pointer" onclick="location.href='{!! route('stores') !!}'">
+                                <div class="card-body p-3">
+                                    <span class="box-icon ab"><img src="{{ asset('images/total_store.png') }}"></span>
+                                    <div class="card-box-with-content mt-3">
+                                        <h4 class="card-left-title text-dark font-medium">
+                                            {{ trans('lang.dashboard_total_stores') }}
+                                        </h4>
+                                        <h2 class="m-b-0 text-dark-2 font-bold mb-2 total_earning" id="vendor_count"></h2>
+                                        <h6 id="vendor_percent" class="up-down-list font-semibold"></h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-lg-6 mb-3">
+                            <div class="card card-box-with-icon border cursor-pointer" onclick="location.href='{!! route('orders') !!}'">
+                                <div class="card-body p-3">
+                                    <span class="box-icon ab"><img src="{{ asset('images/total_orders1.png') }}"></span>
+                                    <div class="card-box-with-content mt-3">
+                                        <h4 class="card-left-title text-dark font-medium">
+                                            {{ trans('lang.dashboard_total_orders') }}
+                                        </h4>
+                                        <h2 class="m-b-0 text-dark-2 font-bold mb-2 total_earning" id="order_count"></h2>
+                                        <h6 id="orders_percent" class="up-down-list font-semibold "></h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-lg-6 mb-3">
+                            <div class="card card-box-with-icon border cursor-pointer" onclick="location.href='{!! route('users') !!}'">
+                                <div class="card-body p-3">
+                                    <span class="box-icon ab"><img src="{{ asset('images/total_customers.png') }}"></span>
+                                    <div class="card-box-with-content mt-3">
+                                        <h4 class="card-left-title text-dark font-medium">
+                                            {{ trans('lang.dashboard_total_clients') }}
+                                        </h4>
+                                        <h2 class="m-b-0 text-dark-2 font-bold mb-2 total_earning" id="users_count"></h2>
+                                        <h6 id="customer_percent" class="up-down-list font-semibold"></h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-lg-6 mb-3">
+                            <div class="card card-box-with-icon border cursor-pointer" onclick="location.href='{!! route('drivers') !!}'">
+                                <div class="card-body p-3">
+                                    <span class="box-icon ab"><img src="{{ asset('images/total_drivers.png') }}"></span>
+                                    <div class="card-box-with-content mt-3">
+                                        <h4 class="card-left-title text-dark font-medium">
+                                            {{ trans('lang.dashboard_total_drivers') }}
+                                        </h4>
+                                        <h2 class="m-b-0 text-dark-2 font-bold mb-2 total_earning" id="driver_count"></h2>
+                                        <h6 id="driver_percent" class="up-down-list font-semibold "></h6>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-4">
-                    <div class="card">
-                        <div class="card-header no-border">
-                            <div class="d-flex justify-content-between">
-                                <h3 class="card-title">{{trans('lang.service_overview')}}</h3>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="flex-row">
-                                <canvas id="visitors" height="222"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div class="col-sm-5">
+                    <div class="card border">
 
-                <div class="col-lg-4">
-                    <div class="card">
                         <div class="card-header no-border">
-                            <div class="d-flex justify-content-between">
-                                <h3 class="card-title">{{trans('lang.sales_overview')}}</h3>
-                            </div>
+                            <h3 class="card-title">{{ trans('lang.order_status_overview') }}</h3>
+                            <p class="mb-0">{{ trans('lang.quick_insight_orders') }}</p>
                         </div>
                         <div class="card-body">
-                            <div class="flex-row">
-                                <canvas id="commissions" height="222"></canvas>
-                            </div>
+                            <canvas id="order_status" height="330"></canvas>
+                            <input type="hidden" name="placed_count" id="placed_count">
+                            <input type="hidden" name="confirmed_count" id="confirmed_count">
+                            <input type="hidden" name="shipped_count" id="shipped_count">
+                            <input type="hidden" name="completed_count" id="completed_count">
+                            <input type="hidden" name="canceled_count" id="canceled_count">
+                            <input type="hidden" name="failed_count" id="failed_count">
+                            <input type="hidden" name="pending_count" id="pending_count">
+                            <input type="hidden" name="intransit_count" id="intransit_count">
+                            <input type="hidden" name="cancelled_count" id="cancelled_count">
+
                         </div>
                     </div>
                 </div>
 
             </div>
+            <div class="row daes-sec-sec">
+                <div class="col-lg-5 col-md-12">
+                    <div class="card border">
+                        <div class="card-header no-border">
 
-            <div class="row daes-sec-sec mb-3">
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header no-border d-flex justify-content-between">
-                            <h3 class="card-title">{{trans('lang.vendor_plural')}}</h3>
-                            <div class="card-tools">
-                                <a href="{{route('vendors')}}" class="btn btn-tool btn-sm"><i class="fa fa-bars"></i>
-                                </a>
-                            </div>
+                            <h3 class="card-title">{{ trans('lang.total_sales') }}</h3>
+                            <p class="mb-0">{{ trans('lang.quick_insight_sales') }}</p>
+
                         </div>
-                        <div class="card-body p-2">
-                        <div class="table-responsive px-3">  
-                            <table class="table table-striped table-valign-middle" id="storesTable">
-                                <thead>
-                                <tr>
-                                    <th style="text-align:center">{{trans('lang.vendor_image')}}</th>
-                                    <th>{{trans('lang.vendor')}}</th>
-                                    <th>{{trans('lang.vendor_review_review')}}</th>
-                                    <th>{{trans('lang.actions')}}</th>
-                                </tr>
-                                </thead>
-                                <tbody id="append_list">
+                        <div class="card-body">
+                            <div class="position-relative mb-4">
+                                <canvas id="sales-chart" height="250"></canvas>
+                            </div>
 
-                                </tbody>
-                            </table>
+                            <div class="d-flex flex-row justify-content-end">
+                                <span class="mr-2"> <i class="fa fa-square" style="color:red"></i>
+                                    {{ trans('lang.dashboard_this_year') }} </span>
                             </div>
                         </div>
                     </div>
                 </div>
-              
 
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header no-border d-flex justify-content-between">
-                            <h3 class="card-title">{{trans('lang.top_drivers')}}</h3>
-                            <div class="card-tools">
-                                <a href="{{route('drivers')}}" class="btn btn-tool btn-sm"><i class="fa fa-bars"></i>
-                                </a>
+                <div class="col-lg-7 col-md-12">
+                    <div class="card border">
+                        <div class="card-header no-border">
+
+                            <h3 class="card-title">{{ trans('lang.service_overview') }}</h3>
+                            <p class="mb-0">{{ trans('lang.quick_insight_sales_overview') }}</p>
+
+                        </div>
+                        <div class="card-body">
+                            <div class="flex-row">
+                                <canvas id="commissions" height="250"></canvas>
+
                             </div>
                         </div>
-                        <div class="card-body p-2">
-                        <div class="table-responsive px-3">  
-                            <table class="table table-striped table-valign-middle" id="driverTable">
+                        <div class="d-flex flex-row justify-content-end">
+                            <span class="mr-2"> <i class="fa fa-square" style="color:red"></i>
+                                {{ trans('lang.dashboard_this_year') }} </span>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="row daes-sec-sec">
+
+                <div class="col-md-6 col-lg-6">
+                    <div class="card border">
+                        <div class="card-header no-border d-flex justify-content-between">
+                            <h3 class="card-title">{{ trans('lang.top_stores') }}</h3>
+                            <a href="{{ route('stores') }}">{{trans('lang.view_all')}}</a>
+                        </div>
+                        <div class=" card-body">
+                            <table class="table table-striped table-valign-middle">
                                 <thead>
-                                <tr>
-                                    <th style="text-align:center">{{trans('lang.vendor_image')}}</th>
-                                    <th>{{trans('lang.driver')}}</th>
-                                    <th>{{trans('lang.order_completed')}}</th>
-                                    <th>{{trans('lang.actions')}}</th>
-                                </tr>
+                                    <tr>
+                                        <th>{{trans('lang.vendor')}}</th>
+                                        <th>{{trans('lang.vendor_review_review')}}</th>
+                                        <th>{{trans('lang.actions')}}</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody id="append_list">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-6">
+                    <div class="card border">
+                        <div class="card-header no-border d-flex justify-content-between">
+                            <h3 class="card-title">{{ trans('lang.top_drivers') }}</h3>
+                            <a href="{!! route('drivers') !!}">{{trans('lang.view_all')}}</a>
+
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped table-valign-middle">
+                                <thead>
+                                    <tr>
+                                        <th>{{trans('lang.driver')}}</th>
+                                        <th>{{trans('lang.order_completed')}}</th>
+                                        <th>{{trans('lang.actions')}}</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="append_list_top_drivers">
 
                                 </tbody>
                             </table>
-                            </div>
                         </div>
                     </div>
                 </div>
 
             </div>
+
 
             <div class="row daes-sec-sec">
 
-            <div class="col-lg-6">
-                    <div class="card">
+                <div class="col-md-12 col-lg-12">
+                    <div class="card border">
                         <div class="card-header no-border d-flex justify-content-between">
                             <h3 class="card-title">{{trans('lang.recent_orders')}}</h3>
-                            <div class="card-tools">
-                                <a href="{{route('orders')}}" class="btn btn-tool btn-sm"><i class="fa fa-bars"></i>
-                                </a>
-                            </div>
+                            <a href="{{ route('orders') }}">{{trans('lang.view_all')}}</a>
                         </div>
-                        <div class="card-body p-2">
-                        <div class="table-responsive px-3">  
-                            <table class="table table-striped table-valign-middle" id="orderTable">
+                        <div class="card-body">
+                            <table class="table table-striped table-valign-middle">
                                 <thead>
-                                <tr>
-                                    <th style="text-align:center">{{trans('lang.order_id')}}</th>
+                                    <tr>
+                                    <th>{{trans('lang.order_id')}}</th>
                                     <th>{{trans('lang.vendor')}}</th>
                                     <th>{{trans('lang.total_amount')}}</th>
                                     <th>{{trans('lang.quantity')}}</th>
-                                </tr>
+
+                                    </tr>
                                 </thead>
                                 <tbody id="append_list_recent_order">
-
                                 </tbody>
                             </table>
-                            </div>
                         </div>
                     </div>
                 </div>
-
-               
-                <div class="col-lg-6">
-                </div>
             </div>
-
+            <div class="col-lg-6">
+            </div>
         </div>
+
+    </div>
 
     </div>
 
@@ -368,9 +320,8 @@
 
     <script>
 
-        var active_id = "<?php echo @$_REQUEST['id'] ?>";
-        setCookie('section_id', active_id, 30);
-        var active_type = "<?php echo @$_REQUEST['type'] ?>";
+        var active_id = "{{$id}}";
+        var active_type = "{{$type}}";
         var db = firebase.firestore();
         var currency = db.collection('settings');
 
@@ -387,372 +338,440 @@
             }
         });
 
-        var placeholderImage = '';    
+        var placeholderImage = '';
         var placeholder = db.collection('settings').doc('placeHolderImage');
         placeholder.get().then(async function (snapshotsimage) {
             var placeholderImageData = snapshotsimage.data();
             placeholderImage = placeholderImageData.image;
         })
 
-        $(document).ready(function () {
+        $(document).ready(async function () {
 
             jQuery("#data-table_processing").show();
-            getSections();
+            const yearFilter = $('#yearFilter');
+            const currentYear = new Date().getFullYear();
+            const numberOfYears = 5;
+            yearFilter.empty();
+            for (let i = 0; i <= numberOfYears; i++) {
+                yearFilter.append(`<option value="${currentYear - i}">${currentYear - i}</option>`);
+            }
+            $('#viewFilter').on('change', function () {
+                const selected = $(this).val();
 
-            db.collection('vendor_orders').where('vendor.section_id', '==', active_id).get().then(
-                (snapshot) => {
-                    jQuery("#order_count").empty();
-                    jQuery("#order_count").text(snapshot.docs.length);
-                });
-
-            db.collection('vendor_products').where('section_id', '==', active_id).get().then(
-                (snapshot) => {
-                    jQuery("#product_count").empty();
-                    jQuery("#product_count").text(snapshot.docs.length);
-                });
-
-            db.collection('users').orderBy('createdAt').where("role", "==", "customer").get().then((snapshot) => {
-                jQuery("#users_count").empty();
-                jQuery("#users_count").append(snapshot.docs.length);
-            });
-
-            db.collection('users').where("role", "==", "driver").where('serviceType', '==', active_type).orderBy('createdAt').get().then((snapshot) => {
-                jQuery("#driver_count").empty();
-                jQuery("#driver_count").append(snapshot.docs.length);
-            });
-
-            db.collection('vendors').where('section_id', '==', active_id).where('title', '!=', '').get().then(
-                (snapshot) => {
-                    jQuery("#vendor_count").empty();
-                    jQuery("#vendor_count").text(snapshot.docs.length)
-                    setVisitors();
-                });
-
-            getTotalEarnings();
-
-            db.collection('vendor_orders').where('status', 'in', ["Order Placed"]).where('vendor.section_id', '==', active_id).get().then(
-                (snapshot) => {
-                    jQuery("#placed_count").empty();
-                    jQuery("#placed_count").text(snapshot.docs.length);
-                });
-
-            db.collection('vendor_orders').where('status', 'in', ["Order Accepted", "Driver Accepted"]).where('vendor.section_id', '==', active_id).get().then(
-                (snapshot) => {
-                    jQuery("#confirmed_count").empty();
-                    jQuery("#confirmed_count").text(snapshot.docs.length);
-                });
-
-            db.collection('vendor_orders').where('status', 'in', ["Order Shipped", "In Transit"]).where('vendor.section_id', '==', active_id).get().then(
-                (snapshot) => {
-                    jQuery("#shipped_count").empty();
-                    jQuery("#shipped_count").text(snapshot.docs.length);
-                });
-
-            db.collection('vendor_orders').where('status', 'in', ["Order Completed"]).where('vendor.section_id', '==', active_id).get().then(
-                (snapshot) => {
-                    jQuery("#completed_count").empty();
-                    jQuery("#completed_count").text(snapshot.docs.length);
-                });
-
-            db.collection('vendor_orders').where('status', 'in', ["Order Rejected"]).where('vendor.section_id', '==', active_id).get().then(
-                (snapshot) => {
-                    jQuery("#canceled_count").empty();
-                    jQuery("#canceled_count").text(snapshot.docs.length);
-                });
-
-            db.collection('vendor_orders').where('status', 'in', ["Driver Rejected"]).where('vendor.section_id', '==', active_id).get().then(
-                (snapshot) => {
-                    jQuery("#failed_count").empty();
-                    jQuery("#failed_count").text(snapshot.docs.length);
-                });
-
-            db.collection('vendor_orders').where('status', 'in', ["Driver Pending"]).where('vendor.section_id', '==', active_id).get().then(
-                (snapshot) => {
-                    jQuery("#pending_count").empty();
-                    jQuery("#pending_count").text(snapshot.docs.length);
-                });
-
-            var offest = 1;
-            var pagesize = 5;
-            var start = null;
-            var end = null;
-            var endarray = [];
-            var inx = parseInt(offest) * parseInt(pagesize);
-            var append_listvendors = document.getElementById('append_list');
-            append_listvendors.innerHTML = '';
-
-            let ref = db.collection('vendors').where('section_id', '==', active_id);
-            ref.orderBy('reviewsCount', 'desc').limit(inx).get().then((snapshots) => {
-                html = '';
-                html = buildHTML(snapshots);
-                if (html != '') {
-                    append_listvendors.innerHTML = html;
-                    start = snapshots.docs[snapshots.docs.length - 1];
-                    endarray.push(snapshots.docs[0]);
+                if (selected === 'year') {
+                    $('#monthFilter').hide();
+                    $('#yearFilter').show();
+                    $('#monthYearFilters').show();
+                    $('#customDateFilters').hide();
+                } else if (selected === 'month') {
+                    $('#monthFilter').show();
+                    $('#yearFilter').show();
+                    $('#monthYearFilters').show();
+                    $('#customDateFilters').hide();
+                } else if (selected === 'custom') {
+                    $('#monthYearFilters').hide();
+                    $('#customDateFilters').show();
+                }else{
+                    $('#monthFilter').hide();
+                    $('#yearFilter').hide();
+                    $('#monthYearFilters').hide();
+                    $('#customDateFilters').hide();
                 }
-                $('#storesTable').DataTable({
-                    order: [],
-                    columnDefs: [
-                        {orderable: false, targets: [0, 3]},
-                        {
-                            type: 'natural',
-                            targets: 2
-                        }
-                    ],
-                    "language": {
-                        "zeroRecords": "{{trans("lang.no_record_found")}}",
-                        "emptyTable": "{{trans("lang.no_record_found")}}"
-                    },
-                    responsive: true,
-                    paging: false,
-                    info: false
-                });
             });
 
-            var offest = 1;
-            var pagesize = 10;
-            var start = null;
-            var end = null;
-            var endarray = [];
-            var inx = parseInt(offest) * parseInt(pagesize);
-            var append_listrecent_order = document.getElementById('append_list_recent_order');
-            append_list.innerHTML = '';
+            $('#viewFilter').trigger('change');
 
-            ref = db.collection('vendor_orders').where('vendor.section_id', '==', active_id);
-            ref.orderBy('createdAt', 'desc').where('status', 'in', ["Order Placed", "Order Accepted", "Driver Pending", "Driver Accepted", "Order Shipped", "In Transit"]).limit(inx).get().then((snapshots) => {
-                html = '';
-                html = buildOrderHTML(snapshots);
-                if (html != '') {
-                    append_listrecent_order.innerHTML = html;
-                    start = snapshots.docs[snapshots.docs.length - 1];
-                    endarray.push(snapshots.docs[0]);
+            db.collection('sections').where('id', '==', active_id).get().then((snapshot) => {
+                if (!snapshot.empty) {
+                    var sectionData = snapshot.docs[0].data();
+                    jQuery("#section_title").empty();
+                    jQuery("#section_title").text(sectionData.name+' - '+sectionData.serviceType);
+                    jQuery("#section_title").after('<p>{{trans("lang.here_quick_overview_of_your")}} ' + sectionData.name+' - '+sectionData.serviceType + ' {{trans("lang.platform_today")}}</p>')
+
+                } else {
+                    jQuery("#section_title").text('No section found');
                 }
-
-                $('#orderTable').DataTable({
-                    order: [],
-                    "language": {
-                        "zeroRecords": "{{trans("lang.no_record_found")}}",
-                        "emptyTable": "{{trans("lang.no_record_found")}}"
-                    },
-                    responsive: true,
-                    paging: false,
-                    info: false
+            })
+                .catch((error) => {
+                    console.error("Error getting section:", error);
                 });
-            });
+            loadVendorDashboardData(null, null, null, null, null, active_id, active_type);
 
-            var offest = 1;
-            var pagesize = 5;
-            var start = null;
-            var end = null;
-            var endarray = [];
-            var inx = parseInt(offest) * parseInt(pagesize);
-            var append_listtop_drivers = document.getElementById('append_list_top_drivers');
-            append_listtop_drivers.innerHTML = '';
+            getTotalEarnings(null, null, null, null, null, active_id);
+            loadOrderStatusCounts(null, null, null, null, null, active_id);
+            loadDashboardLists(null, null, null, null, null, active_id, active_type);
+        });
 
-            ref = db.collection('users');
-            ref.where('role', '==', 'driver').where('serviceType', '==', active_type).orderBy('orderCompleted', 'desc').limit(inx).get().then((snapshots) => {
-                html = '';
-                html = buildDriverHTML(snapshots);
-                if (html != '') {
-                    append_listtop_drivers.innerHTML = html;
-                    start = snapshots.docs[snapshots.docs.length - 1];
-                    endarray.push(snapshots.docs[0]);
-                }
-                $('#driverTable').DataTable({
-                    order: [],
-                    columnDefs: [
-                        {orderable: false, targets: [0, 3]},
-                    ],
-                    "language": {
-                        "zeroRecords": "{{trans("lang.no_record_found")}}",
-                        "emptyTable": "{{trans("lang.no_record_found")}}"
-                    },
-                    responsive: true,
-                    paging: false,
-                    info: false
-                });
-            });
-        })
+        $('#applyFilterBtn').on('click', function (e) {
+            e.preventDefault();
+            const view = $('#viewFilter').val();
+            const year = parseInt($('#yearFilter').val()) || null;
+            const month = parseInt($('#monthFilter').val()) || null;
+            const startDate = $('#startDate').val() || null;
+            const endDate = $('#endDate').val() || null;
+            loadVendorDashboardData(view, year, month, startDate, endDate, active_id, active_type);
+            getTotalEarnings(view, year, month, startDate, endDate, active_id);
+            loadOrderStatusCounts(view, year, month, startDate, endDate, active_id);
+            loadDashboardLists(view, year, month, startDate, endDate, active_id, active_type);
+        });
 
-        async function getTotalEarnings() {
+        async function getTotalEarnings(filterType = null, year = null, month = null, startDate = null, endDate = null, active_id) {
             var intRegex = /^\d+$/;
             var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
-            var v01 = 0;
-            var v02 = 0;
-            var v03 = 0;
-            var v04 = 0;
-            var v05 = 0;
-            var v06 = 0;
-            var v07 = 0;
-            var v08 = 0;
-            var v09 = 0;
-            var v10 = 0;
-            var v11 = 0;
-            var v12 = 0;
-            var currentYear = new Date().getFullYear();
-            await db.collection('vendor_orders').where('status', 'in', ["Order Completed"]).where('vendor.section_id', '==', active_id).get().then(async function (orderSnapshots) {
-                var paymentData = orderSnapshots.docs;
-                var totalEarning = 0;
-                var adminCommission = 0;
-                paymentData.forEach((order) => {
-                    var orderData = order.data();
-                    var price = 0;
-                    var minprice = 0;
-                    orderData.products.forEach((product) => {
 
-                        if (product.price && product.quantity != 0) {
-                            var extras_price = 0;
-                            if (product.extras_price != undefined && product.extras_price != null) {
-                                extras_price = parseFloat(product.extras_price) * parseInt(product.quantity);
-                            }
-                            if (!isNaN(extras_price)) {
-                                var productTotal = (parseFloat(product.price) * parseInt(product.quantity)) + extras_price;
-                            } else {
-                                var productTotal = (parseFloat(product.price) * parseInt(product.quantity));
-                            }
-                            if (!isNaN(productTotal)) {
-                                price = price + productTotal;
-                                minprice = minprice + productTotal;
-                            }
+            var v = Array(12).fill(0);
+            var c = Array(12).fill(0);
 
-                        }
-                    })
+            var vLast = Array(12).fill(0);
+            var cLast = Array(12).fill(0);
 
-                    discount = orderData.discount;
-                    if ((intRegex.test(discount) || floatRegex.test(discount)) && !isNaN(discount)) {
-                        discount = parseFloat(discount).toFixed(decimal_degits);
-                        price = price - parseFloat(discount);
-                        minprice = minprice - parseFloat(discount);
-                    }
+            let now = new Date();
+            // 🔹 Setup ranges
+            let startOfThisPeriod = new Date();
+            let endOfThisPeriod = new Date();
+            let startOfLastPeriod = null;
+            let endOfLastPeriod = null;
 
-                    tax = 0;
-                    if (orderData.hasOwnProperty('taxSetting')) {
-                        if (orderData.taxSetting.type && orderData.taxSetting.tax) {
-                            if (orderData.taxSetting.type == "percentage") {
-                                tax = (parseFloat(orderData.taxSetting.tax) * minprice) / 100;
-                            } else {
-                                tax = parseFloat(orderData.taxSetting.tax);
-                            }
-                        }
-                    }
+            if (filterType === 'year' && year) {
+                startOfThisPeriod = new Date(year, 0, 1);
+                endOfThisPeriod = new Date(year, 11, 31, 23, 59, 59);
+                startOfLastPeriod = new Date(year - 1, 0, 1);
+                endOfLastPeriod = new Date(year - 1, 11, 31, 23, 59, 59);
+            } else if (filterType === 'month' && year && month) {
+                startOfThisPeriod = new Date(year, month - 1, 1);
+                endOfThisPeriod = new Date(year, month, 0, 23, 59, 59);
+                startOfLastPeriod = new Date(year, month - 2, 1);
+                endOfLastPeriod = new Date(year, month - 1, 0, 23, 59, 59);
+            } else if (filterType === 'custom' && startDate && endDate) {
+                startOfThisPeriod = new Date(startDate);
+                endOfThisPeriod = new Date(endDate);
+                startOfLastPeriod = new Date(startOfThisPeriod.getTime() - (endOfThisPeriod - startOfThisPeriod) - 1);
+                endOfLastPeriod = new Date(startOfThisPeriod.getTime() - 1);
+            }
 
-                    if (!isNaN(tax)) {
-                        price = price + tax;
-                    }
+            // Firestore timestamps
+            const startTS = firebase.firestore.Timestamp.fromDate(startOfThisPeriod);
+            const endTS = firebase.firestore.Timestamp.fromDate(endOfThisPeriod);
+            const startLastTS = startOfLastPeriod ? firebase.firestore.Timestamp.fromDate(startOfLastPeriod) : null;
+            const endLastTS = endOfLastPeriod ? firebase.firestore.Timestamp.fromDate(endOfLastPeriod) : null;
 
-                    if (orderData.deliveryCharge != undefined && orderData.deliveryCharge != "" && orderData.deliveryCharge > 0) {
-                        price = price + parseFloat(orderData.deliveryCharge);
-                    }
+            let ordersQuery = db.collection('vendor_orders').where('status', 'in', ["Order Completed"]).where('section_id','==',active_id);
+            if (filterType) {
+                ordersQuery = ordersQuery.where('createdAt', '>=', startTS).where('createdAt', '<=', endTS);
+            }
 
-                    if (orderData.adminCommission != undefined && orderData.adminCommissionType != undefined && orderData.adminCommission > 0 && price > 0) {
-                        var commission = 0;
-                        if (orderData.adminCommissionType == "percentage") {
-                            commission = (price * parseFloat(orderData.adminCommission)) / 100;
+            let ordersLastQuery = startLastTS && endLastTS
+                ? db.collection('vendor_orders')
+                    .where('status', 'in', ["Order Completed"])
+                    .where('section_id','==',active_id)
+                    .where('createdAt', '>=', startLastTS)
+                    .where('createdAt', '<=', endLastTS)
+                : null;
 
-                        } else {
-                            commission = parseFloat(orderData.adminCommission);
-                        }
+            const [ordersCurrSnap, ordersLastSnap] = await Promise.all([
+                ordersQuery.get(),
+                ordersLastQuery ? ordersLastQuery.get() : Promise.resolve({ docs: [] })
+            ]);
 
-                        adminCommission = commission + adminCommission;
-                    } else if (orderData.adminCommission != undefined && orderData.adminCommission > 0 && price > 0) {
-                        var commission = parseFloat(orderData.adminCommission);
-                        adminCommission = commission + adminCommission;
-                    }
+            let totalEarning = 0, adminCommission = 0;
+            let totalEarningLast = 0;
 
-                    totalEarning = parseFloat(totalEarning) + parseFloat(price);
+            function calculateOrderTotals(orderData) {
 
-                    try {
+                let order_subtotal = 0;
+                let total_discount = 0;
+                let total_tax_amount = 0;
 
-                        if (orderData.createdAt) {
-                            var orderMonth = orderData.createdAt.toDate().getMonth() + 1;
-                            var orderYear = orderData.createdAt.toDate().getFullYear();
-                            if (currentYear == orderYear) {
-                                switch (parseInt(orderMonth)) {
-                                    case 1:
-                                        v01 = parseInt(v01) + price;
-                                        break;
-                                    case 2:
-                                        v02 = parseInt(v02) + price;
-                                        break;
-                                    case 3:
-                                        v03 = parseInt(v03) + price;
-                                        break;
-                                    case 4:
-                                        v04 = parseInt(v04) + price;
-                                        break;
-                                    case 5:
-                                        v05 = parseInt(v05) + price;
-                                        break;
-                                    case 6:
-                                        v06 = parseInt(v06) + price;
-                                        break;
-                                    case 7:
-                                        v07 = parseInt(v07) + price;
-                                        break;
-                                    case 8:
-                                        v08 = parseInt(v08) + price;
-                                        break;
-                                    case 9:
-                                        v09 = parseInt(v09) + price;
-                                        break;
-                                    case 10:
-                                        v10 = parseInt(v10) + price;
-                                        break;
-                                    case 11:
-                                        v11 = parseInt(v11) + price;
-                                        break;
-                                    default :
-                                        v12 = parseInt(v12) + price;
-                                        break;
-                                }
-                            }
-                        }
+                let tip_amount = parseFloat(orderData.tip_amount || 0);
+                let deliveryCharge = parseFloat(orderData.deliveryCharge || 0);
+                let platformFee = parseFloat(orderData.platformFee || 0);
+                let packagingCharge = parseFloat(orderData.vendor?.packagingCharge || 0);
+                let packagingChargeEnable = orderData.packagingChargeEnable;
 
-                    } catch (err) {
-
-
-                        var datas = new Date(orderData.createdAt._seconds * 1000);
-
-                        var dates = firebase.firestore.Timestamp.fromDate(datas);
-
-                        db.collection('vendor_orders').doc(orderData.id).update({'createdAt': dates}).then(() => {
-
-                            console.log('Provided document has been updated in Firestore');
-
-                        }, (error) => {
-
-                            console.log('Error: ' + error);
-
-                        });
-
-                    }
-
-
-                })
-
-                if (currencyAtRight) {
-                    totalEarning = parseFloat(totalEarning).toFixed(decimal_degits) + "" + currentCurrency;
-                    adminCommission = parseFloat(adminCommission).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    totalEarning = currentCurrency + "" + parseFloat(totalEarning).toFixed(decimal_degits);
-                    adminCommission = currentCurrency + "" + parseFloat(adminCommission).toFixed(decimal_degits);
+                // Subtotal
+                if (orderData.products) {
+                    orderData.products.forEach(product => {
+                        let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                        let extras = parseFloat(product.extras_price || 0);
+                        let qty = parseInt(product.quantity || 0);
+                        let itemTotal = (basePrice + extras) * qty;
+                        order_subtotal += isNaN(itemTotal) ? 0 : itemTotal;
+                    });
                 }
 
-                $("#earnings_count").append(totalEarning);
-                $("#earnings_count_graph").append(totalEarning);
-                $("#admincommission_count_graph").append(adminCommission);
-                $("#admincommission_count").append(adminCommission);
-                $("#total_earnings_header").text(totalEarning);
-                $(".earnings_over_time").append(totalEarning);
-                var data = [v01, v02, v03, v04, v05, v06, v07, v08, v09, v10, v11, v12];
-                var labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-                var $salesChart = $('#sales-chart');
-                var salesChart = renderChart($salesChart, data, labels);
-                setCommision();
-            })
+                // Discount
+                let order_discount = parseFloat(orderData.discount || 0);
+                let special_discount = parseFloat(orderData.specialDiscount?.special_discount || 0);
+                total_discount = order_discount + special_discount;
+
+                // PRODUCT LEVEL TAX
+                if (orderData.taxScope === "product") {
+                    let itemSubtotal = order_subtotal;
+
+                    orderData.products?.forEach(product => {
+                        let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                        let extras = parseFloat(product.extras_price || 0);
+                        let qty = parseInt(product.quantity || 0);
+                        let itemGross = (basePrice + extras) * qty;
+                        let itemDiscount = itemSubtotal > 0 ? (itemGross / itemSubtotal) * total_discount : 0;
+                        let itemTaxable = Math.max(0, itemGross - itemDiscount);
+
+                        (product.taxSetting || []).forEach(tax => {
+                            if (tax.enable) {
+                                let taxAmount = tax.type === "percentage"
+                                    ? (tax.tax / 100) * itemTaxable
+                                    : tax.tax * product.quantity;
+
+                                total_tax_amount += parseFloat(taxAmount);
+                            }
+                        });
+                    });
+                }
+
+                // ORDER LEVEL TAX
+                if (orderData.taxScope === "order") {
+                    let orderTaxable = Math.max(0, order_subtotal - total_discount);
+                    (orderData.taxSetting || []).forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = tax.type === "percentage"
+                                ? (tax.tax / 100) * orderTaxable
+                                : tax.tax;
+                            total_tax_amount += parseFloat(taxAmount);
+                        }
+                    });
+                }
+
+                // EXTRA TAXES (delivery, packaging, platform)
+                [
+                    { key: 'delivery', amount: deliveryCharge, taxes: orderData.driverDeliveryTax || [] },
+                    { key: 'packaging', amount: packagingCharge, taxes: orderData.packagingTax || [] },
+                    { key: 'platform', amount: platformFee, taxes: orderData.platformTax || [] },
+                ].forEach(scope => {
+                    if (scope.key === "packaging" && !packagingChargeEnable) {
+                        return;
+                    }
+                    scope.taxes?.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if(scope.amount > 0){
+                                taxAmount = tax.type === "percentage"
+                                ? (tax.tax / 100) * scope.amount
+                                : tax.tax;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                        }
+                    });
+                });
+
+                // Final subtotal after discount
+                let final_subtotal = order_subtotal - total_discount;
+
+                // Commission
+                let commission = 0;
+                let commissionBase = final_subtotal + deliveryCharge + platformFee + total_tax_amount;
+
+                if (orderData.adminCommissionType && orderData.adminCommission) {
+                    let val = parseFloat(orderData.adminCommission);
+                    if (!isNaN(val) && val > 0) {
+                        commission = orderData.adminCommissionType === 'percentage'
+                            ? (commissionBase * val) / 100
+                            : val;
+                    }
+                }
+
+                // Final total
+                let order_total = final_subtotal + deliveryCharge + tip_amount + (packagingChargeEnable ? packagingCharge : 0) + platformFee + total_tax_amount;
+
+                return {
+                    order_total: isNaN(order_total) ? 0 : order_total,
+                    commission: isNaN(commission) ? 0 : commission
+                };
+            }
+
+            function processOrders(docs, isCurrent = true) {
+                let vArr = [];
+                let cArr = [];
+                let total = 0;
+                let totalComm = 0;
+
+                if (filterType === 'year') {
+                    vArr = Array(12).fill(0);
+                    cArr = Array(12).fill(0);
+                } else if (filterType === 'month' && year && month) {
+                    const daysInMonth = new Date(year, month, 0).getDate();
+                    vArr = Array(daysInMonth).fill(0);
+                    cArr = Array(daysInMonth).fill(0);
+                } else if (filterType === 'custom' && startDate && endDate) {
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
+                    const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                    vArr = Array(days).fill(0);
+                    cArr = Array(days).fill(0);
+                } else {
+                    // default: yearly
+                    vArr = Array(12).fill(0);
+                    cArr = Array(12).fill(0);
+                }
+
+                docs.forEach((order) => {
+
+                    let orderData = order.data();
+
+                    let calc = calculateOrderTotals(orderData);
+
+                    let price = calc.order_total;
+                    let commission = calc.commission;
+
+                    total += price;
+                    totalComm += commission;
+
+                    // 🔹 Put values in correct index
+                    if (orderData.createdAt) {
+                        let d = orderData.createdAt.toDate();
+
+                        if (filterType === 'year') {
+                            let monthIdx = d.getMonth();
+                            vArr[monthIdx] += price;
+                            cArr[monthIdx] += commission;
+                        } else if (filterType === 'month') {
+                            let dayIdx = d.getDate() - 1; // 0-based
+                            vArr[dayIdx] += price;
+                            cArr[dayIdx] += commission;
+                        } else if (filterType === 'custom') {
+                            let diff = Math.floor((d - new Date(startDate)) / (1000 * 60 * 60 * 24));
+                            if (diff >= 0 && diff < vArr.length) {
+                                vArr[diff] += price;
+                                cArr[diff] += commission;
+                            }
+                        } else {
+                            // default yearly
+                            let monthIdx = d.getMonth();
+                            vArr[monthIdx] += price;
+                            cArr[monthIdx] += commission;
+                        }
+                    }
+                });
+
+                return { total, totalComm, vArr, cArr };
+            }
+
+            const currData = processOrders(ordersCurrSnap.docs, true);
+            const lastData = processOrders(ordersLastSnap.docs, false);
+            
+            totalEarning = currData.total;
+            adminCommission = currData.totalComm;
+            totalEarningLast = lastData.total;
+            totalCommLast = lastData.totalComm;
+           
+            let percentChange = totalEarningLast === 0
+                ? (totalEarning === 0 ? 0 : 100)
+                : ((totalEarning - totalEarningLast) / totalEarningLast) * 100;
+            let percentCommission = totalCommLast === 0
+                ? (adminCommission === 0 ? 0 : 100)
+                : ((adminCommission - totalCommLast) / totalCommLast) * 100;
+            if (currencyAtRight) {
+                totalEarning = parseFloat(totalEarning).toFixed(decimal_degits) + "" + currentCurrency;
+                adminCommission = parseFloat(adminCommission).toFixed(decimal_degits) + "" + currentCurrency;
+            } else {
+                totalEarning = currentCurrency + "" + parseFloat(totalEarning).toFixed(decimal_degits);
+                adminCommission = currentCurrency + "" + parseFloat(adminCommission).toFixed(decimal_degits);
+            }
+            $("#earnings_count").text(totalEarning);
+            $("#earnings_count_graph").text(totalEarning);
+            $("#admincommission_count_graph").text(adminCommission);
+            $("#admincommission_count").text(adminCommission);
+            $("#total_earnings_header").text(totalEarning);
+            $(".earnings_over_time").text(totalEarning);
+            let ordersInfo = getArrowAndClass(percentChange);
+            let commissionInfo = getArrowAndClass(percentCommission);
+            if(filterType !== null){
+                jQuery("#earning_percent").html(`<i class="fa ${ordersInfo.arrow}"></i> ${Math.abs(percentChange).toFixed(2)}% vs last period`).removeClass('green red').addClass(ordersInfo.className);
+                jQuery("#commission_percent").html(`<i class="fa ${commissionInfo.arrow}"></i> ${Math.abs(percentCommission).toFixed(2)}% vs last period`).removeClass('green red').addClass(commissionInfo.className);
+
+            }
+            let labels = [];
+            let chartData = currData.vArr;
+            let commissionData = currData.cArr;
+
+            if (filterType === 'year' || !filterType) {
+                labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                    'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            } else if (filterType === 'month') {
+                const daysInMonth = new Date(year, month, 0).getDate();
+                labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
+            } else if (filterType === 'custom') {
+                const start = new Date(startDate);
+                labels = chartData.map((_, i) => {
+                    let d = new Date(start);
+                    d.setDate(d.getDate() + i);
+                    return `${d.getDate()}-${d.getMonth() + 1}`;
+                });
+            }
+            else {
+                labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                chartData = vArr;
+                commissionData = cArr;
+            }
+
+            const ctx = $('#sales-chart')[0].getContext('2d');
+            renderChart(ctx, chartData, labels);
+            setCommision(commissionData, chartData);
+
+
             jQuery("#data-table_processing").hide();
+        }
+        async function loadOrderStatusCounts(filterType = null, year = null, month = null, startDate = null, endDate = null, active_id) {
+            let startTS = null;
+            let endTS = null;
+
+            if (filterType === 'year' && year) {
+                let startOfYear = new Date(year, 0, 1);
+                let endOfYear = new Date(year, 11, 31, 23, 59, 59);
+                startTS = firebase.firestore.Timestamp.fromDate(startOfYear);
+                endTS = firebase.firestore.Timestamp.fromDate(endOfYear);
+            } else if (filterType === 'month' && year && month) {
+                let startOfMonth = new Date(year, month - 1, 1);
+                let endOfMonth = new Date(year, month, 0, 23, 59, 59);
+                startTS = firebase.firestore.Timestamp.fromDate(startOfMonth);
+                endTS = firebase.firestore.Timestamp.fromDate(endOfMonth);
+            } else if (filterType === 'custom' && startDate && endDate) {
+                let start = new Date(startDate);
+                let end = new Date(endDate);
+                startTS = firebase.firestore.Timestamp.fromDate(start);
+                endTS = firebase.firestore.Timestamp.fromDate(end);
+            }
+
+            const statuses = {
+                placed: ["Order Placed"],
+                confirmed: ["Order Accepted", "Driver Accepted"],
+                shipped: ["Order Shipped"],
+                completed: ["Order Completed"],
+                canceled: ["Order Rejected"],
+                failed: ["Driver Rejected"],
+                pending: ["Driver Pending"],
+                intransit: ["In Transit"],
+                cancelled: ["Order Cancelled"],
+            };
+
+            const promises = Object.entries(statuses).map(([key, statusArray]) => {
+                let query = db.collection('vendor_orders').where('status', 'in', statusArray).where('section_id','==',active_id);
+                if (startTS && endTS) {
+                    query = query.where('createdAt', '>=', startTS)
+                        .where('createdAt', '<=', endTS);
+                }
+                return query.get().then(snapshot => ({ key, count: snapshot.docs.length }));
+            });
+
+            const results = await Promise.all(promises);
+
+            results.forEach(item => {
+                const selector = `#${item.key}_count`;
+                jQuery(selector).empty().val(item.count);
+            });
+            setorderStatus();
 
         }
+
 
         function buildHTML(snapshots) {
             var html = '';
@@ -761,22 +780,19 @@
             snapshots.docs.forEach((listval) => {
                 val = listval.data();
                 val.id = listval.id;
-                var route = '<?php echo route("vendors.edit", ":id");?>';
+                var route = '<?php echo route("stores.edit", ":id");?>';
                 route = route.replace(':id', val.id);
 
-                var routeview = '<?php echo route("vendors.view", ":id");?>';
-                routeview = routeview.replace(':id', val.id);
+
 
                 html = html + '<tr>';
-                if (val.photo == '') {
 
-                    html = html + '<td class="text-center"><img class="img-circle img-size-32 mr-2" style="width:60px;height:60px;" src="' + placeholderImage + '" alt="image"></td>';
-                } else {
-                    html = html + '<td class="text-center"><img class="img-circle img-size-32 mr-2" style="width:60px;height:60px;" src="' + val.photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" alt="image"></td>';
-                }
+                let profileSrc = val.photo ? val.photo : placeholderImage;
 
-                html = html + '<td data-url="' + routeview + '" class="redirecttopage">' + val.title + '</td>';
-
+                html = html + '<td class="redirecttopage"><div class="top-driver-name">' +
+                    '<img class="img-circle img-size-32" style="width:40px;height:40px; margin-right:5px;" src="' + profileSrc + '" alt="image">' +
+                    '<a href="' + route + '">' + val.title + '</a>' +
+                    '</div></td>';
                 if (val.hasOwnProperty('reviewsCount') && val.reviewsCount != 0) {
                     rating = Math.round(parseFloat(val.reviewsSum) / parseInt(val.reviewsCount));
                 } else {
@@ -790,7 +806,7 @@
                 html = html + '<li class="rating__item"></li>';
                 html = html + '<li class="rating__item"></li>';
                 html = html + '</ul></td>';
-                html = html + '<td><a href="' + route + '" > <span class="mdi mdi-lead-pencil"></span></a></td>';
+                html = html + '<td><span class="action-btn"><a href="' + route + '" > <i class="mdi mdi-lead-pencil"></i></span></a></td>';
                 html = html + '</tr>';
 
                 rating = 0;
@@ -809,19 +825,19 @@
                 var driverroute = '<?php echo route("drivers.edit", ":id");?>';
                 driverroute = driverroute.replace(':id', val.id);
 
-                var driverView = '{{route("drivers.view",":id")}}';
+                var driverView = '{{route("drivers.view", ":id")}}';
                 driverView = driverView.replace(':id', val.id);
 
                 html = html + '<tr>';
-                if (val.profilePictureURL == '') {
 
-                    html = html + '<td class="text-center"><img class="img-circle img-size-32 mr-2" style="width:60px;height:60px;" src="' + placeholderImage + '" alt="image"></td>';
-                } else {
-                    html = html + '<td class="text-center"><img class="img-circle img-size-32 mr-2" style="width:60px;height:60px;" src="' + val.profilePictureURL + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" alt="image"></td>';
-                }
-                html = html + '<td data-url="' + driverView + '" class="redirecttopage">' + val.firstName + ' ' + val.lastName + '</td>';
+                let profileSrc = val.profilePic ? val.profilePic : placeholderImage;
+
+                html = html + '<td class="redirecttopage text-center"><div class="top-driver-name">' +
+                    '<img class="img-circle img-size-32" style="width:40px;height:40px; margin-right:5px;" src="' + profileSrc + '" alt="image">' +
+                    '<a href="' + driverView + '">' + val.firstName + ' ' + val.lastName + '</a>' +
+                    '</div></td>';
                 html = html + '<td data-url="' + driverView + '" class="redirecttopage">' + val.orderCompleted + '</td>';
-                html = html + '<td data-url="' + driverroute + '" class="redirecttopage"><span class="mdi mdi-lead-pencil"></span></td>';
+                html = html + '<td data-url="' + driverroute + '" class="redirecttopage"><span class="action-btn"><a><i class="mdi mdi-lead-pencil"></i></a></span></td>';
                 html = html + '</tr>';
                 count++;
             });
@@ -837,21 +853,12 @@
                 var route = '<?php echo route("orders.edit", ":id"); ?>';
                 route = route.replace(':id', val.id);
 
-                var vendorroute = '<?php echo route("vendors.view", ":id");?>';
+                var vendorroute = '<?php echo route("stores.view", ":id");?>';
                 vendorroute = vendorroute.replace(':id', val.vendorID);
 
                 html = html + '<tr>';
 
                 html = html + '<td data-url="' + route + '" class="redirecttopage">' + val.id + '</td>';
-
-                var price = 0;
-                if (val.deliveryCharge != undefined) {
-                    price = parseInt(val.deliveryCharge) + price;
-                }
-                if (val.tip_amount != undefined) {
-                    price = parseInt(val.tip_amount) + price;
-                }
-        
                 html = html + '<td data-url="' + vendorroute + '" class="redirecttopage">' + val.vendor.title + '</td>';
 
                 var price = buildHTMLProductstotal(val);
@@ -865,7 +872,11 @@
         }
 
 
-        function renderChart(chartNode, data, labels) {
+        function renderChart(ctx, data, labels) {
+            var gradientStroke = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientStroke.addColorStop(0, "rgba(255,94,0,0.4)");
+            gradientStroke.addColorStop(1, "rgba(255,94,0,0)");
+
             var ticksStyle = {
                 fontColor: '#495057',
                 fontStyle: 'bold'
@@ -873,17 +884,21 @@
 
             var mode = 'index';
             var intersect = true;
-            return new Chart(chartNode, {
-                type: 'bar',
+
+            return new Chart(ctx, {
+                type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [
-                        {
-                            backgroundColor: '#2EC7D9',
-                            borderColor: '#2EC7D9',
-                            data: data
-                        }
-                    ]
+                    datasets: [{
+                        label: "{{ trans('lang.total_sales') }}",
+                        data: data,
+                        borderColor: "#FF5E00",
+                        backgroundColor: gradientStroke,
+                        pointRadius: 0,
+                        borderWidth: 3,
+                        fill: true,
+                        lineTension: 0.3
+                    }]
                 },
                 options: {
                     maintainAspectRatio: false,
@@ -892,13 +907,13 @@
                         intersect: intersect,
                         callbacks: {
                             label: function (tooltipItems, data) {
+                                let val = data.datasets[0].data[tooltipItems.index];
+                                val = Number.isInteger(val) ? val : val.toFixed(2);
 
                                 if (currencyAtRight) {
-                                    return (data.datasets[0].data[tooltipItems.index]).toFixed(decimal_degits) + currentCurrency;
-
+                                    return val + currentCurrency;
                                 } else {
-                                    return currentCurrency + (data.datasets[0].data[tooltipItems.index]).toFixed(decimal_degits);
-
+                                    return currentCurrency + val;
                                 }
                             }
                         }
@@ -908,29 +923,33 @@
                         intersect: intersect
                     },
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            fontColor: '#495057',
+                            fontSize: 12
+                        }
                     },
                     scales: {
                         yAxes: [{
                             gridLines: {
                                 display: true,
-                                lineWidth: '4px',
-                                color: 'rgba(0, 0, 0, .2)',
+                                lineWidth: '1px',
+                                color: 'rgba(0, 0, 0, .05)',
                                 zeroLineColor: 'transparent'
                             },
                             ticks: $.extend({
                                 beginAtZero: true,
-                                callback: function (value, index, values) {
-                                    if (currencyAtRight) {
-                                        return value.toFixed(decimal_degits) + currentCurrency;
+                                callback: function (value) {
+                                    // no long decimals on axis
+                                    value = Number.isInteger(value) ? value : value.toFixed(2);
 
-                                    } else {
-                                        return currentCurrency + value.toFixed(decimal_degits);
-
+                                    if (value >= 1000) {
+                                        value = (value / 1000) + "k";
                                     }
+
+                                    return currencyAtRight ? value + currentCurrency : currentCurrency + value;
                                 }
-
-
                             }, ticksStyle)
                         }],
                         xAxes: [{
@@ -942,7 +961,7 @@
                         }]
                     }
                 }
-            })
+            });
         }
 
         $(document).ready(function () {
@@ -952,218 +971,479 @@
             });
         });
 
-
         function buildHTMLProductstotal(snapshotsProducts) {
 
-            var adminCommission = snapshotsProducts.adminCommission;
-            var discount = snapshotsProducts.discount;
-            var couponCode = snapshotsProducts.couponCode;
-            var extras = snapshotsProducts.extras;
-            var extras_price = snapshotsProducts.extras_price;
-            var rejectedByDrivers = snapshotsProducts.rejectedByDrivers;
-            var takeAway = snapshotsProducts.takeAway;
-            var tip_amount = snapshotsProducts.tip_amount;
-            var status = snapshotsProducts.status;
-            var products = snapshotsProducts.products;
-            var deliveryCharge = snapshotsProducts.deliveryCharge;
-            var totalProductPrice = 0;
-            var total_price = 0;
+            let order_subtotal = 0;
+            let total_discount = 0;
+            let total_tax_amount = 0;
+            let tip_amount = parseFloat(snapshotsProducts.tip_amount || 0);
+            let deliveryCharge = parseFloat(snapshotsProducts.deliveryCharge || 0);
+            let platformFee = parseFloat(snapshotsProducts.platformFee || 0);
+            let packagingCharge = parseFloat(snapshotsProducts.vendor.packagingCharge || 0);
+            let packagingChargeEnable = snapshotsProducts.packagingChargeEnable;
 
-            var intRegex = /^\d+$/;
-            var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
+            //  Calculate subtotal and product extras
+            for (let i = 0; i < snapshotsProducts.products.length; i++) {
+                let product = snapshotsProducts.products[i];
+                let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+                order_subtotal += itemGross;
+            }
 
-            if (products) {
+            // Total discounts
+            let order_discount = parseFloat(snapshotsProducts.discount || 0);
+            let special_discount = parseFloat(snapshotsProducts.specialDiscount?.special_discount || 0);
+                total_discount = order_discount + special_discount;
 
-                products.forEach((product) => {
+            // Calculate item-level taxes (if product-level)
+            if (snapshotsProducts.taxScope === "product") {
+                let itemSubtotal = order_subtotal;
+                snapshotsProducts.products.forEach(product => {
+                    let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                    let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+                    let itemDiscount = (itemSubtotal > 0) ? (itemGross / itemSubtotal) * total_discount : 0;
+                    let itemTaxable = Math.max(0, itemGross - itemDiscount);
+                    let itemTaxes = product.taxSetting || [];
+                    itemTaxes.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * itemTaxable;
+                            } else {
+                                taxAmount = tax.tax * product.quantity;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                        }
+                    });
+                });
+            } 
 
-                    var val = product;
-
-                    price_item = parseFloat(val.price).toFixed(decimal_degits);
-                    extras_price_item = (parseFloat(val.extras_price) * parseInt(val.quantity)).toFixed(decimal_degits);
-
-                    totalProductPrice = parseFloat(price_item) * parseInt(val.quantity);
-                    var extras_price = 0;
-                    if (parseFloat(extras_price_item) != NaN && val.extras_price != undefined) {
-                        extras_price = extras_price_item;
+            // Order-level taxes (if order-level)
+            if (snapshotsProducts.taxScope === "order") {
+                let orderTaxable = Math.max(0, order_subtotal - total_discount);
+                (snapshotsProducts.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * orderTaxable;
+                        } else {
+                            taxAmount = tax.tax;
+                        }
+                        total_tax_amount += parseFloat(taxAmount);
                     }
-                    totalProductPrice = parseFloat(extras_price) + parseFloat(totalProductPrice);
-                    totalProductPrice = parseFloat(totalProductPrice).toFixed(decimal_degits);
-
-                    total_price += parseFloat(totalProductPrice);
-
                 });
             }
 
-            if (intRegex.test(discount) || floatRegex.test(discount)) {
+            // Delivery, packaging, platform taxes
+            let extraCharges = [
+                {key: 'delivery', amount: deliveryCharge, taxes: snapshotsProducts.driverDeliveryTax || []},
+                {key: 'packaging', amount: packagingCharge, taxes: snapshotsProducts.packagingTax || []},
+                {key: 'platform', amount: platformFee, taxes: snapshotsProducts.platformTax || []},
+            ];
 
-                discount = parseFloat(discount).toFixed(decimal_degits);
-                total_price -= parseFloat(discount);
-
-                if (currencyAtRight) {
-                    discount_val = discount + "" + currentCurrency;
-                } else {
-                    discount_val = currentCurrency + "" + discount;
+            extraCharges.forEach(scope => {
+                if (scope.key === "packaging" && !packagingChargeEnable) {
+                    return;
                 }
+                scope.taxes?.forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if(scope.amount > 0){
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * scope.amount;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                        }
+                        total_tax_amount += parseFloat(taxAmount);
+                    }
+                });
+            });
 
-            }
+            //Final subtotal after discounts
+            order_subtotal = order_subtotal - total_discount;
 
-            if (intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge)) {
-
-                deliveryCharge = parseFloat(deliveryCharge).toFixed(decimal_degits);
-                total_price += parseFloat(deliveryCharge);
-
-                if (currencyAtRight) {
-                    deliveryCharge_val = deliveryCharge + "" + currentCurrency;
-                } else {
-                    deliveryCharge_val = currentCurrency + "" + deliveryCharge;
-                }
-            }
-
-
-            if (intRegex.test(tip_amount) || floatRegex.test(tip_amount)) {
-
-                tip_amount = parseFloat(tip_amount).toFixed(decimal_degits);
-                total_price += parseFloat(tip_amount);
-                total_price = parseFloat(total_price).toFixed(decimal_degits);
-
-                if (currencyAtRight) {
-                    tip_amount_val = tip_amount + "" + currentCurrency;
-                } else {
-                    tip_amount_val = currentCurrency + "" + tip_amount;
-                }
-            }
+            // Final total
+            let order_total = order_subtotal + deliveryCharge + tip_amount + (packagingChargeEnable ? packagingCharge : 0) + platformFee + total_tax_amount;
 
             if (currencyAtRight) {
-                var total_price_val = total_price + "" + currentCurrency;
+                order_total_val = parseFloat(order_total).toFixed(decimal_degits) + '' + currentCurrency;
             } else {
-                var total_price_val = currentCurrency + "" + total_price;
+                order_total_val = currentCurrency + '' + parseFloat(order_total).toFixed(decimal_degits);
             }
 
-
-            return total_price_val;
+            return order_total_val;
         }
 
-        async function getSections() {
-            var sections = database.collection('sections').where('isActive', '==', true);
-          
-            sections.get().then(async function (sectionsSnapshot) {
-                sections = document.getElementById('sections');
-                sections.innerHTML = '';
-                sectionshtml = buildHTMLSections(sectionsSnapshot);
-                sections.innerHTML = sectionshtml;
-            })
-        }
+        async function setorderStatus() {
+            
+            var placed = parseInt($('#placed_count').val()) || 0;
+            var confirmed = parseInt($('#confirmed_count').val()) || 0;
+            var shipped = parseInt($('#shipped_count').val()) || 0;
+            var completed = parseInt($('#completed_count').val()) || 0;
+            var canceled = parseInt($('#canceled_count').val()) || 0;
+            var failed = parseInt($('#failed_count').val()) || 0;
+            var pending = parseInt($('#pending_count').val()) || 0;
+            var intransit = parseInt($('#intransit_count').val()) || 0;
+            var cancelled = parseInt($('#cancelled_count').val()) || 0;
 
-        function buildHTMLSections(sectionsSnapshot) {
-            var html = '';
-            var alldata = [];
-            sectionsSnapshot.docs.forEach((listval) => {
-                var datas = listval.data();
-                datas.id = listval.id;
-                alldata.push(datas);
+            var dataValues = [placed, confirmed, shipped, completed, canceled, failed, pending, intransit,cancelled];
+            var totalOrders = dataValues.reduce((a, b) => a + b, 0);
+            var ctx = document.getElementById("order_status").getContext("2d");
+
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+            Chart.plugins.unregister(Chart.plugins.getAll().find(p => p.id === 'totalOrdersPlugin'));
+
+            Chart.plugins.register({
+                id: 'totalOrdersPlugin',
+                beforeDraw: function (chart) {
+                    if (chart.config.type === 'doughnut') {
+                        var ctx = chart.chart.ctx;
+                        var chartArea = chart.chartArea;
+
+                        var centerX = (chartArea.left + chartArea.right) / 2;
+                        var centerY = (chartArea.top + chartArea.bottom) / 2;
+
+                        ctx.save();
+                        ctx.font = "16px Arial";
+                        ctx.fillStyle = "#111";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText("{{trans('lang.total_orders')}}", centerX, centerY - 20);
+
+                        ctx.font = "bold 26px Arial";
+                        ctx.fillText(totalOrders, centerX, centerY + 15);
+                        ctx.restore();
+                    }
+                }
             });
 
-            var all_route = "{{ route('dashboard')}}";
-            var img_url = "{{asset('images/shopping_cart.png')}}";
-            var active_section = ''
-            if (active_id == '') {
-                active_section = 'section-selected';
+            if (window.orderStatusChart) {
+                window.orderStatusChart.data.datasets[0].data = dataValues;
+                window.orderStatusChart.update();
+            } else {
+                window.orderStatusChart = new Chart(ctx, {
+                    type: "doughnut",
+                    data: {
+                        labels: [
+                            "{{trans('lang.order_placed')}}",
+                            "{{trans('lang.dashboard_order_confirmed')}}",
+                            "{{trans('lang.dashboard_order_shipped')}}",
+                            "{{trans('lang.dashboard_order_completed')}}",
+                            "{{trans('lang.order_rejected')}}",
+                            "{{trans('lang.dashboard_order_failed')}}",
+                            "{{trans('lang.dashboard_order_pending')}}",
+                            "{{trans('lang.in_transit')}}",
+                            "{{trans('lang.order_canceled')}}"
+                        ],
+                        datasets: [{
+                            data: dataValues,
+                            backgroundColor: [
+                                "#854cf0ff",
+                                "#90E0EF",
+                                "#F9C74F",
+                                "#43AA8B",
+                                "#F3722C",
+                                "#B5179E",
+                                "#577590",
+                                "#0f85ecff",
+                                "#e64d11ff",
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+
+                    legend: {
+                        position: "right",
+                        labels: {
+                            boxWidth: 20,
+                            fontSize: 12,
+                            generateLabels: function (chart) {
+                                var data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    return data.labels.map(function (label, i) {
+                                        var value = data.datasets[0].data[i];
+                                        var bgColor = data.datasets[0].backgroundColor[i];
+                                        return {
+                                            text: label + " - " + value,
+                                            fillStyle: bgColor,
+                                            strokeStyle: bgColor,
+                                            index: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        }
+                    }
+
+                });
             }
-            html = html + '<div class="cat-item px-2 py-1 select_section ' + active_section + '"><a href="' + all_route + '" class="bg-white d-block p-2 text-center shadow-sm cat-link"><img alt="#" src="' + img_url + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'"  class="img-fluid mb-2"><p class="m-0 small">All</p></a></div>';
-
-            alldata.forEach((listval) => {
-                var val = listval;
-                var section_id = val.id;
-
-                if (val.sectionImage) {
-                    photo = val.sectionImage;
-                } else {
-                    photo = placeholderImage;
-                }
-
-                var active_section = '';
-                if (active_id != undefined && active_id == section_id) {
-                    active_section = 'section-selected';
-                }
-
-                var section_route = "{{ route('dashboard')}}?id=" + val.id + "&type=" + val.serviceTypeFlag;
-
-                html = html + '<div class="cat-item px-2 py-1 select_section ' + active_section + '"><a href="' + section_route + '" class="bg-white d-block p-2 text-center shadow-sm cat-link"><img alt="#" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'"  class="img-fluid mb-2"><p class="m-0 small">' + val.name + '</p></a></div>';
-            });
-            return html;
         }
 
-        function setVisitors() {
+        function setCommision(commissionsData, earningsData) {
+
+            const earnings = parseFloat(jQuery("#earnings_count").text().replace(currentCurrency, ""));
+            const adminCommission = parseFloat(jQuery("#admincommission_count").text().replace(currentCurrency, ""));
 
             const data = {
-                labels: [
-                    "{{trans('lang.dashboard_total_stores')}}",
-                    "{{trans('lang.dashboard_total_orders')}}",
-                    "{{trans('lang.dashboard_total_products')}}",
-                    "{{trans('lang.dashboard_total_clients')}}",
-                    "{{trans('lang.dashboard_total_drivers')}}",
-                ],
+                labels: ["{{trans('lang.total_sales')}}", "{{trans('lang.admin_commissions')}}"],
                 datasets: [{
-                    data: [jQuery("#vendor_count").text(), jQuery("#order_count").text(), jQuery("#product_count").text(), jQuery("#users_count").text(), jQuery("#driver_count").text()],
-                    backgroundColor: [
-                        '#218be1',
-                        '#B1DB6F',
-                        '#7360ed',
-                        '#FFAB2E',
-                        '#FF683A',
-                    ],
-                    hoverOffset: 4
+                    data: [earnings, adminCommission],
+                    backgroundColor: ["#2EC7D9", "#28a745"],
+                    borderWidth: 2
                 }]
             };
-
-            return new Chart('visitors', {
-                type: 'doughnut',
-                data: data,
-                options: {
-                    maintainAspectRatio: false,
-                }
-            })
-        }
-
-        function setCommision() {
-
-            const data = {
-                labels: [
-                    "{{trans('lang.dashboard_total_earnings')}}",
-                    "{{trans('lang.admin_commission')}}"
-                ],
-                datasets: [{
-                    data: [jQuery("#earnings_count").text().replace(currentCurrency, ""), jQuery("#admincommission_count").text().replace(currentCurrency, "")],
-                    backgroundColor: [
-                        '#feb84d',
-                        '#9b77f8',
-                        '#fe95d3'
-                    ],
-                    hoverOffset: 4
-                }]
-            };
-            return new Chart('commissions', {
-                type: 'doughnut',
-                data: data,
+            var labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            return new Chart(document.getElementById("commissions"), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "{{ trans('lang.total_sales') }}",
+                            data: earningsData,
+                            borderColor: "#2EC7D9",
+                            backgroundColor: "transparent",
+                            borderWidth: 3,
+                            fill: false,
+                        },
+                        {
+                            label: "{{ trans('lang.admin_commissions') }}s",
+                            data: commissionsData,
+                            borderColor: "#28a745",
+                            backgroundColor: "transparent",
+                            borderWidth: 3,
+                            fill: false,
+                        }
+                    ]
+                },
                 options: {
                     maintainAspectRatio: false,
                     tooltips: {
                         callbacks: {
-                            label: function (tooltipItems, data) {
+                            label: function (tooltipItem, chartData) {
+                                let datasetLabel = chartData.datasets[tooltipItem.datasetIndex].label || '';
+                                let value = tooltipItem.yLabel;
                                 if (currencyAtRight) {
-                                    return data.labels[tooltipItems.index] + ': ' + (data.datasets[0].data[tooltipItems.index]) + currentCurrency;
-
+                                    return datasetLabel + ": " + value.toFixed(2) + currentCurrency;
                                 } else {
-                                    return data.labels[tooltipItems.index] + ': ' + currentCurrency + (data.datasets[0].data[tooltipItems.index]);
-
+                                    return datasetLabel + ": " + currentCurrency + value.toFixed(2);
                                 }
                             }
                         }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            usePointStyle: true,
+                            fontColor: '#333',
+                            generateLabels: function (chart) {
+                                let datasets = chart.data.datasets;
+                                return datasets.map(function (ds, i) {
+                                    let value = ds.data.reduce((a, b) => a + b, 0);
+                                    return {
+                                        text: ds.label + " $" + value.toLocaleString(),
+                                        fillStyle: ds.borderColor,
+                                        strokeStyle: ds.borderColor,
+                                        hidden: !chart.isDatasetVisible(i),
+                                        datasetIndex: i
+                                    };
+                                });
+                            }
+                        }
+                    },
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            },
+                            gridLines: {
+                                color: "rgba(0,0,0,0.1)"
+                            }
+                        }],
+                        xAxes: [{
+                            gridLines: {
+                                display: false
+                            }
+                        }]
                     }
                 }
-            })
+            });
+        }
+
+        async function loadDashboardLists(filterType = null, year = null, month = null, startDate = null, endDate = null, active_id, active_type) {
+            let ref, snapshots, html;
+
+            let startTS = null;
+            let endTS = null;
+            if (filterType === 'year' && year) {
+                startTS = firebase.firestore.Timestamp.fromDate(new Date(year, 0, 1));
+                endTS = firebase.firestore.Timestamp.fromDate(new Date(year, 11, 31, 23, 59, 59));
+            } else if (filterType === 'month' && year && month) {
+                startTS = firebase.firestore.Timestamp.fromDate(new Date(year, month - 1, 1));
+                endTS = firebase.firestore.Timestamp.fromDate(new Date(year, month, 0, 23, 59, 59));
+            } else if (filterType === 'custom' && startDate && endDate) {
+                startTS = firebase.firestore.Timestamp.fromDate(new Date(startDate));
+                endTS = firebase.firestore.Timestamp.fromDate(new Date(endDate));
+            }
+
+            const append_listvendors = document.getElementById('append_list');
+            append_listvendors.innerHTML = '';
+
+            let refVendor = db.collection('vendors').where('section_id', '==', active_id).orderBy('reviewsCount', 'desc').limit(5);
+            
+            let snapshotsVendor = await refVendor.get();
+            html = buildHTML(snapshotsVendor);
+            if(html == ''){
+                append_listvendors.innerHTML = '<tr><td colspan="3">{{trans("lang.no_record_found")}}</td></tr>';
+            }else{
+                append_listvendors.innerHTML = html;
+            }
+            
+            const append_listrecent_order = document.getElementById('append_list_recent_order');
+            append_listrecent_order.innerHTML = '';
+
+            ref = db.collection('vendor_orders').where('section_id','==',active_id)
+                .where('status', 'in', ["Order Placed", "Order Accepted", "Driver Pending", "Driver Accepted", "Order Shipped", "In Transit"]);
+
+            ref = ref.orderBy('createdAt', 'desc');
+            snapshots = await ref.limit(10).get();
+            html = buildOrderHTML(snapshots);
+            if(html == ''){
+                append_listrecent_order.innerHTML = '<tr><td colspan="3">{{trans("lang.no_record_found")}}</td></tr>';
+            }else{
+                append_listrecent_order.innerHTML = html;
+            }
+
+            const append_listtop_drivers = document.getElementById('append_list_top_drivers');
+            append_listtop_drivers.innerHTML = '';
+
+            ref = db.collection('users').where('role', '==', 'driver').where('serviceType', '==', active_type);
+
+            ref = ref.orderBy('orderCompleted', 'desc');
+
+            snapshots = await ref.limit(5).get();
+            html = buildDriverHTML(snapshots);
+            append_listtop_drivers.innerHTML = html;
+
+            $('#storesTable, #orderTable, #driverTable').each(function () {
+                if (!$.fn.DataTable.isDataTable(this)) {
+                    $(this).DataTable({
+                        order: [],
+                        responsive: true,
+                        paging: false,
+                        info: false,
+                       "language": datatableLang,
+                    });
+                }
+            });
+        }
+
+        function loadVendorDashboardData(filterType = null, year = null, month = null, startDate = null, endDate = null, active_id, active_type) {
+
+            let startOfThisPeriod = new Date();
+            let endOfThisPeriod = new Date();
+            let startOfLastPeriod = null;
+            let endOfLastPeriod = null;
+
+            // Setup ranges
+            if (filterType === 'year' && year) {
+                startOfThisPeriod = new Date(year, 0, 1);
+                endOfThisPeriod = new Date(year, 11, 31, 23, 59, 59);
+                startOfLastPeriod = new Date(year - 1, 0, 1);
+                endOfLastPeriod = new Date(year - 1, 11, 31, 23, 59, 59);
+            } else if (filterType === 'month' && year && month) {
+                startOfThisPeriod = new Date(year, month - 1, 1);
+                endOfThisPeriod = new Date(year, month, 0, 23, 59, 59);
+                startOfLastPeriod = new Date(year, month - 2, 1);
+                endOfLastPeriod = new Date(year, month - 1, 0, 23, 59, 59);
+            } else if (filterType === 'custom' && startDate && endDate) {
+                startOfThisPeriod = new Date(startDate);
+                endOfThisPeriod = new Date(endDate);
+            }
+
+            // Firestore Timestamps
+            const startThisTS = firebase.firestore.Timestamp.fromDate(startOfThisPeriod);
+            const endThisTS = firebase.firestore.Timestamp.fromDate(endOfThisPeriod);
+            const startLastTS = startOfLastPeriod ? firebase.firestore.Timestamp.fromDate(startOfLastPeriod) : null;
+            const endLastTS = endOfLastPeriod ? firebase.firestore.Timestamp.fromDate(endOfLastPeriod) : null;
+            Promise.all([
+                // All-time
+                db.collection('vendor_orders').where('section_id','==',active_id).orderBy('createdAt', 'desc').get(),
+                db.collection('users').where("role", "==", "customer").orderBy("createdAt").get(),
+                db.collection('users').where("role", "==", "driver").where('isOwner','==',false).where('serviceType', '==', active_type).orderBy('createdAt', 'desc').get(),
+                db.collection('vendors').where('section_id', '==', active_id).get(),
+
+                // Current period
+                db.collection('vendor_orders').where('section_id','==',active_id).orderBy('createdAt', 'desc').where('createdAt', '<=', endThisTS).get(),
+                db.collection('users').where("role", "==", "customer").where('createdAt', '>=', startThisTS).where('createdAt', '<=', endThisTS).orderBy("createdAt").get(),
+                db.collection('users').where("role", "==", "driver").where('isOwner','==',false).where('serviceType', '==', active_type).where('createdAt', '>=', startThisTS).where('createdAt', '<=', endThisTS).orderBy('createdAt', 'desc').get(),
+                db.collection('vendors').where('section_id', '==', active_id).where('createdAt', '>=', startThisTS).where('createdAt', '<=', endThisTS).get(),
+
+                // Last period
+                startLastTS ? db.collection('vendor_orders').where('section_id','==',active_id).where('createdAt', '>=', startLastTS).where('createdAt', '<=', endLastTS).get() : Promise.resolve({ docs: [] }),
+                startLastTS ? db.collection('users').where("role", "==", "customer").where('createdAt', '>=', startLastTS).where('createdAt', '<=', endLastTS).orderBy("createdAt").get() : Promise.resolve({ docs: [] }),
+                startLastTS ? db.collection('users').where("role", "==", "driver").where('isOwner','==',false).where('serviceType', '==', active_type).where('createdAt', '>=', startLastTS).where('createdAt', '<=', endLastTS).orderBy('createdAt', 'desc').get() : Promise.resolve({ docs: [] }),
+                startLastTS ? db.collection('vendors').where('section_id', '==', active_id).where('createdAt', '>=', startLastTS).where('createdAt', '<=', endLastTS).get() : Promise.resolve({ docs: [] })
+            ])
+                .then(([allOrders, allUsers, allDrivers, allVendors,
+                    ordersCurr, usersCurr, driversCurr, vendorsCurr,
+                    ordersLast, usersLast, driversLast, vendorsLast]) => {
+
+
+                    let allVendorsFiltered = allVendors.docs.filter(doc => doc.data().title && doc.data().title !== '');
+                    let vendorsCurrFiltered = vendorsCurr.docs.filter(doc => doc.data().title && doc.data().title !== '');
+                    let vendorsLastFiltered = vendorsLast.docs.filter(doc => doc.data().title && doc.data().title !== '');
+
+                    let totalOrdersDisplay = filterType ? ordersCurr.docs.length : allOrders.docs.length;
+                    let totalUsersDisplay = filterType ? usersCurr.docs.length : allUsers.docs.length;
+                    let totalDriversDisplay = filterType ? driversCurr.docs.length : allDrivers.docs.length;
+                    let totalVendorsDisplay = filterType ? vendorsCurrFiltered.length : allVendors.docs.length;
+
+                    let totalOrdersLastDisplay = filterType ? ordersLast.docs.length : 0;
+                    let totalUsersLastDisplay = filterType ? usersLast.docs.length : 0;
+                    let totalDriversLastDisplay = filterType ? driversLast.docs.length : 0;
+                    let totalVendorsLastDisplay = filterType ? vendorsLastFiltered.length : 0;
+
+                    function calcPercent(curr, last) {
+                        return last === 0 ? (curr === 0 ? 0 : 100) : ((curr - last) / last) * 100;
+                    }
+           
+                    let ordersPercent = calcPercent(totalOrdersDisplay, totalOrdersLastDisplay);
+                    let usersPercent = calcPercent(totalUsersDisplay, totalUsersLastDisplay);
+                    let driversPercent = calcPercent(totalDriversDisplay, totalDriversLastDisplay);
+                    let vendorsPercent = calcPercent(totalVendorsDisplay, totalVendorsLastDisplay);
+
+                    let ordersInfo = getArrowAndClass(ordersPercent);
+                    let usersInfo = getArrowAndClass(usersPercent);
+                    let driversInfo = getArrowAndClass(driversPercent);
+                    let vendorsInfo = getArrowAndClass(vendorsPercent);
+
+                    jQuery("#order_count").text(totalOrdersDisplay);
+                    jQuery("#users_count").text(totalUsersDisplay);
+                    jQuery("#driver_count").text(totalDriversDisplay);
+                    jQuery("#vendor_count").text(totalVendorsDisplay);
+                    if(filterType !== null){
+                        jQuery("#orders_percent").html(`<i class="fa ${ordersInfo.arrow}"></i> ${Math.abs(ordersPercent).toFixed(2)}% vs last period`).removeClass('green red').addClass(ordersInfo.className);
+                        jQuery("#customer_percent").html(`<i class="fa ${usersInfo.arrow}"></i> ${Math.abs(usersPercent).toFixed(2)}% vs last period`).removeClass('green red').addClass(usersInfo.className);
+                        jQuery("#driver_percent").html(`<i class="fa ${driversInfo.arrow}"></i> ${Math.abs(driversPercent).toFixed(2)}% vs last period`).removeClass('green red').addClass(driversInfo.className);
+                        jQuery("#vendor_percent").html(`<i class="fa ${vendorsInfo.arrow}"></i> ${Math.abs(vendorsPercent).toFixed(2)}% vs last period`).removeClass('green red').addClass(vendorsInfo.className);
+                    }
+
+                })
+                .catch(err => console.error(err));
+        }
+
+        function getArrowAndClass(percent) {
+            return {
+                arrow: percent > 0 ? 'fa-arrow-up' : 'fa-arrow-down',
+                className: percent > 0 ? 'green' : 'red'
+            };
         }
 
     </script>
-@endsection
 
+@endsection

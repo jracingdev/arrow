@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.sos')}}</li>
             </ol>
         </div>
@@ -46,7 +46,7 @@
                          <table id="example24" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">
                                 <thead>
                                     <tr>
-                                      
+                                      <th>{{trans('lang.order_id')}}</th>
                                         <th>{{trans('lang.sos_id')}}</th>
                                         <th>{{trans('lang.order_user_id')}}</th>
                                         <th class="driverClass">{{trans('lang.driver_plural')}}</th>
@@ -73,7 +73,7 @@
 <script type="text/javascript">
 
     var database = firebase.firestore();
-
+    var section_id = getCookie('section_id');
     var offest = 1;
     var pagesize = 10;
     var end = null;
@@ -138,21 +138,26 @@
 
                     await Promise.all(querySnapshot.docs.map(async (doc) => {
                         let childData = doc.data();
+                      
                         if (childData.orderId) {
                             childData.id = doc.id;
                             var rideData = await rideDetails(childData.orderId);
                             if (!rideData) {
                                 return; // Skip to the next iteration
                             }
-                            childData.userid = rideData.author.id ? rideData.author.id : '';
-                            childData.driverid = rideData.driver.id ? rideData.driver.id : '';
-                            var userName = rideData.author ? rideData.author.firstName : '';
-                            var driverName = rideData.driver ? rideData.driver.firstName : '';
-                            var address = rideData.destinationLocationName ? rideData.destinationLocationName : '';
-                            childData.userName = userName ? userName : '';
-                            childData.driverName = driverName ? driverName : '';
-                            childData.address = address ? address : '';
+                            if (rideData.sectionId != section_id) return;
                             
+                            childData.userid = rideData.author && rideData.author.id ? rideData.author.id : '';
+                            childData.driverid = rideData.driver && rideData.driver.id ? rideData.driver.id : '';
+
+                            var userName = rideData.author && rideData.author.firstName ? rideData.author.firstName : '';
+                            var driverName = rideData.driver && rideData.driver.firstName ? rideData.driver.firstName : '';
+                            var address = rideData.destinationLocationName ? rideData.destinationLocationName : '';
+
+                            childData.userName = userName;
+                            childData.driverName = driverName;
+                            childData.address = address;
+
                             if (searchValue) {
                                 if (
                                     (childData.id && childData.id.toString().toLowerCase().includes(searchValue)) ||
@@ -167,6 +172,7 @@
                                 filteredRecords.push(childData);
                             }
                         }
+
                     }));
 
                     filteredRecords.sort((a, b) => {
@@ -186,7 +192,9 @@
                     const formattedRecords = await Promise.all(paginatedRecords.map(async (childData) => {
                         return await buildHTML(childData);
                     }));
-
+                    $(function () {
+                        $('[data-toggle="tooltip"]').tooltip();
+                    });
                     $('#data-table_processing').hide();
                     callback({
                         draw: data.draw,
@@ -208,13 +216,10 @@
             },
             order: [1, 'desc'],
             columnDefs: [
-                {orderable: false, targets: [5]},
+                {orderable: false, targets: [6]},
             ],
-            "language": {
-                "zeroRecords": "{{trans('lang.no_record_found')}}",
-                "emptyTable": "{{trans('lang.no_record_found')}}",
-                "processing": "" // Remove default loader
-            },
+            "language": datatableLang,
+
         });
         function debounce(func, wait) {
             let timeout;
@@ -239,8 +244,8 @@
 
     async function buildHTML(val) {
         
-        if (val.address){
         var html = [];
+        if (val.address){
 
         var id = val.id;
         var route1 = '{{route("sos.edit",":id")}}';
@@ -250,19 +255,24 @@
         trroute1 = trroute1.replace(':id', val.orderId);
 
         }
+        html.push('<a href="' + trroute1 + '" data-toggle="tooltip" data-bs-original-title="' + val.orderId + '">' + (val.id.length > 8 ? val.orderId.substring(0, 8) + '...' : val.orderId) + '</a>');
 
-        html.push('<a href="' + route1 + '">' + val.id + '</a>');
+        html.push('<a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="' + val.id + '">' + (val.id.length > 8 ? val.id.substring(0, 8) + '...' : val.id) + '</a>');
         
         if(val.userid!=''){
             var route2 = '{{route("users.view",":id")}}';
             route2 = route2.replace(':id', val.userid);
             html.push('<a href="' + route2 + '">'+val.userName+ '</a>');
+        }else{
+            html.push('');
         }
 
         if(val.driverid!=''){
             var route3 = '{{route("drivers.view",":id")}}';
             route3 = route3.replace(':id', val.driverid);
             html.push('<a href="' + route3 + '">'+val.driverName+ '</a>');
+        }else{
+            html.push('');
         }
         
      
@@ -277,9 +287,9 @@
         }
 
         var action = '';
-        action = action + '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
-        <?php if(in_array('sos.rides.delete', json_decode(@session('user_permissions')))){?>
-        action = action + '<a id="' + val.id + '" name="carModel-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
+        action = action + '<span class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';
+        <?php if(in_array('sos.rides.delete', json_decode(@session('user_permissions'),true))){?>
+        action = action + '<a id="' + val.id + '" name="carModel-delete" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a>';
         <?php }?>
         action = action + '</span>';
         html.push(action);

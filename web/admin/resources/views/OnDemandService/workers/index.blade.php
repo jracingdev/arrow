@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.worker_plural')}}</li>
             </ol>
         </div>
@@ -25,24 +25,24 @@
 
                         <div class="menu-tab tabDiv">
                             <ul>
-                                <li ><a href="{{route('providers.view', $id)}}">{{trans('lang.tab_basic')}}</a>
+                                <li ><a href="{{route('providers.view', $id)}}"><img src="{{ asset('images/provider.png') }}"> {{trans('lang.tab_basic')}}</a>
                                 </li>
-                                <li><a href="{{route('ondemand.services.index', $id)}}">{{trans('lang.services')}}</a></li>
+                                <li><a href="{{route('ondemand.services.index', $id)}}"><img src="{{ asset('images/service.png') }}"> {{trans('lang.services')}}</a></li>
                                 <li>
-                                <li class="active"><a href="{{route('ondemand.workers.index', $id)}}">{{trans('lang.workers')}}</a></li>
+                                <li class="active"><a href="{{route('ondemand.workers.index', $id)}}"><img src="{{ asset('images/worker.png') }}"> {{trans('lang.workers')}}</a></li>
                                 <li>
-                                <li><a href="{{route('ondemand.bookings.index',$id)}}">{{trans('lang.booking_plural')}}</a></li>
+                                <li><a href="{{route('ondemand.bookings.index',$id)}}"><img src="{{ asset('images/booking.png') }}"> {{trans('lang.booking_plural')}}</a></li>
                                 <li>
-                                <li><a href="{{route('ondemand.coupons', $id)}}">{{trans('lang.coupon_plural')}}</a></li>
+                                <li><a href="{{route('ondemand.coupons', $id)}}"><img src="{{ asset('images/coupon.png') }}"> {{trans('lang.coupon_plural')}}</a></li>
                                  <li>
-                                    <a href="{{route('providerPayouts.payout', $id)}}">{{trans('lang.tab_payouts')}}</a>
+                                    <a href="{{route('providerPayouts.payout', $id)}}"><img src="{{ asset('images/payment.png') }}"> {{trans('lang.tab_payouts')}}</a>
                                 </li>
                                 <li>
-                                    <a href="{{route('payoutRequests.providers', $id)}}">{{trans('lang.tab_payout_request')}}</a>
+                                    <a href="{{route('payoutRequests.providers', $id)}}"><img src="{{ asset('images/payment.png') }}"> {{trans('lang.tab_payout_request')}}</a>
                                 </li>
                                 <li>
                                     <a href="{{route('users.walletstransaction',$id)}}"
-                                           class="wallet_transaction">{{trans('lang.wallet_transaction')}}</a>
+                                           class="wallet_transaction"><img src="{{ asset('images/wallet.png') }}">  {{trans('lang.wallet_transaction')}}</a>
                                 </li>
                                 <?php 
                     
@@ -50,7 +50,7 @@
                                     $subscription =  str_replace(":id", "providerID=" . $id, $subscription);
                                     ?>
                                 <li> 
-                                    <a href="{{ $subscription }}">{{trans('lang.subscription_history')}}</a>
+                                    <a href="{{ $subscription }}"><img src="{{ asset('images/subscription.png') }}"> {{trans('lang.subscription_history')}}</a>
                                 </li>
                             </ul>
                         </div>
@@ -106,7 +106,7 @@
                             <table id="workerTable" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">
                                 <thead>
                                 <tr>
-                                <?php if (in_array('ondemand.workers.delete', json_decode(@session('user_permissions')))) { ?>
+                                <?php if (in_array('ondemand.workers.delete', json_decode(@session('user_permissions'),true))) { ?>
                                         <th class="delete-all"><input type="checkbox" id="is_active"><label
                                                     class="col-3 control-label" for="is_active"
                                             ><a id="deleteAll" class="do_not_delete"
@@ -141,12 +141,16 @@
 <script>
 
     var user_permissions = '<?php echo @session('user_permissions') ?>';
-    user_permissions = JSON.parse(user_permissions);
+    user_permissions = Object.values(JSON.parse(user_permissions));
     var checkDeletePermission = false;
+    var checkChatPermission = false;
+    var id="{{$id}}";
     if ($.inArray('ondemand.workers.delete', user_permissions) >= 0) {
             checkDeletePermission = true;
     }
-
+    if (($.inArray('ondemand.workers.chat', user_permissions) >= 0)) {
+        checkChatPermission = true;
+    }
     $('.status_selector').select2({
         placeholder: '{{trans("lang.status")}}',  
         minimumResultsForSearch: Infinity,
@@ -181,6 +185,14 @@
         var status = $('.status_selector').val();
         var daterangepicker = $('#daterange').data('daterangepicker');
         ref = database.collection('providers_workers');
+        if (status) {
+            ref = (status == "active") ? ref.where('active', '==', true) : ref.where('active', '==', false);
+        }
+        if(id!=''){           
+            ref = ref.where('providerId','==',id).orderBy('createdAt', 'desc');
+        }else{
+            ref = ref.orderBy('createdAt', 'desc');
+        }
         if ($('#daterange span').html() != '{{trans("lang.select_range")}}' && daterangepicker) {
             var from = moment(daterangepicker.startDate).toDate();
             var to = moment(daterangepicker.endDate).toDate();
@@ -190,15 +202,10 @@
                 var toDate = firebase.firestore.Timestamp.fromDate(new Date(to));
                 ref = ref.where('createdAt', '<=', toDate);
             }
-        }
-        if (status) {
-            ref = (status == "active") ? ref.where('active', '==', true) : ref.where('active', '==', false);
-        }
+        }       
         $('#workerTable').DataTable().ajax.reload();
     });
-
-    var database = firebase.firestore();
-    var id="{{$id}}";
+    
     if(id!=''){
         var wallet_route = "{{route('users.walletstransaction','id')}}";
         $(".wallet_transaction").attr("href", wallet_route.replace('id', 'providerID='+id));
@@ -349,7 +356,9 @@
                         var getData = await buildHTML(childData);
                         records.push(getData);
                     }));
-
+                    $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
                     $('#data-table_processing').hide(); // Hide loader
                     callback({
                         draw: data.draw,
@@ -373,35 +382,31 @@
             columnDefs: [
                 { orderable: false, targets: (checkDeletePermission) ? [0, 5, 6, 7] : [0, 4, 5]  },
             ],
-            "language": {
-                "zeroRecords": "{{trans("lang.no_record_found")}}",
-                "emptyTable": "{{trans("lang.no_record_found")}}",
-                "processing": "" // Remove default loader
-            },
+           "language": datatableLang,
             dom: 'lfrtipB',
                 buttons: [
                         {
                             extend: 'collection',
-                            text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                            text: '<i class="mdi mdi-cloud-download"></i> {{trans('lang.export_as')}}',
                             className: 'btn btn-info',
                             buttons: [
                                 {
                                     extend: 'excelHtml5',
-                                    text: 'Export Excel',
+                                    text: '{{ trans('lang.export_excel') }}',
                                     action: function (e, dt, button, config) {
                                         exportData(dt, 'excel',fieldConfig);
                                     }
                                 },
                                 {
                                     extend: 'pdfHtml5',
-                                    text: 'Export PDF',
+                                    text: '{{ trans('lang.export_pdf') }}',
                                     action: function (e, dt, button, config) {
                                         exportData(dt, 'pdf',fieldConfig);
                                     }
                                 },   
                                 {
                                     extend: 'csvHtml5',
-                                    text: 'Export CSV',
+                                    text: '{{ trans('lang.export_csv') }}',
                                     action: function (e, dt, button, config) {
                                         exportData(dt, 'csv',fieldConfig);
                                     }
@@ -502,11 +507,17 @@
             html.push('<label class="switch"><input type="checkbox" id="' + val.id + '" name="isActive"><span class="slider round"></span></label>');
         }
         var actionHtml = '';
-
-        actionHtml = actionHtml  + '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
+        var chatViewRoute = "{{ route('ondemand.workers.chat', ':id') }}".replace(':id', val.id);
+        var unreadHtml = '';  
+        actionHtml = actionHtml  + '<span class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" title="{{trans('lang.edit')}}"><i class="mdi mdi-lead-pencil"></i></a>';
 
         if(checkDeletePermission){
-            actionHtml = actionHtml + '<a id="' + val.id + '" class="delete-btn" name="worker-delete"  href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
+            actionHtml = actionHtml + '<a id="' + val.id + '" class="delete-btn" name="worker-delete"  href="javascript:void(0)" data-toggle="tooltip" title="{{trans('lang.delete')}}"><i class="mdi mdi-delete"></i></a>';
+        }
+        if(checkChatPermission){
+            actionHtml = actionHtml + '<a href="' + chatViewRoute + '" class="chat-message" style="position: relative; display: inline-block;">' +
+            '<i class="mdi mdi-wechat mdi-24px"></i>' + unreadHtml +
+            '</a>';
         }
         actionHtml = actionHtml + '</span>';
 

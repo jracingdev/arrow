@@ -11,11 +11,6 @@ use Google\Client as Google_Client;
 
 class ProductController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         if (!isset($_COOKIE['section_id']) && !isset($_COOKIE['address_name'])) {
@@ -23,11 +18,6 @@ class ProductController extends Controller
         }
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function productList($type, $id)
     {
         
@@ -39,52 +29,49 @@ class ProductController extends Controller
         return view('products.list_arrivals');
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function productDetail($id)
     {
         $cart = session()->get('cart', []);
         return view('products.detail', ['id' => $id, 'cart' => $cart]);
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function cart()
     {
         return view('checkout');
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function addToCart(Request $request)
     {
+
         $req = $request->all();
-        $id = $req['id'];
         $vendor_id = $req['vendor_id'];
+        $id = $req['id'];
+
         $cart = Session::get('cart', []);
-        if (@$cart['item'] && isset($cart['item'][$vendor_id])) {
-        } else {
+
+        // Initialize cart structure if empty
+        if (!isset($cart['item'][$vendor_id])) {
+            $cart['item'][$vendor_id] = [];
             $cart['item'] = array();
             Session::put('cart', $cart);
             Session::save();
         }
+
+        // Add delivery charges info
+        $cart['deliverychargemain'] = $req['deliveryCharge'] ?? 0;
         $cart['vendor_latitude'] = $req['vendor_latitude'];
         $cart['vendor_longitude'] = $req['vendor_longitude'];
         $cart['distanceType'] = $req['distanceType'];
+        $cart['isSelfDelivery'] = $req['isSelfDelivery'];
+
+        // Calculate distance-based delivery if cookies present
         $deliveryChargemain = @$_COOKIE['deliveryChargemain'];
         $address_lat = @$_COOKIE['address_lat'];
         $address_lng = @$_COOKIE['address_lng'];
         $vendor_latitude = @$_COOKIE['vendor_latitude'];
         $vendor_longitude = @$_COOKIE['vendor_longitude'];
+        $selfDelivery = filter_var($cart['isSelfDelivery'], FILTER_VALIDATE_BOOLEAN);
+
         if (isset($_COOKIE['service_type']) && $_COOKIE['service_type'] == "Ecommerce Service" && isset($_COOKIE['ecommerce_delivery_charge'])) {
             $cart['deliverychargemain'] = @$_COOKIE['ecommerce_delivery_charge'];
             $cart['deliverykm'] = '';
@@ -110,23 +97,17 @@ class ProductController extends Controller
                 }
             }
         }
-        if (Session::get('takeawayOption') == "true") {
-            $req['delivery_option'] = "takeaway";
-        } else {
-            $req['delivery_option'] = "delivery";
-        }
-        if (@$req['delivery_option'] == "delivery") {
-            $cart['deliverycharge'] = $cart['deliverychargemain'];
-        } else {
-            $cart['deliverycharge'] = 0;
-            $cart['tip_amount'] = 0;
-        }
-        $cart['delivery_option'] = $req['delivery_option'];
+
+        // Delivery or takeaway
+        $cart['delivery_option'] = Session::get('takeawayOption') === "true" ? "takeaway" : "delivery";
+        $cart['deliveryCharge'] = ($cart['delivery_option'] === 'delivery' && !$selfDelivery) ? $cart['deliverychargemain'] : 0;
         $cart['tip_amount'] = 0;
-        /*by thm*/
+
+        // Add item
         if (isset($req['variant_info']) && !empty($req['variant_info']['variant_id'])) {
             $id = $id . 'PV' . $req['variant_info']['variant_id'];
         }
+
         $cart['item'][$vendor_id][$id] = [
             "name" => $req['name'],
             "quantity" => $req['quantity'],
@@ -136,87 +117,160 @@ class ProductController extends Controller
             "dis_price" => $req['dis_price'],
             "extra_price" => $req['extra_price'],
             "extra" => @$req['extra'],
-            "size" => @$req['size'],
             "image" => @$req['image'],
             "veg" => @$req['veg'],
-            "variant_info" => @$req['variant_info'],
-            "category_id" => @$req['category_id'],
+            "iteam_extra_price" => $req['iteam_extra_price'] ?? null,
+            "variant_info" => $req['variant_info'] ?? null,
+            "category_id" => $req['category_id'] ?? null,
+            "taxSetting" => $req['taxSetting'] ?? []
         ];
-        $cart['vendor']['id'] = @$vendor_id;
-        $cart['vendor']['name'] = @$req['vendor_name'];
-        $cart['vendor']['location'] = @$req['vendor_location'];
-        $cart['vendor']['image'] = @$req['vendor_image'];
-        $cart['taxValue'] = @$req['taxValue'];
-        $tax = 0;
-        $tax_label = '';
-        $total_item_price = 0;
-        foreach ($cart['item'][$vendor_id] as $key_cart => $value_cart) {
-            $total_one_item_price = $value_cart['item_price'] * $value_cart['quantity'];
-            if (@$value_cart['extra_price']) {
-                $total_one_item_price = $total_one_item_price + ($value_cart['extra_price'] * $value_cart['quantity']);
-            }
-            $total_item_price = $total_item_price + $total_one_item_price;
+
+        // Store info
+        $cart['vendor'] = [
+            'id' => $vendor_id,
+            'name' => $req['vendor_name'] ?? '',
+            'location' => $req['vendor_location'] ?? '',
+            'image' => $req['vendor_image'] ?? ''
+        ];
+
+        // Item subtotal before discount
+        $itemSubtotal = 0;
+        foreach ($cart['item'][$vendor_id] as $item) {
+            $itemSubtotal += ($item['item_price'] + ($item['extra_price'] ?? 0)) * $item['quantity'];
         }
+        
+        // Calculate discount (coupon + special offer)
         $discount_amount = 0;
-        if (@$cart['coupon'] && $cart['coupon']['discountType']) {
-            $discountType = $cart['coupon']['discountType'];
-            $coupon_code = $cart['coupon']['coupon_code'];
-            $coupon_id = @$cart['coupon']['coupon_id'];
-            $discount = $cart['coupon']['discount'];
-            if ($discountType == "Fix Price") {
-                $discount_amount = $cart['coupon']['discount'];
-                if ($discount_amount > $total_item_price) {
-                    $discount_amount = $total_item_price;
-                }
+        if (!empty($cart['coupon'])) {
+            if ($cart['coupon']['discountType'] === 'Fix Price') {
+                $discount_amount = min($cart['coupon']['discount'], $itemSubtotal);
             } else {
-                $discount_amount = $cart['coupon']['discount'];
-                $discount_amount = ($total_item_price * $discount_amount) / 100;
-                if ($discount_amount > $total_item_price) {
-                    $discount_amount = $total_item_price;
-                }
+                $discount_amount = min(($itemSubtotal * $cart['coupon']['discount']) / 100, $itemSubtotal);
             }
         }
-        /*Special Offer Disctount*/
+
         $specialOfferDiscount = 0;
         $specialOfferType = '';
         $specialOfferDiscountVal = 0;
-        if (@$req['specialOfferForHour']) {
-            $specialOfferForHour = $req['specialOfferForHour'];
-            if (count($specialOfferForHour) > 0) {
-                foreach ($specialOfferForHour as $key => $value) {
-                    $specialOfferType = $value['type'];
-                    $specialOfferDiscountVal = $value['discount'];
-                    if ($value['type'] == 'percentage') {
-                        $specialOfferDiscount = ($total_item_price * $value['discount']) / 100;
-                    } else {
-                        $specialOfferDiscount = $value['discount'];
-                    }
-                }
+        if (!empty($req['specialOfferForHour'])) {
+            foreach ($req['specialOfferForHour'] as $offer) {
+                $specialOfferType = $offer['type'];
+                $specialOfferDiscountVal = $offer['discount'];
+                $specialOfferDiscount = $offer['type'] === 'percentage'
+                    ? ($itemSubtotal * $offer['discount']) / 100
+                    : $offer['discount'];
             }
         }
+
+        $totalDiscount = $discount_amount + $specialOfferDiscount;
+
+        // Store discount info in cart
         $cart['specialOfferDiscount'] = $specialOfferDiscount;
         $cart['specialOfferDiscountVal'] = $specialOfferDiscountVal;
         $cart['specialOfferType'] = $specialOfferType;
-        $total_item_price = $total_item_price - $discount_amount - $specialOfferDiscount;
-        $totalTaxAmount = 0;
-        if (is_array($cart['taxValue'])) {
-            foreach ($cart['taxValue'] as $val) {
-                if ($val['type'] == 'percentage') {
-                    $tax = ($val['tax'] * $total_item_price) / 100;
-                } else {
-                    $tax = $val['tax'];
-                }
-                $totalTaxAmount += floatval($tax);
+
+        $cart['decimal_degits'] = $req['decimal_degits'] ?? 2;
+        $cart['currencyData'] = $req['currencyData'] ?? [];
+        $cart['taxScope'] = $req['taxScope'] ?? 'product';
+        $cart['taxesByScope'] = $req['taxesByScope'] ?? [];
+        $cart['taxSetting'] = $cart['taxScope'] == "order" ? ($cart['taxesByScope']['order'] ?? []) : [];
+        $cart['packagingCharge'] = $req['packagingCharge'] ?? 0;
+        $cart['packagingChargeEnable'] = $req['packagingChargeEnable'];
+        $cart['platformCharge'] = $req['platformCharge'] ?? 0;
+
+        $cart['taxBreakdownGrouped'] = [
+            'item' => [],
+            'order' => [],
+            'delivery' => [],
+            'packaging' => [],
+            'platform' => []
+        ];
+
+        $totalTax = 0;
+
+        // Prepare admin-enabled product taxes
+        $globalProductTaxes = [];
+        foreach ($cart['taxesByScope']['product'] ?? [] as $tax) {
+            if ($tax['enable'] ?? false) {
+                $globalProductTaxes[$tax['id']] = $tax;
             }
-            $tax = $totalTaxAmount;
-            $tax_label = '';
         }
-        $cart['tax_label'] = $tax_label;
-        $cart['tax'] = $tax;
-        $cart['decimal_degits'] = $req['decimal_degits'];
+
+        // PRODUCT-LEVEL TAX
+        if ($cart['taxScope'] === 'product') {
+            foreach ($cart['item'] as $vendorItemsKey => $vendorItems) {
+                foreach ($vendorItems as $itemKey => $item) {
+                    $itemGross = ($item['item_price'] + ($item['extra_price'] ?? 0)) * $item['quantity'];
+                    $itemDiscount = ($itemSubtotal > 0) ? ($itemGross / $itemSubtotal) * $totalDiscount : 0;
+                    $itemTaxable = max(0, $itemGross - $itemDiscount);
+
+                    $itemTaxes = [];
+                    foreach ($item['taxSetting'] ?? [] as $itemTax) {
+                        if (($itemTax['scope'] ?? 'product') === 'product' && isset($globalProductTaxes[$itemTax['id']])) {
+                            $adminTax = $globalProductTaxes[$itemTax['id']];
+                            
+                            if ($adminTax['type'] === 'percentage') {
+                                $taxAmount = $this->applyTax($itemTaxable, $adminTax);
+                            } else {
+                                $taxAmount = $adminTax['tax'] * $item['quantity'];
+                            }
+                            $totalTax += $taxAmount;
+
+                            $cart['taxBreakdownGrouped']['item'][$adminTax['title']] =
+                                ($cart['taxBreakdownGrouped']['item'][$adminTax['title']] ?? 0) + $taxAmount;
+
+                            $itemTaxes[] = ($adminTax['type'] ?? 'percentage') === 'percentage'
+                                ? "{$adminTax['title']} ({$adminTax['tax']}%)"
+                                : "{$adminTax['title']} (" . $this->formatCurrency($taxAmount, $cart['currencyData']) . ")";
+                        }
+                    }
+                    
+                    if (empty($itemTaxes)) {
+                        $cart['taxBreakdownGrouped']['item']['none'] = ($cart['taxBreakdownGrouped']['item']['none'] ?? 0) + 0;
+                    }
+                    $cart['item'][$vendorItemsKey][$itemKey]['taxLabel'] = implode(', ', array_unique($itemTaxes));
+                }
+            }
+        }
+
+        // ORDER-LEVEL TAX
+        if ($cart['taxScope'] === 'order') {
+            $orderTaxable = max(0, $itemSubtotal - $totalDiscount);
+            foreach ($cart['taxesByScope']['order'] ?? [] as $tax) {
+                if ($tax['enable'] ?? true) {
+                    $taxAmount = $this->applyTax($orderTaxable, $tax);
+                    $totalTax += $taxAmount;
+                    $cart['taxBreakdownGrouped']['order'][$tax['title']] =
+                        ($cart['taxBreakdownGrouped']['order'][$tax['title']] ?? 0) + $taxAmount;
+                }
+            }
+        }
+        
+        // DELIVERY, PACKAGING, PLATFORM TAXES
+        $extraScopes = ['delivery', 'packaging', 'platform'];
+        foreach ($extraScopes as $scope) {
+            $charge = $scope == "delivery" ? ($cart['deliverycharge'] ?? 0) : ($cart[$scope . 'Charge'] ?? 0);
+            foreach ($cart['taxesByScope'][$scope] ?? [] as $tax) {
+                if (!isset($cart['taxBreakdownGrouped'][$scope][$tax['title']])) {
+                    $cart['taxBreakdownGrouped'][$scope][$tax['title']] = 0;
+                }
+                $taxAmount = ($charge > 0) ? $this->applyTax($charge, $tax) : 0;
+                $totalTax += $taxAmount;
+                $cart['taxBreakdownGrouped'][$scope][$tax['title']] += $taxAmount;
+            }
+        }
+
+        $cart['tax_amount'] = $totalTax;
+
+        // Save cart to session
         Session::put('cart', $cart);
         Session::save();
-        $res = array('status' => true, 'html' => view('vendor.cart_item', ['cart' => $cart])->render());
+
+        $res = [
+            'status' => true,
+            'html' => view('vendor.cart_item', ['cart' => $cart])->render()
+        ];
+
         echo json_encode($res);
         exit;
     }
@@ -238,47 +292,59 @@ class ProductController extends Controller
         }
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function reorderaddToCart(Request $request)
     {
         $req = $request->all();
         $vendor_id = $req['vendor_id'];
+        
         $cart = Session::get('cart', []);
         $cart['item'] = array();
+        
         Session::put('cart', $cart);
         Session::save();
-        if (@$req['deliveryCharge']) {
-            $cart['deliverychargemain'] = $req['deliveryCharge'];
-        } else {
-            $cart['deliverychargemain'] = 0;
+
+        // Add delivery charges info
+        $cart['deliverychargemain'] = $req['deliveryCharge'] ?? 0;
+        $cart['vendor_latitude'] = $req['vendor_latitude'];
+        $cart['vendor_longitude'] = $req['vendor_longitude'];
+        $cart['distanceType'] = $req['distanceType'];
+        $cart['isSelfDelivery'] = $req['isSelfDelivery'];
+
+        // Calculate distance-based delivery if cookies present
+        $deliveryChargemain = @$_COOKIE['deliveryChargemain'];
+        $address_lat = @$_COOKIE['address_lat'];
+        $address_lng = @$_COOKIE['address_lng'];
+        $vendor_latitude = @$_COOKIE['vendor_latitude'];
+        $vendor_longitude = @$_COOKIE['vendor_longitude'];
+        $selfDelivery = filter_var($cart['isSelfDelivery'], FILTER_VALIDATE_BOOLEAN);
+
+         if ($deliveryChargemain && $address_lat && $address_lng && $vendor_latitude && $vendor_longitude) {
+            $deliveryChargemain = json_decode($deliveryChargemain);
+            if (!empty($deliveryChargemain)) {
+                $distanceType = $req['distanceType'] ?? 'km';
+                $kmradius = $this->distance(
+                    $address_lat, $address_lng, $vendor_latitude, $vendor_longitude, $distanceType
+                );
+                $cart['deliverychargemain'] = ($kmradius <= $deliveryChargemain->minimum_delivery_charges_within_km)
+                    ? $deliveryChargemain->minimum_delivery_charges
+                    : round($kmradius * $deliveryChargemain->delivery_charges_per_km, 2);
+                $cart['deliverykm'] = $kmradius;
+            }
         }
-        if (Session::get('takeawayOption') == "true") {
-            $req['delivery_option'] = "takeaway";
-        } else {
-            $req['delivery_option'] = "delivery";
-        }
-        if (@$req['delivery_option'] == "delivery") {
-            $cart['deliverycharge'] = $cart['deliverychargemain'];
-        } else {
-            $cart['deliverycharge'] = 0;
-            $cart['tip_amount'] = 0;
-        }
-        $cart['delivery_option'] = $req['delivery_option'];
+
+        // Delivery or takeaway
+        $cart['delivery_option'] = Session::get('takeawayOption') === "true" ? "takeaway" : "delivery";
+        $cart['deliveryCharge'] = ($cart['delivery_option'] === 'delivery' && !$selfDelivery) ? $cart['deliverychargemain'] : 0;
         $cart['tip_amount'] = 0;
+        
         foreach ($req['item'] as $key => $value) {
             $id = 0;
             $name = '';
             $quantity = 0;
-            $stock_quantity = 0;
             $item_price = 0;
             $price = 0;
             $extra_price = 0;
             $extra = '';
-            $size = 0;
             $image = '';
             if ($value['id']) {
                 $id = $value['id'];
@@ -288,9 +354,6 @@ class ProductController extends Controller
             }
             if ($value['quantity']) {
                 $quantity = $value['quantity'];
-            }
-            if ($value['stock_quantity']) {
-                $stock_quantity = $value['stock_quantity'];
             }
             if ($value['item_price']) {
                 $item_price = $value['item_price'];
@@ -304,110 +367,174 @@ class ProductController extends Controller
             if ($value['extra']) {
                 $extra = explode(',', $value['extra']);
             }
-            if ($value['size']) {
-                $size = $value['size'];
-            }
             if ($value['image']) {
                 $image = $value['image'];
             }
             /*by thm*/
-            $variant_info = '';
-            if ($value['variant_info']) {
-                $variant_info = $value['variant_info'];
-            }
-            if ($value['category_id']) {
-                $category_id = $value['category_id'];
+            if (isset($req['variant_info']) && !empty($req['variant_info']['variant_id'])) {
+                $id = $id . 'PV' . $req['variant_info']['variant_id'];
             }
             $cart['item'][$vendor_id][$id] = [
                 "name" => @$name,
                 "quantity" => @$quantity,
-                "stock_quantity" => @$stock_quantity,
+                "stock_quantity" => @$req['stock_quantity'],
                 "item_price" => @$item_price,
                 "price" => ($quantity * $price),
+                "dis_price" => @$req['dis_price'],
                 "extra_price" => ($quantity * $extra_price),
                 "extra" => @$extra,
-                "size" => @$size,
                 "image" => @$image,
-                "variant_info" => @$variant_info,
-                "category_id" => @$category_id,
+                "variant_info" => @$req['variant_info'],
+                "category_id" => @$value['category_id'],
+                "taxSetting" => @$value['taxSetting'] ?? []
             ];
         }
-        $cart['vendor']['id'] = @$vendor_id;
-        $cart['vendor']['name'] = @$req['vendor_name'];
-        $cart['vendor']['location'] = @$req['vendor_location'];
-        $cart['vendor']['image'] = @$req['vendor_image'];
-        $cart['taxValue'] = @$req['taxValue'];
-        $tax = 0;
-        $tax_label = '';
-        $total_item_price = 0;
-        foreach ($cart['item'][$vendor_id] as $key_cart => $value_cart) {
-            $total_one_item_price = $value_cart['item_price'] * $value_cart['quantity'];
-            if ($value_cart['extra_price']) {
-                $total_one_item_price = $total_one_item_price + ($value_cart['extra_price'] * $value_cart['quantity']);
-            }
-            $total_item_price = $total_item_price + $total_one_item_price;
+
+        $cart['vendor'] = [
+            'id' => $vendor_id,
+            'name' => $req['vendor_name'] ?? '',
+            'location' => $req['vendor_location'] ?? '',
+            'image' => $req['vendor_image'] ?? ''
+        ];
+
+        // Item subtotal before discount
+        $itemSubtotal = 0;
+        foreach ($cart['item'][$vendor_id] as $item) {
+            $itemSubtotal += ($item['item_price'] + ($item['extra_price'] ?? 0)) * $item['quantity'];
         }
+
+        // Calculate discount (coupon + special offer)
         $discount_amount = 0;
-        /*Special Offer Disctount*/
+       
         $specialOfferDiscount = 0;
         $specialOfferType = '';
         $specialOfferDiscountVal = 0;
-        if (@$req['specialOfferForHour']) {
-            $specialOfferForHour = $req['specialOfferForHour'];
-            if (count($specialOfferForHour) > 0) {
-                foreach ($specialOfferForHour as $key => $value) {
-                    $specialOfferType = $value['type'];
-                    $specialOfferDiscountVal = $value['discount'];
-                    if ($value['type'] == 'percentage') {
-                        $specialOfferDiscount = ($total_item_price * $value['discount']) / 100;
-                    } else {
-                        $specialOfferDiscount = $value['discount'];
-                    }
-                }
+        if (!empty($req['specialOfferForHour'])) {
+            foreach ($req['specialOfferForHour'] as $offer) {
+                $specialOfferType = $offer['type'];
+                $specialOfferDiscountVal = $offer['discount'];
+                $specialOfferDiscount = $offer['type'] === 'percentage'
+                    ? ($itemSubtotal * $offer['discount']) / 100
+                    : $offer['discount'];
             }
         }
-        $total_item_price = $total_item_price - $discount_amount - $specialOfferDiscount;
+
+        $totalDiscount = $discount_amount + $specialOfferDiscount;
+
+        // Store discount info in cart
         $cart['specialOfferDiscount'] = $specialOfferDiscount;
         $cart['specialOfferDiscountVal'] = $specialOfferDiscountVal;
         $cart['specialOfferType'] = $specialOfferType;
-        $totalTaxAmount = 0;
-        if (is_array($cart['taxValue'])) {
-            foreach ($cart['taxValue'] as $val) {
-                if ($val['type'] == 'percentage') {
-                    $tax = ($val['tax'] * $total_item_price) / 100;
-                } else {
-                    $tax = $val['tax'];
-                }
-                $totalTaxAmount += floatval($tax);
+
+        $cart['decimal_degits'] = $req['decimal_degits'] ?? 2;
+        $cart['currencyData'] = $req['currencyData'] ?? [];
+        $cart['taxScope'] = $req['taxScope'] ?? 'product';
+        $cart['taxesByScope'] = $req['taxesByScope'] ?? [];
+        $cart['taxSetting'] = $cart['taxScope'] == "order" ? ($cart['taxesByScope']['order'] ?? []) : [];
+        $cart['packagingCharge'] = $req['packagingCharge'] ?? 0;
+        $cart['packagingChargeEnable'] = $req['packagingChargeEnable'];
+        $cart['platformCharge'] = $req['platformCharge'] ?? 0;
+
+        $cart['taxBreakdownGrouped'] = [
+            'item' => [],
+            'order' => [],
+            'delivery' => [],
+            'packaging' => [],
+            'platform' => []
+        ];
+
+        $totalTax = 0;
+
+        // Prepare admin-enabled product taxes
+        $globalProductTaxes = [];
+        foreach ($cart['taxesByScope']['product'] ?? [] as $tax) {
+            if ($tax['enable'] ?? false) {
+                $globalProductTaxes[$tax['id']] = $tax;
             }
-            $tax = $totalTaxAmount;
-            $tax_label = '';
         }
-        $cart['tax_label'] = $tax_label;
-        $cart['tax'] = $tax;
-        $cart['decimal_degits'] = $req['decimal_degits'];
+
+        // PRODUCT-LEVEL TAX
+        if ($cart['taxScope'] === 'product') {
+            foreach ($cart['item'] as $vendorItemsKey => $vendorItems) {
+                foreach ($vendorItems as $itemKey => $item) {
+                    $itemGross = ($item['item_price'] + ($item['extra_price'] ?? 0)) * $item['quantity'];
+                    $itemDiscount = ($itemSubtotal > 0) ? ($itemGross / $itemSubtotal) * $totalDiscount : 0;
+                    $itemTaxable = max(0, $itemGross - $itemDiscount);
+
+                    $itemTaxes = [];
+                    foreach ($item['taxSetting'] ?? [] as $itemTax) {
+                        if (($itemTax['scope'] ?? 'product') === 'product' && isset($globalProductTaxes[$itemTax['id']])) {
+                            $adminTax = $globalProductTaxes[$itemTax['id']];
+                            
+                            if ($adminTax['type'] === 'percentage') {
+                                $taxAmount = $this->applyTax($itemTaxable, $adminTax);
+                            } else {
+                                $taxAmount = $adminTax['tax'] * $item['quantity'];
+                            }
+                            $totalTax += $taxAmount;
+
+                            $cart['taxBreakdownGrouped']['item'][$adminTax['title']] =
+                                ($cart['taxBreakdownGrouped']['item'][$adminTax['title']] ?? 0) + $taxAmount;
+
+                            $itemTaxes[] = ($adminTax['type'] ?? 'percentage') === 'percentage'
+                                ? "{$adminTax['title']} ({$adminTax['tax']}%)"
+                                : "{$adminTax['title']} (" . $this->formatCurrency($taxAmount, $cart['currencyData']) . ")";
+                        }
+                    }
+
+                    if (empty($itemTaxes)) {
+                        $cart['taxBreakdownGrouped']['item']['none'] = ($cart['taxBreakdownGrouped']['item']['none'] ?? 0) + 0;
+                    }
+
+                    $cart['item'][$vendorItemsKey][$itemKey]['taxLabel'] = implode(', ', array_unique($itemTaxes));
+                }
+            }
+        }
+
+        // ORDER-LEVEL TAX
+        if ($cart['taxScope'] === 'order') {
+            $orderTaxable = max(0, $itemSubtotal - $totalDiscount);
+            foreach ($cart['taxesByScope']['order'] ?? [] as $tax) {
+                if ($tax['enable'] ?? true) {
+                    $taxAmount = $this->applyTax($orderTaxable, $tax);
+                    $totalTax += $taxAmount;
+                    $cart['taxBreakdownGrouped']['order'][$tax['title']] =
+                        ($cart['taxBreakdownGrouped']['order'][$tax['title']] ?? 0) + $taxAmount;
+                }
+            }
+        }
+
+        // DELIVERY, PACKAGING, PLATFORM TAXES
+        $extraScopes = ['delivery', 'packaging', 'platform'];
+        foreach ($extraScopes as $scope) {
+            $charge = $scope == "delivery" ? ($cart['deliverycharge'] ?? 0) : ($cart[$scope . 'Charge'] ?? 0);
+            foreach ($cart['taxesByScope'][$scope] ?? [] as $tax) {
+                if (!isset($cart['taxBreakdownGrouped'][$scope][$tax['title']])) {
+                    $cart['taxBreakdownGrouped'][$scope][$tax['title']] = 0;
+                }
+                $taxAmount = ($charge > 0) ? $this->applyTax($charge, $tax) : 0;
+                $totalTax += $taxAmount;
+                $cart['taxBreakdownGrouped'][$scope][$tax['title']] += $taxAmount;
+            }
+        }
+
+        $cart['tax_amount'] = $totalTax;
+
+        // Save cart to session
         Session::put('cart', $cart);
         Session::save();
+        
         $res = array('status' => true);
         echo json_encode($res);
         exit;
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function orderTipAdd(Request $request)
     {
+
         $req = $request->all();
         $cart = Session::get('cart', []);
-        $type = $req['type'];
-        if ($type == 'plus') {
-            $cart['tip_amount'] = $req['tip'];
-        } else {
-            $cart['tip_amount'] = 0;
-        }
+        $cart['tip_amount'] = $req['tip'];
         Session::put('cart', $cart);
         Session::save();
         if (@$req['is_checkout']) {
@@ -421,11 +548,6 @@ class ProductController extends Controller
         exit;
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function orderDeliveryOption(Request $request)
     {
         $req = $request->all();
@@ -453,197 +575,48 @@ class ProductController extends Controller
         } else {
             $res = array('status' => true, 'html' => view('vendor.cart_item', ['cart' => $cart])->render());
         }
+
         echo json_encode($res);
         exit;
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function changeQuantityCart(Request $request)
-    {
-        $req = $request->all();
-        $id = $req['id'];
-        $vendor_id = $req['vendor_id'];
-        $cart = Session::get('cart');
-        if (isset($cart['item'][$vendor_id][$id])) {
-            if ($req['quantity'] == 0) {
-                if (isset($cart['item'][$vendor_id][$id])) {
-                    unset($cart['item'][$vendor_id][$id]);
-                    Session::put('cart', $cart);
-                    Session::save();
-                }
-            } else {
-                $cart['item'][$vendor_id][$id]['quantity'] = $req['quantity'];
-                $cart['item'][$vendor_id][$id]['price'] = $cart['item'][$vendor_id][$id]['item_price'] * $cart['item'][$vendor_id][$id]['quantity'];
-                $tax = 0;
-                $tax_label = '';
-                $total_item_price = 0;
-                foreach ($cart['item'][$vendor_id] as $key_cart => $value_cart) {
-                    $total_one_item_price = $value_cart['item_price'] * $value_cart['quantity'];
-                    if (@$value_cart['extra_price']) {
-                        $total_one_item_price = $total_one_item_price + ($value_cart['extra_price'] * $value_cart['quantity']);
-                    }
-                    $total_item_price = $total_item_price + $total_one_item_price;
-                }
-                $discount_amount = 0;
-                /*Disctount*/
-                if (@$cart['coupon'] && $cart['coupon']['discountType']) {
-                    $discountType = $cart['coupon']['discountType'];
-                    $coupon_code = $cart['coupon']['coupon_code'];
-                    $coupon_id = @$cart['coupon']['coupon_id'];
-                    $discount = $cart['coupon']['discount'];
-                    if ($discountType == "Fix Price") {
-                        $discount_amount = $cart['coupon']['discount'];
-                        if ($discount_amount > $total_item_price) {
-                            $discount_amount = $total_item_price;
-                        }
-                    } else {
-                        $discount_amount = $cart['coupon']['discount'];
-                        $discount_amount = ($total_item_price * $discount_amount) / 100;
-                        if ($discount_amount > $total_item_price) {
-                            $discount_amount = $total_item_price;
-                        }
-                    }
-                }
-                /*Special Offer Disctount*/
-                $specialOfferDiscount = 0;
-                if (@$cart['specialOfferType'] && $cart['specialOfferType']) {
-                    $specialOfferType = $cart['specialOfferType'];
-                    $specialOfferDiscountVal = $cart['specialOfferDiscountVal'];
-                    if ($specialOfferType == "amount") {
-                        $specialOfferDiscount = $specialOfferDiscountVal;
-                    } else {
-                        $specialOfferDiscount = ($total_item_price * $specialOfferDiscountVal) / 100;
-                    }
-                }
-                $total_item_price = $total_item_price - $discount_amount - $specialOfferDiscount;
-                $totalTaxAmount = 0;
-                if (is_array($cart['taxValue'])) {
-                    foreach ($cart['taxValue'] as $val) {
-                        if ($val['type'] == 'percentage') {
-                            $tax = ($val['tax'] * $total_item_price) / 100;
-                        } else {
-                            $tax = $val['tax'];
-                        }
-                        $totalTaxAmount += floatval($tax);
-                    }
-                    $tax = $totalTaxAmount;
-                    $tax_label = '';
-                }
-                $cart['tax_label'] = $tax_label;
-                $cart['tax'] = $tax;
-                Session::put('cart', $cart);
-                Session::save();
-            }
-        }
-        $cart = Session::get('cart');
-        $res = array('status' => true, 'html' => view('vendor.cart_item', ['cart' => $cart])->render());
-        echo json_encode($res);
-        exit;
-    }
-
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
-    public function changeQuantityCartOLD(Request $request)
     {
         $req = $request->all();
         $id = $req['id'];
         $vendor_id = $req['vendor_id'];
         $quantity = $req['quantity'];
         $cart = Session::get('cart');
+
         if (isset($cart['item'][$vendor_id][$id])) {
-            if ($req['quantity'] == 0) {
+            if ($quantity == 0) {
                 if (isset($cart['item'][$vendor_id][$id])) {
                     unset($cart['item'][$vendor_id][$id]);
                     Session::put('cart', $cart);
                     Session::save();
                 }
             } else {
-                $cart['item'][$vendor_id][$id]['quantity'] = $req['quantity'];
-                $cart['item'][$vendor_id][$id]['price'] = $cart['item'][$vendor_id][$id]['item_price'] * $cart['item'][$vendor_id][$id]['quantity'];
+                $cart['item'][$vendor_id][$id]['quantity'] = $quantity;
                 Session::put('cart', $cart);
                 Session::save();
             }
         }
+
+        $cart = $this->calculateTax($cart);
+        Session::put('cart', $cart);
+        Session::save();
+        
         $cart = Session::get('cart');
-        $res = array('status' => true, 'html' => view('vendor.cart_item', ['cart' => $cart])->render());
+        $res = array('status' => true, 'html' => view('vendor.cart_item', ['cart' => $cart, 'is_checkout' => 1])->render());
         echo json_encode($res);
         exit;
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function update(Request $request)
     {
         if ($request->id && $request->quantity) {
             $cart = Session::get('cart');
             $cart['item'][$request->id]["quantity"] = $request->quantity;
-            $tax = 0;
-            $tax_label = '';
-            $total_item_price = 0;
-            foreach ($cart['item'][$vendor_id] as $key_cart => $value_cart) {
-                $total_one_item_price = $value_cart['item_price'] * $value_cart['quantity'];
-                if (@$value_cart['extra_price']) {
-                    $total_one_item_price = $total_one_item_price + ($value_cart['extra_price'] * $value_cart['quantity']);
-                }
-                $total_item_price = $total_item_price + $total_one_item_price;
-            }
-            $discount_amount = 0;
-            /*Disctount*/
-            if (@$cart['coupon'] && $cart['coupon']['discountType']) {
-                $discountType = $cart['coupon']['discountType'];
-                $coupon_code = $cart['coupon']['coupon_code'];
-                $coupon_id = @$cart['coupon']['coupon_id'];
-                $discount = $cart['coupon']['discount'];
-                if ($discountType == "Fix Price") {
-                    $discount_amount = $cart['coupon']['discount'];
-                    if ($discount_amount > $total_item_price) {
-                        $discount_amount = $total_item_price;
-                    }
-                } else {
-                    $discount_amount = $cart['coupon']['discount'];
-                    $discount_amount = ($total_item_price * $discount_amount) / 100;
-                    if ($discount_amount > $total_item_price) {
-                        $discount_amount = $total;
-                    }
-                }
-            }
-            /*Special Offer Disctount*/
-            $specialOfferDiscount = 0;
-            if (@$cart['specialOfferType'] && $cart['specialOfferType']) {
-                $specialOfferType = $cart['specialOfferType'];
-                $specialOfferDiscountVal = $cart['specialOfferDiscountVal'];
-                if ($specialOfferType == "amount") {
-                    $specialOfferDiscount = $cart['specialOfferDiscount'];
-                } else {
-                    $specialOfferDiscount = ($total_item_price * $specialOfferDiscountVal) / 100;
-                }
-            }
-            $total_item_price = $total_item_price - $discount_amount - $specialOfferDiscount;
-            $totalTaxAmount = 0;
-            if (is_array($cart['taxValue'])) {
-                foreach ($cart['taxValue'] as $val) {
-                    if ($val['type'] == 'percentage') {
-                        $tax = ($val['tax'] * $total_item_price) / 100;
-                    } else {
-                        $tax = $val['tax'];
-                    }
-                    $totalTaxAmount += floatval($tax);
-                }
-                $tax = $totalTaxAmount;
-                $tax_label = '';
-            }
-            $cart['tax_label'] = $tax_label;
-            $cart['tax'] = $tax;
             Session::put('cart', $cart);
             Session::save();
             $res = array('status' => true, 'html' => view('vendor.cart_item', ['cart' => $cart])->render());
@@ -652,11 +625,6 @@ class ProductController extends Controller
         }
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function applyCoupon(Request $request)
     {
         if ($request->coupon_code) {
@@ -665,73 +633,28 @@ class ProductController extends Controller
             $cart['coupon']['coupon_id'] = $request->coupon_id;
             $cart['coupon']['discount'] = $request->discount;
             $cart['coupon']['discountType'] = $request->discountType;
-            $tax = 0;
-            $tax_label = '';
-            $total_item_price = 0;
-            $id = array_key_first($cart['item']);
-            $vendor_id = $id;
-            if ($vendor_id) {
-                foreach ($cart['item'][$vendor_id] as $key_cart => $value_cart) {
-                    $total_one_item_price = $value_cart['item_price'] * $value_cart['quantity'];
-                    if (@$value_cart['extra_price']) {
-                        $total_one_item_price = $total_one_item_price + ($value_cart['extra_price'] * $value_cart['quantity']);
-                    }
-                    $total_item_price = $total_item_price + $total_one_item_price;
-                }
-                $discount_amount = 0;
-                /*Disctount*/
-                if (@$cart['coupon'] && $cart['coupon']['discountType']) {
-                    $discountType = $cart['coupon']['discountType'];
-                    $coupon_code = $cart['coupon']['coupon_code'];
-                    $coupon_id = @$cart['coupon']['coupon_id'];
-                    $discount = $cart['coupon']['discount'];
-                    if ($discountType == "Fix Price") {
-                        $discount_amount = $cart['coupon']['discount'];
-                        if ($discount_amount > $total_item_price) {
-                            $discount_amount = $total_item_price;
-                        }
-                    } else {
-                        $discount_amount = $cart['coupon']['discount'];
-                        $discount_amount = ($total_item_price * $discount_amount) / 100;
-                        if ($discount_amount > $total_item_price) {
-                            $discount_amount = $total_item_price;
-                        }
-                    }
-                }
-                /*Special Offer Disctount*/
-                $specialOfferDiscount = 0;
-                if (@$cart['specialOfferType'] && $cart['specialOfferType']) {
-                    $specialOfferType = $cart['specialOfferType'];
-                    $specialOfferDiscountVal = $cart['specialOfferDiscountVal'];
-                    if ($specialOfferType == "amount") {
-                        $specialOfferDiscount = $cart['specialOfferDiscount'];
-                    } else {
-                        $specialOfferDiscount = ($total_item_price * $specialOfferDiscountVal) / 100;
-                    }
-                }
-                $total_item_price = $total_item_price - $discount_amount - $specialOfferDiscount;
-                $totalTaxAmount = 0;
-                if (is_array($cart['taxValue'])) {
-                    foreach ($cart['taxValue'] as $val) {
-                        if ($val['type'] == 'percentage') {
-                            $tax = ($val['tax'] * $total_item_price) / 100;
-                        } else {
-                            $tax = $val['tax'];
-                        }
-                        $totalTaxAmount += floatval($tax);
-                    }
-                    $tax = $totalTaxAmount;
-                    $tax_label = '';
-                }
-            }
-            $cart['tax_label'] = $tax_label;
-            $cart['tax'] = $tax;
+            
+            $cart = $this->calculateTax($cart);
             Session::put('cart', $cart);
             Session::save();
+
+            $cart = Session::get('cart');
             $res = array('status' => true, 'html' => view('vendor.cart_item', ['cart' => $cart])->render());
             echo json_encode($res);
             exit;
         }
+    }
+
+    public function removeCoupon(Request $request)
+    {
+        $cart = Session::get('cart');
+        $cart['coupon'] = [];
+        
+        $cart = $this->calculateTax($cart);
+        Session::put('cart', $cart);
+        Session::save();
+        
+        exit;
     }
 
     public function orderComplete(Request $request)
@@ -818,77 +741,12 @@ class ProductController extends Controller
         return response()->json($order_response);
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function remove(Request $request)
     {
         if ($request->id && $request->vendor_id) {
             $cart = Session::get('cart');
             if (isset($cart['item'][$request->vendor_id][$request->id])) {
                 unset($cart['item'][$request->vendor_id][$request->id]);
-                $total_item_price = 0;
-                $id = array_key_first($cart['item']);
-                $vendor_id = $id;
-                if ($vendor_id) {
-                    foreach ($cart['item'][$vendor_id] as $key_cart => $value_cart) {
-                        $total_one_item_price = $value_cart['item_price'] * $value_cart['quantity'];
-                        if ($value_cart['extra_price']) {
-                            $total_one_item_price = $total_one_item_price + ($value_cart['extra_price'] * $value_cart['quantity']);
-                        }
-                        $total_item_price = $total_item_price + $total_one_item_price;
-                    }
-                    $discount_amount = 0;
-                    /*Disctount*/
-                    if (@$cart['coupon'] && $cart['coupon']['discountType']) {
-                        $discountType = $cart['coupon']['discountType'];
-                        $coupon_code = $cart['coupon']['coupon_code'];
-                        $coupon_id = @$cart['coupon']['coupon_id'];
-                        $discount = $cart['coupon']['discount'];
-                        if ($discountType == "Fix Price") {
-                            $discount_amount = $cart['coupon']['discount'];
-                            if ($discount_amount > $total_item_price) {
-                                $discount_amount = $total_item_price;
-                            }
-                        } else {
-                            $discount_amount = $cart['coupon']['discount'];
-                            $discount_amount = ($total_item_price * $discount_amount) / 100;
-                            if ($discount_amount > $total_item_price) {
-                                $discount_amount = $total;
-                            }
-                        }
-                    }
-                    $specialOfferDiscount = 0;
-                    if (@$cart['specialOfferType'] && $cart['specialOfferType']) {
-                        $specialOfferType = $cart['specialOfferType'];
-                        $specialOfferDiscountVal = $cart['specialOfferDiscountVal'];
-                        if ($specialOfferType == "amount") {
-                            $specialOfferDiscount = $cart['specialOfferDiscount'];
-                        } else {
-                            $specialOfferDiscount = ($total_item_price * $specialOfferDiscountVal) / 100;
-                        }
-                    }
-                    $total_item_price = $total_item_price - $discount_amount - $specialOfferDiscount;
-                    $tax_label = '';
-                    $tax = 0;
-                    if (is_array($cart['taxValue'])) {
-                        $totalTaxAmount = 0;
-                        foreach ($cart['taxValue'] as $val) {
-                            if ($val['type'] == 'percentage') {
-                                $tax = ($val['tax'] * $total_item_price) / 100;
-                            } else {
-                                $tax = $val['tax'];
-                            }
-                            $totalTaxAmount += floatval($tax);
-                        }
-                        $tax = $totalTaxAmount;
-                        $tax_label = '';
-                    }
-                    $cart['tax_label'] = $tax_label;
-                    $cart['tax'] = $tax;
-                }
             }
             Session::put('cart', $cart);
             Session::save();
@@ -898,5 +756,162 @@ class ProductController extends Controller
         $res = array('status' => true, 'html' => view('vendor.cart_item', ['cart' => $cart])->render());
         echo json_encode($res);
         exit;
+    }
+    
+    public function orderScheduleTimeAdd(Request $request)
+    {
+        $req = $request->all();
+        $cart = Session::get('cart', []);
+        $cart['scheduleTime'] = $req['scheduleTime'];
+        Session::put('cart', $cart);
+        Session::save();
+        if (@$req['is_checkout']) {
+            $email = Auth::user()->email;
+            $user = VendorUsers::where('email', $email)->first();
+            $res = array('status' => true, 'html' => view('vendor.cart_item', ['is_checkout' => 1, 'id' => $user->uuid, 'cart' => $cart])->render());
+        } else {
+            $res = array('status' => true, 'html' => view('vendor.cart_item', ['cart' => $cart])->render());
+        }
+        echo json_encode($res);
+        exit;
+    }
+
+    public function applyTax($amount, $tax) {
+        if (!$tax['enable']) return 0;
+        if ($tax['type'] === 'percentage') {
+            return ($amount * $tax['tax']) / 100;
+        }
+        if ($tax['type'] === 'fix') {
+            return $tax['tax'];
+        }
+        return 0;
+    }
+
+    public function formatCurrency($amount, $currency = []) {
+        $symbol = $currency['symbol'] ?? '';
+        $decimals = $currency['decimal_degits'] ?? 2;
+        $symbolAtRight = filter_var($currency['symbolAtRight'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        $formatted = number_format($amount, $decimals);
+
+        return $symbolAtRight
+            ? $formatted . ' ' . $symbol
+            : $symbol . $formatted;
+    }
+
+    public function calculateTax($cart){
+
+        $cart['taxBreakdownGrouped'] = [
+            'item' => [],
+            'order' => [],
+            'delivery' => [],
+            'packaging' => [],
+            'platform' => []
+        ];
+
+        if(!isset($cart['vendor'])) return;
+
+        $vendor_id = $cart['vendor']['id'];
+        
+        // Item subtotal before discount
+        $itemSubtotal = 0;
+        foreach ($cart['item'][$vendor_id] as $item) {
+            $itemSubtotal += ($item['item_price'] + ($item['extra_price'] ?? 0)) * $item['quantity'];
+        }
+        
+        // Calculate discount (coupon + special offer)
+        $discount_amount = 0;
+        if (!empty($cart['coupon'])) {
+            if ($cart['coupon']['discountType'] === 'Fix Price') {
+                $discount_amount = min($cart['coupon']['discount'], $itemSubtotal);
+            } else {
+                $discount_amount = min(($itemSubtotal * $cart['coupon']['discount']) / 100, $itemSubtotal);
+            }
+        }
+
+        // Recalculate special offer based on current subtotal! (FIX)
+        $specialOfferDiscount = 0;
+        if (!empty($cart['specialOfferType'])) {
+            if ($cart['specialOfferType'] === 'percentage') {
+                $specialOfferDiscount = ($itemSubtotal * $cart['specialOfferDiscountVal']) / 100;
+            } else {
+                $specialOfferDiscount = min($cart['specialOfferDiscountVal'], $itemSubtotal);
+            }
+        }
+
+        $totalDiscount = $discount_amount + $specialOfferDiscount;
+
+        $totalTax = 0;
+
+        // Prepare admin-enabled product taxes
+        $globalProductTaxes = [];
+        foreach ($cart['taxesByScope']['product'] ?? [] as $tax) {
+            if ($tax['enable'] ?? false) {
+                $globalProductTaxes[$tax['id']] = $tax;
+            }
+        }
+
+        // PRODUCT-LEVEL TAX
+        if ($cart['taxScope'] === 'product') {
+            foreach ($cart['item'] as $vendorItemsKey => $vendorItems) {
+                foreach ($vendorItems as $itemKey => $item) {
+                    $itemGross = ($item['item_price'] + ($item['extra_price'] ?? 0)) * $item['quantity'];
+                    $itemDiscount = ($itemSubtotal > 0) ? ($itemGross / $itemSubtotal) * $totalDiscount : 0;
+                    $itemTaxable = max(0, $itemGross - $itemDiscount);
+                    $itemTaxes = [];
+                    foreach ($item['taxSetting'] ?? [] as $itemTax) {
+                        if (($itemTax['scope'] ?? 'product') === 'product' && isset($globalProductTaxes[$itemTax['id']])) {
+                            $adminTax = $globalProductTaxes[$itemTax['id']];
+                            if ($adminTax['type'] === 'percentage') {
+                                $taxAmount = $this->applyTax($itemTaxable, $adminTax);
+                            } else {
+                                $taxAmount = $adminTax['tax'] * $item['quantity'];
+                            }
+                            $totalTax += $taxAmount;
+                            $cart['taxBreakdownGrouped']['item'][$adminTax['title']] =
+                                ($cart['taxBreakdownGrouped']['item'][$adminTax['title']] ?? 0) + $taxAmount;
+                            $itemTaxes[] = ($adminTax['type'] ?? 'percentage') === 'percentage'
+                                ? "{$adminTax['title']} ({$adminTax['tax']}%)"
+                                : "{$adminTax['title']} (" . $this->formatCurrency($taxAmount, $cart['currencyData']) . ")";
+                        }
+                    }
+                    if (empty($itemTaxes)) {
+                        $cart['taxBreakdownGrouped']['item']['none'] = ($cart['taxBreakdownGrouped']['item']['none'] ?? 0) + 0;
+                    }
+                    $cart['item'][$vendorItemsKey][$itemKey]['taxLabel'] = implode(', ', array_unique($itemTaxes));
+                }
+            }
+        }
+
+        // ORDER-LEVEL TAX
+        if ($cart['taxScope'] === 'order') {
+            $orderTaxable = max(0, $itemSubtotal - $totalDiscount);
+            foreach ($cart['taxesByScope']['order'] ?? [] as $tax) {
+                if ($tax['enable'] ?? true) {
+                    $taxAmount = $this->applyTax($orderTaxable, $tax);
+                    $totalTax += $taxAmount;
+                    $cart['taxBreakdownGrouped']['order'][$tax['title']] =
+                        ($cart['taxBreakdownGrouped']['order'][$tax['title']] ?? 0) + $taxAmount;
+                }
+            }
+        }
+
+        // DELIVERY, PACKAGING, PLATFORM TAXES
+        $extraScopes = ['delivery', 'packaging', 'platform'];
+        foreach ($extraScopes as $scope) {
+            $charge = $scope == "delivery" ? ($cart['deliverycharge'] ?? 0) : ($cart[$scope . 'Charge'] ?? 0);
+            foreach ($cart['taxesByScope'][$scope] ?? [] as $tax) {
+                if (!isset($cart['taxBreakdownGrouped'][$scope][$tax['title']])) {
+                    $cart['taxBreakdownGrouped'][$scope][$tax['title']] = 0;
+                }
+                $taxAmount = ($charge > 0) ? $this->applyTax($charge, $tax) : 0;
+                $totalTax += $taxAmount;
+                $cart['taxBreakdownGrouped'][$scope][$tax['title']] += $taxAmount;
+            }
+        }
+
+        $cart['tax_amount'] = $totalTax;
+
+        return $cart;
     }
 }

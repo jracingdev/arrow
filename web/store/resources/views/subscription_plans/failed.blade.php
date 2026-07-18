@@ -13,7 +13,7 @@
                                         <div class="col-md-6">
                                             <div class="text-center pb-3">
                                                 <h1 class="font-weight-bold">{{trans('lang.data_failed')}}</h1>
-                                                <p><strong>Error!</strong> {{ $message }}</p>
+                                                <p><strong>{{trans('lang.error')}}</strong> {{ $message }}</p>
                                             </div>
                                         </div>
                                     </div>

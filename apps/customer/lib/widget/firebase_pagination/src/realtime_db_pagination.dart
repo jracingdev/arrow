@@ -1,26 +1,23 @@
 // Dart Packages
 import 'dart:async';
 
+// Firebase Packages
+import 'package:firebase_database/firebase_database.dart';
 // Flutter Packages
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-// Firebase Packages
-import 'package:firebase_database/firebase_database.dart';
-
+// Functions
+import 'functions/separator_builder.dart';
 // Data Models
 import 'models/page_options.dart';
 import 'models/view_type.dart';
 import 'models/wrap_options.dart';
-
 // Widgets
 import 'widgets/defaults/bottom_loader.dart';
 import 'widgets/defaults/empty_screen.dart';
 import 'widgets/defaults/initial_loader.dart';
 import 'widgets/views/build_pagination.dart';
-
-// Functions
-import 'functions/separator_builder.dart';
 
 /// A [StreamBuilder] that automatically loads more data when the user scrolls
 /// to the bottom.
@@ -195,12 +192,10 @@ class _RealtimeDBPaginationState extends State<RealtimeDBPagination> {
   StreamSubscription<DatabaseEvent>? _liveStreamSub;
 
   /// [ScrollController] to listen to scroll end and load more data.
-  late final ScrollController _controller =
-      widget.controller ?? ScrollController();
+  late final ScrollController _controller = widget.controller ?? ScrollController();
 
   /// [PageController] to listen to page changes and load more data.
-  late final PageController _pageController =
-      widget.pageController ?? PageController();
+  late final PageController _pageController = widget.pageController ?? PageController();
 
   /// Whether initial data is loading.
   bool _isInitialLoading = true;
@@ -229,9 +224,7 @@ class _RealtimeDBPaginationState extends State<RealtimeDBPagination> {
     // If currently 15 items are loaded, and limit is 5 then total 20 items
     // will be fetched including the ones already present.
     final docsLimit = _data.length + (getMore ? widget.limit : 0);
-    var docsQuery = widget.descending
-        ? widget.query.limitToLast(docsLimit)
-        : widget.query.limitToFirst(docsLimit);
+    var docsQuery = widget.descending ? widget.query.limitToLast(docsLimit) : widget.query.limitToFirst(docsLimit);
 
     if (_data.isNotEmpty) {
       if (widget.descending) {
@@ -292,8 +285,7 @@ class _RealtimeDBPaginationState extends State<RealtimeDBPagination> {
       // scroll to the bottom and load more data.
       if (_isInitialLoading || _isFetching || _isEnded) return;
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (_controller.hasClients &&
-            _controller.position.maxScrollExtent <= 0) {
+        if (_controller.hasClients && _controller.position.maxScrollExtent <= 0) {
           _loadData();
         }
       });
@@ -307,9 +299,7 @@ class _RealtimeDBPaginationState extends State<RealtimeDBPagination> {
     // To cancel previous live listener when new one is set.
     final tempSub = _liveStreamSub;
 
-    var latestDocQuery = widget.descending
-        ? widget.query.limitToLast(1)
-        : widget.query.limitToFirst(1);
+    var latestDocQuery = widget.descending ? widget.query.limitToLast(1) : widget.query.limitToFirst(1);
 
     if (_data.isNotEmpty) {
       if (widget.descending) {

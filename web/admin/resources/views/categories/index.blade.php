@@ -8,7 +8,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.category_table')}}</li>
             </ol>
         </div>
@@ -27,12 +27,7 @@
                         <span class="counter ml-3 total_count"></span>
                     </div>  
                     <div class="d-flex top-title-right align-self-center"> 
-                        <div class="select-box pl-3">
-                            <select class="form-control filteredRecords sections" id="section_id" onchange="clickLink(this.value)">
-                            <option value="" disabled selected>{{trans('lang.select')}} {{trans('lang.section_plural')}}
-                            </select>
-                            <p style="color: red;font-size: 13px;">  {{trans('lang.rental_parcel_cab_service_are_not')}}</p>
-                        </div>    
+                    
                     </div>                   
                 </div>
             </div>
@@ -66,7 +61,7 @@
                                     class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i> {{trans('lang.all')}}</a></label></th>
                                     <?php } ?>
                                     <th>{{trans('lang.category_info')}}</th>
-                                    <th>{{trans('lang.section')}}</th>
+                                  
                                     <th>{{trans('lang.item')}}</th>
                                     <th> {{trans('lang.item_publish')}}</th>
                                     <th>{{trans('lang.actions')}}</th>
@@ -91,8 +86,9 @@
 
 <script type="text/javascript">
 
+    var section_id = getCookie('section_id') || '';
     var user_permissions = '<?php echo @session('user_permissions') ?>';
-    user_permissions = JSON.parse(user_permissions);
+    user_permissions = Object.values(JSON.parse(user_permissions));
 
     var checkDeletePermission = false;
     if ($.inArray('categories.delete', user_permissions) >= 0) {
@@ -106,18 +102,15 @@
     var endarray = [];
     var start = null;
     var user_number = [];
-    var section_id = getCookie('section_id');
-
-    if (section_id != '') {
-        var ref = database.collection('vendor_categories').where('section_id', '==', section_id);
-
-    } else {
-        var ref = database.collection('vendor_categories');
-
+    var ref = database.collection('vendor_categories');
+    
+    if(section_id){
+        ref = ref.where('section_id','==',section_id);
     }
+    
     var append_list = '';
     var placeholderImage = '';
-    var ref_sections = database.collection('sections'); 
+    
     let selected_gender = "";
 
     $(document).ready(function () {
@@ -144,10 +137,8 @@
                 self.select2('close');
             }, 0);
         });
-
          
         //start
-
         const table = $('#categoryTable').DataTable({
             pageLength: 10, // Number of rows per page
             processing: false, // Show processing indicator
@@ -165,7 +156,7 @@
 
                 const orderDirection = data.order[0].dir;
 
-                const orderableColumns = (checkDeletePermission) ? ['', 'title', 'sectionName', 'totalProducts', '', ''] : ['title', 'sectionName', 'totalProducts', '', '']; // Ensure this matches the actual column names
+               const orderableColumns = (checkDeletePermission) ? ['', 'title', 'totalProducts', '', ''] : ['title', 'totalProducts', '', ''];
 
                 const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
 
@@ -210,25 +201,18 @@
                         childData.id = doc.id; // Ensure the document ID is included in the data
                         var sectionName = '';
 
-                        if (childData.hasOwnProperty("section_id")) {
-                            sectionName = await getSectionName(childData.section_id);
-
-                        }
+                     
 
                         var totalProducts = await getProductTotal(childData.id, childData.section_id);
-                        
-                        childData.sectionName = sectionName ? sectionName : '';
+                      
 
                         childData.totalProducts = totalProducts ? totalProducts : 0;
 
                         if (searchValue) {
                             if (
                                 (childData.title && childData.title.toString().toLowerCase().includes(searchValue)) ||
-
-                                (childData.totalProducts && childData.totalProducts.toString().includes(searchValue)) ||
-
-                                (sectionName && sectionName.toString().toLowerCase().includes(searchValue))
-
+                                (childData.totalProducts && childData.totalProducts.toString().includes(searchValue))
+                               
                             ) {
                                 filteredRecords.push(childData);
                             }
@@ -279,6 +263,9 @@
                         records.push(getData);
 
                     }));
+                     $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
 
                     $('#data-table_processing').hide(); // Hide loader
 
@@ -317,15 +304,11 @@
             columnDefs: [
                 {
                     orderable: false,
-                    targets: (checkDeletePermission==true) ? [0,4,5] : [3,4]
+                    targets: (checkDeletePermission==true) ? [0,3,4] : [2,3]
                 },
             ],
 
-            "language": {
-                "zeroRecords": "{{trans("lang.no_record_found")}}",
-                "emptyTable": "{{trans("lang.no_record_found")}}",
-                "processing": "" // Remove default loader
-            },
+            "language": datatableLang,
 
         });
 
@@ -367,26 +350,7 @@
 
 
 
-        ref_sections.get().then(async function (snapshots) {
-
-            snapshots.docs.forEach((listval) => {
-                var data = listval.data();
-
-                if (data.serviceTypeFlag == "delivery-service" || data.serviceTypeFlag == "ecommerce-service") {
-
-                    $('#section_id').append($("<option></option>")
-
-                        .attr("value", data.id)
-
-                        .text(data.name));
-
-                }
-
-            })
-
-            $('#section_id').val(section_id);
-
-        })
+       
 
     });
 
@@ -417,7 +381,7 @@
 
         }
 
-        html.push('<td>' + val.sectionName + '</td>');
+  
 
         var categoryId = val.id;
 
@@ -439,11 +403,11 @@
 
         var action = '';
 
-        action = action + '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
+        action = action + '<span class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" title="{{trans("lang.edit")}}"><i class="mdi mdi-lead-pencil"></i></a>';
 
         if (checkDeletePermission) {
 
-            action = action + '<a id="' + val.id + '" name="category-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
+            action = action + '<a id="' + val.id + '" name="category-delete" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" title="{{trans("lang.delete")}}"><i class="mdi mdi-delete"></i></a>';
 
         }
 
@@ -500,60 +464,12 @@
 
 
 
-
-    async function getSectionName(sectionId) {
-
-
-
-        var sectionName = '';
-
-        if (sectionId != '') {
-
-            await database.collection('sections').where("id", "==", sectionId).get().then(async function (snapshots) {
+async function getProductTotal(id) {
+    const productSnapshots = await database.collection('vendor_products').where('categoryID', '==', id).get();
+    return productSnapshots.docs.length;
+}
 
 
-
-                if (snapshots.docs.length) {
-
-                    var data = snapshots.docs[0].data();
-
-                    sectionName = data.name;
-
-                }
-
-            });
-
-        }
-
-
-
-        return sectionName;
-
-    }
-
-    async function getProductTotal(id, section_id) {
-
-        var Product_total = '';
-
-        if (section_id != '') {
-
-            await database.collection('vendor_products').where('categoryID', '==', id).where('section_id', '==', section_id).get().then(async function (productSnapshots) {
-
-
-
-                Product_total = productSnapshots.docs.length;
-
-
-
-            });
-
-
-
-        }
-
-        return Product_total;
-
-    }
 
 
 

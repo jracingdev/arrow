@@ -9,14 +9,14 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.order_plural')}}</li>
             </ol>
         </div>
         <div>
         </div>
     </div>
-    <div class="container-fluid">
+    <div class="container-fluid page-menu">
         <div id="data-table_processing" class="dataTables_processing panel panel-default" style="display: none;">
         {{trans('lang.processing')}}
         </div>
@@ -81,13 +81,16 @@
     var database = firebase.firestore();    
     var user_id = "<?php echo $id; ?>";
     var user_number = [];
-    var refData = database.collection('vendor_orders').where('vendor.author', "==", user_id);
-    var ref = database.collection('vendor_orders').orderBy('createdAt', 'desc').where('vendor.author', "==", user_id);
-
+   
+    var ref;
     var currentCurrency = '';
     var currencyAtRight = false;
     var decimal_degits = 0;
-
+    var authRole = "{{ $authRole }}";
+    var empVendorId = "{{ $empVendorId }}";
+    let currentPermissions = {
+        isActive: true   
+    };
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     refCurrency.get().then(async function (snapshots) {
         var currencyData = snapshots.docs[0].data();
@@ -99,8 +102,43 @@
         }
     });
 
-    $(document).ready(function () {
+    document.addEventListener("DOMContentLoaded", async function() {
+        if (authRole === 'employee') {               
+            const perm = await getEmployeePermissionForTitle(user_id, "Manage Order");
+            currentPermissions = {
+                isActive: perm.isActive ?? false
+            };  
 
+            if (!currentPermissions.isActive) {
+                alert('{{ trans("lang.no_permission") }}');
+                $('#orderTable').hide();
+                $('.page-menu').html('<p class="text-center text-danger font-weight-bold">{{ trans("lang.no_permission") }}</p>');                   
+                return;
+            }
+            const vendorSnap = await database
+                .collection('vendors')
+                .where('id', '==', empVendorId)
+                .limit(1)
+                .get();
+
+            if (vendorSnap.empty) {
+                console.error('Vendor not found for employee');
+                return;
+            }
+
+            const authorId = vendorSnap.docs[0].data().author;
+            ref = database
+                .collection('vendor_orders')
+                .where('isPosOrder','==',false)
+                .where('vendor.author','==',authorId)
+                .orderBy('createdAt','desc');
+        }else{
+            ref = database
+            .collection('vendor_orders')
+            .where('isPosOrder','==',false)
+            .where('vendor.author','==',user_id)
+            .orderBy('createdAt','desc');
+        }
         $(document.body).on('click', '.redirecttopage', function () {
             var url = $(this).attr('data-url');
             window.location.href = url;
@@ -169,7 +207,7 @@
                         var price =  await buildHTMLProductstotal(childData);
                         childData.amount = price;
                         
-                        if (val.takeAway) {
+                        if (childData.hasOwnProperty('takeAway') && childData.takeAway) {
                             childData.orderType = '{{trans("lang.order_takeaway")}}';
                         } else {
                             childData.orderType = '{{trans("lang.order_delivery")}}';
@@ -251,35 +289,31 @@
                 {orderable: false, targets: [6]},
             ],
             order: [5, 'desc'],
-            "language": {
-                "zeroRecords": "{{trans("lang.no_record_found")}}",
-                "emptyTable": "{{trans("lang.no_record_found")}}",
-                "processing": "" // Remove default loader
-            },
+           "language": datatableLang,
             dom: 'lfrtipB',
                 buttons: [
                     {
                         extend: 'collection',
-                        text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                        text: '<i class="mdi mdi-cloud-download"></i> {{trans("lang.export_as")}}',
                         className: 'btn btn-info',
                         buttons: [
                             {
                                 extend: 'excelHtml5',
-                                text: 'Export Excel',
+                                text: '{{trans("lang.export_excel")}}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'excel',fieldConfig);
                                 }
                             },
                             {
                                 extend: 'pdfHtml5',
-                                text: 'Export PDF',
+                                text: '{{trans("lang.export_pdf")}}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'pdf',fieldConfig);
                                 }
                             },   
                             {
                                 extend: 'csvHtml5',
-                                text: 'Export CSV',
+                                text: '{{trans("lang.export_csv")}}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'csv',fieldConfig);
                                 }
@@ -289,7 +323,7 @@
                 ],
                 initComplete: function() {
                     $(".dataTables_filter").append($(".dt-buttons").detach());
-                    $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+                    $('.dataTables_filter input').attr('placeholder', '{{trans("lang.search_here")}}').attr('autocomplete','new-password').val('');
                     $('.dataTables_filter label').contents().filter(function() {
                         return this.nodeType === 3; 
                     }).remove();
@@ -312,29 +346,34 @@
         html.push(val.clientName);
 
         if (val.status == 'Order Placed') {
-            html.push('<span class="order_placed"><span>' + val.status + '</span></span>');
+            html.push('<span class="badge badge-warning ">' + val.status + '</span>');
 
         } else if (val.status == 'Order Accepted') {
-            html.push('<span class="order_accepted"><span>' + val.status + '</span></span>');
+            html.push('<span class="badge badge-info ">' + val.status + '</span>');
 
         } else if (val.status == 'Order Rejected') {
-            html.push('<span class="order_rejected"><span>' + val.status + '</span></span>');
+            html.push('<span class="badge badge-danger ">' + val.status + '</span>');
 
         } else if (val.status == 'Driver Pending') {
-            html.push('<span class="driver_pending"><span>' + val.status + '</span></span>');
+            html.push('<span class="badge badge-secondary ">' + val.status + '</span>');
 
         } else if (val.status == 'Driver Rejected') {
-            html.push('<span class="driver_rejected"><span>' + val.status + '</span></span>');
+            html.push('<span class="badge badge-danger ">' + val.status + '</span>');
 
         } else if (val.status == 'Order Shipped') {
-            html.push('<span class="order_shipped"><span>' + val.status + '</span></span>');
+            html.push('<span class="badge badge-primary ">' + val.status + '</span>');
 
         } else if (val.status == 'In Transit') {
-            html.push('<span class="in_transit"><span>' + val.status + '</span></span>');
+            html.push('<span class="badge badge-info ">' + val.status + '</span>');
 
         } else if (val.status == 'Order Completed') {
-            html.push('<span class="order_completed"><span>' + val.status + '</span></span>');
+            html.push('<span class="badge badge-success ">' + val.status + '</span>');
 
+        }else if(val.status == 'Order Cancelled') {
+            html.push('<span class="badge badge-dark ">' + val.status + '</span>');
+
+        }else{
+            html.push('');
         }
 
         html.push(val.amount);
@@ -368,136 +407,101 @@
     });
 
     function buildHTMLProductstotal(snapshotsProducts) {
-
-        var adminCommission = snapshotsProducts.adminCommission;
-        var discount = snapshotsProducts.discount;
-        var couponCode = snapshotsProducts.couponCode;
-        var extras = snapshotsProducts.extras;
-        var extras_price = snapshotsProducts.extras_price;
-        var rejectedByDrivers = snapshotsProducts.rejectedByDrivers;
-        var takeAway = snapshotsProducts.takeAway;
-        var tip_amount = snapshotsProducts.tip_amount;
-        var status = snapshotsProducts.status;
-        var products = snapshotsProducts.products;
-        var deliveryCharge = snapshotsProducts.deliveryCharge;
-        var totalProductPrice = 0;
-        var total_price = 0;
-
-        var intRegex = /^\d+$/;
-        var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
-
-        if (products) {
-
-            products.forEach((product) => {
-
-                var val = product;
-
-                price_item = parseFloat(val.price).toFixed(decimal_degits);
-
-                extras_price_item = (parseFloat(val.extras_price) * parseInt(val.quantity)).toFixed(decimal_degits);
-
-                totalProductPrice = parseFloat(price_item) * parseInt(val.quantity);
-                var extras_price = 0;
-                if (parseFloat(extras_price_item) != NaN && val.extras_price != undefined) {
-                    extras_price = extras_price_item;
-                }
-                totalProductPrice = parseFloat(extras_price) + parseFloat(totalProductPrice);
-                totalProductPrice = parseFloat(totalProductPrice).toFixed(decimal_degits);
-
-                total_price += parseFloat(totalProductPrice);
-
-            });
-        }
-
-        if (intRegex.test(discount) || floatRegex.test(discount)) {
-
-            discount = parseFloat(discount).toFixed(decimal_degits);
-            total_price -= parseFloat(discount);
-
-            if (currencyAtRight) {
-                discount_val = discount + "" + currentCurrency;
-            } else {
-                discount_val = currentCurrency + "" + discount;
+            let order_subtotal = 0;
+            let total_discount = 0;
+            let total_tax_amount = 0;
+            let tip_amount = parseFloat(snapshotsProducts.tip_amount || 0);
+            let deliveryCharge = parseFloat(snapshotsProducts.deliveryCharge || 0);
+            let platformFee = parseFloat(snapshotsProducts.platformFee || 0);
+            let packagingCharge = parseFloat(snapshotsProducts.vendor.packagingCharge || 0);
+            let packagingChargeEnable = snapshotsProducts.packagingChargeEnable;
+            //  Calculate subtotal and product extras
+            for (let i = 0; i < snapshotsProducts.products.length; i++) {
+                let product = snapshotsProducts.products[i];
+                let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+                order_subtotal += itemGross;
             }
 
-        }
+            // Total discounts
+            let order_discount = parseFloat(snapshotsProducts.discount || 0);
+            let special_discount = parseFloat(snapshotsProducts.specialDiscount?.special_discount || 0);
+                total_discount = order_discount + special_discount;
 
-        /* aarti's code */
-        var special_dicount = 0;
-       
-            if (snapshotsProducts.hasOwnProperty('specialDiscount')) {
-                
-                if (snapshotsProducts.specialDiscount.specialType && snapshotsProducts.specialDiscount.special_discount) {
-                        special_dicount = snapshotsProducts.specialDiscount.special_discount;
-                       
-                }
-            }
-      
+            // Calculate item-level taxes (if product-level)
+            if (snapshotsProducts.taxScope === "product") {
+                let itemSubtotal = order_subtotal;
+                snapshotsProducts.products.forEach(product => {
+                    let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                    let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+                    let itemDiscount = (itemSubtotal > 0) ? (itemGross / itemSubtotal) * total_discount : 0;
+                    let itemTaxable = Math.max(0, itemGross - itemDiscount);
+                    let itemTaxes = product.taxSetting || [];
+                    itemTaxes.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * itemTaxable;
+                            } else {
+                                taxAmount = tax.tax * product.quantity;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                        }
+                    });
+                });
+            } 
 
-        if(special_dicount)    
-        {
-            total_price = total_price - special_dicount;
-        }
-
-        /* end code */
-
-        var tax = 0;
-        taxlabel = '';
-        taxlabeltype = '';
-
-        if (snapshotsProducts.hasOwnProperty('taxSetting')) {
-            var total_tax_amount = 0;
-            for (var i = 0; i < snapshotsProducts.taxSetting.length; i++) {
-                var data = snapshotsProducts.taxSetting[i];
-
-                if (data.type && data.tax) {
-                    if (data.type == "percentage") {
-                        tax = (data.tax * total_price) / 100;
-                        taxlabeltype = "%";
-                    } else {
-                        tax = data.tax;
-                        taxlabeltype = "fix";
+            // Order-level taxes (if order-level)
+            if (snapshotsProducts.taxScope === "order") {
+                let orderTaxable = Math.max(0, order_subtotal - total_discount);
+                (snapshotsProducts.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * orderTaxable;
+                        } else {
+                            taxAmount = tax.tax;
+                        }
+                        total_tax_amount += parseFloat(taxAmount);
                     }
-                    taxlabel = data.title;
+                });
+            }
+
+            // Delivery, packaging, platform taxes
+            let extraCharges = [
+                {key: 'packaging', amount: packagingCharge, taxes: snapshotsProducts.packagingTax || []},
+            ];
+
+            extraCharges.forEach(scope => {
+                if (scope.key === "packaging" && !packagingChargeEnable) {
+                    return;
                 }
-                total_tax_amount += parseFloat(tax);
-            }
-            total_price = parseFloat(total_price) + parseFloat(total_tax_amount);
-        }
+                scope.taxes?.forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * scope.amount;
+                        } else {
+                            taxAmount = tax.tax;
+                        }
+                        total_tax_amount += parseFloat(taxAmount);
+                    }
+                });
+            });
 
+            //Final subtotal after discounts
+            order_subtotal = order_subtotal - total_discount;
 
-        if ((intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge)) && !isNaN(deliveryCharge)) {
-
-            deliveryCharge = parseFloat(deliveryCharge).toFixed(decimal_degits);
-            total_price += parseFloat(deliveryCharge);
-
-            if (currencyAtRight) {
-                deliveryCharge_val = deliveryCharge + "" + currentCurrency;
-            } else {
-                deliveryCharge_val = currentCurrency + "" + deliveryCharge;
-            }
-        }
-
-
-        if (intRegex.test(tip_amount) || floatRegex.test(tip_amount) && !isNaN(tip_amount)) {
-            tip_amount = parseFloat(tip_amount).toFixed(decimal_degits);
-            total_price += parseFloat(tip_amount);
-            total_price = parseFloat(total_price).toFixed(decimal_degits);
+            // Final total
+            let order_total = order_subtotal + (packagingChargeEnable ? packagingCharge : 0) + total_tax_amount;
 
             if (currencyAtRight) {
-                tip_amount_val = tip_amount + "" + currentCurrency;
+                order_total_val = parseFloat(order_total).toFixed(decimal_degits) + '' + currentCurrency;
             } else {
-                tip_amount_val = currentCurrency + "" + tip_amount;
+                order_total_val = currentCurrency + '' + parseFloat(order_total).toFixed(decimal_degits);
             }
-        }
 
-        if (currencyAtRight) {
-            var total_price_val = parseFloat(total_price).toFixed(decimal_degits) + "" + currentCurrency;
-        } else {
-            var total_price_val = currentCurrency + "" + parseFloat(total_price).toFixed(decimal_degits);
-        }
-
-        return total_price_val;
+            return order_total_val;
     }
 
 </script>

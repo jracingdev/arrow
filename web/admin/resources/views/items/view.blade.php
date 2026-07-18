@@ -146,7 +146,7 @@
 var id = "<?php echo $id;?>";
 var database = firebase.firestore();
 var ref = database.collection('vendor_products').where("id","==",id);
-var ref_sections = database.collection('sections');
+var ref_sections = database.collection('sections').where('isActive', '==', true).orderBy('order');
 
 var categories_list = [];
 var brand_list=[];
@@ -194,14 +194,14 @@ $(document).ready(function(){
   jQuery("#data-table_processing").show();
   ref.get().then( async function(snapshots){
     var product = snapshots.docs[0].data();
-if(getCookie('section_id') != ""){
-  var vendorsDb = database.collection('vendor_categories').where('section_id','==',getCookie('section_id'));
-    var brand = database.collection('brands').where('sectionId','==',getCookie('section_id'));
+      if(getCookie('section_id') != ""){
+        var vendorsDb = database.collection('vendor_categories').where('section_id','==',getCookie('section_id'));
+          var brand = database.collection('brands').where('sectionId','==',getCookie('section_id'));
 
-}else{
-  var vendorsDb = database.collection('vendor_categories');
-    var brand = database.collection('brands');
-}
+      }else{
+        var vendorsDb = database.collection('vendor_categories');
+          var brand = database.collection('brands');
+      }
      await ref_sections.get().then(async function (snapshots) {
           snapshots.docs.forEach((listval) => {
               var data = listval.data();

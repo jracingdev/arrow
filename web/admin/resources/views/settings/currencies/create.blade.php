@@ -52,14 +52,17 @@
 
                     <div class="form-group row width-100">
 
-                        <label class="col-12 control-label">{{trans('lang.country')}}</label>
+                       <label class="col-3 control-label">{{trans('lang.country')}}<span
 
-                        <div class="col-12">
+                                                class="required-field"></span></label>
+
+                                    <div class="col-7">
+
+                                    <div id="phone-box" class="country-box position-relative">  
 
                             <?php
 
-                            $countries = file_get_contents(asset('countriesdata.json'));
-
+                            $countries = file_get_contents(public_path('countriesdata.json'));
                             $countries = json_decode($countries);
 
                             $countries = (array) $countries;
@@ -78,15 +81,19 @@
 
                             ?>
 
-                            <select name="country" id="country">
+                             <select name="country" id="country" class="form-control currency_country">
 
-                                <?php foreach ($newcountries as $keycy => $valuecy) { ?>
+                                            @foreach($countries_data as $country)
 
-                                    <option value="<?php echo $valuecy->countryName; ?>"><?php echo $valuecy->countryName; ?></option>
+                                                <option
 
-                                <?php } ?>
+                                                        value="{{$country->countryName}}">{{$country->countryName}} +({{ $country->phoneCode }})
 
-                            </select>
+                                                </option>
+
+                                            @endforeach
+
+                                        </select>
 
                         </div>
 
@@ -214,71 +221,40 @@
 
 @section('scripts')
 
-
-
 <link href="{{ asset('assets/plugins/select2/dist/css/select2.min.css')}}" rel="stylesheet">
-
-
-
 <script src="{{ asset('assets/plugins/select2/dist/js/select2.min.js') }}"></script>
-
-
-
 <script type="text/javascript">
 
 
-
     var database = firebase.firestore();
-
+    var services = database.collection('sections').where('isActive', '==', true).orderBy('order');
     var newcountriesjs = '<?php echo json_encode($newcountriesjs); ?>';
-
     var newcountriesjs = JSON.parse(newcountriesjs);
 
-
+    // Load countries from JSON
+    var countries = <?php echo json_encode($countries); ?>;
+    var globalSettingsRef = database.collection('settings').doc("globalSettings");
 
     function formatState(state) {
-
-
-
         if (!state.id) {
-
             return state.text;
-
         }
-
         var baseUrl = "<?php echo URL::to('/'); ?>/flags/120/";
-
         var $state = $(
-
             '<span><img src="' + baseUrl + '/' + newcountriesjs[state.element.value].toLowerCase() + '.png" class="img-flag" /> ' + state.text + '</span>'
-
         );
-
         return $state;
-
     }
 
-
-
     function formatState2(state) {
-
         if (!state.id) {
-
             return state.text;
-
         }
 
-
-
         var baseUrl = "<?php echo URL::to('/'); ?>/flags/120/"
-
         var $state = $(
-
             '<span><img class="img-flag" /> <span></span></span>'
-
         );
-
-
 
         $state.find("span").text(state.text);
 
@@ -308,6 +284,38 @@
 
         });
 
+        // Populate service types
+        services.get().then(async function (snapshots) {
+            snapshots.docs.forEach((listval) => {
+                var data = listval.data();
+                $('.service_type').append($("<option></option>")
+                    .attr("value", data.id)
+                    .text(data.name));
+            });
+        });
+
+        // Fetch default country code from global settings
+        globalSettingsRef.get().then(async function (snapshot) {
+            var globalSettings = snapshot.data();
+            if (globalSettings && globalSettings.defaultCountryCode) {
+                // Find the country name corresponding to the defaultCountryCode
+                var defaultCountryName = null;
+                for (var i = 0; i < countries.length; i++) {
+                    if (countries[i].phoneCode === globalSettings.defaultCountryCode.replace('+', '')) {
+                        defaultCountryName = countries[i].countryName;
+                        break;
+                    }
+                }
+
+                if (defaultCountryName) {
+                    // Set the default country in the select field
+                    $('.currency_country').val(defaultCountryName).trigger('change');
+                }
+            }
+        }).catch(function (error) {
+            console.error("Error fetching global settings: ", error);
+        });
+
         $(".save-setting-btn").click(function () {
 
 
@@ -324,7 +332,7 @@
 
             var symbolAtRight = $(".symbol_at_right").is(":checked");
 
-            var country = $('#country').val();
+            var country = $('.currency_country').val();
 
             var id = "<?php echo uniqid(); ?>";
 
@@ -442,7 +450,7 @@
 
 
 
-    });
+ 
 
 
 

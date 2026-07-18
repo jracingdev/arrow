@@ -241,14 +241,9 @@
                                     <thead>
 
                                     <tr>
-
-                                        <th>
-                                            {{trans('lang.pay_with')}}
+                                        <th class="p-1">
+                                            {{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}
                                         </th>
-                                        <th class="text-right">
-                                                {{trans('lang.total')}} {{$amount}} <span class="currency"></span>
-                                        </th>
-
                                     </tr>
 
                                     </thead>
@@ -258,10 +253,8 @@
 
                                     <tr>
 
-                                        <td>
-
-                                            {{trans('lang.stripe_payment')}}
-
+                                         <td>
+                                            {{trans('lang.stripe')}} {{trans('lang.payment')}}
                                         </td>
 
                                         <td class="text-right payment-buttons">
@@ -870,8 +863,7 @@
 
                                                 <input type="hidden" name="token_id" id="token_id">
 
-                                                <button type="submit">{{ trans('lang.pay_total_amount') }} : {{$amount}} <span class="currency"></span>
-                                                    </button>
+                                                <button type="submit">{{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}</button>
 
                                                 <div class="outcome">
 

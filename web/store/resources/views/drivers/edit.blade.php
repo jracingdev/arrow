@@ -9,7 +9,7 @@
 
 		<div class="col-md-7 align-self-center">
 			<ol class="breadcrumb">
-				<li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+				<li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
 				<li class="breadcrumb-item"><a href= "{!! route('drivers') !!}" >{{trans('lang.driver_plural')}}</a></li>
 				<li class="breadcrumb-item active">{{trans('lang.driver_edit')}}</li>
 			</ol>
@@ -153,7 +153,7 @@ $(".save_user_btn").click(function(){
  var user_name = userFirstName+" "+userLastName;
 
  	var vendorStoreSelect = $("#vendor_vendor_select option:selected").val();
- 			alert("This is for demo, We can't allow to edit");
+ 			alert("{{trans('lang.this_is_for_demo_we_cant_allow_to_edit')}}");
 
  		 if(vendorStoreSelect != undefined && role == "vendor"){
        database.collection('users').doc(id).update({'firstName':userFirstName,'lastName':userLastName,'email':email,'phoneNumber':userPhone,'isActive':active,'profilePictureURL':photo,'vendorID':vendorStoreSelect,'role':role}).then(function(result) {
@@ -228,14 +228,14 @@ function handleFileSelect(evt) {
       // Observe state change events such as progress, pause, and resume
       // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
       var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      console.log('Upload is ' + progress + '% done');
-      jQuery("#uploding_image").text("Image is uploading...");
+    
+      jQuery("#uploding_image").text("{{trans('lang.image_is_uploading')}}");
      
     }, function(error) {
       // Handle unsuccessful uploads
     }, function() {
         uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
-            jQuery("#uploding_image").text("Upload is completed");
+            jQuery("#uploding_image").text("{{trans('lang.upload_is_completed')}}");
             photo = downloadURL;
 
       });   

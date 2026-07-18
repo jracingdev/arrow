@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item"><a href= "{!! route('attributes') !!}" >{{trans('lang.item_attribute_plural')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.attribute_edit')}}</li>
             </ol>

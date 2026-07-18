@@ -13,7 +13,7 @@
                             <div class="top-title-breadcrumb"> 
                                 <h3 class="mb-0 restaurantTitle">{{trans('lang.user_plural')}}</h3>
                                 <ol class="breadcrumb">
-                                    <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                                     <li class="breadcrumb-item"><a href="{!! route('users') !!}">{{trans('lang.user_plural')}}</a></li>
                                     <li class="breadcrumb-item active">{{trans('lang.user_details')}}</li>
                                 </ol>
@@ -32,13 +32,13 @@
             <div class="menu-tab">
                 <ul>
                     <li class="active">
-                        <a href="{{route('users.view',$id)}}">{{trans('lang.tab_basic')}}</a>
+                        <a href="{{route('users.view',$id)}}"><i class="ri-list-indefinite"></i>{{trans('lang.tab_basic')}}</a>
                     </li>
                     <li>
-                        <a href="{{route('orders')}}?userId={{$id}}">{{trans('lang.tab_orders')}}</a>
+                        <a href="{{route('orders')}}?userId={{$id}}"><i class="ri-shopping-bag-line"></i>{{trans('lang.tab_orders')}}</a>
                     </li>
                     <li>
-                        <a href="{{route('users.walletstransaction',$id)}}">{{trans('lang.wallet_transaction')}}</a>
+                        <a href="{{route('users.walletstransaction',$id)}}"><i class="ri-wallet-line"></i>{{trans('lang.wallet_transaction')}}</a>
                     </li>
                 </ul>
             </div>  
@@ -106,7 +106,7 @@
                             <div class="row mt-3">
                                 <div class="col-md-12">
                                     <label class="mb-0 font-wi font-semibold text-dark-2">{{trans('lang.address')}}</label>
-                                    <p><span class="address">Address line1</span></p>
+                                    <p><span class="address">{{trans('lang.address_line1')}}</span></p>
                                 </div>
                             </div>
                         </div>
@@ -179,6 +179,7 @@
 
     <script type="text/javascript">
 
+        var section_id = getCookie('section_id') || null;
         var id = "{{$id}}";
         var database = firebase.firestore();
         var ref = database.collection('users').where("id", "==", id);
@@ -269,23 +270,23 @@
                 if (user.hasOwnProperty('shippingAddress') && Array.isArray(user.shippingAddress)) {
                     shippingAddress = user.shippingAddress;
                     address += '<div id="append_list1" class="res-search-list row">';
+                    
+                    let defaultAddress = shippingAddress.find(a => a.isDefault === true);
+                    if (defaultAddress && defaultAddress.location) {
+                        let lat = defaultAddress.location.latitude;
+                        let lng = defaultAddress.location.longitude;
+                        let mapSrc = `https://maps.google.com/maps?width=600&height=225&hl=en&q=${lat},${lng}&t=&z=14&ie=UTF8&iwloc=B&output=embed`;
+                        $(".mapouter").show();
+                        $(".gmap_iframe").attr("src", mapSrc);
+                    }else{
+                        $(".mapouter").html("<p>No map available</p>");
+                    }
+
                     shippingAddress.forEach((listval) => {
                         var defaultBtnHtml = '';
-                      
-                        if (listval.hasOwnProperty('location') && listval.location) {
-                            var lat = listval.location.latitude; 
-                            var lng = listval.location.longitude; 
-                            var mapSrc = `https://maps.google.com/maps?width=600&height=225&hl=en&q=${lat},${lng}&t=&z=14&ie=UTF8&iwloc=B&output=embed`;
-                            $(".mapouter").show();
-                            $(".gmap_iframe").attr("src", mapSrc);
-                        } else {
-                            $(".mapouter").html("<p>No map available</p>");
-                        }
                         if (listval.isDefault == true) {
                             defaultBtnHtml = '<span class="badge badge-success ml-2 py-2 px-3" type="button" >Default</span>';
                         }
-                        
-
                         address = address + '<div class="transactions-list-wrap mt-4 col-md-6">';
                         address += '<div class="bg-white rounded-lg mb-3 transactions-list-view shadow-sm">';
                         address += '<div class="gold-members d-flex align-items-start transactions-list">';
@@ -403,7 +404,7 @@
 
         });
 
-        database.collection('vendor_orders').where('authorID', '==', id).get().then(async function (orderSnapshots) {
+        database.collection('vendor_orders').where('authorID', '==', id).where('section_id', '==', section_id).get().then(async function (orderSnapshots) {
             var paymentData = orderSnapshots.docs;
             $("#total_orders").text(paymentData.length);
         })

@@ -22,7 +22,7 @@ foreach ($countries as $keycountry => $valuecountry) {
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item"><a href="{!! route('users') !!}">{{trans('lang.user_plural')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.user_edit')}}</li>
             </ol>
@@ -36,7 +36,8 @@ foreach ($countries as $keycountry => $valuecountry) {
             <div class="row daes-top-sec mb-3">
 
                 <div class="col-lg-6 col-md-6">
-                    <a href="{{route('vendors.orders','userId='.$id)}}">
+
+                    <a href="{{ route('orders', ['userId' => $id]) }}">
 
                         <div class="card">
 
@@ -196,6 +197,7 @@ foreach ($countries as $keycountry => $valuecountry) {
 
 <script type="text/javascript">
 
+    var section_id = getCookie('section_id') || null;
     var id = "<?php echo $id; ?>";
     var database = firebase.firestore();
     var ref = database.collection('users').where("id", "==", id);
@@ -286,13 +288,10 @@ foreach ($countries as $keycountry => $valuecountry) {
 
                 $("#wallet_amount").text(wallet);
 
-                var orderRef = database.collection('vendor_orders').where("authorID", "==", id);
+                var orderRef = database.collection('vendor_orders').where("authorID", "==", id).where('section_id', '==', section_id);
                 orderRef.get().then(async function (snapshotsorder) {
-
                     var orders = snapshotsorder.size;
-
                     $("#total_orders").text(orders);
-
                 });
 
                 jQuery("#data-table_processing").hide();

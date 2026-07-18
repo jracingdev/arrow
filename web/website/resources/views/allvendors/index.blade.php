@@ -62,6 +62,17 @@
     var placeholderImageRef = database.collection('settings').doc('placeHolderImage');
     var placeholderImageSrc = '';
     var inValidVendors = [];
+    var isSelfDeliveryGlobally = false;
+    var refGlobal = database.collection('settings').doc("globalSettings");
+    refGlobal.get().then(async function(
+        settingSnapshots) {
+        if (settingSnapshots.data()) {
+            var settingData = settingSnapshots.data();
+            if (settingData.isSelfDelivery) {
+                isSelfDeliveryGlobally = true;
+            }
+        }
+    })
     placeholderImageRef.get().then(async function(placeholderImageSnapshots) {
         var placeHolderImageData = placeholderImageSnapshots.data();
         placeholderImageSrc = placeHolderImageData.image;
@@ -98,9 +109,9 @@
             nearestRestauantRefnew = geoFirestore.collection('vendors').near({
                 center: new firebase.firestore.GeoPoint(address_lat, address_lng),
                 radius: VendorNearBy
-            }).where('section_id', '==', section_id);
+            }).where('section_id', '==', section_id).where('zoneId','==',user_zone_id);
         } else {
-            nearestRestauantRefnew = geoFirestore.collection('vendors').where('section_id', '==', section_id);
+            nearestRestauantRefnew = geoFirestore.collection('vendors').where('section_id', '==', section_id).where('zoneId','==',user_zone_id);
         }
         nearestRestauantRefnew.get().then(async function(nearestRestauantSnapshot) {
             most_popular = document.getElementById('append_list1');
@@ -137,15 +148,15 @@
                     rating = Math.round(rating * 10) / 10;
                 }
                 datas.rating = rating;
-              
+
                 if (!inValidVendors.includes(datas.author)) {
                     alldata.push(datas);
                 }
             } else {
-                
+
                 if (!inValidVendors.includes(datas.author)) {
                     alldata.push(datas);
-                }        
+                }
             }
         });
         if ('<?php echo @$_GET['popular'] && @$_GET['popular'] == 'yes'; ?>') {
@@ -224,7 +235,8 @@
             if (val.section_id == "6285dd3281531") {
                 html = html + '<div class="member-plan position-absolute"></div><a href="' + view_vendor_details + '"><img alt="#" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" class="img-fluid item-img w-100"></a></div><div class="p-3 position-relative"><div class="list-card-body"><h6 class="mb-1"><a href="' + view_vendor_details + '" class="text-black">' + val.title + '</a></h6>';
             } else {
-                html = html + '<div class="member-plan position-absolute"><span class="badge badge-dark ' + statusclass + '">' + status + '</span></div><a href="' + view_vendor_details + '"><img alt="#" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" class="img-fluid item-img w-100"></a></div><div class="p-3 position-relative"><div class="list-card-body"><h6 class="mb-1"><a href="' + view_vendor_details + '" class="text-black">' + val.title +
+                html = html + '<div class="member-plan position-absolute"><span class="badge badge-dark ' + statusclass + '">' + status + '</span></div><div class="offer-icon position-absolute free-delivery-' + val.id + '"></div><a href="' + view_vendor_details + '"><img alt="#" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc +
+                    '\'" class="img-fluid item-img w-100"></a></div><div class="p-3 position-relative"><div class="list-card-body"><h6 class="mb-1"><a href="' + view_vendor_details + '" class="text-black">' + val.title +
                     '</a></h6>';
             }
             html = html + '<p class="text-gray mb-1 small"><span class="fa fa-map-marker"></span> ' + val.location + '</p>';
@@ -233,6 +245,7 @@
             }
             html = html + '</div>';
             html = html + '</div></div></div>';
+            checkSelfDeliveryForVendor(val.id);
         });
         if (alldata.length == 0) {
             html = html + '<p>{{ trans('lang.no_results') }}</p>';
@@ -284,5 +297,20 @@
                 }
             });
         }
+    }
+
+    function checkSelfDeliveryForVendor(vendorId) {
+        setTimeout(function() {
+            database.collection('vendors').doc(vendorId).get().then(async function(snapshots) {
+                if (snapshots.exists) {
+                    var data = snapshots.data();
+                    if (data.hasOwnProperty('isSelfDelivery') && data.isSelfDelivery != null && data.isSelfDelivery != '') {
+                        if (data.isSelfDelivery && isSelfDeliveryGlobally) {
+                            $('.free-delivery-' + vendorId).html('<span><img src="{{ asset('img/free_delivery.png') }}" width="100px" > {{ trans('lang.free_delivery') }}</span>');
+                        }
+                    }
+                }
+            })
+        }, 3000);
     }
 </script>

@@ -1,13 +1,14 @@
-import 'package:emartconsumer/userPrefrence.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Preferences {
-  static const languageCodeKey = "languageCodeKey";
   static const isFinishOnBoardingKey = "isFinishOnBoardingKey";
-  static const foodDeliveryType = "foodDeliveryType";
-
+  static const isLogin = "isLogin";
+  static const accessToken = "accessToken";
+  static const userData = "userData";
   static const themKey = "themKey";
-
-
+  static const languageCodeKey = 'languageCodeKey';
+  static const zipcode = 'zipcode';
+  static const foodDeliveryType = "foodDeliveryType";
   static const payFastSettings = "payFastSettings";
   static const mercadoPago = "MercadoPago";
   static const paypalSettings = "paypalSettings";
@@ -22,36 +23,50 @@ class Preferences {
   static const orangeMoneySettings = "orangeMoneySettings";
   static const xenditSettings = "xenditSettings";
 
+  static const isClickOnNotification = "isClickOnNotification";
 
+  static late SharedPreferences pref;
+
+  static Future<void> initPref() async {
+    pref = await SharedPreferences.getInstance();
+  }
+
+  /// Get boolean safely, fallback if stored value is string
   static bool getBoolean(String key) {
-    return UserPreference.preferences.getBool(key) ?? false;
+    final value = pref.get(key);
+    if (value is bool) return value;
+    if (value is String) {
+      // fallback for old string "Dark"/"Light"
+      return value.toLowerCase() == "dark";
+    }
+    return false;
   }
 
   static Future<void> setBoolean(String key, bool value) async {
-    await UserPreference.preferences.setBool(key, value);
+    await pref.setBool(key, value);
   }
 
   static String getString(String key, {String? defaultValue}) {
-    return UserPreference.preferences.getString(key) ?? defaultValue ?? "";
+    return pref.getString(key) ?? defaultValue ?? "";
   }
 
   static Future<void> setString(String key, String value) async {
-    await UserPreference.preferences.setString(key, value);
+    await pref.setString(key, value);
   }
 
   static int getInt(String key) {
-    return UserPreference.preferences.getInt(key) ?? 0;
+    return pref.getInt(key) ?? 0;
   }
 
   static Future<void> setInt(String key, int value) async {
-    await UserPreference.preferences.setInt(key, value);
+    await pref.setInt(key, value);
   }
 
   static Future<void> clearSharPreference() async {
-    await UserPreference.preferences.clear();
+    await pref.clear();
   }
 
   static Future<void> clearKeyData(String key) async {
-    await UserPreference.preferences.remove(key);
+    await pref.remove(key);
   }
 }

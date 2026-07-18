@@ -14,8 +14,8 @@
 
             <div class="col-md-7 align-self-center">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                    <li class="breadcrumb-item"><a href="{{ url('gift-card') }}">{{trans('lang.gift_card')}}</a>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('gift-card.index') }}">{{trans('lang.gift_card')}}</a>
                     </li>
 
                     @if($id=='')
@@ -99,7 +99,7 @@
                 <button type="button" class="btn btn-primary edit-form-btn"><i class="fa fa-save"></i> {{
                 trans('lang.save')}}
                 </button>
-                <a href="{{url('gift-card')}}" class="btn btn-default"><i class="fa fa-undo"></i>{{
+                <a href="{{ route('gift-card.index') }}" class="btn btn-default"><i class="fa fa-undo"></i>{{
                 trans('lang.cancel')}}</a>
             </div>
 

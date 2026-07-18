@@ -25,7 +25,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
                 @if(!isset($_GET['id']))
                 <li class="breadcrumb-item"><a href="{!! route('ondemand.workers.index') !!}">{{trans('lang.worker_table')}}</a>
@@ -184,6 +184,8 @@
     var storageRef = firebase.storage().ref('images');
     var idOfProviderDetailPage="{{@$_GET['id']}}";
     var mapType = 'ONLINE';
+    var section_id = getCookie('section_id');
+
     database.collection('settings').doc('DriverNearBy').get().then(async function (snapshots) {
         var data = snapshots.data();
         if (data && data.selectedMapType && data.selectedMapType == "osm") {
@@ -235,7 +237,7 @@
 
             $(".uploaded_image_owner").show();
 
-            database.collection('users').where('role', '==', 'provider').get().then(async function (snapshots) {
+            database.collection('users').where('role', '==', 'provider').where('section_id','==',section_id).get().then(async function (snapshots) {
                 snapshots.docs.forEach((listval) => {
                     var data = listval.data();
                     if (workerData.providerId == data.id) {

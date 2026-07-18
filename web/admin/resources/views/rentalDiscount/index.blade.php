@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.rental_discount')}}</li>
             </ol>
         </div>
@@ -91,8 +91,8 @@
     var endarray = [];
     var start = null;
     var user_number = [];
-
-    var ref = database.collection('rental_coupons');
+    var sectionid = getCookie('section_id');
+    var ref = database.collection('rental_coupons').where('sectionId', '==', sectionid);
     var currentCurrency = '';
     var currencyAtRight = false;
     var decimal_degits = 0;
@@ -183,7 +183,7 @@
 
                             }
                         }
-                        var expiresAt = date + ' ' + time ;
+                        var expiresAt = date + '<br> ' + time ;
                         if (searchValue) {
                             if (
                                 (childData.code && childData.code.toLowerCase().includes(searchValue)) ||
@@ -226,7 +226,9 @@
                     const formattedRecords = await Promise.all(paginatedRecords.map(async (childData) => {
                         return await buildHTML(childData);
                     }));
-
+                    $(function () {
+                        $('[data-toggle="tooltip"]').tooltip();
+                    });
                     $('#data-table_processing').hide();
                     callback({
                         draw: data.draw,
@@ -256,11 +258,8 @@
             },
                 {orderable: false, targets: [4, 5]},
             ],
-            "language": {
-                "zeroRecords": "{{trans('lang.no_record_found')}}",
-                "emptyTable": "{{trans('lang.no_record_found')}}",
-                "processing": "" // Remove default loader
-            },
+            "language": datatableLang,
+
         });
         function debounce(func, wait) {
             let timeout;
@@ -303,7 +302,7 @@
             } catch (err) {
 
             }
-            html.push('<td>' + date + ' ' + time + '</td>');
+            html.push('<td>' + date + '<br> ' + time + '</td>');
         } else {
             html.push('<td></td>');
         }
@@ -313,9 +312,9 @@
             html.push('<td><label class="switch"><input type="checkbox" id="' + val.id + '" name="isActive"><span class="slider round"></span></label></td>');
         }
         var action = '';
-        action = action + '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
-        <?php if(in_array('rental-discount.delete', json_decode(@session('user_permissions')))){?>
-        action = action + '<a id="' + val.id + '" name="coupon_delete_btn" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
+        action = action + '<span class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';
+        <?php if(in_array('rental-discount.delete', json_decode(@session('user_permissions'),true))){?>
+        action = action + '<a id="' + val.id + '" name="coupon_delete_btn" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a>';
         <?php }?>
         action = action + '</span>';
         html.push(action);

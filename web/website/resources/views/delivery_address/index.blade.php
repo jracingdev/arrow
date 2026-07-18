@@ -352,7 +352,7 @@
         })
     })
     
-    $(document).on("click", "a.change-address", function () {
+    $(document).on("click", "a.change-address", async function () {
         var id = $(this).attr('data-id');
         var data_lat = $(this).attr('data-lat');
         var data_lng = $(this).attr('data-lng');
@@ -360,6 +360,7 @@
         setCookie('address_lat', data_lat, 365);
         setCookie('address_lng', data_lng, 365);
         setCookie('address_name', locality, 365);
+        setCookie('userCountryName', await getCountryFromLatLng(data_lat, data_lng), 365);
         sessionStorage.setItem('addressId', id);        
         if (getCookie('service_type') == "On Demand Service") {
             window.location.href = "{{route('ondemand-checkout')}}";
@@ -461,7 +462,6 @@
                     var address_name2 = address.neighbourhood || address.suburb || '';
                     $('#locality').attr('lat', lat1).attr('lng', lon1);
 
-                    
                     // Set the cookies for the selected address details
                     setCookie('address_name1', address_name1, 365);
                     setCookie('address_name2', address_name2, 365);
@@ -480,7 +480,5 @@
             console.error("Error fetching data from Nominatim.");
         });
     }
-    
-   
     
 </script>

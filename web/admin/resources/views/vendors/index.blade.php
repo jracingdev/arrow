@@ -1,3116 +1,827 @@
 @extends('layouts.app')
 
-
-
 @section('content')
 
 <div class="page-wrapper">
-
     <div class="row page-titles">
-
         <div class="col-md-5 align-self-center">
-
-            <h3 class="text-themecolor">{{trans('lang.vendor_plural')}}</h3>
-
+            <h3 class="text-themecolor">
+                @if (request()->is('vendors/approved'))
+                    @php $type = 'approved'; @endphp
+                    {{ trans('lang.approved_vendors') }}
+                @elseif(request()->is('vendors/pending'))
+                    @php $type = 'pending'; @endphp
+                    {{ trans('lang.approval_pending_vendors') }}
+                @else
+                    @php $type = 'all'; @endphp
+                    {{ trans('lang.all_vendors') }}
+                @endif
+            </h3>
         </div>
-
         <div class="col-md-7 align-self-center">
-
             <ol class="breadcrumb">
-
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-
-                <li class="breadcrumb-item active">{{trans('lang.vendor_table')}}</li>
-
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item active">{{trans('lang.vendor_list')}}</li>
             </ol>
-
         </div>
-
         <div>
-
         </div>
-
     </div>
-
     <div class="container-fluid">
-
        <div class="admin-top-section"> 
-
         <div class="row">
-
             <div class="col-12">
-
                 <div class="d-flex top-title-section pb-4 justify-content-between">
-
                     <div class="d-flex top-title-left align-self-center">
-
-                        <span class="icon mr-3"><img src="{{ asset('images/store_list.png') }}"></span>
-
-                        <h3 class="mb-0">{{trans('lang.vendor_plural')}}</h3>
-
+                        <span class="icon mr-3"><img src="{{ asset('images/vendor.png') }}"></span>
+                        <h3 class="mb-0">{{trans('lang.vendor_list')}}</h3>
                         <span class="counter ml-3 total_count"></span>
-
-                    </div>    
-
-                    <div class="d-flex top-title-right align-self-center"> 
-
-
-
-                        <div class="select-box pl-3">
-
-                            <select class="form-control business_model_selector filteredRecords">
-
-                                <option value="" disabled selected>{{trans('lang.business_model')}}</option>
-
-                            </select>
-
-                        </div>
-
-                        <div class="select-box pl-3">
-
-                            <select class="form-control cuisine_selector filteredRecords">
-
-                                <option value="" disabled selected>{{trans('lang.select_categoty')}}</option>
-
-                            </select>
-
-                        </div> 
-
-                        <div class="select-box pl-3">
-
-                            <select class="form-control filteredRecords sections" id="section_id" onchange="clickLink(this.value)">
-
-                            <option value="" disabled selected>{{trans('lang.select')}} {{trans('lang.section_plural')}}
-
-                            </select>
-
-                            <p style="color: red;font-size: 13px;">  {{trans('lang.rental_parcel_cab_service_are_not')}}</p>
-
-                        </div>    
-
-
-
-                    </div>                
-
+                    </div>  
+                    <div class="d-flex top-title-right align-self-center">
+                            <div class="select-box pl-3">
+                                <select class="form-control status_selector filteredRecords">
+                                    <option value="">{{trans("lang.status")}}</option>
+                                    <option value="active"  >{{trans("lang.active")}}</option>
+                                    <option value="inactive"  >{{trans("lang.in_active")}}</option>
+                                </select>
+                            </div>
+                            <div class="select-box pl-3">
+                                <div id="daterange"><i class="fa fa-calendar"></i>&nbsp;
+                                    <span></span>&nbsp; <i class="fa fa-caret-down"></i>
+                                </div>
+                            </div>
+                    </div>                  
                 </div>
-
             </div>
-
         </div> 
-
-        <div class="row">
-
-            <div class="col-12">
-
-                <div class="card border">
-
-                    <div class="card-body">
-
-                        <div class="row">
-
-                            <div class="col-md-3">
-
-                                <div class="card card-box-with-icon bg--1">
-
-                                    <div class="card-body d-flex justify-content-between align-items-center">
-
-                                       <div class="card-box-with-content">
-
-                                        <h4 class="text-dark-2 mb-1 h4 rest_count">00</h4>
-
-                                        <p class="mb-0 small text-dark-2">{{trans('lang.total_orders')}}</p>
-
-                                       </div>
-
-                                        <span class="box-icon ab"><img src="{{ asset('images/restaurant_icon.png') }}"></span>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <div class="card card-box-with-icon bg--5">
-
-                                    <div class="card-body d-flex justify-content-between align-items-center">
-
-                                       <div class="card-box-with-content">
-
-                                        <h4 class="text-dark-2 mb-1 h4 rest_active_count">00</h4>
-
-                                        <p class="mb-0 small text-dark-2">{{trans('lang.active_restaurants')}}</p>
-
-                                       </div>
-
-                                        <span class="box-icon ab"><img src="{{ asset('images/active_restaurant.png') }}"></span>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <div class="card card-box-with-icon bg--8">
-
-                                    <div class="card-body d-flex justify-content-between align-items-center">
-
-                                       <div class="card-box-with-content">
-
-                                        <h4 class="text-dark-2 mb-1 h4 rest_inactive_count">00</h4>
-
-                                        <p class="mb-0 small text-dark-2">{{trans('lang.inactive_restaurants')}}</p>
-
-                                       </div>
-
-                                        <span class="box-icon ab"><img src="{{ asset('images/inactive_restaurant.png') }}"></span>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <div class="card card-box-with-icon bg--6">
-
-                                    <div class="card-body d-flex justify-content-between align-items-center">
-
-                                       <div class="card-box-with-content">
-
-                                        <h4 class="text-dark-2 mb-1 h4 new_joined_rest">00</h4>
-
-                                        <p class="mb-0 small text-dark-2">{{trans('lang.new_joined_restaurants')}}</p>
-
-                                       </div>
-
-                                        <span class="box-icon ab"><img src="{{ asset('images/new_restaurant.png') }}"></span>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
+    
        </div>
-
        <div class="table-list">
-
        <div class="row">
-
            <div class="col-12">
-
                <div class="card border">
-
                  <div class="card-header d-flex justify-content-between align-items-center border-0">
-
                    <div class="card-header-title">
-
-                    <h3 class="text-dark-2 mb-2 h4">{{trans('lang.vendor_table')}}</h3>
-
-                    <p class="mb-0 text-dark-2">{{trans('lang.store_table_text')}}</p>
-
+                        <h3 class="text-dark-2 mb-2 h4">{{trans('lang.vendor_list')}}</h3>
+                        <p class="mb-0 text-dark-2">{{trans('lang.vendor_table_text')}}</p>
                    </div>
 
-                   <div class="card-header-right d-flex align-items-center">
-
-                    <div class="card-header-btn mr-3">                   
-
-                        <a class="btn-primary btn rounded-full" href="{!! route('vendors.create') !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.create_vendor')}}</a>
-
-                     </div>
-
-                   </div>                
-
-                 </div> 
-
+                    <div class="card-header-right d-flex align-items-center">
+                        <div class="card-header-btn mr-3">                   
+                            <a class="btn-primary btn rounded-full" href="{!! route('vendors.create') !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.createe_vendor')}}</a>
+                        </div>
+                    </div>     
+                                  
+                 </div>
                  <div class="card-body">
-
                          <div class="table-responsive m-t-10">
-
-                            <table id="storeTable"
-
+                            <table id="userTable"
                                    class="display nowrap table table-hover table-striped table-bordered table table-striped"
-
                                    cellspacing="0" width="100%">
-
                                 <thead>
-
                                 <tr>
-
-                                    <?php if (in_array('stores.delete', json_decode(@session('user_permissions'),true))) { ?>
+                                    
+                                    <?php if (($type == "approved" && in_array('approve.vendors.delete', json_decode(@session('user_permissions'), true))) 
+                                    || ($type == "pending" && in_array('pending.vendors.delete', json_decode(@session('user_permissions'), true))) 
+                                    || ($type == "all" && in_array('vendors.delete', json_decode(@session('user_permissions'), true)))) { ?>
 
                                     <th class="delete-all"><input type="checkbox" id="is_active"><label class="col-3 control-label" for="is_active"><a id="deleteAll"
-
                                     class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i> {{trans('lang.all')}}</a></label></th>
-
                                     <?php } ?>
-
-                                    <th>{{trans('lang.actions')}}</th>
-
-                                    <th>{{trans('lang.store_info')}}</th>
-
-                                    <th>{{trans('lang.section')}}</th>
-
-                                    <th>{{trans('lang.vendor_phone')}}</th>
-
+                                    <th>{{trans('lang.vendor_info')}}</th>
+                                    <th>{{trans('lang.store')}}</th>
+                                    <th>{{trans('lang.contact_info')}}</th>
+                                    <th>{{trans('lang.current_plan')}}</th>
+                                    <th>{{trans('lang.expiry_date')}}</th>
                                     <th>{{trans('lang.date')}}</th>
-
-                                    <th>{{trans('lang.wallet_history')}}</th>
-
-                                    <th>{{trans('lang.item')}}</th>
-
-                                    <th>{{trans('lang.order_plural')}}</th>
-
-                                    <th>{{trans('lang.timing')}}</th>
-
+                                    <th>{{trans('lang.active')}}</th>
+                                    <?php if (($type == "approved" && in_array('approve.vendors.delete', json_decode(@session('user_permissions'), true))) 
+                                    || ($type == "pending" && in_array('pending.vendors.delete', json_decode(@session('user_permissions'), true))) 
+                                    || ($type == "all" && in_array('vendors.delete', json_decode(@session('user_permissions'), true)))) { ?>
+                                        <th>{{trans('lang.actions')}}</th>
+                                    <?php }?>
                                 </tr>
-
                                 </thead>  
-
                                 <tbody id="append_list1">
-
                                 </tbody>                             
-
                             </table>
-
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
         </div>
-
     </div>
-
-</div>  
-
-
+</div>
 
 @endsection
-
-
-
-
 
 @section('scripts')
 
-
-
-    <script type="text/javascript">
-
-        var database = firebase.firestore();
-
-        var user_permissions = '<?php echo @session('user_permissions') ?>';
-
-        user_permissions = JSON.parse(user_permissions);
-
-
-
-        var checkDeletePermission = false;
-
-
-
-        var checkCopyPermission = false;
-
-
-
-        if ($.inArray('stores.delete', user_permissions) >= 0) {
-
-
-
-            checkDeletePermission = true;
-
-
-
-        }
-
-
-
-        if ($.inArray('stores.copy', user_permissions) >= 0) {
-
-
-
-            checkCopyPermission = true;
-
-
-
-        }
-
-
-
-        var section_id = getCookie('section_id');
-
-
-
-        if (section_id != '') {
-
-            var refData = database.collection('vendors').where('section_id', '==', section_id);
-
-
-
-        } else {
-
-            var refData = database.collection('vendors');
-
-        }
-
-
-
-        var ref = refData.orderBy('createdAt', 'desc');
-
-        var userData = [];
-
-        var vendorData = [];
-
-        var vendorProducts = [];
-
-
-
-        var placeholderImage = '';
-
-        var placeholder = database.collection('settings').doc('placeHolderImage');
-
-
-
-        var ref_sections = database.collection('sections');
-
-
-
-        placeholder.get().then(async function (snapshotsimage) {
-
-            var placeholderImageData = snapshotsimage.data();
-
-            placeholderImage = placeholderImageData.image;
-
-        })
-
-
-
-        database.collection('vendor_categories').where('publish', '==', true).get().then(async function (snapshots) {
-
-            snapshots.docs.forEach((listval) => {
-
-                var data = listval.data();
-
-                $('.cuisine_selector').append($("<option></option>")
-
-                    .attr("value", data.id)
-
-                    .text(data.title));
-
-            })
-
-        });
-
-     
-
-        var initialRef=ref;
-
-      
-
-        $('select').change(async function() {
-
-            var businessModelValue = $('.business_model_selector').val();
-
-            var cuisineValue = $('.cuisine_selector').val();
-
-            refData=initialRef;  
-
-            if (cuisineValue) {
-
-                refData = refData.where('categoryID', '==', cuisineValue);
-
-            }
-
-            if (businessModelValue) {
-
-                var vendorSelectedIds = await subscriptionPlanVendorIds(businessModelValue);
-
-                if (vendorSelectedIds.length > 0) {
-
-                    refData = refData.where('id', 'in', vendorSelectedIds);
-
-                } else{
-
-                    refData = refData.where('id', '==', null);
-
-                }
-
-            }
-
-            ref=refData;
-
-            $('#storeTable').DataTable().ajax.reload();
-
+<script type="text/javascript">
+
+    var section_id = getCookie('section_id') || '';
+    var database = firebase.firestore();
+    var type = "{{ $type }}";
+
+    var user_permissions = '<?php echo @session('user_permissions')?>';
+    user_permissions = Object.values(JSON.parse(user_permissions));
+    var checkDeletePermission = false;
+    var checkChatPermission = false;
+
+    if (
+        (type == 'pending' && $.inArray('pending.vendors.delete', user_permissions) >= 0) ||
+        (type == 'approved' && $.inArray('approve.vendors.delete', user_permissions) >= 0) ||
+        (type == 'all' && $.inArray('vendors.delete', user_permissions) >= 0)
+    ) {
+        checkDeletePermission = true;
+    }
+    if ($.inArray('vendors.chat', user_permissions) >= 0)
+    {
+        checkChatPermission = true;
+    }
+
+    $('.status_selector').select2({
+        placeholder: '{{trans("lang.status")}}',  
+        minimumResultsForSearch: Infinity,
+        allowClear: true 
+    });
     
+    $('select').on("select2:unselecting", function(e) {
+        var self = $(this);
+        setTimeout(function() {
+            self.select2('close');
+        }, 0);
+    });
 
-        }); 
-
-
-
-        async function subscriptionPlanVendorIds(businessModelValue){
-
-            var vendorIds = []
-
-            try {
-
-                const querySnapshot = await database.collection('users').where('subscriptionPlanId', '==', businessModelValue).get();  
-
-                vendorIds = querySnapshot.docs.map(doc => doc.data().vendorID).filter(vendorID => vendorID !== undefined && vendorID !== null && vendorID !== '');
-
-            } catch (error) {
-
-                console.error("Error fetching users:", error);
-
-            }
-
-            return vendorIds;
-
-        }
-
-
-
-       
-
-        database.collection('subscription_plans').where('isEnable', '==', true).orderBy('name', 'asc').get().then(snapshots => {
-
-            snapshots.docs.forEach(doc => {
-
-                const { expiryDay, createdAt, id, name, type } = doc.data();
-
-                if (expiryDay && createdAt) {
-
-                    const expiryDate = new Date(createdAt.toDate());
-
-                    expiryDate.setDate(expiryDate.getDate() + parseInt(expiryDay, 10));
-
-                    if (type !== "free" && expiryDate > new Date()) {
-
-                        $('.business_model_selector').append($("<option>").attr("value", id).text(name));
-
-                    } else {
-
-                        $('.business_model_selector').append($("<option>").attr("value", id).text(name));
-
-                    }
-
-                }
-
-            });
-
+    function setDate() {
+        $('#daterange span').html('{{trans("lang.select_range")}}');
+        $('#daterange').daterangepicker({
+            autoUpdateInput: false, 
+        }, function (start, end) {
+            $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            $('.filteredRecords').trigger('change'); 
         });
+        $('#daterange').on('apply.daterangepicker', function (ev, picker) {
+            $('#daterange span').html(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
+            $('.filteredRecords').trigger('change');
+        });
+        $('#daterange').on('cancel.daterangepicker', function (ev, picker) {
+            $('#daterange span').html('{{trans("lang.select_range")}}');
+            $('.filteredRecords').trigger('change'); 
+        });
+    }
+
+    setDate(); 
+    
+    $('.filteredRecords').change(async function() {
+        var status = $('.status_selector').val();
+        var daterangepicker = $('#daterange').data('daterangepicker');
+        ref = database.collection('users').where("role", "==", "vendor");
+        if(section_id){           
+            ref = ref.where('sectionId', 'in', [section_id, '']);
+        }
+        if ($('#daterange span').html() != '{{trans("lang.select_range")}}' && daterangepicker) {
+            var from = moment(daterangepicker.startDate).toDate();
+            var to = moment(daterangepicker.endDate).toDate();
+            if (from && to) { 
+                var fromDate = firebase.firestore.Timestamp.fromDate(new Date(from));
+                ref = ref.where('createdAt', '>=', fromDate);
+                var toDate = firebase.firestore.Timestamp.fromDate(new Date(to));
+                ref = ref.where('createdAt', '<=', toDate);
+            }
+        }
+        if (status) {
+            ref = (status == "active") ? ref.where('active', '==', true) : ref.where('active', '==', false);
+        }
+        $('#userTable').DataTable().ajax.reload();
+    });
+    
+    var ref = database.collection('users').where("role", "==", "vendor");
+    if(section_id){       
+        ref = ref.where('sectionId', 'in', [section_id, '']);
+    }
+    ref = ref.orderBy('createdAt', 'desc');
+
+    var placeholderImage = '';
 
 
+$(document).ready(function () {
 
-      
+    $(document.body).on('click', '.redirecttopage', function () {
+        var url = $(this).attr('data-url');
+        window.location.href = url;
+    });
 
-      
+    jQuery("#data-table_processing").show();
+    $('body').tooltip({
+        selector: '[data-toggle="tooltip"]'
+    });
 
 
+    var placeholder = database.collection('settings').doc('placeHolderImage');
+    placeholder.get().then(async function (snapshotsimage) {
+        var placeholderImageData = snapshotsimage.data();
+        placeholderImage = placeholderImageData.image;
+    })
 
-        $(document).on('click', '.dt-button-collection .dt-button', function () {
-
+    $(document).on('click', '.dt-button-collection .dt-button', function () {
+        $('.dt-button-collection').hide();
+        $('.dt-button-background').hide();
+    });
+    $(document).on('click', function (event) {
+        if (!$(event.target).closest('.dt-button-collection, .dt-buttons').length) {
             $('.dt-button-collection').hide();
-
             $('.dt-button-background').hide();
+        }
+    });
+    var fieldConfig = {        
+        columns: [
+            { key: 'name', header: "{{trans('lang.vendor_info')}}" },
+            { key: 'storeName', header: "{{trans('lang.store')}}" }, 
+            { key: 'contactInfo', header: "{{trans('lang.contact_info')}}" }, 
+            { key: 'activePlanName', header: "{{trans('lang.active_subscription_plan')}}" },    
+            { key: 'exportExpiryDate', header: "{{trans('lang.plan_expire_at')}}" },  
+            { key: 'active', header: "{{trans('lang.active')}}" },
+            { key: 'createdAt', header: "{{trans('lang.date')}}" },
+        ],
+        fileName: "{{trans('lang.vendor_list')}}",
+    };
 
-        });
 
-        $(document).on('click', function (event) {
+    const table = $('#userTable').DataTable({
+        pageLength: 10, // Number of rows per page
+        processing: false, // Show processing indicator
+        serverSide: true, // Enable server-side processing
+        responsive: true,
+        ajax: async function (data, callback, settings) {
+            const start = data.start;
+            const length = data.length;
+            const searchValue = data.search.value.toLowerCase();
+            const orderColumnIndex = data.order[0].column;
+            const orderDirection = data.order[0].dir;
 
-            if (!$(event.target).closest('.dt-button-collection, .dt-buttons').length) {
+          const orderableColumns = (checkDeletePermission) ? ['', 'name', 'storeName', 'contactInfo', 'subscription_plan.name', 'subscriptionExpiryDate', 'createdAt', '', ''] : ['name', 'storeName', 'contactInfo', 'subscription_plan.name', 'subscriptionExpiryDate', 'createdAt', '', ''];
 
-                $('.dt-button-collection').hide();
+            const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
 
-                $('.dt-button-background').hide();
-
+            if (searchValue.length >= 3 || searchValue.length === 0) {
+                $('#data-table_processing').show();
             }
 
-        });
-
-        var fieldConfig = {
-
-            columns: [
-
-                { key: 'title', header: "{{trans('lang.store_info')}}" },
-
-                { key: 'sectionName', header: "{{trans('lang.section')}}" },                              
-
-                { key: 'exportPhone', 
-
-                header: "{{trans('lang.phone')}}",
-
-                cell: row => (row.hasPlusSign ? `+${row.maskedPhone}` : row.maskedPhone) },
-
-                { key: 'createdAt', header: "{{trans('lang.date')}}" },
-
-                { key: 'items', header: "{{trans('lang.item')}}" },
-
-                { key: 'orders', header: "{{trans('lang.order_plural')}}" },
-
-            ],
-
-            
-
-            fileName: "{{trans('lang.vendor_table')}}",
-
-        };
-
-
-
-
-
-        $(document).ready(function () {
-
-
-
-            $('.business_model_selector').select2({
-
-                placeholder: "{{trans('lang.business_model')}}",  
-
-                minimumResultsForSearch: Infinity,
-
-                allowClear: true  
-
-            });
-
-            $('.cuisine_selector').select2({
-
-                placeholder: "{{trans('lang.select_categoty')}}",  
-
-                minimumResultsForSearch: Infinity,
-
-                allowClear: true  
-
-            });
-
-            $('.sections').select2({
-
-                placeholder: "{{trans('lang.select')}} {{trans('lang.section_plural')}}",  
-
-                minimumResultsForSearch: Infinity,
-
-                allowClear: true 
-
-            });
-
-
-
-            $('select').on("select2:unselecting", function(e) {
-
-                var self = $(this);
-
-                setTimeout(function() {
-
-                    self.select2('close');
-
-                }, 0);
-
-            });
-
-
-
-            jQuery("#data-table_processing").show();
-
-            const table = $('#storeTable').DataTable({
-
-                pageLength: 10, // Number of rows per page
-
-                processing: false, // Show processing indicator
-
-                serverSide: true, // Enable server-side processing
-
-                responsive: true,
-
-
-
-                ajax: async function (data, callback, settings) {
-
-
-
-                    const start = data.start;
-
-                    const length = data.length;
-
-                    const searchValue = data.search.value.toLowerCase();
-
-                    const orderColumnIndex = data.order[0].column;
-
-                    const orderDirection = data.order[0].dir;
-
-
-
-                    const orderableColumns = (checkDeletePermission) ? [ '', '', 'title', 'sectionName', 'phone', 'createdAt', '', 'items', 'orders', ''] : ['', 'title', 'sectionName', 'phonenumber', 'createdAt', '', 'items', 'orders', '']; // Ensure this matches the actual column names
-
-
-
-                    const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
-
-
-
-                    if (searchValue.length >= 3 || searchValue.length === 0) {
-
-
-
-                        $('#data-table_processing').show();
-
-
-
-                    }
-
-
-
-                    await ref.get().then(async function (querySnapshot) {
-
-
-
-                        if (querySnapshot.empty) {
-
-                            $('.total_count').text(0);
-
-
-
-                            console.error("No data found in Firestore.");
-
-
-
-                            $('#data-table_processing').hide(); // Hide loader
-
-
-
-                            callback({
-
-
-
-                                draw: data.draw,
-
-
-
-                                recordsTotal: 0,
-
-
-
-                                recordsFiltered: 0,
-
-
-
-                                data: [] // No data
-
-
-
-                            });
-
-
-
+            await ref.get().then(async function (querySnapshot) {
+                if (querySnapshot.empty) {
+                    $('.total_count').text(0);
+                    console.error("No data found in Firestore.");
+                    $('#data-table_processing').hide(); // Hide loader
+                    callback({
+                        draw: data.draw,
+                        recordsTotal: 0,
+                        recordsFiltered: 0,
+                        data: [] // No data
+                    });
+                    return;
+                }
+
+                let records = [];
+                let filteredRecords = [];
+
+                await Promise.all(querySnapshot.docs.map(async (doc) => {
+                    let childData = doc.data();
+
+                    const isDocVerified = childData.isDocumentVerify === true;
+                    const isAutoVerified = childData.isAutoVerify === true;
+                    if (type === 'pending') {
+                        if (isDocVerified || isAutoVerified) {
                             return;
-
-
-
                         }
-
-
-
-                        var sectionNames = {};
-
-
-
-                        const sectionDocs = await database.collection('sections').get();
-
-
-
-                        sectionDocs.forEach(doc => {
-
-
-
-                            sectionNames[doc.id] = doc.data().name;
-
-
-
-                        });
-
-
-
-                        let records = [];
-
-
-
-                        let filteredRecords = [];
-
-
-
-
-
-
-
-                        await Promise.all(querySnapshot.docs.map(async (doc) => {
-
-
-
-                            let childData = doc.data();
-
-
-
-                            childData.phone = (childData.phonenumber != '' && childData.phonenumber != null && childData.phonenumber.slice(0, 1) == '+') ? childData.phonenumber.slice(1) : childData.phonenumber;
-
-                            childData.maskedPhone = EditPhoneNumber(childData.phone);                       
-
-                            childData.hasPlusSign = childData.phonenumber.startsWith('+');                        
-
-                            childData.exportPhone = childData.hasPlusSign ? `+${childData.maskedPhone}` : childData.maskedPhone;
-
-                           
-
-
-
-                            childData.id = doc.id; // Ensure the document ID is included in the data
-
-
-
-                            if (childData.id) {
-
-
-
-                                childData.orders = await getTotalOrders(childData.id);
-
-
-
-                                childData.items = await getTotalProduct(childData.id);
-
-
-
-                            } else {
-
-
-
-                                childData.orders = 0;
-
-
-
-                                childData.items = 0;
-
-
-
-                                childData.foods = 0;
-
-
-
-                            }
-
-
-
-                            childData.sectionName = sectionNames[childData.section_id] || '';
-
-
-
-                            if (searchValue) {
-
-
-
-                                var date = '';
-
-
-
-                                var time = '';
-
-
-
-                                if (childData.hasOwnProperty("createdAt")) {
-
-
-
-                                    try {
-
-
-
-                                        date = childData.createdAt.toDate().toDateString();
-
-
-
-                                        time = childData.createdAt.toDate().toLocaleTimeString('en-US');
-
-
-
-                                    } catch (err) {
-
-
-
-                                    }
-
-
-
-                                }
-
-
-
-                                var createdAt = date + ' ' + time;
-
-
-
-
-
-
-
-                                if (
-
-
-
-                                    (childData.title && childData.title.toLowerCase().toString().includes(searchValue)) ||
-
-
-
-                                    (createdAt && createdAt.toString().toLowerCase().indexOf(searchValue) > -1) ||
-
-
-
-                                    (childData.email && childData.email.toLowerCase().toString().includes(searchValue)) ||
-
-
-
-                                    (childData.phoneNumber && childData.phoneNumber.toLowerCase().toString().includes(searchValue)) ||
-
-
-
-                                    (childData.sectionName && childData.sectionName.toLowerCase().toString().includes(searchValue))
-
-
-
-
-
-                                ) {
-
-
-
-                                    if (childData.title != '') {
-
-
-
-                                        filteredRecords.push(childData);
-
-
-
-                                    }
-
-
-
-                                }
-
-
-
-                            } else {
-
-                                if (childData.title != '') {
-
-
-
-                                    filteredRecords.push(childData);
-
-
-
-                                }
-
-                            }
-
-
-
-                        }));
-
-
-
-                        filteredRecords.sort((a, b) => {
-
-
-
-                            let aValue = a[orderByField] ? a[orderByField].toString().toLowerCase().trim() : '';
-
-
-
-                            let bValue = b[orderByField] ? b[orderByField].toString().toLowerCase().trim() : '';
-
-
-
-                            if (orderByField === 'createdAt') {
-
-
-
-                                try {
-
-
-
-                                    aValue = a[orderByField] ? new Date(a[orderByField].toDate()).getTime() : 0;
-
-
-
-                                    bValue = b[orderByField] ? new Date(b[orderByField].toDate()).getTime() : 0;
-
-
-
-                                } catch (err) {
-
-
-
-                                }
-
-
-
-                            }
-
-
-
-                            if (orderByField === 'items') {
-
-
-
-                                aValue = a[orderByField] ? parseFloat(String(a[orderByField]).replace(/[^0-9.]/g, '')) || 0 : 0;
-
-
-
-                                bValue = b[orderByField] ? parseFloat(String(b[orderByField]).replace(/[^0-9.]/g, '')) || 0 : 0;
-
-
-
-                            }
-
-
-
-                            if (orderByField === 'orders') {
-
-
-
-                                aValue = a[orderByField] ? parseFloat(String(a[orderByField]).replace(/[^0-9.]/g, '')) || 0 : 0;
-
-
-
-                                bValue = b[orderByField] ? parseFloat(String(b[orderByField]).replace(/[^0-9.]/g, '')) || 0 : 0;
-
-
-
-                            }
-
-
-
-
-
-
-
-                            if (orderDirection === 'asc') {
-
-
-
-                                return (aValue > bValue) ? 1 : -1;
-
-
-
-                            } else {
-
-
-
-                                return (aValue < bValue) ? 1 : -1;
-
-
-
-                            }
-
-
-
-                        });
-
-
-
-
-
-
-
-                        const totalRecords = filteredRecords.length;
-
-                        $('.total_count').text(totalRecords); 
-
-
-
-                        let active_rest = 0;
-
-                        let inactive_rest = 0;
-
-                        let new_joined_rest = 0;
-
-                        const today = new Date().setHours(0, 0, 0, 0); 
-
-                        await Promise.all(filteredRecords.map(async (childData) => {
-
-                            var isActive = false;
-
-                            if (childData.author) {
-
-                                const user_id = childData.author;
-
-                                isActive = await vendorStatus(user_id); 
-
-                            }
-
-                            if (isActive) {
-
-                                active_rest += 1;
-
-                            } else {
-
-                                inactive_rest += 1;
-
-                            }
-
-                            if (childData.createdAt && new Date(childData.createdAt.seconds * 1000).setHours(0, 0, 0, 0) === today) {
-
-                                new_joined_rest += 1;
-
-                            }
-
-                        }));
-
-                        $('.rest_count').text(totalRecords);
-
-                        $('.rest_active_count').text(active_rest);
-
-                        $('.rest_inactive_count').text(inactive_rest);
-
-                        $('.new_joined_rest').text(new_joined_rest);
-
-
-
-                        const paginatedRecords = filteredRecords.slice(start, start + length);
-
-
-
-
-
-                        await Promise.all(paginatedRecords.map(async (childData) => {
-
-
-
-                            var getData = await buildHTML(childData);
-
-
-
-                            records.push(getData);
-
-
-
-                        }));
-
-
-
-
-
-
-
-                        $('#data-table_processing').hide(); // Hide loader
-
-
-
-                        callback({
-
-
-
-                            draw: data.draw,
-
-
-
-                            recordsTotal: totalRecords, // Total number of records in Firestore
-
-
-
-                            recordsFiltered: totalRecords, // Number of records after filtering (if any)
-
-                            filteredData: filteredRecords,
-
-                            data: records // The actual data to display in the table
-
-
-
-                        });
-
-
-
-                    }).catch(function (error) {
-
-
-
-                        console.error("Error fetching data from Firestore:", error);
-
-
-
-                        $('#data-table_processing').hide(); // Hide loader
-
-
-
-                        callback({
-
-
-
-                            draw: data.draw,
-
-
-
-                            recordsTotal: 0,
-
-
-
-                            recordsFiltered: 0,
-
-
-
-                            data: [] // No data due to error
-
-
-
-                        });
-
-
-
-                    });
-
-
-
-                },
-
-
-
-                order: (checkDeletePermission) ? [[5, 'desc']] : [[4, 'desc']],
-
-
-
-                columnDefs: [
-
-
-
-                    {
-
-
-
-                        targets: (checkDeletePermission) ? 5 : 4,
-
-
-
-                        type: 'date',
-
-
-
-                        render: function (data) {
-
-
-
-                            return data;
-
-
-
+                    }
+                    if (type === 'approved') {
+                            if (!isDocVerified && !isAutoVerified) {
+                            return;
                         }
-
-
-
-                    },
-
-
-
-                    {orderable: false, targets: (checkDeletePermission) ? [0, 1, 6, 9] : [0, 5, 8]},
-
-
-
-                ],
-
-
-
-                "language": {
-
-
-
-                    "zeroRecords": "{{trans("lang.no_record_found")}}",
-
-
-
-                    "emptyTable": "{{trans("lang.no_record_found")}}",
-
-
-
-                    "processing": "" // Remove default loader
-
-
-
-                },
-
-                dom: 'lfrtipB',
-
-                buttons: [
-
-                    {
-
-                        extend: 'collection',
-
-                        text: '<i class="mdi mdi-cloud-download"></i> Export as',
-
-                        className: 'btn btn-info',
-
-                        buttons: [
-
-                            {
-
-                                extend: 'excelHtml5',
-
-                                text: 'Export Excel',
-
-                                action: function (e, dt, button, config) {
-
-                                    exportData(dt, 'excel',fieldConfig);
-
-                                }
-
-                            },
-
-                            {
-
-                                extend: 'pdfHtml5',
-
-                                text: 'Export PDF',
-
-                                action: function (e, dt, button, config) {
-
-                                    exportData(dt, 'pdf',fieldConfig);
-
-                                }
-
-                            },   
-
-                            {
-
-                                extend: 'csvHtml5',
-
-                                text: 'Export CSV',
-
-                                action: function (e, dt, button, config) {
-
-                                    exportData(dt, 'csv',fieldConfig);
-
-                                }
-
-                            }
-
-                        ]
-
                     }
 
-                ],
-
-                initComplete: function() {
-
-                    $(".dataTables_filter").append($(".dt-buttons").detach());
-
-                    $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
-
-                    $('.dataTables_filter label').contents().filter(function() {
-
-                        return this.nodeType === 3; 
-
-                    }).remove();
-
-                }
-
-
-
-
-
-
-
-            });
-
-
-
-
-
-
-
-            function debounce(func, wait) {
-
-
-
-                let timeout;
-
-
-
-                const context = this;
-
-
-
-                return function (...args) {
-
-
-
-                    clearTimeout(timeout);
-
-
-
-                    timeout = setTimeout(() => func.apply(context, args), wait);
-
-
-
-                };
-
-
-
-            }
-
-
-
-
-
-
-
-            $('#search-input').on('input', debounce(function () {
-
-
-
-                const searchValue = $(this).val();
-
-
-
-                if (searchValue.length >= 3) {
-
-
-
-                    $('#data-table_processing').show();
-
-
-
-                    table.search(searchValue).draw();
-
-
-
-                } else if (searchValue.length === 0) {
-
-
-
-                    $('#data-table_processing').show();
-
-
-
-                    table.search('').draw();
-
-
-
-                }
-
-
-
-            }, 300));
-
-
-
-
-
-
-
-
-
-
-
-            ref_sections.get().then(async function (snapshots) {
-
-
-
-
-
-
-
-                snapshots.docs.forEach((listval) => {
-
-
-
-                    var data = listval.data();
-
-
-
-
-
-
-
-                    if (data.serviceTypeFlag == "delivery-service" || data.serviceTypeFlag == "ecommerce-service") {
-
-
-
-                        $('#section_id').append($("<option></option>")
-
-
-
-                            .attr("value", data.id)
-
-
-
-                            .text(data.name));
-
-
-
+                    let sid = childData.sectionId;
+                    if (
+                        section_id && !(
+                            sid === section_id ||
+                            sid === null ||
+                            sid === '' ||
+                            sid === undefined
+                        )
+                    ) {                       
+                        return;
                     }
-
-
-
-                })
-
-
-
-                $('#section_id').val(section_id);
-
-
-
-            })
-
-
-
-
-
-
-
-        })
-
-
-
-        async function buildHTML(val) {
-
-            var html = [];
-
-
-
-            newdate = '';
-
-
-
-            var id = val.id;
-
-
-
-            var route1 = '{{route("vendors.edit",":id")}}';
-
-
-
-            route1 = route1.replace(':id', id);
-
-
-
-
-
-
-
-            var route_view = '{{route("vendors.view",":id")}}';
-
-
-
-            route_view = route_view.replace(':id', id);
-
-
-
-            if (checkDeletePermission) {
-
-
-
-                html.push('<span class="delete-all"><input type="checkbox" id="is_open_' + id + '" class="is_open" dataId="' + id + '" author="' + val.author + '"><label class="col-3 control-label"\n' +
-
-
-
-                    'for="is_open_' + id + '" ></label></span>');
-
-
-
-            }
-
-
-
-            var actionHtml = '';
-
-
-
-            actionHtml = actionHtml + '<span class="action-btn">';
-
-
-
-            if (checkCopyPermission) {
-
-
-
-                actionHtml = actionHtml + '<a href="javascript:void(0)" vendor_id="' + val.id + '" author="' + val.author + '" name="vendor-clone"><i class="mdi mdi-content-copy"></i></a>';
-
-
-
-            }
-
-
-
-            actionHtml = actionHtml + '<a href="' + route_view + '"><i class="mdi mdi-eye"></i></a><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
-
-
-
-            if (checkDeletePermission) {
-
-
-
-                actionHtml = actionHtml + '<a id="' + val.id + '" author="' + val.author + '" name="delete-btn" class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
-
-
-
-            }
-
-
-
-            actionHtml = actionHtml + '</span>';
-
-
-
-            html.push(actionHtml);
-
-
-
-            if (val.photo != '') {
-
-
-
-                if (val.photo) {
-
-
-
-                    photo = val.photo;
-
-
-
-                } else {
-
-
-
-                    photo = placeholderImage;
-
-
-
-                }
-
-
-
-                html.push('<img alt="" width="100%" style="width:70px;height:70px;" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" alt="image">' + '<a href="' + route_view + '" class="redirecttopage left_space">' + val.title + '</a>');
-
-
-
-
-
-
-
-            } else {
-
-                html.push('<img alt="" width="100%" style="width:70px;height:70px;" src="' + placeholderImage + '" alt="image">' + '<a href="' + route_view + '" class="redirecttopage left_space">' + val.title + '</a>');
-
-            }
-
-
-
-            if (val.section_id) {
-
-
-
-                html.push(val.sectionName);
-
-
-
-            } else {
-
-                html.push('');
-
-            }
-
-
-
-            if (val.hasOwnProperty('phonenumber')) {
-
-
-
-                if (val.phonenumber.includes('+')) {
-
-
-
-                    html.push('+' + EditPhoneNumber(val.phonenumber.slice(1)));
-
-
-
-                } else {
-
-
-
-                    html.push(EditPhoneNumber(val.phonenumber));
-
-
-
-                }
-
-
-
-            } else {
-
-
-
-                html.push('');
-
-
-
-            }
-
-
-
-
-
-
-
-            var date = '';
-
-
-
-            var time = '';
-
-
-
-            if (val.hasOwnProperty("createdAt")) {
-
-
-
-                try {
-
-
-
-                    date = val.createdAt.toDate().toDateString();
-
-
-
-                    time = val.createdAt.toDate().toLocaleTimeString('en-US');
-
-
-
-                } catch (err) {
-
-
-
-
-
-
-
-                }
-
-
-
-                html.push('<span class="dt-time">' + date + ' ' + time + '</span>');
-
-
-
-            } else {
-
-
-
-                html.push('');
-
-
-
-            }
-
-
-
-
-
-
-
-            var payoutRequests = '{{route("users.walletstransaction",":id")}}';
-
-
-
-            payoutRequests = payoutRequests.replace(':id', 'storeID=' + val.author);
-
-
-
-
-
-
-
-            html.push('<a href="' + payoutRequests + '">{{trans("lang.wallet_history")}}</a>');
-
-
-
-
-
-
-
-            var vendorId = val.id;
-
-
-
-            var url = '{{route("vendors.items",":id")}}';
-
-
-
-            url1 = url.replace(":id", vendorId);
-
-
-
-            html.push('<a  href="' + url1 + '">' + val.items + '</a>');
-
-            var url = '{{route("vendors.orders",":id")}}';
-
-
-
-            url2 = url.replace(":id", vendorId);
-
-            html.push('<a  href="' + url2 + '" >' + val.orders + '</a>');
-
-
-
-
-
-            var opentime = '';
-
-
-
-            var closetime = '';
-
-            if (val.opentime != undefined) {
-
-
-
-                opentime = val.opentime;
-
-
-
-            }
-
-
-
-            if (val.closetime != undefined) {
-
-
-
-                closetime = val.closetime;
-
-
-
-            }
-
-            html.push(opentime + "-" + closetime);
-
-            var active = val.isActive;
-
-            return html;
-
-
-
-        }
-
-
-
-        async function vendorStatus(id) {
-
-            let status = true;
-
-            await database.collection('users').doc(id).get().then((snapshots) => {
-
-                let data = snapshots.data();
-
-                if (data) {
-
-                    status = data.active; 
-
-                }
-
-            });
-
-            return status;
-
-        }
-
-
-
-        async function getSectionName(sectionId) {
-
-
-
-            var sectionName = '';
-
-
-
-            await database.collection('sections').where("id", "==", sectionId).get().then(async function (snapshots) {
-
-
-
-                if (snapshots.docs.length > 0) {
-
-                    var data = snapshots.docs[0].data();
-
-                    sectionName = data.name;
-
-                }
-
-
-
-            });
-
-
-
-            return sectionName;
-
-        }
-
-
-
-        async function getTotalProduct(id) {
-
-
-
-            var totalProduct = '';
-
-
-
-            await database.collection('vendor_products').where('vendorID', '==', id).get().then(async function (productSnapshots) {
-
-
-
-                totalProduct = productSnapshots.docs.length;
-
-
-
-            });
-
-
-
-            return totalProduct;
-
-
-
-        }
-
-        async function getTotalOrders(id) {
-
-            var order_total = '';
-
-
-
-            await database.collection('vendor_orders').where('vendorID', '==', id).get().then(async function (productSnapshots) {
-
-
-
-                order_total = productSnapshots.docs.length;
-
-
-
-            });
-
-
-
-            return order_total;
-
-
-
-        }
-
-
-
-        $("#is_active").click(function () {
-
-            $("#storeTable .is_open").prop('checked', $(this).prop('checked'));
-
-        });
-
-
-
-        $("#deleteAll").click(async function () {
-
-
-
-            if ($('#storeTable .is_open:checked').length) {
-
-
-
-                if (confirm("{{trans('lang.selected_delete_alert')}}")) {
-
-
-
-                    jQuery("#data-table_processing").show();
-
-
-
-
-
-
-
-                    $('#storeTable .is_open:checked').each(async function () {
-
-
-
-                            var dataId = $(this).attr('dataId');
-
-
-
-                            var author = $(this).attr('author');
-
-
-
-                            await deleteDocumentWithImage('vendors', dataId, 'photo', ['vendorMenuPhotos', 'photos'])
-
-
-
-                            .then(() => {
-
-
-
-                                const getStoreName = deleteStoreData(dataId);
-
-
-
-                                setTimeout(function () {
-
-
-
-                                    window.location.reload();
-
-
-
-                                }, 7000);
-
-
-
-                            })
-
-
-
-                            .catch((error) => {
-
-
-
-                                console.error('Error deleting document with image:', error);
-
-
-
-                            });
-
-
-
+                    childData.id = doc.id; // Ensure the document ID is included in the data
+                    childData.name = childData.firstName + ' ' + childData.lastName;
+                    if(childData.hasOwnProperty('subscription_plan') && childData.subscription_plan && childData.subscription_plan.name) {
+                        childData.activePlanName = childData.subscription_plan.name;
+                    }else {
+                        childData.activePlanName = '';
+                    }
+                    var date='';
+                    var time='';
+                    if(childData.hasOwnProperty("subscriptionExpiryDate")) {
+                        try {
+                            date=childData.subscriptionExpiryDate.toDate().toDateString();
+                            time=childData.subscriptionExpiryDate.toDate().toLocaleTimeString('en-US');
+                        } catch(err) {
                         }
-
-
-
-                    );
-
-
-
-
-
-
-
-                }
-
-
-
-            } else {
-
-
-
-                alert("{{trans('lang.select_delete_alert')}}");
-
-
-
-            }
-
-
-
-        });
-
-
-
-        async function deleteStoreData(storeId) {
-
-            await database.collection('users').where('vendorID', '==', storeId).get().then(async function (userssanpshots) {
-
-
-
-                if (userssanpshots.docs.length > 0) {
-
-
-
-                    var projectId = '<?php echo env('FIREBASE_PROJECT_ID') ?>';
-
-                    var item_data = userssanpshots.docs[0].data();
-
-
-
-                    var dataObject = {"data": {"uid": item_data.id}};
-
-
-
-
-
-                      //delete vendor from mysql
-
-                    await database.collection('settings').doc("Version").get().then(function(snapshot) {
-
-                        var settingData=snapshot.data();
-
-                        if(settingData&&settingData.storeUrl) {
-
-                            var siteurl=settingData.storeUrl+"/api/delete-user";
-
-                            var dataObject={"uuid": item_data.id};
-
-                            jQuery.ajax({
-
-                                url: siteurl,
-
-                                method: 'POST',
-
-                                contentType: "application/json; charset=utf-8",
-
-                                data: JSON.stringify(dataObject),
-
-                                success: function(data) {
-
-                                    console.log('Delete user from sql success:',data);
-
-                                },
-
-                                error: function(error) {
-
-                                    console.log('Delete user from sql error:',error.responseJSON.message);
-
-                                }
-
-                            });
-
-                        }
-
-                    });
-
-
-
-
-
-
-
-                    jQuery.ajax({
-
-
-
-                        url: 'https://us-central1-' + projectId + '.cloudfunctions.net/deleteUser',
-
-
-
-                        method: 'POST',
-
-
-
-                        contentType: "application/json; charset=utf-8",
-
-
-
-                        data: JSON.stringify(dataObject),
-
-
-
-                        success: async function (data) {
-
-
-
-                            console.log('Delete user success:', data.result);
-
-
-
-                            await deleteDocumentWithImage('users',item_data.id,'profilePictureURL');
-
-
-
-                        },
-
-
-
-                        error: function (xhr, status, error) {
-
-
-
-                            var responseText = JSON.parse(xhr.responseText);
-
-
-
-                            console.log('Delete user error:', responseText.error);
-
-
-
-                        }
-
-
-
-                    });
-
-
-
-                }
-
-
-
-            });
-
-
-
-
-
-
-
-            await database.collection('vendor_products').where('vendorID', '==', storeId).get().then(async function (snapshots) {
-
-
-
-                if (snapshots.docs.length > 0) {
-
-
-
-                    for (const listval of snapshots.docs) {
-
-
-
-                        await deleteDocumentWithImage('vendor_products', listval.id, 'photo', 'photos');
-
-
-
                     }
 
-
-
-                }
-
-
-
-            });
-
-
-
-
-
-
-
-            await database.collection('vendor_orders').where('vendorID', '==', storeId).get().then(async function (snapshotsItem) {
-
-
-
-                if (snapshotsItem.docs.length > 0) {
-
-
-
-                    for (const temData of snapshotsItem.docs) {
-
-
-
-                        await deleteDocumentWithImage('vendor_orders', temData.id);
-
-
-
-                    }
-
-
-
-                }
-
-
-
-            });
-
-
-
-
-
-
-
-            await database.collection('items_review').where('VendorId', '==', storeId).get().then(async function (snapshotsItem) {
-
-
-
-                if (snapshotsItem.docs.length > 0) {
-
-
-
-                    for (const temData of snapshotsItem.docs) {
-
-
-
-                        await deleteDocumentWithImage('items_review', temData.id, '', 'photos');
-
-
-
-                    }
-
-
-
-                }
-
-
-
-            });
-
-
-
-
-
-
-
-            await database.collection('coupons').where('vendorID', '==', storeId).get().then(async function (snapshotsItem) {
-
-
-
-                if (snapshotsItem.docs.length > 0) {
-
-
-
-                    for (const temData of snapshotsItem.docs) {
-
-
-
-                        await deleteDocumentWithImage('coupons', temData.id, 'image');
-
-
-
-                    }
-
-
-
-                }
-
-
-
-            });
-
-
-
-
-
-
-
-            await database.collection('favorite_vendor').where('store_id', '==', storeId).get().then(async function (snapshotsItem) {
-
-
-
-                if (snapshotsItem.docs.length > 0) {
-
-
-
-                    for (const temData of snapshotsItem.docs) {
-
-
-
-                        await deleteDocumentWithImage('favorite_vendor', temData.id);
-
-
-
-                    }
-
-
-
-                }
-
-
-
-            });
-
-
-
-
-
-
-
-            await database.collection('payouts').where('vendorID', '==', storeId).get().then(async function (snapshotsItem) {
-
-
-
-                if (snapshotsItem.docs.length > 0) {
-
-
-
-                    for (const temData of snapshotsItem.docs) {
-
-
-
-                        await deleteDocumentWithImage('payouts', temData.id);
-
-
-
-                    }
-
-
-
-                }
-
-
-
-            });
-
-
-
-
-
-
-
-            await database.collection('story').where('vendorID', '==', storeId).get().then(async function (snapshotsItem) {
-
-
-
-                if (snapshotsItem.docs.length > 0) {
-
-
-
-                    for (const temData of snapshotsItem.docs) {
-
-
-
-                        await deleteDocumentWithImage('story', temData.id,'videoThumbnail','videoUrl');
-
-
-
-                    }
-
-
-
-                }
-
-
-
-            });
-
-
-
-
-
-
-
-        }
-
-
-
-        $(document.body).on('click', '.redirecttopage', function () {
-
-
-
-            var url = $(this).attr('data-url');
-
-            window.location.href = url;
-
-
-
-        });
-
-
-
-        async function userPhone(author) {
-
-
-
-            var userPhones = '';
-
-
-
-            await database.collection('users').where("id", "==", author).get().then(async function (snapshotss) {
-
-
-
-
-
-
-
-                if (snapshotss.docs[0]) {
-
-
-
-                    var user = snapshotss.docs[0].data();
-
-
-
-                    userPhones = user.phoneNumber;
-
-
-
-                    if (user.isActive) {
-
-
-
-
-
-
-
-                        jQuery(".active_vendor_" + author + " span").addClass('badge-danger');
-
-
-
-                        jQuery(".active_vendor_" + author + " span").text('No');
-
-
-
-
-
-
-
+                    childData.vendorData = childData.vendorID ? await getUserStoreInfo(childData.vendorID) : ''
+                    childData.expiryDate=date+' '+time;
+                    childData.phone = (childData.phoneNumber != '' && childData.phoneNumber != null && childData.phoneNumber.slice(0, 1) == '+') ? childData.phoneNumber.slice(1) : childData.phoneNumber;     
+                    childData.maskedPhone = EditPhoneNumber(childData.phone);                       
+                    childData.hasPlusSign = childData.phoneNumber.startsWith('+');                        
+                    childData.exportPhone = childData.hasPlusSign ? `+${childData.maskedPhone}` : childData.maskedPhone;
+                    childData.contactInfo = shortEmail(childData.email) + '<br>' + (childData.hasPlusSign ? `+${childData.maskedPhone}` : childData.maskedPhone);
+                    if (childData.subscriptionExpiryDate) {
+                        childData.exportExpiryDate =
+                            childData.subscriptionExpiryDate.toDate().toLocaleDateString() + ' ' +
+                            childData.subscriptionExpiryDate.toDate().toLocaleTimeString('en-US');
                     } else {
-
-
-
-                        jQuery(".active_vendor_" + author + " span").addClass('badge-success');
-
-
-
-                        jQuery(".active_vendor_" + author + " span").text('Yes');
-
-
-
+                        childData.exportExpiryDate = '-';
                     }
 
-
-
-
-
-
-
-                } else {
-
-
-
-                    jQuery(".phone_" + author).html('');
-
-
-
-                    jQuery(".active_vendor_" + author + " span").addClass('badge-success');
-
-
-
-                    jQuery(".active_vendor_" + author + " span").text('Yes');
-
-
-
-                }
-
-
-
-            });
-
-
-
-            return userPhones;
-
-
-
-        }
-
-
-
-        function clickpage(value) {
-
-            setCookie('pagesizes', value, 30);
-
-            location.reload();
-
-        }
-
-
-
-        $(document).on("click", "a[name='delete-btn']",async function (e) {
-
-
-
-            var id = this.id;
-
-
-
-            var author = $(this).attr('author');
-
-
-
-            jQuery("#data-table_processing").show();
-
-
-
-
-
-
-
-            await deleteDocumentWithImage('vendors', id, 'photo', ['vendorMenuPhotos', 'photos'])
-
-
-
-            .then(() => {
-
-
-
-                return deleteStoreData(id);
-
-
-
-            })
-
-
-
-            .then(() => {
-
-
-
-                setTimeout(function () {
-
-
-
-                    window.location.reload();
-
-
-
-                }, 7000);
-
-
-
-            })
-
-
-
-            .catch((error) => {
-
-
-
-                console.error('Error:', error);
-
-
-
-            });
-
-
-
-        });
-
-
-
-        function clickLink(value) {
-
-
-
-            setCookie('section_id', value, 30);
-
-
-
-            location.reload();
-
-
-
-        }
-
-
-
-        $(document).on("click", "a[name='vendor-clone']", async function (e) {
-
-
-
-            var id = $(this).attr('vendor_id');
-
-
-
-            var author = $(this).attr('author');
-
-            await database.collection('users').doc(author).get().then(async function (snapshotsusers) {
-
-
-
-                userData = snapshotsusers.data();
-
-
-
-            });
-
-
-
-            await database.collection('vendors').doc(id).get().then(async function (snapshotsvendors) {
-
-
-
-                vendorData = snapshotsvendors.data();
-
-
-
-            });
-
-
-
-            await database.collection('vendor_products').where('vendorID', '==', id).get().then(async function (snapshotsproducts) {
-
-
-
-                vendorProducts = [];
-
-
-
-                snapshotsproducts.docs.forEach(async (product) => {
-
-
-
-                    vendorProducts.push(product.data());
-
-
+                    if (searchValue) {
+                        var date = '';
+                        var time = '';
+                        if (childData.hasOwnProperty("createdAt")) {
+                            try {
+                                date = childData.createdAt.toDate().toDateString();
+                                time = childData.createdAt.toDate().toLocaleTimeString('en-US');
+                            } catch (err) {
+                            }
+                        }
+                        var createdAt = date + ' ' + time;
+                        if (
+                            (childData.name && childData.name.toString().toLowerCase().includes(searchValue)) ||
+                            (childData.vendorData && childData.vendorData.title && childData.vendorData.title.toString().toLowerCase().includes(searchValue)) ||
+                            (childData.email && childData.email.toString().toLowerCase().includes(searchValue)) ||
+                            (childData.expiryDate&&childData.expiryDate.toString().toLowerCase().indexOf(searchValue)>-1)||
+                            (childData.hasOwnProperty('activePlanName')&&childData.activePlanName.toLowerCase().toString().includes(searchValue))||
+                            (createdAt && createdAt.toString().toLowerCase().indexOf(searchValue) > -1) || (childData.phoneNumber && childData.phoneNumber.toString().toLowerCase().includes(searchValue))
+                        ) {
+                            filteredRecords.push(childData);
+                        }
+                    } else {
+                        filteredRecords.push(childData);
+                    }
+                }));
+
+                filteredRecords.sort((a, b) => {
+                    let aValue = a[orderByField] ;
+                    let bValue = b[orderByField] ;
+
+                   if (orderByField === 'contactInfo') {
+                        aValue = a.contactInfo ? a.contactInfo.toString().toLowerCase().trim() : '';
+                        bValue = b.contactInfo ? b.contactInfo.toString().toLowerCase().trim() : '';
+                    } else if (orderByField === 'subscriptionExpiryDate') {
+
+                        aValue=a[orderByField]? new Date(a[orderByField].toDate()).getTime():0;
+                        bValue=b[orderByField]? new Date(b[orderByField].toDate()).getTime():0;
+
+                    } else if (orderByField === 'createdAt' && a[orderByField] != '' && b[orderByField] != '' && a[orderByField] != null && b[orderByField] != null) {
+
+                        /*  aValue = a[orderByField] ? new Date(a[orderByField].toDate()).getTime() : 0;
+                            bValue = b[orderByField] ? new Date(b[orderByField].toDate()).getTime() : 0; */
+                        function normalizeDate(v) {
+                            if (!v) return 0;                             
+                            if (typeof v.toDate === "function") {
+                                return new Date(v.toDate()).getTime();  
+                            }
+                            if (v instanceof Date) {
+                                return v.getTime();                    
+                            }
+                            if (typeof v === "string" || typeof v === "number") {
+                                return new Date(v).getTime();         
+                            }
+                            return 0;  
+                        }
+
+                    aValue = normalizeDate(a[orderByField]);
+                    bValue = normalizeDate(b[orderByField]);
+
+                    }  else{
+
+                        aValue = a[orderByField] ? a[orderByField].toString().toLowerCase().trim() : '';
+                        bValue = b[orderByField] ? b[orderByField].toString().toLowerCase().trim() : ''
+                    }
+
+                    if (orderDirection === 'asc') {
+                        return (aValue > bValue) ? 1 : -1;
+                    } else {
+                        return (aValue < bValue) ? 1 : -1;
+                    }
 
                 });
 
+                const totalRecords = filteredRecords.length;
+                $('.total_count').text(totalRecords); 
+                const paginatedRecords = filteredRecords.slice(start, start + length);
 
+                await Promise.all(paginatedRecords.map(async (childData) => {
+                    var getData = await buildHTML(childData);
 
-
-
-
-
+                    records.push(getData);
+                }));
+               
+                $('#data-table_processing').hide(); // Hide loader
+                callback({
+                    draw: data.draw,
+                    recordsTotal: totalRecords, // Total number of records in Firestore
+                    recordsFiltered: totalRecords, // Number of records after filtering (if any)
+                    filteredData: filteredRecords,
+                    data: records // The actual data to display in the table
+                });
+            }).catch(function (error) {
+                console.error("Error fetching data from Firestore:", error);
+                $('#data-table_processing').hide(); // Hide loader
+                callback({
+                    draw: data.draw,
+                    recordsTotal: 0,
+                    recordsFiltered: 0,
+                    data: [] // No data due to error
+                });
             });
-
-
-
-
-
-
-
-
-
-
-
-            if (userData && vendorData) {
-
-
-
-                jQuery("#create_vendor").modal('show');
-
-
-
-                jQuery("#vendor_title_lable").text(vendorData.title);
-
-
-
+        },
+        order: (checkDeletePermission) ? [6, 'desc'] : [5, 'desc'],
+        columnDefs: [
+            {
+                // Changed: Updated non-orderable columns
+                orderable: false,
+                targets: (checkDeletePermission) ? [0, 7, 8] : [6, 7],
+            },
+            {
+                type: 'date',
+                render: function(data) {
+                    return data;
+                },
+                // Changed: Updated target index for date column
+                targets: (checkDeletePermission) ? [6] : [5],
             }
-
-
-
-        });
-
-        $(document).on("click", "#create_vendor_submit", async function (e) {
-
-
-
-            var vendor_id = database.collection("tmp").doc().id;
-
-            if (userData && vendorData) {
-
-
-
-                var vendor_title = jQuery("#vendor_title").val();
-
-
-
-                var userFirstName = jQuery("#user_name").val();
-
-
-
-                var userLastName = jQuery("#user_last_name").val();
-
-
-
-                var email = jQuery("#user_email").val();
-
-
-
-                var password = jQuery("#user_password").val();
-
-
-
-
-
-
-
-                if (userFirstName == '') {
-
-
-
-
-
-
-
-                    $(".error_top").show();
-
-
-
-                    $(".error_top").html("");
-
-
-
-                    $(".error_top").append("<p>{{trans('lang.user_name_required')}}</p>");
-
-
-
-                    window.scrollTo(0, 0);
-
-
-
-
-
-
-
-                } else if (userLastName == '') {
-
-
-
-
-
-
-
-                    $(".error_top").show();
-
-
-
-                    $(".error_top").html("");
-
-
-
-                    $(".error_top").append("<p>{{trans('lang.user_last_name_required')}}</p>");
-
-
-
-                    window.scrollTo(0, 0);
-
-
-
-
-
-
-
-                } else if (vendor_title == '') {
-
-
-
-
-
-
-
-                    $(".error_top").show();
-
-
-
-                    $(".error_top").html("");
-
-
-
-                    $(".error_top").append("<p>{{trans('lang.vendor_title_required')}}</p>");
-
-
-
-                    window.scrollTo(0, 0);
-
-
-
-
-
-
-
-                } else if (email == '') {
-
-
-
-
-
-
-
-                    $(".error_top").show();
-
-
-
-                    $(".error_top").html("");
-
-
-
-                    $(".error_top").append("<p>{{trans('lang.user_email_required')}}</p>");
-
-
-
-                    window.scrollTo(0, 0);
-
-
-
-                } else if (password == '') {
-
-
-
-                    $(".error_top").show();
-
-
-
-                    $(".error_top").html("");
-
-
-
-                    $(".error_top").append("<p>{{trans('lang.enter_owners_password_error')}}</p>");
-
-
-
-                    window.scrollTo(0, 0);
-
-
-
-                } else {
-
-
-
-
-
-
-
-                    jQuery("#data-table_processing2").show();
-
-
-
-
-
-
-
-                    firebase.auth().createUserWithEmailAndPassword(email, password).then(async function (firebaseUser) {
-
-
-
-                        var user_id = firebaseUser.user.uid;
-
-
-
-
-
-
-
-                        userData.email = email;
-
-
-
-                        userData.firstName = userFirstName;
-
-
-
-                        userData.lastName = userLastName;
-
-
-
-                        userData.id = user_id;
-
-
-
-                        userData.vendorID = vendor_id;
-
-
-
-                        userData.createdAt = createdAt;
-
-
-
-                        userData.wallet_amount = 0;
-
-
-
-
-
-
-
-                        vendorData.author = user_id;
-
-
-
-                        vendorData.authorName = userFirstName + ' ' + userLastName;
-
-
-
-                        vendorData.title = vendor_title;
-
-
-
-                        vendorData.id = vendor_id;
-
-
-
-                        coordinates = new firebase.firestore.GeoPoint(vendorData.latitude, vendorData.longitude);
-
-
-
-                        vendorData.coordinates = coordinates;
-
-
-
-                        vendorData.createdAt = createdAt;
-
-
-
-
-
-
-
-                        await database.collection('users').doc(user_id).set(userData).then(async function (result) {
-
-
-
-
-
-
-
-                            await geoFirestore.collection('vendors').doc(vendor_id).set(vendorData).then(async function (result) {
-
-
-
-                                var count = 0;
-
-
-
-                                await vendorProducts.forEach(async (product) => {
-
-
-
-                                    var product_id = await database.collection("tmp").doc().id;
-
-
-
-                                    product.id = product_id;
-
-
-
-                                    product.vendorID = vendor_id;
-
-
-
-                                    await database.collection('vendor_products').doc(product_id).set(product).then(function (result) {
-
-
-
-                                        count++;
-
-
-
-                                        if (count == vendorProducts.length) {
-
-
-
-                                            jQuery("#data-table_processing2").hide();
-
-
-
-                                            alert('Successfully created.');
-
-
-
-                                            jQuery("#create_vendor").modal('hide');
-
-
-
-                                            location.reload();
-
-
-
-                                        }
-
-
-
-                                    });
-
-
-
-
-
-
-
-                                });
-
-
-
-
-
-
-
-
-
-
-
-                            });
-
-
-
-                        })
-
-
-
-
-
-
-
-                    }).catch(function (error) {
-
-
-
-                        $(".error_top").show();
-
-
-
-                        jQuery("#data-table_processing2").hide();
-
-
-
-                        $(".error_top").html("");
-
-
-
-                        $(".error_top").append("<p>" + error + "</p>");
-
-
-
-                    });
-
-
-
-
-
-
-
-
-
-
-
-                }
-
-
-
+        ],
+        "language": datatableLang,
+
+        dom: 'lfrtipB',
+        buttons: [
+            {
+                extend: 'collection',
+                text: '<i class="mdi mdi-cloud-download"></i> {{trans('lang.export_as')}}',
+                className: 'btn btn-info',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '{{ trans('lang.export_excel') }}',
+                        action: function (e, dt, button, config) {
+                            exportData(dt, 'excel',fieldConfig);
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: '{{ trans('lang.export_pdf') }}',
+                        action: function (e, dt, button, config) {
+                            exportData(dt, 'pdf',fieldConfig);
+                        }
+                    },   
+                    {
+                        extend: 'csvHtml5',
+                        text: '{{ trans('lang.export_csv') }}',
+                        action: function (e, dt, button, config) {
+                            exportData(dt, 'csv',fieldConfig);
+                        }
+                    }
+                ]
             }
+        ],
+        initComplete: function() {
+            $(".dataTables_filter").append($(".dt-buttons").detach());
+            $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+            $('.dataTables_filter label').contents().filter(function() {
+                return this.nodeType === 3; 
+            }).remove();
+        }
+    });
 
+    function debounce(func, wait) {
+        let timeout;
+        const context = this;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), wait);
+        };
+    }
 
+    $('#search-input').on('input', debounce(function () {
+        const searchValue = $(this).val();
+        if (searchValue.length >= 3) {
+            $('#data-table_processing').show();
+            table.search(searchValue).draw();
+        } else if (searchValue.length === 0) {
+            $('#data-table_processing').show();
+            table.search('').draw();
+        }
+    }, 300));
 
-        });
+});
+            //document verification status icon add new code 
+async function getDocumentStatusIcon(driverId) {
+    const docSnap = await database.collection('documents_verify').doc(driverId).get();
 
+    if (!docSnap.exists) return '';                     // no verification record → no icon
 
+    const docs = docSnap.data().documents || [];
 
+    // Count approved / rejected
+    const approved = docs.filter(d => d.status === 'approved').length;
+    const rejected = docs.filter(d => d.status === 'rejected').length;
+    const total   = docs.length;
 
+    // Both approved?
+    if (approved === total && total > 0) {
+        return '<i class="mdi mdi-verified verified-icon" data-toggle="tooltip" data-bs-original-title="{{trans('lang.verified')}}"></i>';
+    }
+
+    // Any rejected?
+    if (rejected > 0) {
+        return '<i class="mdi mdi-close-circle unverified-icon" data-toggle="tooltip" data-bs-original-title="{{trans('lang.rejected')}}" style="color:red;"></i>';
+    }
+
+    // Both uploaded (or pending) → no icon
+    return '';
+}
+async function buildHTML(val) {
+    var html = [];
+
+    var id = val.id;
+
+    var route1 = '';
+    var route1 =  '{{route("vendors.edit", ":id")}}';
+    route1 = route1.replace(':id', val.id);    
+    
+    var vendorEdit = '{{route("vendors.edit", ":id")}}';
+    vendorEdit = vendorEdit.replace(':id', val.id);
+
+    var vendorView = '';
+    if(val.vendorData){
+        vendorView = '{{ route('stores.view', ':id') }}';
+        vendorView = vendorView.replace(':id', val.vendorData.id);
+    }
+    
+    var trroute1 = '{{route("users.walletstransaction", ":id")}}';
+    trroute1 = trroute1.replace(':id', id);
+    if(checkDeletePermission){
+    html.push('<td class="delete-all"><input type="checkbox" id="is_open_' + id + '" class="is_open" dataId="' + id + '" data-vendorid="'+val.vendorID+'"><label class="col-3 control-label"\n' +
+        'for="is_open_' + id + '" ></label></td>');
+    }
+    
+    var verified = await getDocumentStatusIcon(val.id);
+
+    if(val.isAutoVerify === true){
+        verified += ' <i class="mdi mdi-check-circle verified-icon" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.auto_approved') }}"></i>';
+    }
+
+    if (val.profilePictureURL == '') {
+
+        html.push('<img class="rounded" style="width:50px" src="' + placeholderImage + '" alt="image">  <a id="userName_' + id + '"  href="'+vendorEdit+'" class="redirecttopage left_space">' + val.firstName + ' ' + val.lastName + '</a>' + verified);
+    } else {
+        if(val.profilePictureURL){
+            photo=val.profilePictureURL;
+        }else{
+            photo=placeholderImage;
+        }
+        html.push('<img class="rounded" style="width:50px" src="' + photo + '" alt="image" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'">  <a id="userName_' + id + '"  href="'+vendorEdit+'" class="redirecttopage left_space">' + val.firstName + ' ' + val.lastName + '</a>' + verified);
+    }
+
+    if(val.vendorData){
+        html.push('<a href="'+vendorView+'" class="redirecttopage left_space">' + val.vendorData.title + '</a>');
+    }else{
+        html.push('');
+    }
+    
+    html.push(val.contactInfo);
+
+    if(val.hasOwnProperty('subscription_plan') && val.subscription_plan && val.subscription_plan.name) {
+        html.push(val.subscription_plan.name);
+    } else {
+        html.push('');
+    }
 
    
+    if(val.hasOwnProperty('subscription_plan') && val.subscription_plan) {
+        if(val.expiryDate != ' '){
+            html.push(val.expiryDate);
+        }else{
+            html.push('{{trans("lang.unlimited")}}');
+        }
+    } else {
+        html.push('');
+    }
+    
+    var date = '';
+    var time = '';
+    if (val.hasOwnProperty("createdAt")) {
+        try {
+            date = val.createdAt.toDate().toDateString();
+            time = val.createdAt.toDate().toLocaleTimeString('en-US');
+        } catch (err) {
+
+        }
+        html.push('<td class="dt-time"><span class="wrap-word">' + date + '<br> ' + time + '</span></td>');
+    } else {
+        html.push('');
+    }
+
+    if (val.active) {
+        html.push('<label class="switch"><input type="checkbox" checked id="' + val.id + '" name="isActive"><span class="slider round"></span></label>');
+    } else {
+        html.push('<label class="switch"><input type="checkbox" id="' + val.id + '" name="isActive"><span class="slider round"></span></label>');
+    }
+    var chatViewRoute = "{{ route('vendors.chat', ':id') }}".replace(':id', val.id);
+    var unreadHtml = '';
+    var action='<span class="action-btn">';
+
+    if(val.isAutoVerify !== true){
+        var document_list_view = "{{ route('vendors.document', ':id') }}";
+        document_list_view = document_list_view.replace(':id', val.id);
+        action+='<a href="' + document_list_view + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.document') }}"><i class="fa fa-file"></i></a>';
+    }
+
+    var planRoute="{{route('subscription.subscriptionPlanHistory',':id')}}";
+    planRoute=planRoute.replace(':id',val.id);
+    if(val.hasOwnProperty('subscription_plan')) {
+        action+='<a id="'+val.id+'"  href="'+planRoute+'" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.subscription_plans') }}"><i class="mdi mdi-crown"></i></a>';
+    }
+    action+='<a id="'+val.id+'"  href="'+route1+'" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';
+    if(checkDeletePermission) {
+        action=action+'<a id="'+val.id+'" data-vendorid="'+val.vendorID+'" class="delete-btn" name="user-delete" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a>';
+    }
+    if(checkChatPermission){
+    action = action + '<a href="' + chatViewRoute + '" class="chat-message" style="position: relative; display: inline-block;">' +
+                '<i class="mdi mdi-wechat mdi-24px"></i>' + unreadHtml +
+                '</a>';
+    }
+    action=action+'</span>';
+    html.push(action);
+    return html;
+}
 
 
+async function getUserStoreInfo(vendorId) {
+    let vendorRef = await database.collection('vendors').doc(vendorId).get();
+    let vendorData = vendorRef.data();
+    return vendorData;
+}
 
-    </script>
+$("#is_active").click(function () {
+    $("#userTable .is_open").prop('checked', $(this).prop('checked'));
+
+});
+
+$("#deleteAll").click(function () {
+    if ($('#userTable .is_open:checked').length) {
+        if (confirm("{{trans('lang.selected_delete_alert')}}")) {
+            jQuery("#data-table_processing").show();
+            $('#userTable .is_open:checked').each(function () {
+                var dataId = $(this).attr('dataId');
+                var VendorId = $(this).attr('data-vendorid');
+                deleteDocumentWithImage('users', dataId, 'profilePictureURL')
+                .then(() => {
+                    return deleteUserData(dataId, VendorId);
+                })
+                .then(result => {
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 7000);
+                })
+                .catch(error => {
+                    console.error("Error occurred:", error);
+                });
+            });
+
+        }
+    } else {
+        alert("{{trans('lang.select_delete_alert')}}");
+    }
+});
+
+async function deleteUserData(userId,vendorId) {
+
+    await database.collection('wallet').where('user_id', '==', userId).get().then(async function (snapshotsItem) {
+
+        if (snapshotsItem.docs.length > 0) {
+            snapshotsItem.docs.forEach((temData) => {
+                var item_data = temData.data();
+
+                database.collection('wallet').doc(item_data.id).delete().then(function () {
+
+                });
+            });
+        }
+    });
+
+    if(vendorId != '' && vendorId != null){
+       await deleteDocumentWithImage('vendors',vendorId,'photo',['vendorMenuPhotos','photos']);
+        await database.collection('vendor_products').where('vendorID','==',vendorId).get().then(async function (snapshotsItem) {
+             if (snapshotsItem.docs.length > 0) {
+                for (const listval of snapshotsItem.docs) {
+                    await deleteDocumentWithImage('vendor_products', listval.id, 'photo', 'photos');
+                }
+             }
+        })
+        await database.collection('story').where('vendorID', '==', vendorId).get().then(async function (snapshotsItem) {
+                if (snapshotsItem.docs.length > 0) {
+                    for (const temData of snapshotsItem.docs) {
+                        await deleteDocumentWithImage('story', temData.id,'videoThumbnail','videoUrl');
+                    }
+                }
+            });
+        await database.collection('favorite_vendor').where('store_id','==',vendorId).get().then(async function (snapshotsItem) {
+             if (snapshotsItem.docs.length > 0) {
+            snapshotsItem.docs.forEach((temData) => {
+                var item_data = temData.data();
+
+                database.collection('favorite_vendor').doc(item_data.id).delete().then(function () {
+
+                });
+            });
+        }
+        })
+    }
+
+      //delete vendor from mysql
+      database.collection('settings').doc("Version").get().then(function(snapshot) {
+            var settingData=snapshot.data();
+            if(settingData&&settingData.storeUrl) {
+                var siteurl=settingData.storeUrl+"/api/delete-user";
+                var dataObject={"uuid": userId};
+                jQuery.ajax({
+                    url: siteurl,
+                    method: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify(dataObject),
+                    success: function(data) {
+                        console.log('Delete user from sql success:',data);
+                    },
+                    error: function(error) {
+                        console.log('Delete user from sql error:',error.responseJSON.message);
+                    }
+                });
+            }
+        });
+
+    //delete user from authentication
+    var dataObject = {"data": {"uid": userId}};
+    var projectId = '<?php echo env('FIREBASE_PROJECT_ID') ?>';
+    jQuery.ajax({
+        url: 'https://us-central1-' + projectId + '.cloudfunctions.net/deleteUser',
+        method: 'POST',
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(dataObject),
+        success: function (data) {
+            console.log('Delete user success:', data.result);
+        },
+        error: function (xhr, status, error) {
+            var responseText = JSON.parse(xhr.responseText);
+            console.log('Delete user error:', responseText.error);
+        }
+    });
+}
 
 
+$(document).on("click", "a[name='user-delete']", function (e) {
+    var id = this.id;
+    var VendorId = $(this).attr('data-vendorid');
+    jQuery("#data-table_processing").show();
+    deleteDocumentWithImage('users', id, 'profilePictureURL')
+    .then(() => {
+        return deleteUserData(id, VendorId);
+    })
+    .then(result => {
+        setTimeout(function () {
+            window.location.reload();
+        }, 7000);
+    })
+    .catch(error => {
+        console.error("Error occurred:", error);
+    });
+});
 
+$(document).on("click", "input[name='isActive']", function (e) {
+    var ischeck = $(this).is(':checked');
+    var id = this.id;
+    if (ischeck) {
+        database.collection('users').doc(id).update({'active': true}).then(function (result) {
+        });
+    } else {
+        database.collection('users').doc(id).update({'active': false}).then(function (result) {
+        });
+    }
 
+});
 
-
+</script>
 
 @endsection
-
-
-

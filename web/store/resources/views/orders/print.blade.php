@@ -10,7 +10,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
 
 
                 <li class="breadcrumb-item"><a href="{!! route('orders') !!}">{{trans('lang.order_plural')}}</a>
@@ -45,7 +45,7 @@
                         <label class="storePhone"></label>
                     </h5>
                 </div>
-                <span>---------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+                <span class="dashed-line"></span>
                 <div class="row mt-3">
                     <div class="col-6">
                         <h5>{{trans('lang.order_id')}} : <label class="orderId"></label></h5>
@@ -74,7 +74,7 @@
                     </div>
                 </div>
                 <h5 class="text-uppercase"></h5>
-                <span>------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+                <span class="dashed-line"></span>
                 <table class="table table-bordered mt-3" style="width: 95%">
                     <thead>
                         <tr>
@@ -89,18 +89,10 @@
 
                     </tbody>
                 </table>
-                <span>-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+                <span class="dashed-line"></span>
                 <div class="row justify-content-md-end mb-3" style="width: 97%">
                     <div class="col-md-7 col-lg-7">
-                        <dl class="row text-right">
-                            <dt class="col-6">{{trans('lang.items_price')}} :</dt>
-                            <dd class="col-6"><label class="total_item_price"></label>
-                            </dd>
-                            <dt class="col-6">{{trans('lang.addon_cost')}} :</dt>
-                            <dd class="col-6">
-                                <label class="total_addon_price"></label>
-                                <hr>
-                            </dd>
+                        <dl class="row text-right" id="price-breakdown">
                             <dt class="col-6">{{trans('lang.sub_total')}} :</dt>
                             <dd class="col-6">
                                 <label class="total_price"></label>
@@ -119,15 +111,11 @@
 
                             <span class="taxes row w-100 m-0"></span>
 
-                            <dt class="col-6">{{trans('lang.dm_tips')}} :</dt>
-                            <dd class="col-6">
-                                <label class="total_tip_amount">+ $ 0</label>
+                            <dt class="col-6 packagingChargeDiv d-none">{{trans('lang.packaging_charge')}} :</dt>
+                            <dd class="col-6 packagingChargeDiv d-none">
+                                <label class="packaging_charge">+ $ 0</label>
                             </dd>
-                            <dt class="col-6">{{trans('lang.deliveryFee')}} :</dt>
-                            <dd class="col-6">
-                                <label class="total_delivery_amount">+ $ 0</label>
-                                <hr>
-                            </dd>
+
                             <dt class="col-6" style="font-size: 20px">{{trans('lang.total')}} :
                             </dt>
                             <dd class="col-6" style="font-size: 20px">
@@ -136,11 +124,11 @@
                         </dl>
                     </div>
                 </div>
-                <span>-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+                <span class="dashed-line"></span>
                 <h5 class="text-center pt-3">
                     {{trans('lang.thank_you')}}
                 </h5>
-                <span>-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+                <span class="dashed-line"></span>
             </div>
         </div>
     </div>
@@ -207,8 +195,7 @@
         var tip_amount_val = 0;
         var tip_amount = 0;
         var total_price = 0;
-        var total_item_price = 0;
-        var total_addon_price = 0;
+        
         var vendorname = '';
         var database = firebase.firestore();
         var ref = database.collection('vendor_orders').where("id", "==", id);
@@ -216,8 +203,21 @@
         var currencyAtRight = false;
         var refCurrency = database.collection('currencies').where('isActive', '==', true);
         var decimal_degits = 0;
+        var currencyData = '';
+        var total_tax_amount = 0;
+        var placeholderImage = '';
+        var packagingChargeEnable = false;
 
-       var placeholderImage = '';
+        let taxBreakdownGrouped = {
+            item: {},
+            order: {},
+            delivery: {},
+            packaging: {},
+            platform: {}
+        };
+        
+        let taxHeaderInserted = false;
+        let taxFooterInserted = false;
 
         var placeholder = database.collection('settings').doc('placeHolderImage');
         placeholder.get().then(async function (snapshotsimage) {
@@ -226,7 +226,7 @@
         })
 
         refCurrency.get().then(async function(snapshots) {
-            var currencyData = snapshots.docs[0].data();
+            currencyData = snapshots.docs[0].data();
             currentCurrency = currencyData.symbol;
             currencyAtRight = currencyData.symbolAtRight;
 
@@ -239,7 +239,12 @@
 
             jQuery("#data-table_processing").show();
             var order = snapshots.docs[0].data();
-
+            packagingChargeEnable = order.packagingChargeEnable;
+            if(packagingChargeEnable){
+                $('.packagingChargeDiv').removeClass('d-none');
+            }else{
+                $('.packagingChargeDiv').addClass('d-none');
+            }
             $(".customerName").text(order.author.firstName + " " + order.author.lastName);
             var billingAddressstring = '';
 
@@ -468,8 +473,14 @@
                     html = html + '<div class="type"><span>{{trans("lang.type")}} :</span><span class="ext-size">' + product.size + '</span></div>';
                 }
 
-                price_item = parseFloat(val.price).toFixed(decimal_degits);
-
+                var final_price = '';
+                if (val.discountPrice != 0 && val.discountPrice != "" && val.discountPrice != null && !isNaN(val.discountPrice)) {
+                    final_price = parseFloat(val.discountPrice);
+                } else {
+                    final_price = parseFloat(val.price);
+                }
+                price_item = parseFloat(final_price).toFixed(decimal_degits);
+                
                 totalProductPrice = parseFloat(price_item) * parseInt(val.quantity);
                 var extras_price = 0;
                 if (product.extras != undefined && product.extras != '' && product.extras.length > 0) {
@@ -496,240 +507,206 @@
 
                 html = html + '</tr>';
                 total_price += parseFloat(totalProductPrice);
-                total_addon_price += parseFloat(extras_price);
-                total_item_price += parseFloat(price_item);
-
-
             });
-            totalProductPrice = 0;
 
             if (currencyAtRight) {
-                total_item_price = parseFloat(total_item_price).toFixed(decimal_degits) + "" + currentCurrency;
-                total_addon_price = parseFloat(total_addon_price).toFixed(decimal_degits) + "" + currentCurrency;
                 $('.total_price').text(parseFloat(total_price).toFixed(decimal_degits) + "" + currentCurrency);
             } else {
-                total_item_price = currentCurrency + "" + parseFloat(total_item_price).toFixed(decimal_degits);
-                total_addon_price = currentCurrency + "" + parseFloat(total_addon_price).toFixed(decimal_degits);
                 $('.total_price').text(currentCurrency + "" + parseFloat(total_price).toFixed(decimal_degits));
             }
-            $('.total_item_price').text(total_item_price);
-            $('.total_addon_price').text(total_addon_price);
-
-
+            
             return html;
         }
 
         function buildHTMLProductstotal(snapshotsProducts) {
             var html = '';
-            var alldata = [];
-            var number = [];
-
+            
             var adminCommission = snapshotsProducts.adminCommission;
             var adminCommissionType = snapshotsProducts.adminCommissionType;
             var discount = snapshotsProducts.discount;
             var couponCode = snapshotsProducts.couponCode;
-            var extras = snapshotsProducts.extras;
-            var extras_price = snapshotsProducts.extras_price;
-            var rejectedByDrivers = snapshotsProducts.rejectedByDrivers;
             var takeAway = snapshotsProducts.takeAway;
-            var tip_amount = snapshotsProducts.tip_amount;
             var notes = snapshotsProducts.notes;
-            var tax_amount = snapshotsProducts.vendor.tax_amount;
-            var status = snapshotsProducts.status;
-            var products = snapshotsProducts.products;
-            var deliveryCharge = snapshotsProducts.deliveryCharge;
             var specialDiscount = snapshotsProducts.specialDiscount;
-
             var intRegex = /^\d+$/;
             var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
+            
+            let order_subtotal = 0;
+            let total_discount = 0;
+            let tip_amount = parseFloat(snapshotsProducts.tip_amount || 0);
+            let deliveryCharge = parseFloat(snapshotsProducts.deliveryCharge || 0);
+            let platformFee = parseFloat(snapshotsProducts.platformFee || 0);
+            let packagingCharge = parseFloat(snapshotsProducts.vendor.packagingCharge || 0);
 
-            if (products) {
-
-                products.forEach((product) => {
-
-                    var val = product;
-
-                });
+            //  Calculate subtotal and product extras
+            for (let i = 0; i < snapshotsProducts.products.length; i++) {
+                let product = snapshotsProducts.products[i];
+                let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+                order_subtotal += itemGross;
             }
 
-            var discount_val = 0;
+            // Total discounts
+            let order_discount = parseFloat(snapshotsProducts.discount || 0);
+            let special_discount = parseFloat(snapshotsProducts.specialDiscount?.special_discount || 0);
+                total_discount = order_discount + special_discount;
 
+            // Calculate item-level taxes (if product-level)
+            if (snapshotsProducts.taxScope === "product") {
+                let itemSubtotal = order_subtotal;
+                let itemCombinedTax = 0;
+                snapshotsProducts.products.forEach(product => {
+                    let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                    let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+                    let itemDiscount = (itemSubtotal > 0) ? (itemGross / itemSubtotal) * total_discount : 0;
+                    let itemTaxable = Math.max(0, itemGross - itemDiscount);
+                    let itemTaxes = product.taxSetting || [];
+                    itemTaxes.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * itemTaxable;
+                            } else {
+                                taxAmount = tax.tax * product.quantity;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                            itemCombinedTax += parseFloat(taxAmount);
+                        }
+                    });
+                });
+                if(itemCombinedTax > 0){
+                    taxBreakdownGrouped.item[''] = itemCombinedTax;
+                }
+            } 
+
+            // Order-level taxes (if order-level)
+            if (snapshotsProducts.taxScope === "order") {
+                let orderTaxable = Math.max(0, order_subtotal - total_discount);
+                let orderCombinedTax = 0;
+                (snapshotsProducts.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * orderTaxable;
+                        } else {
+                            taxAmount = tax.tax;
+                        }
+                        total_tax_amount += parseFloat(taxAmount);
+                        orderCombinedTax += parseFloat(taxAmount);
+                    }
+                });
+                if(orderCombinedTax > 0){
+                    taxBreakdownGrouped.order[''] = orderCombinedTax;
+                }
+            }
+
+            orderTaxAmountVendor = total_tax_amount;
+            orderTaxAmountCustomer = total_tax_amount;
+            
+            // Delivery, packaging, platform taxes
+            let extraCharges = [
+                {key: 'delivery', amount: deliveryCharge, taxes: snapshotsProducts.driverDeliveryTax || []},
+                {key: 'packaging', amount: packagingCharge, taxes: snapshotsProducts.packagingTax || []},
+                {key: 'platform', amount: platformFee, taxes: snapshotsProducts.platformTax || []},
+            ];
+
+            
+            extraCharges.forEach(scope => {
+                if (scope.key === "packaging" && !packagingChargeEnable) {
+                    return;
+                }
+                scope.taxes?.forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * scope.amount;
+                        } else {
+                            taxAmount = tax.tax;
+                        }
+                        if(scope.key == "packaging"){
+                            total_tax_amount += parseFloat(taxAmount);
+                            orderTaxAmountVendor += parseFloat(taxAmount);
+                        }
+                        orderTaxAmountCustomer += parseFloat(taxAmount);
+                        taxBreakdownGrouped[scope.key][tax.title] = (taxBreakdownGrouped[scope.key][tax.title] || 0) + parseFloat(taxAmount);
+                    }
+                });
+            });
+
+            // Final total
+            let order_total = (order_subtotal - total_discount) + (packagingChargeEnable ? packagingCharge : 0) + total_tax_amount;
+            if(packagingChargeEnable){
+                $(".packaging_charge").text('+'+formatCurrency(packagingCharge, currencyData));
+            }
+            
+            $('.total_amount').text(formatCurrency(order_total, currencyData));
+            $(".total_tax_amount").text(formatCurrency(total_tax_amount, currencyData));
+            
             if (intRegex.test(discount) || floatRegex.test(discount)) {
-
-                discount = parseFloat(discount).toFixed(decimal_degits);
-                total_price -= parseFloat(discount);
-
+                discount = parseFloat(discount).toFixed(2);
                 if (currencyAtRight) {
                     discount_val = parseFloat(discount).toFixed(decimal_degits) + "" + currentCurrency;
                 } else {
                     discount_val = currentCurrency + "" + parseFloat(discount).toFixed(decimal_degits);
                 }
-
                 couponCode_html = '';
                 if (couponCode) {
                     couponCode_html = '</br><small>{{trans("lang.coupon_codes")}} :' + couponCode + '</small>';
                 }
-
-                $('.total_discount_amount').text(discount_val);
-
-
-            } else {
-
-                if (currencyAtRight) {
-                    discount_val = parseFloat(discount_val).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    discount_val = currentCurrency + "" + parseFloat(discount_val).toFixed(decimal_degits);
-                }
-                $('.total_discount_amount').text(discount_val);
-
+                html = html + '<tr><td class="label">{{trans("lang.discount")}}' + couponCode_html +
+                    '</td><td class="discount">-' + discount_val + '</td></tr>';
+                    $('.total_discount_amount').text(discount_val);
             }
 
+            $('.total_special_discount_amount').text(formatCurrency(special_discount, currencyData));
+            
+            html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.sub_total') }}</span></td></tr>';
+            html = html +
+                '<tr class="final-rate"><td class="label">{{ trans('lang.sub_total') }}</td><td class="sub_total" style="color:green">(' +
+                formatCurrency(order_subtotal, currencyData) + ')</td></tr>';
 
-            var special_discount = 0;
-            if (specialDiscount != undefined) {
+            renderTaxSection('item', 'Tax on Item Total');
+            renderTaxSection('order', 'Tax on Order Total');
+            renderTaxSection('packaging', 'Tax on Packaging Fee');
+            
+            let totalTaxHtml = `
+                  <dt class="col-6"><strong>{{ trans('lang.total_tax') }} :</strong></dt>
+                  <dd class="col-6"><label class="total_tax_amount">${formatCurrency(total_tax_amount, currencyData)}</label></dd>
+                  <dt class="col-12"><hr></dt>`;
+            $('#price-breakdown dt').last().before(totalTaxHtml); 
+            
+            html += '<tr><td class="seprater" colspan="2"><hr></td></tr>';
+            
+            html = html + '<tr><td class="label">{{trans("lang.total_amount")}}</td><td class="total_amount">' +formatCurrency(order_total, currencyData) + '</td></tr>';
 
-                special_discount = parseFloat(specialDiscount.special_discount).toFixed(decimal_degits);
-                total_price = total_price - special_discount;
-
-                if (currencyAtRight) {
-                    special_discount = parseFloat(special_discount).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    special_discount = currentCurrency + "" + parseFloat(special_discount).toFixed(decimal_degits);
-                }
-
-                if (specialDiscount.specialType == "percentage") {
-                    $('.total_special_discount_amount').text(special_discount + "(" + specialDiscount.special_discount_label + "%)");
-
-                } else {
-                    $('.total_special_discount_amount').text(special_discount);
-
-                }
-
-            } else {
-                if (currencyAtRight) {
-                    $('.total_special_discount_amount').text(special_discount + "" + currentCurrency);
-                } else {
-                    $('.total_special_discount_amount').text(currentCurrency + "" + special_discount);
-                }
-            }
-            var total_item_price = total_price;
-
-            var tax = 0;
-            taxlabel = '';
-            taxlabeltype = '';
-
-            if (snapshotsProducts.hasOwnProperty('taxSetting')) {
-                var total_tax_amount = 0;
-                for (var i = 0; i < snapshotsProducts.taxSetting.length; i++) {
-                    var data = snapshotsProducts.taxSetting[i];
-
-                    if (data.type && data.tax) {
-                        if (data.type == "percentage") {
-                            tax = (data.tax * total_price) / 100;
-                            taxlabeltype = "%";
-                            var taxvalue = data.tax;
-
-                        } else {
-                            tax = data.tax;
-                            taxlabeltype = " ";
-                            if (currencyAtRight) {
-                                var taxvalue = parseFloat(data.tax).toFixed(decimal_degits) + "" + currentCurrency;
-                            } else {
-                                var taxvalue = currentCurrency + "" + parseFloat(data.tax).toFixed(decimal_degits);
-
-                            }
-
-                        }
-                        taxlabel = data.title;
-                    }
-                    total_tax_amount += parseFloat(tax);
-                    if (currencyAtRight) {
-
-                        $('.taxes').append("<dt class='col-6'> " + taxlabel + " (" + taxvalue + taxlabeltype + ")</dt><dd class='col-6'><label>" + parseFloat(tax).toFixed(decimal_degits) + " " + currentCurrency + "</label></dt>");
-                    } else {
-                        $('.taxes').append("<dt class='col-6'> " + taxlabel + " (" + taxvalue + taxlabeltype + ")</dt><dd class='col-6'><label>" + currentCurrency + " " + parseFloat(tax).toFixed(decimal_degits) + "</label></dt>");
-                    }
-
-
-                }
-                total_price = parseFloat(total_price) + parseFloat(total_tax_amount);
-
-
-            }
-
-
-            if (intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge)) {
-
-                deliveryCharge = parseFloat(deliveryCharge).toFixed(decimal_degits);
-                total_price += parseFloat(deliveryCharge);
-
-                if (currencyAtRight) {
-                    deliveryCharge_val = "+ " + deliveryCharge + "" + currentCurrency;
-                } else {
-                    deliveryCharge_val = "+ " + currentCurrency + "" + deliveryCharge;
-                }
-                if (takeAway == '' || takeAway == false) {
-                    deliveryChargeVal = deliveryCharge;
-                    html = html + '<tr><td class="label">{{trans("lang.deliveryCharge")}}</td><td class="deliveryCharge">+' + deliveryCharge_val + '</td></tr>';
-                    $('.total_delivery_amount').text(deliveryCharge_val);
-                }
-            }
-
-
-            if (intRegex.test(tip_amount) || floatRegex.test(tip_amount)) {
-
-                tip_amount = parseFloat(tip_amount).toFixed(decimal_degits);
-                total_price += parseFloat(tip_amount);
-                total_price = parseFloat(total_price).toFixed(decimal_degits);
-
-                if (currencyAtRight) {
-                    tip_amount_val = '+' + tip_amount + "" + currentCurrency;
-                } else {
-                    tip_amount_val = '+' + currentCurrency + "" + tip_amount;
-                }
-                if (takeAway == '' || takeAway == false) {
-                    html = html + '<tr><td class="label">{{trans("lang.tip_amount")}}</td><td class="tip_amount_val">+' + tip_amount_val + '</td></tr>';
-                    $('.total_tip_amount').text(tip_amount_val);
-                }
-            }
-
-            if (currencyAtRight) {
-                total_price_val = parseFloat(total_price).toFixed(decimal_degits) + "" + currentCurrency;
-            } else {
-                total_price_val = currentCurrency + "" + parseFloat(total_price).toFixed(decimal_degits);
-            }
-
-            $('.total_amount').text(total_price_val);
-            html = html + '<tr><td class="label">{{trans("lang.total_amount")}}</td><td class="total_price_val">' + total_price_val + '</td></tr>';
-
-            if (intRegex.test(adminCommission) || floatRegex.test(adminCommission)) {
-                var adminCommHtml = "";
-
+            if (adminCommission != undefined && adminCommissionType != undefined) {
+                var commission = 0;
                 if (adminCommissionType == "percentage") {
-                    adminCommHtml = "(" + adminCommission + "%)";
-                    var adminCommission_val = parseFloat(parseFloat(total_item_price * adminCommission) / 100).toFixed(decimal_degits);
+                    commission = (order_subtotal * parseFloat(adminCommission)) / 100;
                 } else {
-                    var adminCommission_val = parseFloat(adminCommission).toFixed(decimal_degits);
+                    commission = parseFloat(adminCommission);
                 }
-
+                adminCommission = commission;
+            } else if (adminCommission != undefined) {
+                var commission = parseFloat(adminCommission);
+                adminCommission = commission;
+            }
+            if (adminCommission) {
+                adminCommission = parseFloat(adminCommission).toFixed(2);
                 if (currencyAtRight) {
-
-                    adminCommission = parseFloat(adminCommission_val).toFixed(decimal_degits) + "" + currentCurrency;
+                    adminCommission_val = adminCommission + "" + currentCurrency;
                 } else {
-                    adminCommission = currentCurrency + "" + parseFloat(adminCommission_val).toFixed(decimal_degits);
+                    adminCommission_val = currentCurrency + "" + adminCommission;
                 }
-
-                html = html + '<tr><td class="label"><small>{{trans("lang.admin_commission")}} ' + adminCommHtml + '</small> </td><td style="color:red"><small>( ' + adminCommission + ' )</small></td></tr>';
-
+                html = html +
+                    '<tr><td class="label"><small>( {{trans("lang.admin_commission")}} </small></td><td class="adminCommission_val"><small>' +
+                    adminCommission_val + ')</small></td></tr>';
             }
-
-
+            
             if (notes) {
-
-
-                html = html + '<tr><td class="label">{{trans("lang.notes")}}</td><td class="adminCommission_val">' + notes + '</td></tr>';
+                html = html + '<tr><td class="label">{{ trans('lang.notes') }}</td><td class="adminCommission_val">' +
+                    notes + '</td></tr>';
             }
-
 
             return html;
         }
@@ -756,6 +733,29 @@
             document.body.innerHTML = printContents;
             window.print();
             document.body.innerHTML = originalContents;
+        }
+        
+        function renderTaxSection(section, labelSuffix) {
+            if (!taxBreakdownGrouped[section]) return;
+            let html = '';
+            if (!taxHeaderInserted) {
+                html += `<dt class="col-12"><hr></dt>`;
+                taxHeaderInserted = true;
+            }
+            for (let title in taxBreakdownGrouped[section]) {
+                let taxAmount = parseFloat(taxBreakdownGrouped[section][title]);
+                html += `
+                    <dt class="col-6">${title} ${labelSuffix} :</dt>
+                    <dd class="col-6">
+                        ${formatCurrency(taxAmount, currencyData)}
+                    </dd>
+                `;
+            }
+            if (!taxFooterInserted && section === 'platform') {
+                html += `<dt class="col-12"><hr></dt>`; 
+                taxFooterInserted = true;
+            }
+            $('#price-breakdown dt:last').before(html);
         }
     </script>
 

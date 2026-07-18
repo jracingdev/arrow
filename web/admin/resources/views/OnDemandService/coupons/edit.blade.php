@@ -9,7 +9,7 @@
 
             <div class="col-md-7 align-self-center">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
                     @if (!isset($_GET['id']))
                         <li class="breadcrumb-item"><a href="{!! route('ondemand.coupons') !!}">{{ trans('lang.coupon_plural') }}</a></li>
                     @else
@@ -154,7 +154,7 @@
             var section_id = null;
             var placeholderImage = '';
             var placeholder = database.collection('settings').doc('placeHolderImage');
-
+            var sectionId = getCookie('section_id');
             placeholder.get().then(async function(snapshotsimage) {
                 var placeholderImageData = snapshotsimage.data();
                 placeholderImage = placeholderImageData.image;
@@ -178,7 +178,7 @@
 
                     var coupon = snapshots.docs[0].data();
 
-                    database.collection('users').where('role', '==', 'provider').get().then(async function(snapshots) {
+                    database.collection('users').where('role', '==', 'provider').where('section_id','==',sectionId).get().then(async function(snapshots) {
                         snapshots.docs.forEach((listval) => {
                             var data = listval.data();
                             if (data.id == coupon.providerId) {

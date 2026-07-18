@@ -37,7 +37,6 @@
 @include('layouts.footer')
 
 <script type="text/javascript">
-
     var id = '<?php echo $id; ?>';
 
     var idRef = database.collection('vendor_categories').doc(id);
@@ -49,7 +48,7 @@
 
     var inValidVendors = [];
 
-    placeholderImageRef.get().then(async function (placeholderImageSnapshots) {
+    placeholderImageRef.get().then(async function(placeholderImageSnapshots) {
 
         var placeHolderImageData = placeholderImageSnapshots.data();
 
@@ -57,11 +56,11 @@
 
     })
 
-    idRef.get().then(async function (idRefSnapshots) {
+    idRef.get().then(async function(idRefSnapshots) {
 
         var idRefData = idRefSnapshots.data();
 
-        $("#title").text(idRefData.title + ' ' + "{{trans('lang.stores')}}");
+        $("#title").text(idRefData.title + ' ' + "{{ trans('lang.stores') }}");
 
     })
 
@@ -69,7 +68,7 @@
 
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
 
-    refCurrency.get().then(async function (snapshots) {
+    refCurrency.get().then(async function(snapshots) {
 
         var currencyData = snapshots.docs[0].data();
 
@@ -84,14 +83,24 @@
         }
 
     });
-
+    var isSelfDeliveryGlobally = false;
+    var refGlobal = database.collection('settings').doc("globalSettings");
+    refGlobal.get().then(async function(
+        settingSnapshots) {
+        if (settingSnapshots.data()) {
+            var settingData = settingSnapshots.data();
+            if (settingData.isSelfDelivery) {
+                isSelfDeliveryGlobally = true;
+            }
+        }
+    })
     jQuery("#overlay").show();
 
-    $(document).ready(async function () {
+    $(document).ready(async function() {
         inValidVendors = await getInvaidUserIds();
         getCategories();
 
-        $(document).on("click", ".category-item", function () {
+        $(document).on("click", ".category-item", function() {
 
             if (!$(this).hasClass('active')) {
 
@@ -109,7 +118,7 @@
 
     async function getCategories() {
 
-        catsRef.get().then(async function (snapshots) {
+        catsRef.get().then(async function(snapshots) {
 
             if (snapshots != undefined) {
 
@@ -123,7 +132,8 @@
 
                     append_list.innerHTML = html;
 
-                    var category_id = $('#category-list .category-item').first().addClass('active').data('category-id');
+                    // var category_id = $('#category-list .category-item').first().addClass('active').data('category-id');
+                        var category_id = $('#category-list .category-item.active').data('category-id');
 
                     if (category_id) {
 
@@ -161,7 +171,7 @@
 
         html = html + '<div class="vandor-sidebar">';
 
-        html = html + '<h3>{{trans("lang.categories")}}</h3>';
+        html = html + '<h3>{{ trans('lang.categories') }}</h3>';
 
         html = html + '<ul class="vandorcat-list">';
 
@@ -179,7 +189,11 @@
 
             }
 
-            html = html + '<li class="category-item" data-category-id="' + val.id + '">';
+            if (id == val.id) {
+                html = html + '<li class="category-item active" data-category-id="' + val.id + '">';
+            } else {
+                html = html + '<li class="category-item" data-category-id="' + val.id + '">';
+            }
 
             html = html + '<a href="javascript:void(0)"><span><img src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'"></span>' + val.title + '</a>';
 
@@ -205,19 +219,19 @@
 
         var html = '';
 
-        var storesRef = database.collection('vendors').where('categoryID', '==', id);
+        var storesRef = database.collection('vendors').where('categoryID',  'array-contains', id).where('zoneId', '==', user_zone_id);;
 
         var idRef = database.collection('vendor_categories').doc(id);
 
-        idRef.get().then(async function (idRefSnapshots) {
+        idRef.get().then(async function(idRefSnapshots) {
 
             var idRefData = idRefSnapshots.data();
 
-            $("#title").text(idRefData.title + ' ' + "{{trans('lang.stores')}}");
+            $("#title").text(idRefData.title + ' ' + "{{ trans('lang.stores') }}");
 
         })
 
-        storesRef.get().then(async function (snapshots) {
+        storesRef.get().then(async function(snapshots) {
 
             html = buildStoresHTML(snapshots);
 
@@ -246,7 +260,8 @@
             var datas = listval.data();
 
             datas.id = listval.id;
-            if(!inValidVendors.includes(datas.author)) { 
+           
+            if (!inValidVendors.includes(listval.id)) {
                 alldata.push(datas);
             }
         });
@@ -289,22 +304,22 @@
 
                 }
 
-                var view_vendor_details = "{{ route('vendor', ':id')}}";
+                var view_vendor_details = "{{ route('vendor', ':id') }}";
 
                 view_vendor_details = view_vendor_details.replace(':id', val.id);
-                html = html + '<a href="' + view_vendor_details + '"><img alt="#" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" class="img-fluid item-img w-100"></a></div><div class="py-2 position-relative"><div class="list-card-body"><h6 class="mb-1"><a href="' + view_vendor_details + '" class="text-black">' + val.title + '</a></h6><h6>' + val.location + '</h6>';
+                html = html + '<div class="offer-icon position-absolute free-delivery-' + val.id + '"></div><a href="' + view_vendor_details + '"><img alt="#" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" class="img-fluid item-img w-100"></a></div><div class="py-2 position-relative"><div class="list-card-body"><h6 class="mb-1"><a href="' + view_vendor_details + '" class="text-black">' + val.title + '</a></h6><h6>' + val.location + '</h6>';
 
                 html = html + '<div class="star position-relative mt-3"><span class="badge badge-success"><i class="feather-star"></i>' + rating + ' (' + reviewsCount + ')</span></div>';
 
                 html = html + '</div>';
 
                 html = html + '</div></div></div>';
-
+                checkSelfDeliveryForVendor(val.id);
             });
 
         } else {
 
-            html = html + "<h5>{{trans('lang.no_results')}}</h5>";
+            html = html + "<h5>{{ trans('lang.no_results') }}</h5>";
 
         }
 
@@ -314,6 +329,20 @@
 
     }
 
+    function checkSelfDeliveryForVendor(vendorId) {
+        setTimeout(function() {
+            database.collection('vendors').doc(vendorId).get().then(async function(snapshots) {
+                if (snapshots.exists) {
+                    var data = snapshots.data();
+                    if (data.hasOwnProperty('isSelfDelivery') && data.isSelfDelivery != null && data.isSelfDelivery != '') {
+                        if (data.isSelfDelivery && isSelfDeliveryGlobally) {
+                            $('.free-delivery-' + vendorId).html('<span><img src="{{ asset('img/free_delivery.png') }}" width="100px"> {{ trans('lang.free_delivery') }}</span>');
+                        }
+                    }
+                }
+            })
+        }, 3000);
+    }
 </script>
 
 @include('layouts.nav')

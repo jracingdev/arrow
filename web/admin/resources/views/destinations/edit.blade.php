@@ -17,7 +17,7 @@
 
             <ol class="breadcrumb">
 
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
                 <li class="breadcrumb-item"><a href="{!! route('destinations') !!}">{{trans('lang.destination')}}</a>
                 </li>
@@ -53,15 +53,7 @@
 
                         </div>
 
-                    </div>
-                    <div class="form-group row width-50">
-                        <label class="col-3 control-label ">{{trans('lang.select_section')}}</label>
-                        <div class="col-7">
-                            <select name="section_id" id="section_id" class="form-control">
-                                <option value="">{{trans('lang.select')}}</option>
-                            </select>
-                        </div>
-                    </div>
+                    </div>                   
 
                     <div class="form-group row width-50">
                         <label class="col-3 control-label">{{trans('lang.vendor_latitude')}}</label>
@@ -141,10 +133,8 @@
 <script type="text/javascript">
 
     var database = firebase.firestore();
-    var ref_sections = database.collection('sections');
     var storageRef = firebase.storage().ref('images');
 
-    var sections_list = [];
     var photo = "";
     var fileName = '';
     var oldImageFile = "";
@@ -152,28 +142,13 @@
 
     var id = "<?php echo $id; ?>";
     var ref = database.collection('popular_destinations').where("id", "==", id);
+    var sectionId = getCookie('section_id');
 
     var placeholderImage = '';
     var placeholder = database.collection('settings').doc('placeHolderImage');
     placeholder.get().then(async function (snapshotsimage) {
         var placeholderImageData = snapshotsimage.data();
         placeholderImage = placeholderImageData.image;
-    });
-
-    var sections_list = [];
-    $(document).ready(function () {
-        ref_sections.get().then(async function (snapshots) {
-
-            snapshots.docs.forEach((listval) => {
-                var data = listval.data();
-                if (data.serviceTypeFlag == "cab-service") {
-                    sections_list.push(data);
-                    $('#section_id').append($("<option></option>")
-                        .attr("value", data.id)
-                        .text(data.name));
-                }
-            })
-        })
     });
 
     $(document).ready(function () {
@@ -201,11 +176,7 @@
 
             if (menuItems.is_publish) {
                 $("#is_publish").prop("checked", true);
-            }
-
-            if (menuItems.hasOwnProperty('sectionId')) {
-                $('#section_id').val(menuItems.sectionId).trigger('change');
-            }
+            }           
 
             jQuery("#data-table_processing").hide();
 
@@ -214,7 +185,6 @@
 
     $(".edit-form-btn").click(function () {
 
-        var sectionId = $('#section_id').val();
         var title = $(".title").val();
         var latitude = parseFloat($(".latitude").val());
         var longitude = parseFloat($(".longitude").val());
@@ -231,17 +201,7 @@
 
             window.scrollTo(0, 0);
 
-        } else if (sectionId == '') {
-
-            $(".error_top").show();
-
-            $(".error_top").html("");
-
-            $(".error_top").append("<p>{{trans('lang.set_section_error')}}</p>");
-
-            window.scrollTo(0, 0);
-
-        } else if (latitude == '' || longitude == '') {
+        } else if ( $(".latitude").val().trim() === '' ||  $(".longitude").val().trim() === '' ) {
 
             $(".error_top").show();
 

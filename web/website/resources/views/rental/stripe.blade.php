@@ -128,14 +128,11 @@
                     <div class="siddhi-cart-item mb-3 rounded shadow-sm bg-white overflow-hidden">
                         <div class="siddhi-cart-item-profile bg-white p-3">
                             <div class="card card-default payment-wrap">
-                                <table class="payment-table">
+                                <table class="payment-table m-4">
                                     <thead>
                                     <tr>
-                                        <th>
-                                            {{trans('lang.pay')}}
-                                        </th>
-                                        <th class="text-right">
-                                            {{trans('lang.total')}}
+                                        <th class="p-1">
+                                            {{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}
                                         </th>
                                     </tr>
                                     </thead>
@@ -163,7 +160,7 @@
                                                                type="text"
                                                                placeholder="{{trans('lang.address_line1_error')}}"
                                                                class="form-control"
-                                                               value="<?php echo $cart_order['senderAddress']; ?>"/>
+                                                               value="<?php echo $cart_order['sourceLocationName']; ?>"/>
                                                     </div>
                                                 </div>
                                                 <div class="form-group row">
@@ -172,7 +169,7 @@
                                                         <input name="address_line2" id="address_line2" required
                                                                type="text" placeholder="{{trans('lang.landmark')}}"
                                                                class="form-control"
-                                                               value="<?php echo $cart_order['senderAddress']; ?>"/>
+                                                               value="<?php echo $cart_order['sourceLocationName']; ?>"/>
                                                     </div>
                                                 </div>
                                                 <input type="hidden" name="address_zipcode" id="address_zipcode"
@@ -470,7 +467,7 @@
                                                 </div>
                             </div>
                             <input type="hidden" name="token_id" id="token_id">
-                            <button type="submit">{{trans('lang.pay')}}$<?php echo $amount; ?></button>
+                            <button type="submit">{{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}</button>
                             <div class="outcome">
                                 <div class="error" role="alert"></div>
                                 <div class="success">

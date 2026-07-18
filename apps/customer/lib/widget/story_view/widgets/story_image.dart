@@ -3,9 +3,10 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
-import '../utils.dart';
 import '../controller/story_controller.dart';
+import '../utils.dart';
 
 /// Utitlity to load image (gif, png, jpg, etc) media just once. Resource is
 /// cached to disk with default configurations of [DefaultCacheManager].
@@ -28,8 +29,7 @@ class ImageLoader {
       onComplete();
     }
 
-    final fileStream = DefaultCacheManager().getFileStream(url,
-        headers: requestHeaders as Map<String, String>?);
+    final fileStream = DefaultCacheManager().getFileStream(url, headers: requestHeaders as Map<String, String>?);
 
     fileStream.listen(
       (fileResponse) {
@@ -93,15 +93,15 @@ class StoryImage extends StatefulWidget {
     Key? key,
   }) {
     return StoryImage(
-        ImageLoader(
-          url,
-          requestHeaders: requestHeaders,
-        ),
-        controller: controller,
-        fit: fit,
-        loadingWidget: loadingWidget,
-        errorWidget: errorWidget,
-        key: key,
+      ImageLoader(
+        url,
+        requestHeaders: requestHeaders,
+      ),
+      controller: controller,
+      fit: fit,
+      loadingWidget: loadingWidget,
+      errorWidget: errorWidget,
+      key: key,
     );
   }
 
@@ -121,8 +121,7 @@ class StoryImageState extends State<StoryImage> {
     super.initState();
 
     if (widget.controller != null) {
-      _streamSubscription =
-          widget.controller!.playbackNotifier.listen((playbackState) {
+      _streamSubscription = widget.controller!.playbackNotifier.listen((playbackState) {
         // for the case of gifs we need to pause/play
         if (widget.imageLoader.frames == null) {
           return;
@@ -169,9 +168,7 @@ class StoryImageState extends State<StoryImage> {
   void forward() async {
     _timer?.cancel();
 
-    if (widget.controller != null &&
-        widget.controller!.playbackNotifier.stream.value ==
-            PlaybackState.pause) {
+    if (widget.controller != null && widget.controller!.playbackNotifier.stream.value == PlaybackState.pause) {
       return;
     }
 
@@ -195,22 +192,24 @@ class StoryImageState extends State<StoryImage> {
         );
       case LoadState.failure:
         return Center(
-            child: widget.errorWidget?? const Text(
-          "Image failed to load.",
-          style: TextStyle(
-            color: Colors.white,
-          ),
-        ));
+            child: widget.errorWidget ??
+                 Text(
+                  "Image failed to load.".tr,
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ));
       default:
         return Center(
-          child: widget.loadingWidget?? const SizedBox(
-            width: 70,
-            height: 70,
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              strokeWidth: 3,
-            ),
-          ),
+          child: widget.loadingWidget ??
+              const SizedBox(
+                width: 70,
+                height: 70,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  strokeWidth: 3,
+                ),
+              ),
         );
     }
   }

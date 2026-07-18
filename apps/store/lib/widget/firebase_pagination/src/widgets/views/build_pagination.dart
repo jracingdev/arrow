@@ -1,8 +1,8 @@
 // Flutter Packages
-import 'package:emartstore/widget/firebase_pagination/src/models/page_options.dart';
-import 'package:emartstore/widget/firebase_pagination/src/models/view_type.dart';
-import 'package:emartstore/widget/firebase_pagination/src/models/wrap_options.dart';
 import 'package:flutter/material.dart';
+import 'package:vendor/widget/firebase_pagination/src/models/page_options.dart';
+import 'package:vendor/widget/firebase_pagination/src/models/view_type.dart';
+import 'package:vendor/widget/firebase_pagination/src/models/wrap_options.dart';
 
 /// A [ScrollView] to use for the provided [items].
 ///
@@ -141,14 +141,11 @@ class BuildPagination<T> extends StatelessWidget {
             textDirection: wrapOptions.textDirection,
             verticalDirection: wrapOptions.verticalDirection,
             clipBehavior: wrapOptions.clipBehavior,
-            children: List.generate(
-              items.length + (isLoading ? 1 : 0),
-              (int index) {
-                if (index >= items.length) return bottomLoader;
+            children: List.generate(items.length + (isLoading ? 1 : 0), (int index) {
+              if (index >= items.length) return bottomLoader;
 
-                return itemBuilder(context, items, index);
-              },
-            ),
+              return itemBuilder(context, items, index);
+            }),
           ),
         );
 

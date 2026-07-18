@@ -15,8 +15,8 @@
 
 
         <title id="app_name"><?php echo @$_COOKIE['meta_title']; ?></title>
-        <link rel="icon" id="favicon" type="image/x-icon" href="<?php echo str_replace('images/', 'images%2F', @$_COOKIE['favicon']); ?>">
-
+        <!-- <link rel="icon" id="favicon" type="image/x-icon" href="<?php echo str_replace('images/', 'images%2F', @$_COOKIE['favicon']); ?>"> -->
+        <link rel="icon" type="image/x-icon" href="{{ asset('images/logo-light-icon.png')}}">
 
         <!-- Fonts -->
 
@@ -202,7 +202,7 @@
                                                 +<?php echo $valuecy->phoneCode; ?> {{ $valuecy->countryName }}</option>
                                             <?php } ?>
                                         </select>
-                                        <input class="form-control" placeholder="Phone" id="phone" type="phone"
+                                        <input class="form-control" placeholder="Phone" id="phone" type="text"
                                             class="form-control" name="phone" value="{{ old('phone') }}" required
                                             autocomplete="phone" autofocus>
                                     </div>
@@ -276,15 +276,16 @@
         <script src="{{ asset('assets/plugins/sticky-kit-master/dist/sticky-kit.min.js') }}"></script>
         <script src="{{ asset('assets/plugins/sparkline/jquery.sparkline.min.js') }}"></script>
         <script src="{{ asset('js/custom.min.js') }}"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-firestore.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-storage.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-database.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
         <script src="https://unpkg.com/geofirestore/dist/geofirestore.js"></script>
         <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
         <script src="{{ asset('js/crypto-js.js') }}"></script>
-        @include('partials.firebase-init')
+        <script src="{{ asset('js/jquery.cookie.js') }}"></script>
+        <script src="{{ asset('js/jquery.validate.js') }}"></script>
 
         <script type="text/javascript">
             var database = firebase.firestore();
@@ -310,6 +311,8 @@
 
             var newcountriesjs = '<?php echo json_encode($newcountriesjs); ?>';
             var newcountriesjs = JSON.parse(newcountriesjs);
+
+            let isStoreVerification = false;
 
             function formatState(state) {
 
@@ -341,6 +344,10 @@
 
             jQuery(document).ready(async function() {
 
+                let docRef = await database.collection('settings').doc('document_verification_settings').get();
+                let docData =  docRef.data();
+                isStoreVerification = docData.isStoreVerification;
+
                 await email_templates.get().then(async function(snapshots) {
                     emailTemplatesData = snapshots.docs[0].data();
                 });
@@ -354,7 +361,7 @@
                 jQuery("#country_selector").select2({
                     templateResult: formatState,
                     templateSelection: formatState2,
-                    placeholder: "Select Country",
+                    placeholder: "{{trans('lang.select_country')}}",
                     allowClear: true
                 });
             });
@@ -396,7 +403,7 @@
 
                     database.collection("users").where('phoneNumber', '==', phoneNumber).get().then(async function(snapshots) {
                         if (snapshots.docs.length > 0) {
-                            alert('You already have account with this phone number')
+                            alert('{{ trans('lang.you_already_have_account_with_this_phone_number') }}')
                             return false;
                         } else {
                             $('#hidden_fName').val(firstName);
@@ -458,7 +465,10 @@
                                 'vendorID': '',
                                 'active': vendor_active,
                                 'coordinates': coordinates,
-                                'createdAt': createdAt
+                                'createdAt': createdAt,
+                                'sectionId': '',
+                                'isDocumentVerify': isStoreVerification === true ? false : true,
+                                'isAutoVerify': isStoreVerification === false ? true : false,
                             }).then(async function(result) {
                                 autoAprroveVendor.get().then(async function(snapshots) {
                                     var formattedDate = new Date();
@@ -490,7 +500,8 @@
                                     if (sendEmailStatus) {
 
                                         var vendordata = snapshots.data();
-                                        if (vendordata.auto_approve_vendor == false) {
+                                        // if (vendordata.auto_approve_vendor == false) {
+                                        if (vendor_active == false) {                                        
                                             $(".alert-success").show();
                                             $(".alert-success").html("");
                                             $(".alert-success").append(
@@ -527,7 +538,7 @@
 
 
                         }).catch((error) => {
-                            $(".otp_error").html("OTP verification failed");
+                            $(".otp_error").html("{{ trans('lang.otp_verification_failed') }}");
                         });
                 }
             }

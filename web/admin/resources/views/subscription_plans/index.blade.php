@@ -7,7 +7,7 @@
             </div>
             <div class="col-md-7 align-self-center">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
                     <li class="breadcrumb-item active">{{ trans('lang.subscription_plans') }}</li>
                 </ol>
             </div>
@@ -36,11 +36,7 @@
                                     <h3 class="text-dark-2 mb-2 h4">{{ trans('lang.overview') }}</h3>
                                     <p class="mb-0 text-dark-2">{{ trans('lang.see_overview_of_package_earning') }}</p>
                                     </div>
-                                    
-                                    
                                 </div>
-                                <div class="top-title-right"><select class="form-control"
-                                            id="overview-sections"></select></div>
                             </div>
                             <div class="card-body">
                                 <div class="row subscription-list">
@@ -85,7 +81,6 @@
                                                 <th>{{ trans('lang.plan_price') }}</th>
                                                 <th>{{ trans('lang.duration') }}</th>
                                                 <th>{{ trans('lang.current_subscriber') }}</th>
-                                                <th>{{ trans('lang.section') }}</th>
                                                 <th>{{ trans('lang.status') }}</th>
                                                 <th>{{ trans('lang.actions') }}</th>
                                             </tr>
@@ -104,9 +99,10 @@
 @endsection
 @section('scripts')
     <script type="text/javascript">
+        var section_id = getCookie('section_id') || '';
         var database = firebase.firestore();
         var ref = database.collection('subscription_plans');
-
+       
         var user_permissions = '<?php echo @session('user_permissions'); ?>';
         user_permissions = Object.values(JSON.parse(user_permissions));
         var checkDeletePermission = false;
@@ -128,41 +124,11 @@
             var placeholderImageData = snapshotsimage.data();
             placeholderImage = placeholderImageData.image;
         })
-        var sections = database.collection('sections').where('serviceTypeFlag', 'in', ['delivery-service',
-            'ondemand-service', 'ecommerce-service'
-        ]);
-
+        
         $(document).ready(async function() {
-            await sections.get().then(async function(snapshots) {
-                if (snapshots.docs.length > 0) {
-                    snapshots.docs.forEach((listval, index) => {
-                        var data = listval.data();
-                        var $optgroup = $('#overview-sections').find("optgroup[label='" +
-                            data.serviceType + "']");
-                        if ($optgroup.length === 0) {
-                            $optgroup = $("<optgroup></optgroup>").attr("label", data
-                                .serviceType);
-                            $('#overview-sections').append($optgroup);
-                        }
-                        var $option = $("<option></option>")
-                            .attr("value", data.id)
-                            .text(data.name);
-                        if (index === 0) {
-                            $option.attr("selected", "selected");
-                        }
-                        $optgroup.append($option);
-                    });
-                }
-
-            });
-            var selectedSection = $('#overview-sections').val();
-            getOverviewSection(selectedSection);
+            
+            getOverviewSection(section_id);
            
-           $('#overview-sections').on('change',function(){
-                var sectionId = $('#overview-sections').val();
-                getOverviewSection(sectionId)
-           })
-
             $(document.body).on('click', '.redirecttopage', function() {
                 var url = $(this).attr('data-url');
                 window.location.href = url;
@@ -181,8 +147,8 @@
                     const orderColumnIndex = data.order[0].column;
                     const orderDirection = data.order[0].dir;
                     const orderableColumns = (checkDeletePermission) ? ['', 'name', 'price',
-                        'expiryDay', '', 'sectionName', '', ''
-                    ] : ['name', 'price', 'expiryDay', '', 'sectionName', '',
+                        'expiryDay', '', '', ''
+                    ] : ['name', 'price', 'expiryDay', '', '',
                         ''
                     ]; // Ensure this matches the actual column names
                     const orderByField = orderableColumns[
@@ -190,7 +156,12 @@
                     if (searchValue.length >= 3 || searchValue.length === 0) {
                         $('#data-table_processing').show();
                     }
-                    ref.get().then(async function(querySnapshot) {
+
+                    let mainRef = ref;
+                    if(section_id){
+                        mainRef = mainRef.where('sectionId', '==', section_id);
+                    }
+                    mainRef.get().then(async function(querySnapshot) {
                         if (querySnapshot.empty) {
                             $(".total_count").text(0);
                             console.error("No data found in Firestore.");
@@ -269,6 +240,9 @@
                                     .isCommissionPlan
                             });
                         }));
+                         $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
 
                         records.sort((a, b) => b.isCommissionPlan - a.isCommissionPlan);
                         const htmlRecords = records.map(record => record.html);
@@ -293,13 +267,10 @@
                 order: (checkDeletePermission) ? [1, 'asc'] : [0, 'asc'],
                 columnDefs: [{
                     orderable: false,
-                    targets: (checkDeletePermission) ? [0, 6, 7] : [5, 6]
+                    targets: (checkDeletePermission) ? [0, 5, 6] : [4, 5]
                 }, ],
-                "language": {
-                    "zeroRecords": "{{ trans('lang.no_record_found') }}",
-                    "emptyTable": "{{ trans('lang.no_record_found') }}",
-                    "processing": "" // Remove default loader
-                },
+                "language": datatableLang,
+
             });
 
             function debounce(func, wait) {
@@ -370,7 +341,7 @@
             );
 
             row.push(`<td><a href="${route2}">${childData.totalSubscriber}</a></td>`);
-            row.push(childData.sectionName);
+            
             if (childData.isCommissionPlan != true) {
                 row.push(childData.isEnable ?
                     `<label class = "switch" ><input type = "checkbox" checked id = "${childData.id}" data-section="${childData.sectionId}" name = "isActive" ><span class = "slider round" > </span> </label>` :
@@ -382,10 +353,10 @@
 
             row.push(`
     <span class="action-btn">
-        <a href="${route1}" class="link-td"><i class="mdi mdi-lead-pencil"></i></a>` +
+        <a href="${route1}" class="link-td" data-toggle="tooltip" title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>` +
                 (childData.isCommissionPlan != true ?
                     `<?php if (in_array('subscription-plans.delete', json_decode(@session('user_permissions'), true))) { ?>
-            <a id="${childData.id}" class="link-td delete-btn direct-click-btn" name="plan-delete" href="javascript:void(0)">
+            <a id="${childData.id}" class="link-td delete-btn direct-click-btn" name="plan-delete" href="javascript:void(0)" data-toggle="tooltip" title="{{ trans('lang.delete') }}">
                 <i class="mdi mdi-delete"></i>
             </a>
            <?php } ?>` :
@@ -413,7 +384,7 @@
                 var EnabledSubscriptions = refactiveSubscription.size;
                 if (EnabledSubscriptions == 1) {
                     Swal.fire({
-                        title: 'Error!',
+                        title: '{{trans("lang.error")}}',
                         text: '{{ trans('lang.atleast_one_subscription_plan_should_be_active') }}',
                         icon: 'error',
                         confirmButtonText: 'OK'
@@ -477,33 +448,33 @@
             return sectionName;
         }
 
- async function getOverviewSection(selectedSectionId){
-            ref.where('isCommissionPlan', '!=', true).where('sectionId', '==', selectedSectionId).get().then(
-            async function(snapshots) {
-                    var html = '';
-                    if (snapshots.docs.length > 0) {
-                        snapshots.docs.map(async (listval) => {
-                            var data = listval.data();
-                            getEarnings(data.id);
-                            html += ` <div class="col-md-4">
-                                <div class="card card-box-with-icon">
-                                    <div class="card-body">
-                                      <span class="box-icon"><img src="${data.image}"></span>
-                                       <div class="card-box-with-content mt-3">
-                                        <h4 class="text-dark-2 mb-1 h4 earnings_${data.id}"></h4>
-                                        <p class="mb-0 text-dark-2">${data.name}</p>
-                                       </div>
-                                       <span class="background-img"><img src="${data.image}"></span>
+        async function getOverviewSection(selectedSectionId){
+
+            ref.where('isCommissionPlan', '!=', true).where('sectionId', '==', selectedSectionId).get().then( async function(snapshots) {
+                var html = '';
+                if (snapshots.docs.length > 0) {
+                    snapshots.docs.map(async (listval) => {
+                        var data = listval.data();
+                        getEarnings(data.id);
+                        html += ` <div class="col-md-4">
+                            <div class="card card-box-with-icon">
+                                <div class="card-body">
+                                    <span class="box-icon"><img src="${data.image}"></span>
+                                    <div class="card-box-with-content mt-3">
+                                    <h4 class="text-dark-2 mb-1 h4 earnings_${data.id}"></h4>
+                                    <p class="mb-0 text-dark-2">${data.name}</p>
                                     </div>
+                                    <span class="background-img"><img src="${data.image}"></span>
                                 </div>
-                            </div>`;
-                        });
-                        $('.subscription-list').html(html);
-                    }else{
+                            </div>
+                        </div>`;
+                    });
+                    $('.subscription-list').html(html);
+                }else{
                     $('.subscription-list').html('');
-                    }
-                })
-            }
+                }
+            })
+        }
          
         function getEarnings(planId) {
             var total = 0;

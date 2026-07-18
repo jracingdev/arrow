@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
                 <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
                     <li class="breadcrumb-item"><a href="{{route('drivers.ride',$_GET['eid'])}}">{{trans('lang.order_plural')}}</a>
@@ -225,7 +225,7 @@ $(document).ready(function () {
         if (ride.riderName) {
             $('#rider').text(ride.riderName);
         }
-        driverID = ride.driverID;
+        driverID = ride.driverId;
         old_order_status = ride.status;
 
         orderPreviousStatus = ride.status;
@@ -240,57 +240,73 @@ $(document).ready(function () {
         var customerId = ride.customerId;
 
         $('#customer_firstName').text(ride.customerName);
+        $('#driver_firstName').text(ride.driverName);
         customerName = ride.customerName;
+        driverName = ride.driverName;
 
         var user = await database.collection('users').where("id", "==", customerId).get().then(async function (usersnapshots) {
-        if(!usersnapshots.empty){
-            var userData = usersnapshots.docs[0].data();
+            if(!usersnapshots.empty){
+                var userData = usersnapshots.docs[0].data();
 
-            if (userData.profilePictureURL) {
-                $('.resturant-img-customer').attr('src', userData.profilePictureURL);
-            } else {
+                if (userData.profilePictureURL) {
+                    $('.resturant-img-customer').attr('src', userData.profilePictureURL);
+                } else {
+                    $('.resturant-img-customer').attr('src', place_image);
+                }
+
+                if (userData.email) {
+                    $('#customer_email').html(userData.email);
+                }
+                if (userData.phoneNumber) {
+                    $('#customer_phone').text(userData.phoneNumber);
+                }
+
+                fcmToken = userData.fcmToken;
+            } 
+            else {              
+
                 $('.resturant-img-customer').attr('src', place_image);
-            }
+                $('.vendor-title-customer').text(customerName || '{{trans("lang.unknown_user")}}');
 
-            if (userData.email) {
-                $('#customer_email').html(userData.email);
+                $('#customer_email').text('N/A');
+                $('#customer_phone').text('N/A');
             }
-            if (userData.phoneNumber) {
-                $('#customer_phone').text(userData.phoneNumber);
-            }
-
-            fcmToken = userData.fcmToken;
-        }  
         });
 
         if (ride.driverId) {
             var driver = database.collection('users').where("id", "==", ride.driverId);
             driver.get().then(async function (snapshotsnew) {
                 if(!snapshotsnew.empty){
-                var driverdata = snapshotsnew.docs[0].data();
+                    var driverdata = snapshotsnew.docs[0].data();
+                    if (driverdata.id) {
+                        var route_view = '{{route("drivers.view",":id")}}';
+                        route_view = route_view.replace(':id', driverdata.id);
 
-                if (driverdata.id) {
-                    var route_view = '{{route("drivers.view",":id")}}';
-                    route_view = route_view.replace(':id', driverdata.id);
+                        $('#resturant-view').attr('data-url', route_view);
+                    }
+                    if (driverdata.profilePictureURL) {
+                        $('.resturant-img').attr('src', driverdata.profilePictureURL);
+                    } else {
+                        $('.resturant-img').attr('src', place_image);
+                    }
+                    if (driverdata.firstName) {
+                        $('.vendor-title').text(driverdata.firstName + ' ' + driverdata.lastName);
+                    }
 
-                    $('#resturant-view').attr('data-url', route_view);
-                }
-                if (driverdata.profilePictureURL) {
-                    $('.resturant-img').attr('src', driverdata.profilePictureURL);
-                } else {
+                    if (driverdata.email) {
+                        $('#driver_email').html(driverdata.email);
+                    }
+                    if (driverdata.phoneNumber) {
+                        $('#driver_phone').text(driverdata.phoneNumber);
+                    }
+                }else {              
+
                     $('.resturant-img').attr('src', place_image);
-                }
-                if (driverdata.firstName) {
-                    $('.vendor-title').text(driverdata.firstName + ' ' + driverdata.lastName);
-                }
+                    $('.vendor-title').text(driverName || '{{trans("lang.unknown_user")}}');
 
-                if (driverdata.email) {
-                    $('#driver_email').html(driverdata.email);
+                    $('#driver_email').text('N/A');
+                    $('#driver_phone').text('N/A');
                 }
-                if (driverdata.phoneNumber) {
-                    $('#driver_phone').text(driverdata.phoneNumber);
-                }
-            }
             });
 
         }
@@ -309,13 +325,19 @@ $(document).ready(function () {
                 }
                 if (driverdata.firstName) {
                     $('.vendor-title-customer').text(driverdata.firstName + ' ' + driverdata.lastName);
+                }else{
+                    $('.vendor-title-customer').text(' ');
                 }
 
                 if (driverdata.email) {
                     $('#customer_email').html(driverdata.email);
+                }else{
+                    $('#customer_email').text(' ');
                 }
                 if (driverdata.phoneNumber) {
                     $('#customer_phone').text(driverdata.phoneNumber);
+                }else{
+                    $('#customer_phone').text(' ');
                 }
             }
             });
@@ -331,9 +353,12 @@ $(".edit-form-btn").click(async function () {
 
     var orderStatus = $("#order_status").val();
     if (old_order_status != orderStatus) {
+        jQuery("#data-table_processing").show();
+
         database.collection('complaints').doc(id).update({'status': orderStatus}).then(async function (result) {
 
             if (orderStatus != 'Initiated') {
+
                 await $.ajax({
                     type: 'POST',
                     url: "<?php echo route('complaint_notification'); ?>",
@@ -350,212 +375,14 @@ $(".edit-form-btn").click(async function () {
                 });
             }
 
+             jQuery("#data-table_processing").hide();
+
+             window.location.reload();
+
         });
     }
 
 })
-
-function buildHTMLProductsList(snapshots) {
-    var html = '';
-    var alldata = [];
-    var number = [];
-    snapshots.docs.forEach((listval) => {
-        var datas = listval.data();
-        datas.id = listval.id;
-        alldata.push(datas);
-    });
-
-
-    var count = 0;
-    alldata.forEach((listval) => {
-
-        var val = listval;
-
-        html = html + '<tr>';
-
-        if (val.size) {
-            html = html + '<div class="type"><span>{{trans("lang.type")}} :</span><span class="ext-size">' + val.size + '</span></div>';
-        }
-
-        price_item = parseFloat(val.subTotal).toFixed(2);
-       
-        totalProductPrice = price_item;
-        var extras_price = 0;
-       
-        totalProductPrice = parseFloat(totalProductPrice).toFixed(2);
-
-        if (currencyAtRight) {
-            price_val = price_item + "" + currentCurrency;
-            extras_price_val = extras_price + "" + currentCurrency;
-            totalProductPrice_val = totalProductPrice + "" + currentCurrency;
-        } else {
-            price_val = currentCurrency + "" + price_item;
-            extras_price_val = currentCurrency + "" + extras_price;
-            totalProductPrice_val = currentCurrency + "" + totalProductPrice;
-        }
-
-        html = html + '</div></div></td>';
-        html = html + '<td>' + val.sourceLocationName + '</td><td>' + price_val + '</td><td>  ' + totalProductPrice_val + '</td>';
-
-        html = html + '</tr>';
-        total_price += parseFloat(totalProductPrice);
-    });
-    totalProductPrice = 0;
-
-    return html;
-}
-
-
-function buildHTMLProductstotal(snapshotsProducts) {
-    var html = '';
-    var alldata = [];
-    var number = [];
-    var adminCommission = snapshotsProducts.adminCommission;
-    var adminCommissionType = snapshotsProducts.adminCommissionType;
-    var discount = snapshotsProducts.discount;
-    var couponCode = snapshotsProducts.couponCode;
-    var extras = snapshotsProducts.extras;
-    var extras_price = snapshotsProducts.extras_price;
-    var rejectedByDrivers = snapshotsProducts.rejectedByDrivers;
-    var tip_amount = snapshotsProducts.tip_amount;
-    var notes = snapshotsProducts.notes;
-    var status = snapshotsProducts.status;
-    var products = snapshotsProducts.products;
-    var deliveryCharge = snapshotsProducts.vehicleType.delivery_charges_per_km;
-
-    var intRegex = /^\d+$/;
-    var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
-
-    if (products) {
-
-        products.forEach((product) => {
-            var val = product;
-        });
-    }
-    
-    if (intRegex.test(discount) || floatRegex.test(discount)) {
-
-        discount = parseFloat(discount).toFixed(2);
-        total_price -= parseFloat(discount);
-
-        if (currencyAtRight) {
-            discount_val = discount + "" + currentCurrency;
-        } else {
-            discount_val = currentCurrency + "" + discount;
-        }
-
-        couponCode_html = '';
-        if (couponCode) {
-            couponCode_html = '</br><small>{{trans("lang.coupon_codes")}} :' + couponCode + '</small>';
-        }
-        html = html + '<tr><td class="label">{{trans("lang.discount")}}' + couponCode_html + '</td><td class="discount">-' + discount_val + '</td></tr>';
-    }
-
-
-    var tax = 0;
-    taxlabel = '';
-    taxlabeltype = '';
-    try {
-        if (snapshotsProducts.tax) {
-            if (snapshotsProducts.taxType && snapshotsProducts.tax) {
-                if (snapshotsProducts.taxType == "percent") {
-                    tax = (snapshotsProducts.tax * total_price) / 100;
-                    taxlabeltype = "%";
-                } else {
-                    tax = snapshotsProducts.tax;
-                    taxlabeltype = "fix";
-                }
-            }
-        }
-    } catch (error) {
-
-    }
-
-    if (!isNaN(tax) && tax != 0) {
-        if (currencyAtRight) {
-            html = html + '<tr><td class="label">{{trans("lang.tax")}}</td><td class="deliveryCharge">+' + tax.toFixed(2) + '' + currentCurrency + '(' + snapshotsProducts.tax + ' ' + taxlabeltype + ')</td></tr>';
-        } else {
-            html = html + '<tr><td class="label">{{trans("lang.tax")}}</td><td class="deliveryCharge">+' + currentCurrency + tax.toFixed(2) + '( ' + snapshotsProducts.tax + ' ' + taxlabeltype + ')</td></tr>';
-        }
-
-        total_price = total_price + tax;
-    }
-
-    if (intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge)) {
-        deliveryCharge = parseFloat(deliveryCharge).toFixed(2);
-        total_price += parseFloat(deliveryCharge);
-
-        if (currencyAtRight) {
-            deliveryCharge_val = deliveryCharge + "" + currentCurrency;
-
-        } else {
-            deliveryCharge_val = currentCurrency + "" + deliveryCharge;
-
-        }
-        if (deliveryCharge) {
-            deliveryChargeVal = deliveryCharge;
-            html = html + '<tr><td class="label">{{trans("lang.deliveryCharge")}}</td><td class="deliveryCharge">+' + deliveryCharge_val + '</td></tr>';
-        }
-    }
-
-    var total_item_price = total_price;
-    if (intRegex.test(tip_amount) || floatRegex.test(tip_amount)) {
-
-        tip_amount = parseFloat(tip_amount).toFixed(2);
-        total_price += parseFloat(tip_amount);
-        total_price = parseFloat(total_price).toFixed(2);
-
-        if (currencyAtRight) {
-            tip_amount_val = tip_amount + "" + currentCurrency;
-        } else {
-            tip_amount_val = currentCurrency + "" + tip_amount;
-        }
-        if (tip_amount) {
-            html = html + '<tr><td class="label">{{trans("lang.tip_amount")}}</td><td class="tip_amount_val">+' + tip_amount_val + '</td></tr>';
-        }
-    }
-
-    if (currencyAtRight) {
-        total_price_val = parseFloat(total_price).toFixed(2) + "" + currentCurrency;
-    } else {
-        total_price_val = currentCurrency + "" + parseFloat(total_price).toFixed(2);
-    }
-
-    html = html + '<tr><td class="label">{{trans("lang.total_amount")}}</td><td class="total_price_val">' + total_price_val + '</td></tr>';
-
-    if (adminCommission != undefined && adminCommissionType != undefined) {
-        var commission = 0;
-        if (adminCommissionType == "Percent") {
-            commission = (total_item_price * parseFloat(adminCommission)) / 100;
-        } else {
-            commission = parseFloat(adminCommission);
-        }
-        adminCommission = commission;
-    } else if (adminCommission != undefined) {
-        var commission = parseFloat(adminCommission);
-        adminCommission = commission;
-    }
-
-    if (adminCommission) {
-
-        adminCommission = parseFloat(adminCommission).toFixed(2);
-        if (currencyAtRight) {
-            adminCommission_val = adminCommission + "" + currentCurrency;
-        } else {
-            adminCommission_val = currentCurrency + "" + adminCommission;
-        }
-        html = html + '<tr><td class="label"><small>( {{trans("lang.admin_commission")}} </small></td><td class="adminCommission_val"><small>' + adminCommission_val + ')</small></td></tr>';
-    }
-
-    if (notes) {
-
-
-        html = html + '<tr><td class="label">{{trans("lang.notes")}}</td><td class="adminCommission_val">' + notes + '</td></tr>';
-    }
-
-
-    return html;
-}
 
 </script>
 

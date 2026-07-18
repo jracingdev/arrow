@@ -9,7 +9,7 @@
 
     <div class="col-md-7 align-self-center">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+        <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
         <li class="breadcrumb-item"><a href="{!! route('coupons') !!}">{{trans('lang.coupon_plural')}}</a></li>
         <li class="breadcrumb-item active">{{trans('lang.coupon_create')}}</li>
       </ol>
@@ -128,144 +128,148 @@
 @endsection
 
 @section('scripts')
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
 <script src="{{ asset('js/bootstrap-datepicker.min.js') }}"></script>
 <link href="{{ asset('css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
+
 <script>
 
   var database = firebase.firestore();
-
   var photo = "";
   var fileName = "";
-  var vendorOwnerId = "";
-  var vendorOwnerOnline = false;
-  var vendorUserId = "<?php echo $id; ?>";
-  var vandorId = '';
-  getVendorId(vendorUserId).then(data => {
-    vandorId = data;
-    $(document).ready(function () {
+  var vendorUserId = "{{ $id }}";
+  var authRole = "{{ $authRole }}";
+  var empVendorId = "{{ $empVendorId }}";
+  let currentPermissions = {
+    isActive: true   
+  };
+  $('#datetimepicker1').datepicker({
+      dateFormat: 'mm/dd/yyyy'
+  });
+  document.addEventListener("DOMContentLoaded", async function() {   
+    if (authRole === 'employee') {               
+        const perm = await getEmployeePermissionForTitle(vendorUserId, "Offers");
 
-      jQuery("#data-table_processing").show();
-
-      database.collection('vendors').get().then(async function (snapshots) {
-
-        snapshots.docs.forEach((listval) => {
-          var data = listval.data();
-
-          $('#vendor_vendor_select').append($("<option></option>")
-            .attr("value", data.id)
-            .text(data.title));
-        })
-
-      });
-
-      $(function () {
-        $('#datetimepicker1').datepicker({
-          dateFormat: 'mm/dd/yyyy'
-        });
-      });
-
-      var id = "<?php echo uniqid(); ?>";
-      var vendor = "<?php echo $id; ?>";
-      var vendorID = '';
-
-      if (vendor == '') {
-        $("#vendor_vendor_select").change(function () {
-          vendorID = $(this).val();
-        });
-      } else {
-        vendorID = "<?php echo $id; ?>";
-      }
-
-      $(".save_coupon_btn").click(function () {
-
-
-        var code = $(".coupon_code").val();
-        var discount = $(".coupon_discount").val();
-        var description = $(".coupon_description").val();
-        var newdate = new Date($(".date_picker").val());
-        var expiresAt = new Date(newdate.setHours(23, 59, 59, 999));
-        var isEnabled = $(".coupon_enabled").is(":checked");
-        var discountType = $("#coupon_discount_type").val();
-        var isPublic = $(".coupon_public").is(":checked");
-        var codeAlreadyExist = false;
-
-        database.collection('coupons').where('code', '==', code).get().then(async function (snapshot) {
-          if (!snapshot.empty && snapshot.docs.length > 0) {
-            codeAlreadyExist = true;
-          }
-          if (code == '') {
-            $(".error_top").show();
-            $(".error_top").html("");
-            $(".error_top").append("<p>{{trans('lang.enter_coupon_code_error')}}</p>");
-            window.scrollTo(0, 0);
-          } else if (discount == '') {
-            $(".error_top").show();
-            $(".error_top").html("");
-            $(".error_top").append("<p>{{trans('lang.enter_coupon_discount_error')}}</p>");
-            window.scrollTo(0, 0);
-          } else if (discountType == '') {
-            $(".error_top").show();
-            $(".error_top").html("");
-            $(".error_top").append("<p>{{trans('lang.select_coupon_discountType_error')}}</p>");
-            window.scrollTo(0, 0);
-          } else if (discountType == "Percentage" && (discount >= 100 || discount < 0)) {
-            $(".error_top").show();
-            $(".error_top").html("");
-            $(".error_top").append("<p>{{trans('lang.enter_coupon_percentage_discount_error')}}</p>");
-            window.scrollTo(0, 0);
-          } else if (newdate == 'Invalid Date') {
-            $(".error_top").show();
-            $(".error_top").html("");
-            $(".error_top").append("<p>{{trans('lang.select_coupon_expdate_error')}}</p>");
-            window.scrollTo(0, 0);
-          } else if (vendorID == '') {
-            $(".error_top").show();
-            $(".error_top").html("");
-            $(".error_top").append("<p>{{trans('lang.select_vendor_error')}}</p>");
-            window.scrollTo(0, 0);
-          } else if (codeAlreadyExist == true) {
-            $(".error_top").show();
-            $(".error_top").html("");
-            $(".error_top").append("<p>{{trans('lang.enter_coupon_code_already_exist_error')}}</p>");
-            window.scrollTo(0, 0);
-          } else {
-            jQuery("#data-table_processing").show();
-            storeImageData().then(IMG => {
-              database.collection('coupons').doc(id).set({
-                'code': code,
-                'description': description,
-                'discount': discount,
-                'expiresAt': expiresAt,
-                'isEnabled': isEnabled,
-                'id': id,
-                'discountType': discountType,
-                'image': IMG,
-                'vendorID': vandorId,
-                'isPublic': isPublic
-              }).then(function (result) {
-                window.location.href = '{{ route("coupons")}}';
-              });
-            }).catch(function (error) {
-              jQuery("#data-table_processing").hide();
-              $(".error_top").show();
-              $(".error_top").html("");
-              $(".error_top").append("<p>" + error + "</p>");
-
-            });
-          }
-        });
-
-      })
-
-      jQuery("#data-table_processing").hide();
-
-    });
+        currentPermissions = {
+            isActive: perm.isActive ?? false
+        };
+        if (!currentPermissions.isActive) {
+            alert('{{ trans("lang.no_permission") }}');
+            $('.page-btn').hide();
+            $('.vendor_payout_create').html('<p class="text-center text-danger font-weight-bold">{{ trans("lang.no_permission") }}</p>');
+            return;
+        }
+    } 
   })
+  $(".save_coupon_btn").click(async function () {
+    var vendorUserRef;
+    var vendorUserData;
+    var vandorId;
+    var section_id;
+    if(authRole === 'vendor'){      
+      vendorUserRef = await database.collection('users').doc(vendorUserId).get();
+      vendorUserData = vendorUserRef.data();
+      vandorId = vendorUserData.vendorID;
+      section_id = vendorUserData.sectionId;
+    }else{
+      vendorUserRef = await database.collection('vendors').doc(empVendorId).get();
+      vendorUserData = vendorUserRef.data();
+      vandorId = empVendorId;
+      section_id = vendorUserData.section_id;
+    }
+
+    var code = $(".coupon_code").val();
+    var discount = $(".coupon_discount").val();
+    var description = $(".coupon_description").val();
+    var newdate = new Date($(".date_picker").val());
+    var expiresAt = new Date(newdate.setHours(23, 59, 59, 999));
+    var isEnabled = $(".coupon_enabled").is(":checked");
+    var discountType = $("#coupon_discount_type").val();
+    var isPublic = $(".coupon_public").is(":checked");
+    var codeAlreadyExist = false;
+    
+
+    database.collection('coupons').where('code', '==', code).get().then(async function (snapshot) {
+      if (!snapshot.empty && snapshot.docs.length > 0) {
+        codeAlreadyExist = true;
+      }
+      if (code == '') {
+        $(".error_top").show();
+        $(".error_top").html("");
+        $(".error_top").append("<p>{{trans('lang.enter_coupon_code_error')}}</p>");
+        window.scrollTo(0, 0);
+      } else if (discount == '') {
+        $(".error_top").show();
+        $(".error_top").html("");
+        $(".error_top").append("<p>{{trans('lang.enter_coupon_discount_error')}}</p>");
+        window.scrollTo(0, 0);
+      } else if (discountType == '') {
+        $(".error_top").show();
+        $(".error_top").html("");
+        $(".error_top").append("<p>{{trans('lang.select_coupon_discountType_error')}}</p>");
+        window.scrollTo(0, 0);
+      } else if (discountType == "Percentage" && (discount >= 100 || discount < 0)) {
+        $(".error_top").show();
+        $(".error_top").html("");
+        $(".error_top").append("<p>{{trans('lang.enter_coupon_percentage_discount_error')}}</p>");
+        window.scrollTo(0, 0);
+      } else if (newdate == 'Invalid Date') {
+        $(".error_top").show();
+        $(".error_top").html("");
+        $(".error_top").append("<p>{{trans('lang.select_coupon_expdate_error')}}</p>");
+        window.scrollTo(0, 0);
+      } else if (vandorId == '') {
+        $(".error_top").show();
+        $(".error_top").html("");
+        $(".error_top").append("<p>{{trans('lang.select_vendor_error')}}</p>");
+        window.scrollTo(0, 0);
+      } else if (codeAlreadyExist == true) {
+        $(".error_top").show();
+        $(".error_top").html("");
+        $(".error_top").append("<p>{{trans('lang.enter_coupon_code_already_exist_error')}}</p>");
+        window.scrollTo(0, 0);
+      } else {
+        jQuery("#data-table_processing").show();
+        storeImageData().then(IMG => {
+          var id = database.collection('tmp').doc().id;
+          database.collection('coupons').doc(id).set({
+            'code': code,
+            'description': description,
+            'discount': discount,
+            'expiresAt': expiresAt,
+            'isEnabled': isEnabled,
+            'id': id,
+            'discountType': discountType,
+            'image': IMG,
+            'vendorID': (authRole == 'vendor')  ? vandorId : empVendorId,
+            'isPublic': isPublic,
+            'createdAt': firebase.firestore.FieldValue.serverTimestamp(),
+            'section_id': section_id
+          }).then(function (result) {
+            window.location.href = '{{ route("coupons")}}';
+          });
+        }).catch(function (error) {
+          jQuery("#data-table_processing").hide();
+          $(".error_top").show();
+          $(".error_top").html("");
+          $(".error_top").append("<p>" + error + "</p>");
+
+        });
+      }
+    });
+
+  });
 
   var storageRef = firebase.storage().ref('images');
   function handleFileSelect(evt) {
     var f = evt.target.files[0];
+    if (!f) {
+      $(".coupon_image").empty();
+      fileName = "";
+      photo = "";
+      return;
+    }
     var reader = new FileReader();
     reader.onload = (function (theFile) {
       return function (e) {
@@ -287,10 +291,17 @@
     })(f);
     reader.readAsDataURL(f);
   }
+
   async function storeImageData() {
     var newPhoto = '';
+    if (!fileName || !photo) {
+      return '';   // Return empty string → no image
+    }
     try {
       photo = photo.replace(/^data:image\/[a-z]+;base64,/, "")
+      if (!fileName || fileName.trim() === '') {
+        return '';
+      }
       var uploadTask = await storageRef.child(fileName).putString(photo, 'base64', { contentType: 'image/jpg' });
       var downloadURL = await uploadTask.ref.getDownloadURL();
       newPhoto = downloadURL;
@@ -304,10 +315,18 @@
   async function getVendorId(vendorUser) {
     var vendorID = '';
     var ref;
-    await database.collection('vendors').where('author', "==", vendorUser).get().then(async function (vendorSnapshots) {
-      var vendorData = vendorSnapshots.docs[0].data();
-      vendorID = vendorData.id;
-    })
+    if (authRole == 'vendor') { 
+      await database.collection('vendors').where('author', "==", vendorUser).get().then(async function (vendorSnapshots) {
+        var vendorData = vendorSnapshots.docs[0].data();
+        vendorID = vendorData.id;
+      })
+  }else{
+      var vendorSnapshots = await database.collection('vendors').where('id', '==', empVendorId).get();
+      if (!vendorSnapshots.empty) {
+        var vendorData = vendorSnapshots.docs[0].data();
+        vendorId = vendorSnapshots.docs[0].id;
+      }
+    }
     return vendorID;
   }
 

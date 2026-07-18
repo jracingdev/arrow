@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.provider_payout_plural')}}</li>
             </ol>
         </div>
@@ -17,44 +17,31 @@
         </div>
     </div>
     <div class="container-fluid">
-       <div class="admin-top-section"> 
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex top-title-section pb-4 justify-content-between">
-                    <div class="d-flex top-title-left align-self-center">
-                        <span class="icon mr-3"><img src="{{ asset('images/payment.png') }}"></span>
-                        <h3 class="mb-0">{{trans('lang.provider_payout_plural')}}</h3>
-                        <span class="counter ml-3 total_count"></span>
-                    </div>
-                 
-                </div>
-            </div>
-        </div> 
-       </div>
+       
        <div class="table-list">
        <div class="row">
            <div class="col-12">
                 <?php if ($id != '') { ?>
                     <div class="menu-tab tabDiv">
                             <ul>
-                                <li ><a href="{{route('providers.view', $id)}}">{{trans('lang.tab_basic')}}</a>
+                                <li ><a href="{{route('providers.view', $id)}}"><img src="{{ asset('images/provider.png') }}"> {{trans('lang.tab_basic')}}</a>
                                 </li>
-                                <li><a href="{{route('ondemand.services.index', $id)}}">{{trans('lang.services')}}</a></li>
+                                <li><a href="{{route('ondemand.services.index', $id)}}"><img src="{{ asset('images/service.png') }}"> {{trans('lang.services')}}</a></li>
                                 <li>
-                                <li><a href="{{route('ondemand.workers.index', $id)}}">{{trans('lang.workers')}}</a></li>
+                                <li><a href="{{route('ondemand.workers.index', $id)}}"><img src="{{ asset('images/worker.png') }}"> {{trans('lang.workers')}}</a></li>
                                 <li>
-                                <li><a href="{{route('ondemand.bookings.index',$id)}}">{{trans('lang.booking_plural')}}</a></li>
+                                <li><a href="{{route('ondemand.bookings.index',$id)}}"><img src="{{ asset('images/booking.png') }}"> {{trans('lang.booking_plural')}}</a></li>
                                 <li>
-                                <li><a href="{{route('ondemand.coupons', $id)}}">{{trans('lang.coupon_plural')}}</a></li>
+                                <li><a href="{{route('ondemand.coupons', $id)}}"><img src="{{ asset('images/coupon.png') }}"> {{trans('lang.coupon_plural')}}</a></li>
                                  <li class="active">
-                                    <a href="{{route('providerPayouts.payout', $id)}}">{{trans('lang.tab_payouts')}}</a>
+                                    <a href="{{route('providerPayouts.payout', $id)}}"><img src="{{ asset('images/payment.png') }}"> {{trans('lang.tab_payouts')}}</a>
                                 </li>
                                 <li>
-                                    <a href="{{route('payoutRequests.providers', $id)}}">{{trans('lang.tab_payout_request')}}</a>
+                                    <a href="{{route('payoutRequests.providers', $id)}}"><img src="{{ asset('images/payment.png') }}"> {{trans('lang.tab_payout_request')}}</a>
                                 </li>
                                  <li>
                                     <a href="{{route('users.walletstransaction',$id)}}"
-                                           class="wallet_transaction">{{trans('lang.wallet_transaction')}}</a>
+                                           class="wallet_transaction"><img src="{{ asset('images/wallet.png') }}"> {{trans('lang.wallet_transaction')}}</a>
                                 </li>
                                 <?php 
                     
@@ -62,17 +49,23 @@
                                     $subscription =  str_replace(":id", "providerID=" . $id, $subscription);
                                     ?>
                                 <li> 
-                                    <a href="{{ $subscription }}">{{trans('lang.subscription_history')}}</a>
+                                    <a href="{{ $subscription }}"><img src="{{ asset('images/subscription.png') }}"> {{trans('lang.subscription_history')}}</a>
                                 </li>
                             </ul>
                         </div>
                 <?php } ?>
                <div class="card border">
-                 <div class="card-header d-flex justify-content-between align-items-center border-0">
-                   <div class="card-header-title">
-                    <h3 class="text-dark-2 mb-2 h4">{{trans('lang.provider_payout_plural')}}</h3>
-                    <p class="mb-0 text-dark-2">{{trans('lang.provider_payouts_table_text')}}</p>
-                   </div>
+                 <div class="card-header d-flex justify-content-between align-items-center border-0 top-title-section">
+                   
+                   <div class=" top-title-left align-self-center">
+                        
+                       <div class="d-flex align-items-center">
+                        <span class="icon mr-3"><img src="{{ asset('images/payment.png') }}"></span>
+                        <h3 class="mb-0">{{trans('lang.provider_payout_plural')}}</h3>
+                        <span class="counter ml-3 total_count"></span>
+                       </div>
+                        <p class="mb-0 text-dark-2">{{trans('lang.provider_payouts_table_text')}}</p>
+                    </div>
                    <div class="card-header-right d-flex align-items-center">
                     <div class="card-header-btn mr-3"> 
                         <?php if ($id != '') { ?>
@@ -243,7 +236,7 @@
                         } catch (err) {
                         }
                     }
-                    var paidDate = date + ' ' + time;
+                    var paidDate = date + '<br> ' + time;
                     if (
                         (childData.title && childData.title.toString().toLowerCase().includes(searchValue)) ||
                         (childData.amount && childData.amount.toString().toLowerCase().includes(searchValue)) ||
@@ -304,7 +297,9 @@
                 }
   
             }));
-
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
 
             $('#data-table_processing').hide(); // Hide loader
             callback({
@@ -348,35 +343,32 @@
         ],
         order: [2, "desc"],
     <?php } ?>
-        "language": {
-            "zeroRecords": "{{trans("lang.no_record_found")}}",
-            "emptyTable": "{{trans("lang.no_record_found")}}",
-            "processing": "" // Remove default loader
-        },
+        "language": datatableLang,
+
         dom: 'lfrtipB',
             buttons: [
                     {
                         extend: 'collection',
-                        text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                        text: '<i class="mdi mdi-cloud-download"></i> {{trans('lang.export_as')}}',
                         className: 'btn btn-info',
                         buttons: [
                             {
                                 extend: 'excelHtml5',
-                                text: 'Export Excel',
+                                text: '{{trans('lang.export_excel')}}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'excel',fieldConfig);
                                 }
                             },
                             {
                                 extend: 'pdfHtml5',
-                                text: 'Export PDF',
+                                text: '{{trans('lang.export_pdf')}}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'pdf',fieldConfig);
                                 }
                             },   
                             {
                                 extend: 'csvHtml5',
-                                text: 'Export CSV',
+                                text: '{{trans('lang.export_csv')}}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'csv',fieldConfig);
                                 }
@@ -386,7 +378,7 @@
             ],
             initComplete: function() {
                 $(".dataTables_filter").append($(".dt-buttons").detach());
-                $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+                $('.dataTables_filter input').attr('placeholder', '{{trans('lang.search_here')}}').attr('autocomplete','new-password').val('');
                 $('.dataTables_filter label').contents().filter(function() {
                     return this.nodeType === 3; 
                 }).remove();
@@ -449,7 +441,7 @@
             html.push('<td>' + amount + '</td>');
             var date = val.paidDate.toDate().toDateString();
             var time = val.paidDate.toDate().toLocaleTimeString('en-US');
-            html.push('<td>' + date + ' ' + time + '</td>');
+            html.push('<td>' + date + '<br> ' + time + '</td>');
 
             if (val.note != undefined && val.note != '') {
                 html.push('<td>' + val.note + '</td>');
@@ -461,7 +453,7 @@
             } else {
                 html.push('<td></td>');
             }
-              html.push('<span class="action-btn"><a id="' + val.recid + '" class="delete-btn" name="pro_payouts-delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a></span>');
+              html.push('<span class="action-btn"><a id="' + val.recid + '" class="delete-btn" name="pro_payouts-delete" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a></span>');
 
           
         }

@@ -1,9 +1,7 @@
 @include('layouts.app')
+
 @include('layouts.header')
-<?php
-session_start();
-?>
-        <!-- /**********************************rental-car-Booking***************************/ -->
+
 <div class="carrental-book-page pt-5 mb-5" style="background: #F2F6F9;">
     <div class="container position-relative">
         <div class="row">
@@ -11,18 +9,20 @@ session_start();
         </div>
     </div>
 </div>
-<!-- /**********************************rental-car-Booking***************************/ -->
+
 @include('layouts.footer')
+
 @include('layouts.nav')
-<!-- GeoFirestore -->
+
 <script src="{{ asset('js/geofirestore.js') }}"></script>
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
 <script type="text/javascript" src="{{asset('vendor/slick/slick.min.js')}}"></script>
+
 <script type="text/javascript">
-    var rental_user_id = "<?php echo $id; ?>";
+    
     var user_id = "<?php echo $user_id; ?>";
-    var id_order = "<?php echo uniqid(); ?>";
-    var fcmToken = '';
+    var id_order = database.collection('temp').doc().id;
+    
     var currentCurrency = '';
     var currencyAtRight = false;
     var wallet_amount = 0;
@@ -39,7 +39,8 @@ session_start();
         }
         loadcurrency();
     });
-    var rentalVehicleTypeUserRef = database.collection('users').where('id', "==", rental_user_id);
+
+    var rentalVehicleTypeUserRef = database.collection('users').where('id', "==", user_id);
     var UserRef = database.collection('users').where('id', "==", user_id);
     var placeholderImageRef = database.collection('settings').doc('placeHolderImage');
     var placeholderImage = '';
@@ -75,8 +76,16 @@ session_start();
     var XenditSettings = database.collection('settings').doc('xendit_settings');
     var Midtrans_settings = database.collection('settings').doc('midtrans_settings');
     var OrangePaySettings = database.collection('settings').doc('orange_money_settings');
+
+    var cart = @json($rentalCarsData);
+    var taxSetting = cart?.taxSetting ?? [];
+    var taxScope = cart?.taxScope ?? 'order';
+    var platformTax        = cart?.taxesByScope?.platform ?? [];
+    var platformCharge = cart?.platformCharge ?? '0';
+    
     var email_templates = database.collection('email_templates').where('type', '==', 'new_car_book');
     var emailTemplatesData = null;
+    
     codSettings.get().then(async function (codSettingsSnapshots) {
         codSettings = codSettingsSnapshots.data();
         if (codSettings.isEnabled) {
@@ -85,6 +94,7 @@ session_start();
             $("#cod_box").remove();
         }
     });
+    
     razorpaySettings.get().then(async function (razorpaySettingsSnapshots) {
         razorpaySetting = razorpaySettingsSnapshots.data();
         if (razorpaySetting.isEnabled) {
@@ -99,6 +109,7 @@ session_start();
             $("#razorpay_box").show();
         }
     });
+    
     stripeSettings.get().then(async function (stripeSettingsSnapshots) {
         stripeSetting = stripeSettingsSnapshots.data();
         if (stripeSetting.isEnabled) {
@@ -112,6 +123,7 @@ session_start();
             $("#stripe_box").show();
         }
     });
+
     paypalSettings.get().then(async function (paypalSettingsSnapshots) {
         paypalSetting = paypalSettingsSnapshots.data();
         if (paypalSetting.isEnabled) {
@@ -129,6 +141,7 @@ session_start();
             $("#paypal_box").show();
         }
     });
+    
     walletSettings.get().then(async function (walletSettingsSnapshots) {
         walletSetting = walletSettingsSnapshots.data();
         if (walletSetting.isEnabled) {
@@ -141,6 +154,7 @@ session_start();
             $("#wallet_box").show();
         }
     });
+
     payFastSettings.get().then(async function (payfastSettingsSnapshots) {
         payFastSetting = payfastSettingsSnapshots.data();
         if (payFastSetting.isEnable) {
@@ -161,6 +175,7 @@ session_start();
             $("#payfast_box").show();
         }
     });
+
     payStackSettings.get().then(async function (payStackSettingsSnapshots) {
         payStackSetting = payStackSettingsSnapshots.data();
         if (payStackSetting.isEnable) {
@@ -175,6 +190,7 @@ session_start();
             $("#paystack_box").show();
         }
     });
+
     flutterWaveSettings.get().then(async function (flutterWaveSettingsSnapshots) {
         flutterWaveSetting = flutterWaveSettingsSnapshots.data();
         if (flutterWaveSetting.isEnable) {
@@ -191,6 +207,7 @@ session_start();
             $("#flutterWave_box").show();
         }
     });
+
     MercadoPagoSettings.get().then(async function (MercadoPagoSettingsSnapshots) {
         MercadoPagoSetting = MercadoPagoSettingsSnapshots.data();
         if (MercadoPagoSetting.isEnabled) {
@@ -206,39 +223,44 @@ session_start();
             $("#mercadopago_box").show();
         }
     });
+
     XenditSettings.get().then(async function(XenditSettingsSnapshots) {
-            XenditSetting = XenditSettingsSnapshots.data();
-            if (XenditSetting.enable) {
-                $("#xendit_enable").val(XenditSetting.enable);
-                $("#xendit_apiKey").val(XenditSetting.apiKey);
-                $("#xendit_box").show();
-            }
-        });
+        XenditSetting = XenditSettingsSnapshots.data();
+        if (XenditSetting.enable) {
+            $("#xendit_enable").val(XenditSetting.enable);
+            $("#xendit_apiKey").val(XenditSetting.apiKey);
+            $("#xendit_box").show();
+        }
+    });
+
     Midtrans_settings.get().then(async function(Midtrans_settingsSnapshots) {
-            Midtrans_setting = Midtrans_settingsSnapshots.data();
-            if (Midtrans_setting.enable) {
-                $("#midtrans_enable").val(Midtrans_setting.enable);
-                $("#midtrans_serverKey").val(Midtrans_setting.serverKey);
-                $("#midtrans_isSandbox").val(Midtrans_setting.isSandbox);
-                $("#midtrans_box").show();
-            }
-        });
+        Midtrans_setting = Midtrans_settingsSnapshots.data();
+        if (Midtrans_setting.enable) {
+            $("#midtrans_enable").val(Midtrans_setting.enable);
+            $("#midtrans_serverKey").val(Midtrans_setting.serverKey);
+            $("#midtrans_isSandbox").val(Midtrans_setting.isSandbox);
+            $("#midtrans_box").show();
+        }
+    });
+
     OrangePaySettings.get().then(async function(OrangePaySettingsSnapshots) {
-            OrangePaySetting = OrangePaySettingsSnapshots.data();
-            if (OrangePaySetting.enable) {
-                $("#orangepay_enable").val(OrangePaySetting.enable);
-                $("#orangepay_isSandbox").val(OrangePaySetting.isSandbox);
-                $("#orangepay_clientId").val(OrangePaySetting.clientId);
-                $("#orangepay_clientSecret").val(OrangePaySetting.clientSecret);
-                $("#orangepay_merchantKey").val(OrangePaySetting.merchantKey);
-                $("#orangepay_box").show();
-            }
-        });
+        OrangePaySetting = OrangePaySettingsSnapshots.data();
+        if (OrangePaySetting.enable) {
+            $("#orangepay_enable").val(OrangePaySetting.enable);
+            $("#orangepay_isSandbox").val(OrangePaySetting.isSandbox);
+            $("#orangepay_clientId").val(OrangePaySetting.clientId);
+            $("#orangepay_clientSecret").val(OrangePaySetting.clientSecret);
+            $("#orangepay_merchantKey").val(OrangePaySetting.merchantKey);
+            $("#orangepay_box").show();
+        }
+    });
+
     getCouponDetails();
 
     async function getCouponDetails() {
         var date = new Date();
-        var couponRef = database.collection('rental_coupons').where('expiresAt', '>=', date);
+        var sectionid = getCookie('section_id');
+        var couponRef = database.collection('rental_coupons').where('sectionId', '==', sectionid).where('expiresAt', '>=', date);
         var couponHtml = '';
         let menuHtmlx = couponRef.get().then(async function (couponRefSnapshots) {
             couponHtml += '<div class="coupon-code"><label>Select Available Coupons to apply</label><span></span></div>';
@@ -279,9 +301,14 @@ session_start();
                         discount: discount,
                         discountType: discountType,
                         coupon_id: coupondata.id,
-                        rental_user_id: rental_user_id,
+                        rental_user_id: user_id,
                     },
                     success: function (data) {
+                        Swal.fire({
+                            text: "{{ trans('lang.discount_applied') }}",
+                            icon: "success"
+                        });
+                        
                         data = JSON.parse(data);
                         window.location.reload();
                         loadcurrency();
@@ -315,11 +342,33 @@ session_start();
                     }
                 });
             } else {
-                alert("Coupon code is not valid.");
+                Swal.fire({text: "{{trans('lang.coupon_code_not_valid')}}", icon: "error"});
                 $("#coupon_code").val('');
+                return false;
             }
         });
     });
+
+    $(document).on("click", '.remove-coupon a', function(event) {
+        $.ajax({
+            type: 'POST',
+            url: "<?php echo route('remove_rental_coupon'); ?>",
+            data: {
+                _token: '<?php echo csrf_token(); ?>',
+            },
+            success: function(data) {
+                Swal.fire({
+                    text: "{{ trans('lang.discount_removed') }}",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
+            }
+        });
+    });
+    
     $(document).on('click', '.copupon-list li', function (e) {
         var navSelectedValue = $(this).attr('value');
         $('#coupon_code').val(navSelectedValue);
@@ -347,722 +396,172 @@ session_start();
         }
     }
 
-    var isDriver = false;
-    var rentalCarRate = 0;
-    var rentalDriverRate = 0;
-
     async function finalCheckout() {
+
         UserRef.get().then(async function (userSnapshots) {
+
             var userDetails = userSnapshots.docs[0].data();
-            rentalVehicleTypeUserRef.get().then(async function (snapshots) {
-                var wallet_amount = userDetails.wallet_amount;
-                var author = userDetails;
-                var authorID = user_id;
-                var authorName = userDetails.firstName + ' ' + userDetails.lastName;
-                var userEmail = userDetails.email;
-                var bookWithDriver = $('#bookWithDriver').val();
-                if (bookWithDriver == true || bookWithDriver == "true") {
-                    bookWithDriver = true;
-                } else {
-                    bookWithDriver = false;
-                }
-                var driver = snapshots.docs[0].data();
-                var driverID = driver.id;
-                fcmToken = driver.fcmToken;
-                var subject = orderPlacedSubject;
-                var message = orderPlacedMsg;
-                var createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                var discount = $('#discount').val();
-                var discountLabel = $('#discountLabel').val();
-                var discountType = $('#discountType').val();
-                var isDropSameLocation = $('#isDropSameLocation').val();
-                var dropAddress = $('#dropoffAddress').val();
-                var dropDateTime = $('#dropDateTime').val();
-                dropDateTime = new Date(dropDateTime);
-                var dropLatLong = {
-                    'latitude': parseFloat($('#drop_address_lat').val()),
-                    'longitude': parseFloat($('#drop_address_lng').val()),
-                };
-                var pickUpAddress = $('#pickupAddress').val();
-                var pickUpDateTime = $('#pickupDateTime').val();
+        
+            var wallet_amount = userDetails.wallet_amount;
+            var author = userDetails;
+            var authorID = user_id;
+            var authorName = userDetails.firstName + ' ' + userDetails.lastName;
+            var userEmail = userDetails.email;
+            
+            var fcmToken = userDetails.fcmToken;
+            var subject = orderPlacedSubject;
+            var message = orderPlacedMsg;
+            var createdAt = firebase.firestore.FieldValue.serverTimestamp();
+
+            var coupon_id = $('#coupon_id').val();
+            var discount = $('#discount').val();
+            var discountLabel = $('#discountLabel').val();
+            var discountType = $('#discountType').val();
+            var otpCode = '<?php echo str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT); ?>';
+            
+            var pickUpAddress = $('#pickupAddress').val();
+            
+            var pickUpDateTime = $('#pickupDateTime').val();
                 pickUpDateTime = new Date(pickUpDateTime);
-                var pickUpLatLong = {
-                    'latitude': parseFloat($('#address_lat').val()),
-                    'longitude': parseFloat($('#address_lng').val()),
-                };
-                var payment_method = $('#payment').val();
-                if (payment_method == "") {
-                    alert("Please Select Payment Method!!");
-                    return false;
-                }
-                var status = 'Order Placed';
-                var subTotal = $('#carRateAmount').val();
-                var driverRateAmount = $('#driverRateAmount').val();
-                var adminCommission = $('#adminCommission').val();
-                var adminCommissionType = $('#adminCommissionType').val();
-                var taxSetting = '<?php echo json_encode(@$rentalCarsData['taxValue']) ?>';
-                if (taxSetting && taxSetting != null && taxSetting != "null" && taxSetting != undefined) {
-                    taxSetting = JSON.parse(taxSetting);
-                } else {
-                    taxSetting = [];
-                }
-                for (var i = 0; i < taxSetting.length; i++) {
-                    var data = taxSetting[i];
-                    data.enable = Boolean(data.enable);
-                    taxSetting[i] = data;
-                }
-                var total_pay = $("#total_pay").val();
-                if (payment_method == "razorpay") {
-                    var razorpayKey = $("#razorpayKey").val();
-                    var razorpaySecret = $("#razorpaySecret").val();
-                    var order_json = {
-                        'authorID': authorID,
-                        'driverID': driverID,
-                        'bookWithDriver': bookWithDriver,
-                        'discount': discount,
-                        'discountLabel': discountLabel,
-                        'discountType': discountType,
-                        'dropAddress': dropAddress,
-                        'dropDateTime': dropDateTime,
-                        'dropLatLong': dropLatLong,
-                        'pickUpAddress': pickUpAddress,
-                        'pickUpDateTime': pickUpDateTime,
-                        'pickUpLatLong': pickUpLatLong,
-                        'payment_method': payment_method,
-                        'status': status,
-                        'subTotal': subTotal,
-                        'taxSetting': taxSetting,
-                        'adminCommission': adminCommission,
-                        'adminCommissionType': adminCommissionType,
-                        'driverRate': driverRateAmount,
-                        subject: subject,
-                        message: message,
-                    };
-                    $.ajax({
-                        type: 'POST',
-                        url: "<?php echo route('rental_order_proccessing'); ?>",
-                        data: {
-                            _token: '<?php echo csrf_token() ?>',
-                            order_json: order_json,
-                            razorpaySecret: razorpaySecret,
-                            razorpayKey: razorpayKey,
-                            payment_method: payment_method,
-                            authorName: authorName,
-                            total_pay: total_pay
-                        },
-                        success: function (data) {
-                            data = JSON.parse(data);
-                            loadcurrency();
-                            window.location.href = "<?php echo route('process_rental_order_pay'); ?>";
-                        }
-                    });
-                } else if (payment_method == "mercadopago") {
-                    var mercadopago_public_key = $("#mercadopago_public_key").val();
-                    var mercadopago_access_token = $("#mercadopago_access_token").val();
-                    var mercadopago_isSandbox = $("#mercadopago_isSandbox").val();
-                    var mercadopago_isEnabled = $("#mercadopago_isEnabled").val();
-                    var order_json = {
-                        'authorID': authorID,
-                        'driverID': driverID,
-                        'bookWithDriver': bookWithDriver,
-                        'discount': discount,
-                        'discountLabel': discountLabel,
-                        'discountType': discountType,
-                        'dropAddress': dropAddress,
-                        'dropDateTime': dropDateTime,
-                        'dropLatLong': dropLatLong,
-                        'pickUpAddress': pickUpAddress,
-                        'pickUpDateTime': pickUpDateTime,
-                        'pickUpLatLong': pickUpLatLong,
-                        'payment_method': payment_method,
-                        'status': status,
-                        'subTotal': subTotal,
-                        taxSetting: taxSetting,
-                        'adminCommission': adminCommission,
-                        'adminCommissionType': adminCommissionType,
-                        'driverRate': driverRateAmount,
-                        subject: subject,
-                        message: message,
-                    };
-                    $.ajax({
-                        type: 'POST',
-                        url: "<?php echo route('rental_order_proccessing'); ?>",
-                        data: {
-                            _token: '<?php echo csrf_token() ?>',
-                            order_json: order_json,
-                            mercadopago_public_key: mercadopago_public_key,
-                            mercadopago_access_token: mercadopago_access_token,
-                            payment_method: payment_method,
-                            authorName: authorName,
-                            id: id_order,
-                            total_pay: total_pay,
-                            mercadopago_isSandbox: mercadopago_isSandbox,
-                            mercadopago_isEnabled: mercadopago_isEnabled,
-                            address_line1: $("#address_line1").val(),
-                            address_line2: $("#address_line2").val(),
-                            address_zipcode: $("#address_zipcode").val(),
-                            address_city: $("#address_city").val(),
-                            address_country: $("#address_country").val(),
-                            currencyData: currencyData,
-                        },
-                        success: function (data) {
-                            data = JSON.parse(data);
-                            loadcurrency();
-                            window.location.href = "<?php echo route('process_rental_order_pay'); ?>";
-                        }
-                    });
-                } else if (payment_method == "stripe") {
-                    var stripeKey = $("#stripeKey").val();
-                    var stripeSecret = $("#stripeSecret").val();
-                    var isStripeSandboxEnabled = $("#isStripeSandboxEnabled").val();
-                    var order_json = {
-                        'authorID': authorID,
-                        'driverID': driverID,
-                        'bookWithDriver': bookWithDriver,
-                        'discount': discount,
-                        'discountLabel': discountLabel,
-                        'discountType': discountType,
-                        'dropAddress': dropAddress,
-                        'dropDateTime': dropDateTime,
-                        'dropLatLong': dropLatLong,
-                        'pickUpAddress': pickUpAddress,
-                        'pickUpDateTime': pickUpDateTime,
-                        'pickUpLatLong': pickUpLatLong,
-                        'payment_method': payment_method,
-                        'status': status,
-                        'subTotal': subTotal,
-                        taxSetting: taxSetting,
-                        'adminCommission': adminCommission,
-                        'adminCommissionType': adminCommissionType,
-                        'driverRate': driverRateAmount,
-                        subject: subject,
-                        message: message,
-                    };
-                    $.ajax({
-                        type: 'POST',
-                        url: "<?php echo route('rental_order_proccessing'); ?>",
-                        data: {
-                            _token: '<?php echo csrf_token() ?>',
-                            order_json: order_json,
-                            stripeKey: stripeKey,
-                            stripeSecret: stripeSecret,
-                            payment_method: payment_method,
-                            authorName: authorName,
-                            total_pay: total_pay,
-                            isStripeSandboxEnabled: isStripeSandboxEnabled,
-                            address_line1: $("#address_line1").val(),
-                            address_line2: $("#address_line2").val(),
-                            address_zipcode: $("#address_zipcode").val(),
-                            address_city: $("#address_city").val(),
-                            address_country: $("#address_country").val()
-                        },
-                        success: function (data) {
-                            data = JSON.parse(data);
-                            loadcurrency();
-                            window.location.href = "<?php echo route('process_rental_order_pay'); ?>";
-                        }
-                    });
-                } else if (payment_method == "paypal") {
-                    var paypalKey = $("#paypalKey").val();
-                    var paypalSecret = $("#paypalSecret").val();
-                    var ispaypalSandboxEnabled = $("#ispaypalSandboxEnabled").val();
-                    var order_json = {
-                        'authorID': authorID,
-                        'driverID': driverID,
-                        'bookWithDriver': bookWithDriver,
-                        'discount': discount,
-                        'discountLabel': discountLabel,
-                        'discountType': discountType,
-                        'dropAddress': dropAddress,
-                        'dropDateTime': dropDateTime,
-                        'dropLatLong': dropLatLong,
-                        'pickUpAddress': pickUpAddress,
-                        'pickUpDateTime': pickUpDateTime,
-                        'pickUpLatLong': pickUpLatLong,
-                        'payment_method': payment_method,
-                        'status': status,
-                        'subTotal': subTotal,
-                        taxSetting: taxSetting,
-                        'adminCommission': adminCommission,
-                        'adminCommissionType': adminCommissionType,
-                        'driverRate': driverRateAmount,
-                        subject: subject,
-                        message: message,
-                    };
-                    $.ajax({
-                        type: 'POST',
-                        url: "<?php echo route('rental_order_proccessing'); ?>",
-                        data: {
-                            _token: '<?php echo csrf_token() ?>',
-                            order_json: order_json,
-                            paypalKey: paypalKey,
-                            paypalSecret: paypalSecret,
-                            payment_method: payment_method,
-                            authorName: authorName,
-                            total_pay: total_pay,
-                            ispaypalSandboxEnabled: ispaypalSandboxEnabled,
-                            address_line1: $("#address_line1").val(),
-                            address_line2: $("#address_line2").val(),
-                            address_zipcode: $("#address_zipcode").val(),
-                            address_city: $("#address_city").val(),
-                            address_country: $("#address_country").val()
-                        },
-                        success: function (data) {
-                            data = JSON.parse(data);
-                            loadcurrency();
-                            window.location.href = "<?php echo route('process_rental_order_pay'); ?>";
-                        }
-                    });
-                } else if (payment_method == "payfast") {
-                    var payfast_merchant_key = $("#payfast_merchant_key").val();
-                    var payfast_merchant_id = $("#payfast_merchant_id").val();
-                    var payfast_return_url = $("#payfast_return_url").val();
-                    var payfast_notify_url = $("#payfast_notify_url").val();
-                    var payfast_cancel_url = $("#payfast_cancel_url").val();
-                    var payfast_isSandbox = $("#payfast_isSandbox").val();
-                    var order_json = {
-                        'authorID': authorID,
-                        'driverID': driverID,
-                        'bookWithDriver': bookWithDriver,
-                        'discount': discount,
-                        'discountLabel': discountLabel,
-                        'discountType': discountType,
-                        'dropAddress': dropAddress,
-                        'dropDateTime': dropDateTime,
-                        'dropLatLong': dropLatLong,
-                        'pickUpAddress': pickUpAddress,
-                        'pickUpDateTime': pickUpDateTime,
-                        'pickUpLatLong': pickUpLatLong,
-                        'payment_method': payment_method,
-                        'status': status,
-                        'subTotal': subTotal,
-                        taxSetting: taxSetting,
-                        'adminCommission': adminCommission,
-                        'adminCommissionType': adminCommissionType,
-                        'driverRate': driverRateAmount,
-                        subject: subject,
-                        message: message,
-                    };
-                    $.ajax({
-                        type: 'POST',
-                        url: "<?php echo route('rental_order_proccessing'); ?>",
-                        data: {
-                            _token: '<?php echo csrf_token() ?>',
-                            order_json: order_json,
-                            payfast_merchant_key: payfast_merchant_key,
-                            payfast_merchant_id: payfast_merchant_id,
-                            payment_method: payment_method,
-                            authorName: authorName,
-                            total_pay: total_pay,
-                            payfast_isSandbox: payfast_isSandbox,
-                            payfast_return_url: payfast_return_url,
-                            payfast_notify_url: payfast_notify_url,
-                            payfast_cancel_url: payfast_cancel_url,
-                            address_line1: $("#address_line1").val(),
-                            address_line2: $("#address_line2").val(),
-                            address_zipcode: $("#address_zipcode").val(),
-                            address_city: $("#address_city").val(),
-                            address_country: $("#address_country").val()
-                        },
-                        success: function (data) {
-                            data = JSON.parse(data);
-                            loadcurrency();
-                            window.location.href = "<?php echo route('process_rental_order_pay'); ?>";
-                        }
-                    });
-                } else if (payment_method == "paystack") {
-                    var paystack_public_key = $("#paystack_public_key").val();
-                    var paystack_secret_key = $("#paystack_secret_key").val();
-                    var paystack_isSandbox = $("#paystack_isSandbox").val();
-                    var order_json = {
-                        'authorID': authorID,
-                        'driverID': driverID,
-                        'bookWithDriver': bookWithDriver,
-                        'discount': discount,
-                        'discountLabel': discountLabel,
-                        'discountType': discountType,
-                        'dropAddress': dropAddress,
-                        'dropDateTime': dropDateTime,
-                        'dropLatLong': dropLatLong,
-                        'pickUpAddress': pickUpAddress,
-                        'pickUpDateTime': pickUpDateTime,
-                        'pickUpLatLong': pickUpLatLong,
-                        'payment_method': payment_method,
-                        'status': status,
-                        'subTotal': subTotal,
-                        taxSetting: taxSetting,
-                        'adminCommission': adminCommission,
-                        'adminCommissionType': adminCommissionType,
-                        'driverRate': driverRateAmount,
-                        subject: subject,
-                        message: message,
-                    };
-                    $.ajax({
-                        type: 'POST',
-                        url: "<?php echo route('rental_order_proccessing'); ?>",
-                        data: {
-                            _token: '<?php echo csrf_token() ?>',
-                            order_json: order_json,
-                            payment_method: payment_method,
-                            authorName: authorName,
-                            total_pay: total_pay,
-                            paystack_isSandbox: paystack_isSandbox,
-                            paystack_public_key: paystack_public_key,
-                            paystack_secret_key: paystack_secret_key,
-                            address_line1: $("#address_line1").val(),
-                            address_line2: $("#address_line2").val(),
-                            address_zipcode: $("#address_zipcode").val(),
-                            address_city: $("#address_city").val(),
-                            address_country: $("#address_country").val()
-                        },
-                        success: function (data) {
-                            data = JSON.parse(data);
-                            loadcurrency();
-                            window.location.href = "<?php echo route('process_rental_order_pay'); ?>";
-                        }
-                    });
-                } else if (payment_method == "flutterwave") {
-                    var flutterwave_isenabled = $("#flutterWave_isEnabled").val();
-                    var flutterWave_encryption_key = $("#flutterWave_encryption_key").val();
-                    var flutterWave_public_key = $("#flutterWave_public_key").val();
-                    var flutterWave_secret_key = $("#flutterWave_secret_key").val();
-                    var flutterWave_isSandbox = $("#flutterWave_isSandbox").val();
-                    var order_json = {
-                        'authorID': authorID,
-                        'driverID': driverID,
-                        'bookWithDriver': bookWithDriver,
-                        'discount': discount,
-                        'discountLabel': discountLabel,
-                        'discountType': discountType,
-                        'dropAddress': dropAddress,
-                        'dropDateTime': dropDateTime,
-                        'dropLatLong': dropLatLong,
-                        'pickUpAddress': pickUpAddress,
-                        'pickUpDateTime': pickUpDateTime,
-                        'pickUpLatLong': pickUpLatLong,
-                        'payment_method': payment_method,
-                        'status': status,
-                        'subTotal': subTotal,
-                        taxSetting: taxSetting,
-                        'adminCommission': adminCommission,
-                        'adminCommissionType': adminCommissionType,
-                        'driverRate': driverRateAmount,
-                        subject: subject,
-                        message: message,
-                    };
-                    $.ajax({
-                        type: 'POST',
-                        url: "<?php echo route('rental_order_proccessing'); ?>",
-                        data: {
-                            _token: '<?php echo csrf_token() ?>',
-                            order_json: order_json,
-                            payment_method: payment_method,
-                            authorName: authorName,
-                            total_pay: total_pay,
-                            flutterWave_isSandbox: flutterWave_isSandbox,
-                            flutterWave_public_key: flutterWave_public_key,
-                            flutterWave_secret_key: flutterWave_secret_key,
-                            flutterwave_isenabled: flutterwave_isenabled,
-                            flutterWave_encryption_key: flutterWave_encryption_key,
-                            address_line1: $("#address_line1").val(),
-                            address_line2: $("#address_line2").val(),
-                            address_zipcode: $("#address_zipcode").val(),
-                            address_city: $("#address_city").val(),
-                            address_country: $("#address_country").val(),
-                            currencyData: currencyData
-                        },
-                        success: function (data) {
-                            data = JSON.parse(data);
-                            loadcurrency();
-                            window.location.href = "<?php echo route('process_rental_order_pay'); ?>";
-                        }
-                    });
-                } else if (payment_method == "xendit") {
-                        if (!['IDR', 'PHP', 'USD', 'VND', 'THB', 'MYR', 'SGD'].includes(currencyData.code)) {
-                            alert("Currency restriction");
-                            return false;
-                        }
-                        var xendit_enable = $("#xendit_enable").val();
-                        var xendit_apiKey = $("#xendit_apiKey").val();
-                        var order_json = {
-                            'authorID': authorID,
-                            'driverID': driverID,
-                            'bookWithDriver': bookWithDriver,
-                            'discount': discount,
-                            'discountLabel': discountLabel,
-                            'discountType': discountType,
-                            'dropAddress': dropAddress,
-                            'dropDateTime': dropDateTime,
-                            'dropLatLong': dropLatLong,
-                            'pickUpAddress': pickUpAddress,
-                            'pickUpDateTime': pickUpDateTime,
-                            'pickUpLatLong': pickUpLatLong,
-                            'payment_method': payment_method,
-                            'status': status,
-                            'subTotal': subTotal,
-                            taxSetting: taxSetting,
-                            'adminCommission': adminCommission,
-                            'adminCommissionType': adminCommissionType,
-                            'driverRate': driverRateAmount,
-                            subject: subject,
-                            message: message,
-                        };
-                        $.ajax({
-                            type: 'POST',
-                            url: "<?php echo route('rental_order_proccessing'); ?>",
-                            data: {
-                                _token: '<?php echo csrf_token() ?>',
-                                order_json: order_json,
-                                payment_method: payment_method,
-                                authorName: authorName,
-                                total_pay: total_pay,
-                                xendit_enable: xendit_enable,
-                                xendit_apiKey: xendit_apiKey,
-                                address_line1: $("#address_line1").val(),
-                                address_line2: $("#address_line2").val(),
-                                address_zipcode: $("#address_zipcode").val(),
-                                address_city: $("#address_city").val(),
-                                address_country: $("#address_country").val(),
-                                currencyData: currencyData
-                            },
-                            success: function (data) {
-                                data = JSON.parse(data);
-                                loadcurrency();
-                                window.location.href = "<?php echo route('process_rental_order_pay'); ?>";
-                            }
-                        });
-                    } else if (payment_method == "midtrans") {
-                        var midtrans_enable = $("#midtrans_enable").val();
-                        var midtrans_serverKey = $("#midtrans_serverKey").val();
-                        var midtrans_isSandbox = $("#midtrans_isSandbox").val();
-                        var order_json = {
-                            'authorID': authorID,
-                            'driverID': driverID,
-                            'bookWithDriver': bookWithDriver,
-                            'discount': discount,
-                            'discountLabel': discountLabel,
-                            'discountType': discountType,
-                            'dropAddress': dropAddress,
-                            'dropDateTime': dropDateTime,
-                            'dropLatLong': dropLatLong,
-                            'pickUpAddress': pickUpAddress,
-                            'pickUpDateTime': pickUpDateTime,
-                            'pickUpLatLong': pickUpLatLong,
-                            'payment_method': payment_method,
-                            'status': status,
-                            'subTotal': subTotal,
-                            taxSetting: taxSetting,
-                            'adminCommission': adminCommission,
-                            'adminCommissionType': adminCommissionType,
-                            'driverRate': driverRateAmount,
-                            subject: subject,
-                            message: message,
-                        };
-                        $.ajax({
-                            type: 'POST',
-                            url: "<?php echo route('rental_order_proccessing'); ?>",
-                            data: {
-                                _token: '<?php echo csrf_token() ?>',
-                                order_json: order_json,
-                                payment_method: payment_method,
-                                authorName: authorName,
-                                total_pay: total_pay,
-                                midtrans_enable: midtrans_enable,
-                                midtrans_serverKey: midtrans_serverKey,
-                                midtrans_isSandbox: midtrans_isSandbox,
-                                address_line1: $("#address_line1").val(),
-                                address_line2: $("#address_line2").val(),
-                                address_zipcode: $("#address_zipcode").val(),
-                                address_city: $("#address_city").val(),
-                                address_country: $("#address_country").val(),
-                                currencyData: currencyData
-                            },
-                            success: function (data) {
-                                data = JSON.parse(data);
-                                loadcurrency();
-                                window.location.href = "<?php echo route('process_rental_order_pay'); ?>";
-                            }
-                        });
-                    } else if (payment_method == "orangepay") {
-                        var orangepay_enable = $("#orangepay_enable").val();
-                        var orangepay_isSandbox = $("#orangepay_isSandbox").val();
-                        var orangepay_clientId = $("#orangepay_clientId").val();
-                        var orangepay_clientSecret = $("#orangepay_clientSecret").val();
-                        var orangepay_merchantKey = $("#orangepay_merchantKey").val();
-                        var order_json = {
-                            'authorID': authorID,
-                            'driverID': driverID,
-                            'bookWithDriver': bookWithDriver,
-                            'discount': discount,
-                            'discountLabel': discountLabel,
-                            'discountType': discountType,
-                            'dropAddress': dropAddress,
-                            'dropDateTime': dropDateTime,
-                            'dropLatLong': dropLatLong,
-                            'pickUpAddress': pickUpAddress,
-                            'pickUpDateTime': pickUpDateTime,
-                            'pickUpLatLong': pickUpLatLong,
-                            'payment_method': payment_method,
-                            'status': status,
-                            'subTotal': subTotal,
-                            taxSetting: taxSetting,
-                            'adminCommission': adminCommission,
-                            'adminCommissionType': adminCommissionType,
-                            'driverRate': driverRateAmount,
-                            subject: subject,
-                            message: message,
-                        };
-                        $.ajax({
-                            type: 'POST',
-                            url: "<?php echo route('rental_order_proccessing'); ?>",
-                            data: {
-                                _token: '<?php echo csrf_token() ?>',
-                                order_json: order_json,
-                                payment_method: payment_method,
-                                authorName: authorName,
-                                total_pay: total_pay,
-                                orangepay_enable: orangepay_enable,
-                                orangepay_isSandbox: orangepay_isSandbox,
-                                orangepay_clientId: orangepay_clientId,
-                                orangepay_clientSecret: orangepay_clientSecret,
-                                orangepay_merchantKey: orangepay_merchantKey,
-                                address_line1: $("#address_line1").val(),
-                                address_line2: $("#address_line2").val(),
-                                address_zipcode: $("#address_zipcode").val(),
-                                address_city: $("#address_city").val(),
-                                address_country: $("#address_country").val(),
-                                currencyData: currencyData
-                            },
-                            success: function (data) {
-                                data = JSON.parse(data);
-                                loadcurrency();
-                                window.location.href = "<?php echo route('process_rental_order_pay'); ?>";
-                            }
-                        });
-                    } else {
-                    if (payment_method == "wallet") {
-                        payment_method = "wallet";
-                        if (wallet_amount < total_pay) {
-                            alert("you don't have sufficient balance to book this car!!");
-                            return false;
-                        }
-                    } else {
-                        payment_method = "cod";
+                pickUpDateTime = firebase.firestore.Timestamp.fromDate(pickUpDateTime);
+
+            var pickUpLatLong = {
+                'latitude': parseFloat($('#address_lat').val()),
+                'longitude': parseFloat($('#address_lng').val()),
+            };
+            var sourcePoint = {
+                geohash: encodeGeohash(pickUpLatLong.latitude, pickUpLatLong.longitude, 9),
+                geopoint: new firebase.firestore.GeoPoint(pickUpLatLong.latitude, pickUpLatLong.longitude)
+            }
+            var vehicleTypeId = $('#vehicleTypeId').val();
+            var rentalPackageId = $('#rentalPackageId').val();
+            var payment_method = $('#payment').val();
+            var total_pay = $("#total_pay").val();
+
+            if (payment_method == "") {
+                Swal.fire({text: "{{trans('lang.Select_Payment')}}", icon: "error"});
+                return false;
+            }
+            if (payment_method == "wallet" && wallet_amount < total_pay) {
+                Swal.fire({text: "{{trans('lang.dont_have_sufficient_balance')}}", icon: "error"});
+                return false;
+            }
+            if (payment_method == "cash on delivery") {
+                payment_method = "cod";
+            }
+            
+            $("#overlay").show();
+
+            var status = 'Order Placed';
+            var subTotal = $('#subTotal').val();
+            var adminCommission = $('#adminCommission').val();
+            var adminCommissionType = $('#adminCommissionType').val();
+            
+            var rentalVehicleType = @json(@$rentalCarsData['rentalVehicleType']);
+            rentalVehicleType.isActive = (rentalVehicleType.isActive === true || rentalVehicleType.isActive === "true");
+
+            var rentalPackageModel = @json(@$rentalCarsData['rentalPackageModel']);
+            rentalPackageModel.createdAt = new firebase.firestore.Timestamp(rentalPackageModel.createdAt.seconds, rentalPackageModel.createdAt.nanoseconds);
+            rentalPackageModel.published = (rentalPackageModel.published === true || rentalPackageModel.published === "true");
+
+            var zoneId = @json(@$rentalCarsData['zoneId']);
+
+            database.collection('rental_orders').doc(id_order).set({
+                'adminCommission': adminCommission,
+                'adminCommissionType': adminCommissionType,
+                'author': author,
+                'authorID': authorID,
+                'bookingDateTime': pickUpDateTime,
+                'couponId': coupon_id,
+                'createdAt': createdAt,
+                'discount': discount,
+                'discountLabel': discountLabel,
+                'discountType': discountType,
+                'driverId': null,
+                'endKitoMetersReading': null,
+                'endTime': null,
+                'id': id_order,
+                'otpCode': otpCode,
+                'paymentMethod': payment_method,
+                'paymentStatus': false,
+                'rentalPackageModel': rentalPackageModel,
+                'rentalVehicleType': rentalVehicleType,
+                'rejectedByDrivers': null,
+                'sectionId': section_id,
+                'sourceLocation': pickUpLatLong,
+                'sourceLocationName': pickUpAddress,
+                'sourcePoint': sourcePoint,
+                'startKitoMetersReading': null,
+                'startTime': null,
+                'status': status,
+                'subTotal': subTotal,
+                'vehicleId': vehicleTypeId,
+                'zoneId': zoneId,
+                'taxSetting': taxSetting,
+                'taxScope': taxScope,
+                'platformFee': platformCharge,
+                'platformTax': platformTax,
+
+            }).then(function (result) {
+
+                $.ajax({
+                    type: 'POST',
+                    url: "<?php echo route('rental_order_complete'); ?>",
+                    data: {
+                        _token: '<?php echo csrf_token() ?>',
+                        'fcm': fcmToken,
+                        'authorName': authorName,
+                        'subject': subject,
+                        'message': message
+                    },
+                    success: async function (data) {
+                        await sendMailToRental(userEmail, authorName, authorName, pickUpAddress, pickUpDateTime);
+                        window.location.href = "{{ route('rental_success') }}";
                     }
-                    database.collection('rental_orders').doc(id_order).set({
-                        'id': id_order,
-                        'author': author,
-                        'authorID': authorID,
-                        'driver': driver,
-                        'driverID': driverID,
-                        'bookWithDriver': bookWithDriver,
-                        'createdAt': createdAt,
-                        'discount': discount,
-                        'discountLabel': discountLabel,
-                        'discountType': discountType,
-                        'dropAddress': dropAddress,
-                        'dropDateTime': dropDateTime,
-                        'dropLatLong': dropLatLong,
-                        'pickupAddress': pickUpAddress,
-                        'pickupDateTime': pickUpDateTime,
-                        'pickupLatLong': pickUpLatLong,
-                        'payment_method': payment_method,
-                        'status': status,
-                        'subTotal': subTotal,
-                        'taxSetting': taxSetting,
-                        'adminCommission': adminCommission,
-                        'adminCommissionType': adminCommissionType,
-                        'driverRate': driverRateAmount,
-                        'rejectedByDrivers': null,
-                    }).then(function (result) {
-                        $.ajax({
-                            type: 'POST',
-                            url: "<?php echo route('rental_order_complete'); ?>",
-                            data: {
-                                _token: '<?php echo csrf_token() ?>',
-                                'fcm': fcmToken,
-                                'authorName': authorName,
-                                'subject': subject,
-                                'message': message
-                            },
-                            success: async function (data) {
-                                // data = JSON.parse(data);
-                                if (payment_method == "wallet") {
-                                    wallet_amount = wallet_amount - total_pay;
-                                    database.collection('users').doc(user_id).update({
-                                        'wallet_amount': wallet_amount
-                                    }).then(async function (result) {
-                                        walletId = database.collection("tmp").doc().id;
-                                        database.collection('wallet').doc(walletId).set({
-                                            'amount': parseFloat(total_pay),
-                                            'date': createdAt,
-                                            'id': walletId,
-                                            'isTopUp': false,
-                                            'order_id': id_order,
-                                            'payment_method': "Wallet",
-                                            'payment_status': 'success',
-                                            'serviceType': 'rental-service',
-                                            'user_id': authorID
-                                        }).then(async function (result) {
-                                            if (userEmail != '' && userEmail != null) {
-                                                var checkMailToCustomer = await sendMailToRental(userEmail, authorName, authorName, pickUpAddress, dropAddress, pickUpDateTime, driver);
-                                                if (checkMailToCustomer) {
-                                                    var checkMailToDriver = await sendMailToRental(driver.email, driver.firstName + ' ' + driver.lastName, authorName, pickUpAddress, dropAddress, pickUpDateTime, driver);
-                                                    if (checkMailToDriver) {
-                                                        window.location.href = "<?php echo url('rental-success'); ?>";
-                                                    }
-                                                }
-                                            } else {
-                                                window.location.href = "<?php echo url('rental-success'); ?>";
-                                            }
-                                        })
-                                    });
-                                } else {
-                                    if (userEmail != '' && userEmail != null) {
-                                        var checkMailToCustomer = await sendMailToRental(userEmail, authorName, authorName, pickUpAddress, dropAddress, pickUpDateTime, driver);
-                                        if (checkMailToCustomer) {
-                                            var checkMailToDriver = await sendMailToRental(driver.email, driver.firstName + ' ' + driver.lastName, authorName, pickUpAddress, dropAddress, pickUpDateTime, driver);
-                                            if (checkMailToDriver) {
-                                                window.location.href = "<?php echo url('rental-success'); ?>";
-                                            }
-                                        }
-                                    } else {
-                                        window.location.href = "<?php echo url('rental-success'); ?>";
-                                    }
-                                }
-                            }
-                        });
-                    });
-                }
+                });
             });
+            
         });
     }
 
-    async function sendMailToRental(userEmail, userName, passengerName, pickupLocation, dropoffLocation, pickUpDateTime, driverData) {
-        await email_templates.get().then(async function (snapshots) {
-            emailTemplatesData = snapshots.docs[0].data();
-        });
-        var formattedDate = new Date(pickUpDateTime);
-        var month = formattedDate.getMonth() + 1;
-        var day = formattedDate.getDate();
-        var year = formattedDate.getFullYear();
-        month = month < 10 ? '0' + month : month;
-        day = day < 10 ? '0' + day : day;
-        var time = formattedDate.getHours() + ":" + formattedDate.getMinutes();
-        formattedDate = day + '-' + month + '-' + year;
-        var message = emailTemplatesData.message;
+    async function sendMailToRental(userEmail, userName, passengerName, pickupLocation, pickUpDateTime) {
+
+        let emailTempSnapshot = await database.collection('email_templates').where('type', '==', 'new_car_book').limit(1).get();
+        if (emailTempSnapshot.empty) {
+            console.error('Email template not found');
+            return;
+        }
+        let emailTemplatesData = emailTempSnapshot.docs[0].data();
+
+        let dateObj = pickUpDateTime?.toDate ? pickUpDateTime.toDate() : new Date(pickUpDateTime);
+        let day = String(dateObj.getDate()).padStart(2, '0');
+        let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        let year = dateObj.getFullYear();
+        let formattedDate = `${day}-${month}-${year}`;
+
+        let hours = dateObj.getHours();
+        let minutes = String(dateObj.getMinutes()).padStart(2, '0');
+        let ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 becomes 12
+        hours = String(hours).padStart(2, '0');
+        let time = `${hours}:${minutes} ${ampm}`;
+
+        userName = userName || '';
+        passengerName = passengerName || '';
+        pickupLocation = pickupLocation || '';
+
+        let message = emailTemplatesData.message || '';
+
         message = message.replace(/{username}/g, userName);
         message = message.replace(/{passengername}/g, passengerName);
         message = message.replace(/{date}/g, formattedDate);
         message = message.replace(/{time}/g, time);
         message = message.replace(/{pickuplocation}/g, pickupLocation);
-        message = message.replace(/{dropofflocation}/g, dropoffLocation);
-        message = message.replace(/{model}/g, driverData.carName);
-        message = message.replace(/{carnumber}/g, driverData.carNumber);
-        message = message.replace(/{drivername}/g, driverData.firstName + ' ' + driverData.lastName);
-        message = message.replace(/{driverphone}/g, driverData.phoneNumber);
-        emailTemplatesData.message = message;
+
         var url = "{{url('send-email')}}";
-        return await sendEmail(url, emailTemplatesData.subject, emailTemplatesData.message, [userEmail]);
+
+        return await sendEmail(url, emailTemplatesData.subject, message, [userEmail]);
     }
+
 </script>

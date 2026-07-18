@@ -23,14 +23,15 @@ foreach ($countries as $keycountry => $valuecountry) {
 
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item"><a href="{!! route('providers') !!}">{{trans('lang.providers_plural')}}</a>
                 </li>
                 <li class="breadcrumb-item active">{{trans('lang.providers_create')}}</li>
             </ol>
         </div>
+    </div>    
 
-        <div>
+        
             <div class="card-body">
                 <div class="error_top"></div>
 
@@ -110,18 +111,16 @@ foreach ($countries as $keycountry => $valuecountry) {
                             </div>
                         </fieldset>
 
-                        <fieldset>
-                            <legend>{{trans('lang.select_section')}}</legend>
-
-                            <div class="form-group row width-100">
-                                <label class="col-3 control-label ">{{trans('lang.select_section')}}</label>
+                        <fieldset class="subscription-plans-wrapper d-none">
+                            <legend>{{ trans('lang.subscription_details') }}</legend>
+                            <div class="form-group row width-50">
+                                <label class="col-3 control-label">{{ trans('lang.select_subscription_plan') }}</label>
                                 <div class="col-7">
-                                    <select name="section_id" class="form-control" id="section_id">
-                                        <option value="">{{trans('lang.select')}}</option>
+                                    <select class="form-control" id="subscription_plan">
+                                        <option value="" selected> {{ trans('lang.select_subscription_plan') }}</option>
                                     </select>
                                 </div>
                             </div>
-
                         </fieldset>
 
                         <fieldset>
@@ -197,7 +196,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                 <a href="{!! route('providers') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{
     trans('lang.cancel')}}</a>
             </div>
-        </div>
+        
 
 
         @endsection
@@ -205,6 +204,8 @@ foreach ($countries as $keycountry => $valuecountry) {
         @section('scripts')
 
         <script type="text/javascript">
+
+            var section_id = getCookie('section_id') || '';
 
             var database = firebase.firestore();
             var geoFirestore = new GeoFirestore(database);
@@ -221,29 +222,53 @@ foreach ($countries as $keycountry => $valuecountry) {
 
             var createdAt = firebase.firestore.FieldValue.serverTimestamp();
             var adminCommission = '';
-            var ref_sections = database.collection('sections');
-
-            ref_sections.where("serviceTypeFlag","==","ondemand-service").get().then(async function (snapshots) {
-                snapshots.docs.forEach((listval) => {
-                    var data = listval.data();
-                    if (data.serviceTypeFlag == "ondemand-service") {
-                        $('#section_id').append($("<option></option>")
-                            .attr("value", data.id)
-                            .attr("data-type", data.serviceTypeFlag)
-                            .text(data.name + ' (' + data.serviceType + ')'));
-                    }
-                })
-            })
-
-
+            
             $(document).ready(async function () {
 
+                let businessModelRef = await database.collection('settings').doc("vendor").get();
+                businessModelData = businessModelRef.data();
+                if(businessModelData.subscription_model){
+                    $(".subscription-plans-wrapper").removeClass('d-none');
+                    database.collection('subscription_plans').where('isEnable','==',true).where('sectionId','==',section_id).get().then(async function(snapshots) {
+                        snapshots.docs.forEach((listval) => {
+                            var data=listval.data();
+                            $('#subscription_plan').append($("<option></option>")
+                                .attr("value",data.id)
+                                .text(data.name));
+                        });
+                    });
+                }
+                
                 jQuery("#country_selector").select2({
                     templateResult: formatState,
                     templateSelection: formatState2,
                     placeholder: "Select Country",
                     allowClear: true
                 });
+
+                // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
+                var globalSettingsRef = database.collection('settings').doc('globalSettings');
+                globalSettingsRef.get().then(async function (snapshot) {
+                    var globalSettings = snapshot.data();
+                    if (globalSettings && globalSettings.defaultCountryCode) {
+                        var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
+
+                        // Find the option with matching phoneCode
+                        var $option = $("#country_selector option").filter(function() {
+                            return $(this).val() === defaultPhoneCode;
+                        });
+
+                        if ($option.length > 0) {
+                            $("#country_selector").val(defaultPhoneCode).trigger('change');
+                        } else {
+                            console.warn("Default country code not found in list:", defaultPhoneCode);
+                        }
+                    }
+                }).catch(function (error) {
+                    console.error("Error fetching global settings: ", error);
+                });
+                // --- END OF DEFAULT COUNTRY LOGIC ---
+
                 var adminCommissionData = await database.collection('sections').where('serviceTypeFlag', '==', "ondemand-service").get();
 
                 if (!adminCommissionData.empty) {
@@ -255,7 +280,9 @@ foreach ($countries as $keycountry => $valuecountry) {
                     adminCommission = '';
                 }
             });
-            $(".save-form-btn").click(function () {
+
+            $(".save-form-btn").click(async function () {
+
                 $(".error_top").hide();
                 var latitude = parseFloat(0.01);
                 var longitude = parseFloat(0.01);
@@ -271,8 +298,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                 var location = { 'latitude': latitude, 'longitude': longitude };
                 var user_name = userFirstName + " " + userLastName;
                 var user_id = "<?php echo uniqid(); ?>";
-                var section_id = $("#section_id").val();
-
+                var subscriptionPlanId=$('#subscription_plan').val();
 
                 if (userFirstName == '') {
 
@@ -300,10 +326,10 @@ foreach ($countries as $keycountry => $valuecountry) {
                     $(".error_top").html("");
                     $(".error_top").append("<p>{{trans('lang.enter_owners_phone')}}</p>");
                     window.scrollTo(0, 0);
-                } else if (section_id == '') {
+                } else if (subscriptionPlanId == '' && businessModelData.subscription_model) {
                     $(".error_top").show();
                     $(".error_top").html("");
-                    $(".error_top").append("<p>{{trans('lang.select_section_error')}}</p>");
+                    $(".error_top").append("<p>{{trans('lang.select_subscription_plan')}}</p>");
                     window.scrollTo(0, 0);
                 } else {
 
@@ -323,6 +349,12 @@ foreach ($countries as $keycountry => $valuecountry) {
 
                     jQuery("#data-table_processing").show();
 
+                    if(subscriptionPlanId && subscriptionPlanId !='') {
+                        var subscriptionData=await getSubscriptionDetails(subscriptionPlanId);
+                    } else {
+                        var subscriptionData=null;
+                    }
+
                     firebase.auth().createUserWithEmailAndPassword(email, password)
                         .then(function (firebaseUser) {
                             user_id = firebaseUser.user.uid;
@@ -339,20 +371,24 @@ foreach ($countries as $keycountry => $valuecountry) {
                                     'location': location,
                                     'active': active,
                                     'isActive': active,
-                                    createdAt: createdAt,
+                                    'createdAt': createdAt,
                                     'userBankDetails': userBankDetails,
                                     'adminCommission':adminCommission,
                                     'wallet_amount': 0,
                                     'reviewsCount': 0,
                                     'reviewsSum': 0,
+                                    'subscription_plan': subscriptionData!=null? subscriptionData:null,
+                                    'subscriptionPlanId': subscriptionData!=null? subscriptionData.id:null,
+                                    'subscriptionExpiryDate': subscriptionData!=null? subscriptionData.expiryDate:null
 
-                                }).then(function (result) {
+                                }).then(async function (result) {
 
-                                    setTimeout(function () {
-                                        window.location.href = '{{ route("providers")}}';
-                                    }, 5000);
-
-
+                                    if(subscriptionData!=null) {
+                                        historyData={'subscriptionData': subscriptionData,'userId': user_id,'expire_date': subscriptionData.expiryDate}
+                                        await addSubscriptionHistory(historyData);
+                                    }
+                                   
+                                    window.location.href = '{{ route("providers")}}';
 
                                 }).catch(function (error) {
 
@@ -369,7 +405,6 @@ foreach ($countries as $keycountry => $valuecountry) {
                             });
 
                         })
-
                 }
             });
 
@@ -467,5 +502,37 @@ foreach ($countries as $keycountry => $valuecountry) {
                     return true;
                 }
             }
+
+            async function getSubscriptionDetails(subscriptionId) {
+                var data='';
+                await database.collection('subscription_plans').where('id','==',subscriptionId).get().then(async function(
+                    snapshot) {
+                    data=snapshot.docs[0].data();
+                    var currentDate=new Date();
+                    if(data.expiryDay!='-1') {
+                        currentDate.setDate(currentDate.getDate()+parseInt(data.expiryDay));
+                        data.expiryDate=firebase.firestore.Timestamp.fromDate(currentDate);
+                    } else {
+                        data.expiryDate=null;
+                    }
+
+                })
+                return data;
+            }
+            async function addSubscriptionHistory(historyData) {
+                var id_order=database.collection('tmp').doc().id;
+                var createdAt=firebase.firestore.FieldValue.serverTimestamp();
+
+                var userId=historyData.userId;
+                await database.collection('subscription_history').doc(id_order).set({
+                    'id': id_order,
+                    'user_id': historyData.userId,
+                    'expiry_date': historyData.expire_date,
+                    'createdAt': createdAt,
+                    'subscription_plan': historyData.subscriptionData,
+                    'payment_type': 'cod'
+                })
+            }
+
         </script>
         @endsection

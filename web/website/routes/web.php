@@ -51,6 +51,7 @@ Route::get('terms', [CmsController::class, 'termsofuse'])->name('terms');
 Route::get('deliveryofsupport', [CmsController::class, 'deliveryofsupport'])->name('deliveryofsupport');
 Route::get('lang/change', [LangController::class, 'change'])->name('changeLang');
 Route::post('takeaway', [PaymentController::class, 'takeawayOption'])->name('takeaway');
+
 Route::get('parcel/{id}', [ParcelController::class, 'parcel'])->name('parcel');
 Route::get('parcel_checkout', [ParcelController::class, 'parcelCheckout'])->name('parcel_checkout');
 Route::post('parcel_cart', [ParcelController::class, 'parcelCart'])->name('parcel_cart');
@@ -60,13 +61,12 @@ Route::post('parcel_razorpay_payment', [ParcelController::class, 'parcelRazorpay
 Route::get('parcel_success', [ParcelController::class, 'parcelSuccess'])->name('parcel_success');
 Route::post('process_parcel_stripe', [ParcelController::class, 'processParcelStripePayment'])->name('process_parcel_stripe');
 Route::post('apply_parcel_coupon', [ParcelController::class, 'applyParcelCoupon'])->name('apply_parcel_coupon');
+Route::post('remove_parcel_coupon', [ParcelController::class, 'removeParcelCoupon'])->name('remove_parcel_coupon');
 Route::post('process_parcel_paypal', [ParcelController::class, 'processParcelPaypalPayment'])->name('process_parcel_paypal');
 Route::get('parcel_notify', [ParcelController::class, 'parcelNotify'])->name('parcel_notify');
 Route::post('parcel_order_complete', [ParcelController::class, 'parcelOrderComplete'])->name('parcel_order_complete');
 Route::get('parcel_orders', [ParcelController::class, 'parcelOrders'])->name('parcel_orders');
-Route::get('rental', [RentalController::class, 'index'])->name('rental');
-Route::get('rental-cars', [RentalController::class, 'rentalCars'])->name('rental_cars');
-Route::get('rental-cars/{id}', [RentalController::class, 'rentalCarsDetails'])->name('rental_cars.view');
+
 Route::post('find-rental-cars', [RentalController::class, 'findRentalCars'])->name('find_rental_cars');
 Route::get('rental-success', [RentalController::class, 'rentalSuccess'])->name('rental_success');
 Route::post('rental-order-proccessing', [RentalController::class, 'rentalOrderProccessing'])->name('rental_order_proccessing');
@@ -77,13 +77,16 @@ Route::get('rental-notify', [RentalController::class, 'rentalNotify'])->name('re
 Route::post('process-rental-stripe', [RentalController::class, 'processRentalStripePayment'])->name('process_rental_stripe');
 Route::post('process-rental-paypal', [RentalController::class, 'processRentalPaypalPayment'])->name('process_rental_paypal');
 Route::post('apply-rental-coupon', [RentalController::class, 'applyRentalCoupon'])->name('apply_rental_coupon');
-Route::get('rental-cars-checkout/{id}', [RentalController::class, 'rentalCarsCheckout'])->name('rental_cars_checkout');
+Route::post('remove-rental-coupon', [RentalController::class, 'removeRentalCoupon'])->name('remove_rental_coupon');
+Route::get('rental-cars-checkout', [RentalController::class, 'rentalCarsCheckout'])->name('rental_cars_checkout');
 Route::get('rental-orders', [RentalController::class, 'RentalOrders'])->name('rental_orders');
 Route::get('rental-orders-detail/{id}', [RentalController::class, 'RentalOrdersDetails'])->name('rental_orders_detail');
+
 Route::get('my_order', [OrderController::class, 'index'])->name('my_order');
 Route::get('completed_order', [OrderController::class, 'completedOrders'])->name('completed_order');
 Route::get('pending_order', [OrderController::class, 'pendingOrder'])->name('pending_order');
 Route::get('cancelled_order', [OrderController::class, 'cancelledOrder'])->name('cancelled_order');
+Route::get('rejected_order', [OrderController::class, 'rejectedOrder'])->name('rejected_order');
 Route::get('my_dinein', [OrderController::class, 'myDinein'])->name('my_dinein');
 Route::get('dinein', [OrderController::class, 'dinein'])->name('dinein');
 Route::get('contact-us', [ContactUsController::class, 'index'])->name('contact_us');
@@ -97,6 +100,7 @@ Route::post('update-cart', [ProductController::class, 'update'])->name('update-c
 Route::post('remove-from-cart', [ProductController::class, 'remove'])->name('remove-from-cart');
 Route::post('change-quantity-cart', [ProductController::class, 'changeQuantityCart'])->name('change-quantity-cart');
 Route::post('apply-coupon', [ProductController::class, 'applyCoupon'])->name('apply-coupon');
+Route::post('remove-coupon', [ProductController::class, 'removeCoupon'])->name('remove-coupon');
 Route::get('checkout', [CheckoutController::class, 'checkout'])->name('checkout');
 Route::post('order-complete', [ProductController::class, 'orderComplete'])->name('order-complete');
 Route::post('order-tip-add', [ProductController::class, 'orderTipAdd'])->name('order-tip-add');
@@ -115,7 +119,7 @@ Route::get('offers', [OffersController::class, 'index'])->name('offers');
 Route::get('profile', [ProfileController::class, 'index'])->name('profile');
 Route::get('favorite-stores', [FavoritesController::class, 'index'])->name('favorites');
 Route::get('favorite-products', [FavoritesController::class, 'favProduct'])->name('favorites.product');
-Route::get('faq', [FaqController::class, 'index'])->name('faq');
+
 Route::get('vendors', [AllVendorsController::class, 'index'])->name('vendors');
 Route::get('vendors/category/{id}', [AllVendorsController::class, 'VendorsbyCategory'])->name('vendorsbycategory');
 Route::get('brands', [BrandsController::class, 'index'])->name('brands');
@@ -161,6 +165,7 @@ Route::post('set-service-charge', [PayLaterServiceChargeController::class, 'setS
 Route::get('pay-service-charge', [PayLaterServiceChargeController::class, 'payServiceCharge'])->name('pay-service-charge');
 Route::post('change-service-quantity-cart', [OnDemandController::class, 'changeQuantityCart'])->name('change-service-quantity-cart');
 Route::post('apply-service-coupon', [OnDemandController::class, 'applyCoupon'])->name('apply-service-coupon');
+Route::post('remove-service-coupon', [OnDemandController::class, 'removeCoupon'])->name('remove-service-coupon');
 Route::post('remove-service-from-cart', [OnDemandController::class, 'remove'])->name('remove-service-from-cart');
 Route::post('service-order-proccessing', [OnDemandCheckoutController::class, 'orderProccessing'])->name('service-order-proccessing');
 Route::get('omdemand-pay', [OnDemandCheckoutController::class, 'proccesstopay'])->name('ondemand-pay');
@@ -187,6 +192,7 @@ Route::get('ondemand-search', [SearchController::class, 'onDemandSearch'])->name
 Route::get('favorite-providers', [FavoritesController::class, 'favProvider'])->name('favorites.provider');
 Route::get('favorite-services', [FavoritesController::class, 'favService'])->name('favorites.service');
 Route::post('apply-service-charge-coupon', [PayLaterServiceChargeController::class, 'applyCoupon'])->name('apply-service-charge-coupon');
+Route::post('remove-service-charge-coupon', [PayLaterServiceChargeController::class, 'removeCoupon'])->name('remove-service-charge-coupon');
 Route::post('service-charge-proccessing', [PayLaterServiceChargeController::class, 'orderProccessing'])->name('service-charge-proccessing');
 Route::get('service-charge-pay', [PayLaterServiceChargeController::class, 'proccesstopay'])->name('service-charge-pay');
 Route::get('service-charge-success', [PayLaterServiceChargeController::class, 'success'])->name('service-charge-success');

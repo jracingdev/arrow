@@ -20,7 +20,7 @@
 
 			<ol class="breadcrumb">
 
-				<li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+				<li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
 				<li class="breadcrumb-item"><a href="{!! route('vehicleType') !!}">{{trans('lang.vehicle_type')}}</a>
 
@@ -83,21 +83,7 @@
 
 						</div>
 
-						<div class="form-group row width-50">
-
-							<label class="col-3 control-label ">{{trans('lang.select_section')}}</label>
-
-							<div class="col-7">
-
-								<select name="section_id" id="section_id" class="form-control">
-
-									<option value="">{{trans('lang.select')}}</option>
-
-								</select>
-
-							</div>
-
-						</div>
+						
 
 						<div class="form-group row width-50">
 
@@ -305,40 +291,7 @@
 
 	var ref = database.collection('vehicle_type').where('id', '==', id);
 
-	var ref_sections = database.collection('sections');
-
-	var sections_list = [];
-
-	$(document).ready(function () {
-
-		ref_sections.get().then(async function (snapshots) {
-
-
-
-			snapshots.docs.forEach((listval) => {
-
-				var data = listval.data();
-
-				if (data.serviceTypeFlag == "cab-service") {
-
-					sections_list.push(data);
-
-					$('#section_id').append($("<option></option>")
-
-						.attr("value", data.id)
-
-						.text(data.name));
-
-				}
-
-			})
-
-		})
-
-	});
-
-
-
+	
 	var placeholder = database.collection('settings').doc('placeHolderImage');
 
 
@@ -439,7 +392,7 @@
 
 
 
-		var section = $('#section_id').val();
+		var section = getCookie('section_id');
 
 		var name = $(".name").val();
 
@@ -485,17 +438,7 @@
 
 			window.scrollTo(0, 0);
 
-		} else if(section == '') {
-
-			$(".error_top").show();
-
-			$(".error_top").html("");
-
-			$(".error_top").append("<p>{{trans('lang.sectionid_error')}}</p>");
-
-			window.scrollTo(0, 0);
-
-		} else if (short_description == '') {
+		}  else if (short_description == '') {
 
 			$(".error_top").show();
 
@@ -531,6 +474,11 @@
 
 
 
+		}else if (photo == "" || photo == null) {        
+        	$(".error_top").show();
+			$(".error_top").html("");
+			$(".error_top").append("<p>{{trans('lang.icon_error')}}</p>");
+			window.scrollTo(0, 0);
 		} else {
 
 			jQuery("#data-table_processing").show();

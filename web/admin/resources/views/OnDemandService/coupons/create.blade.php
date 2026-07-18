@@ -9,7 +9,7 @@
 
             <div class="col-md-7 align-self-center">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
                     @if (!isset($_GET['id']))
                         <li class="breadcrumb-item"><a href="{!! route('ondemand.coupons') !!}">{{ trans('lang.coupon_plural') }}</a></li>
                     @else
@@ -18,7 +18,8 @@
                     <li class="breadcrumb-item active">{{ trans('lang.coupon_create') }}</li>
                 </ol>
             </div>
-            <div>
+          </div>  
+            
 
                 <div class="card-body">
                     <div class="error_top" style="display:none"></div>
@@ -135,9 +136,7 @@
                     @endif
                 </div>
 
-            </div>
-
-        </div>
+         
 
     </div>
 @endsection
@@ -153,6 +152,8 @@
         var photo = "";
         var fileName = "";
         var section_id=null;
+        var section_id = getCookie('section_id');
+
         $(document).ready(function() {
 
             jQuery("#data-table_processing").show();
@@ -161,7 +162,7 @@
                 getProviderInfo(provider_id);
             }
           
-            database.collection('users').where('role', '==', 'provider').get().then(async function(snapshots) {
+            database.collection('users').where('role', '==', 'provider').where('section_id','==',section_id).get().then(async function(snapshots) {
                 snapshots.docs.forEach((listval) => {
                     var data = listval.data();
                     $('#provider_select').append($("<option></option>")

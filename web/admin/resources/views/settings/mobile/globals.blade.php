@@ -94,11 +94,11 @@ function handleFileSelect(evt) {
       
       var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
       console.log('Upload is ' + progress + '% done');
-      jQuery("#uploding_image").text("Image is uploading...");
+      jQuery("#uploding_image").text("{{trans('lang.image_uploading')}}");
     }, function(error) {
     }, function() {
         uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
-            jQuery("#uploding_image").text("Upload is completed");
+            jQuery("#uploding_image").text("{{trans('lang.upload_is_completed')}}");
             photo = downloadURL;
 
       });   

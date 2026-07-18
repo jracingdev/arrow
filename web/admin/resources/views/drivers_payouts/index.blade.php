@@ -5,11 +5,18 @@
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor page-title">{{trans('lang.drivers_payout_plural')}}</h3>
+            <div class="d-flex top-title-section justify-content-between">
+                <div class="d-flex top-title-left align-self-center">
+                    <span class="icon mr-3"><img src="{{ asset('images/payment.png') }}"></span>
+                    <h3 class="mb-0 page-title">{{trans('lang.drivers_payout_plural')}}</h3>
+                    <span class="counter ml-3 total_count"></span>
+                </div>
+                
+            </div>
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.drivers_payout_plural')}}</li>
             </ol>
         </div>
@@ -20,14 +27,7 @@
        <div class="admin-top-section"> 
         <div class="row">
             <div class="col-12">
-                <div class="d-flex top-title-section pb-4 justify-content-between">
-                    <div class="d-flex top-title-left align-self-center">
-                        <span class="icon mr-3"><img src="{{ asset('images/payment.png') }}"></span>
-                        <h3 class="mb-0">{{trans('lang.drivers_payout_plural')}}</h3>
-                        <span class="counter ml-3 total_count"></span>
-                    </div>
-                 
-                </div>
+                
             </div>
         </div> 
        </div>
@@ -38,23 +38,23 @@
                     <div class="menu-tab vendorMenuTab">
                         <ul>
                             <li>
-                                <a href="{{route('drivers.view',$id)}}">{{trans('lang.tab_basic')}}</a>
+                                <a href="{{route('drivers.view',$id)}}"><i class="ri-list-indefinite"></i>{{trans('lang.tab_basic')}}</a>
                             </li>
-                            <li>
-                                <a href="{{route('drivers.vehicle',$id)}}">{{trans('lang.vehicle')}}</a>
+                            <li class="vehicle_tab" style="display:none">
+                                <a href="{{route('drivers.vehicle',$id)}}"><i class="ri-car-line"></i>{{trans('lang.vehicle')}}</a>
                             </li>
                             <li class="service_type_orders">
 
                             </li>
                             <li class="active">
-                                <a href="{{route('driver.payouts',$id)}}">{{trans('lang.tab_payouts')}}</a>
+                                <a href="{{route('driver.payouts',$id)}}"><i class="ri-bank-card-line"></i>{{trans('lang.tab_payouts')}}</a>
                             </li>
                             <li>
-                                <a href="{{route('payoutRequests.drivers.view',$id)}}" class="vendor_payout">{{trans('lang.tab_payout_request')}}</a>
+                                <a href="{{route('payoutRequests.drivers.view',$id)}}" class="vendor_payout"><i class="ri-refund-line"></i>{{trans('lang.tab_payout_request')}}</a>
                             </li>
                             <li>
                                 <a href="{{route('users.walletstransaction',$id)}}"
-                                           class="wallet_transaction">{{trans('lang.wallet_transaction')}}</a>
+                                           class="wallet_transaction"><i class="ri-wallet-line"></i>{{trans('lang.wallet_transaction')}}</a>
                              </li>
                         </ul>
                     </div>
@@ -84,8 +84,9 @@
                                     <tr>
                                     <th class="delete-all"><input type="checkbox" id="is_active"><label class="col-3 control-label" for="is_active"><a id="deleteAll"
                                     class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i> {{trans('lang.all')}}</a></label></th>
-                               
+                                            <?php if ($id == '') { ?>
                                                 <th>{{ trans('lang.driver')}}</th>
+                                            <?php }  ?>
                                                 <th>{{trans('lang.paid_amount')}}</th>
 
                                                 <th>{{trans('lang.drivers_payout_paid_date')}}</th>
@@ -119,6 +120,7 @@
     var start = null;
     var user_number = [];
     var id="{{$id}}";
+    var serviceType = getCookie('service_type'); 
     var refData = database.collection('driver_payouts').where('paymentStatus', '==', 'Success');
     if(id!=''){
         var wallet_route = "{{route('users.walletstransaction','id')}}";
@@ -146,7 +148,11 @@
         if(id!=''){
             payoutDriverfunction(id);
         }
-        
+        if(serviceType !== 'delivery-service' && serviceType !== 'parcel_delivery'){
+            $('.vehicle_tab').show();
+        }else{
+            $('.vehicle_tab').hide();
+        }
         $(document.body).on('click', '.redirecttopage', function () {
             var url = $(this).attr('data-url');
             window.location.href = url;
@@ -173,7 +179,6 @@
             ],
             fileName: "{{trans('lang.drivers_payout_table')}}",
         };
-
          const table = $('#example24').DataTable({
             pageLength: 10, // Number of rows per page
             processing: false, // Show processing indicator
@@ -185,13 +190,14 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                var orderableColumns = ['','title','amount','paidDate','note','']; // Ensure this matches the actual column names
+                var orderableColumns = (id == '') ? ['','title','amount','paidDate','note',''] : ['','amount','paidDate','note','']; // Ensure this matches the actual column names
                 const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
                 }
 
             await ref.get().then(async function (querySnapshot) {
+              
                 if (querySnapshot.empty) {
                     $('.total_count').text(0); 
                     $('#data-table_processing').hide(); // Hide loader
@@ -229,7 +235,7 @@
                         } catch (err) {
                         }
                     }
-                    var createdAt = date + ' ' + time;
+                    var createdAt = date + '<br> ' + time;
                     if (
                         (childData.title && childData.title.toString().toLowerCase().includes(searchValue)) ||
                         (childData.amount && childData.amount.toString().toLowerCase().includes(searchValue)) ||
@@ -286,7 +292,9 @@
                 }
   
             }));
-
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
 
             $('#data-table_processing').hide(); // Hide loader
             callback({
@@ -308,44 +316,40 @@
         });
     },
       columnDefs: [{
-            targets: 3,
+            targets: (id == '') ? 3 : 2,
             type: 'date',
             render: function (data) {
                 return data;
             }
         },
-            {orderable: false, targets: [0,5]},
+            {orderable: false, targets: (id == '') ? [0,5] : [0,4]},
         ],
         order: [1, "desc"],
-        "language": {
-            "zeroRecords": "{{trans("lang.no_record_found")}}",
-            "emptyTable": "{{trans("lang.no_record_found")}}",
-            "processing": "" // Remove default loader
-        },
+       "language": datatableLang,
         dom: 'lfrtipB',
             buttons: [
                     {
                         extend: 'collection',
-                        text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                        text: '<i class="mdi mdi-cloud-download"></i> {{ trans('lang.export_as') }}',
                         className: 'btn btn-info',
                         buttons: [
                             {
                                 extend: 'excelHtml5',
-                                text: 'Export Excel',
+                                text: '{{ trans('lang.export_excel') }}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'excel',fieldConfig);
                                 }
                             },
                             {
                                 extend: 'pdfHtml5',
-                                text: 'Export PDF',
+                                text: '{{ trans('lang.export_pdf') }}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'pdf',fieldConfig);
                                 }
                             },   
                             {
                                 extend: 'csvHtml5',
-                                text: 'Export CSV',
+                                text: '{{ trans('lang.export_csv') }}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'csv',fieldConfig);
                                 }
@@ -375,7 +379,7 @@
     });
 
 
-    async function buildHTML(val) {
+     async function buildHTML(val) {      
         var html = [];
         if (val.title) {
 
@@ -384,9 +388,9 @@
 
             var routedriver = '{{route("drivers.view",":id")}}';
             routedriver = routedriver.replace(':id', val.driverID);
-
-            html.push('<td><a href="' + routedriver + '">' + val.title + '</a></td>');
-
+            if(id == ''){
+                html.push('<td><a href="' + routedriver + '">' + val.title + '</a></td>');
+            }
             if (currencyAtRight) {
                 html.push('<td>' + parseFloat(val.amount).toFixed(decimal_degits) + '' + currentCurrency + '</td>');
             } else {
@@ -396,10 +400,12 @@
             var time = val.paidDate.toDate().toLocaleTimeString('en-US');
             html.push('<td>' + date + ' ' + time + '</td>');
             html.push('<td>' + val.note + '</td>');
-            html.push('<td><span class="action-btn"><a id="' + val.recid + '" class="delete-btn" name="driver_payouts-delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a></span></td>');
+            html.push('<td><span class="action-btn"><a id="' + val.recid + '" class="delete-btn" name="driver_payouts-delete" href="javascript:void(0)" data-toggle="tooltip" title="{{trans("lang.delete")}}"><i class="mdi mdi-delete"></i></a></span></td>');
         }
         return html;
     }
+    
+
 
     async function payoutDriverfunction(driver) {
     
@@ -415,22 +421,22 @@
 
                         var url = "{{route('drivers.rides','driverId')}}";
                         url = url.replace('driverId', driver_data.id);
-                        $('.service_type_orders').html('<a href="' + url + '">{{trans('lang.order_plural')}}</a>');
+                        $('.service_type_orders').html('<a href="' + url + '"><i class="ri-shopping-bag-line"></i>{{trans('lang.order_plural')}}</a>');
 
                     } else if (driver_data.serviceType == "rental-service") {
                         var url = "{{route('rental_orders.driver','id')}}";
                         url = url.replace("id", driver_data.id);
-                        $('.service_type_orders').html('<a href="' + url + '">{{trans('lang.order_plural')}}</a>');
+                        $('.service_type_orders').html('<a href="' + url + '"><i class="ri-shopping-bag-line"></i>{{trans('lang.order_plural')}}</a>');
 
                     } else if (driver_data.serviceType == "delivery-service" || driver_data.serviceType == "ecommerce-service") {
                         var url = "{{route('orders','id')}}";
                         url = url.replace("id", 'driverId=' + driver_data.id);
-                        $('.service_type_orders').html('<a href="' + url + '">{{trans('lang.order_plural')}}</a>');
+                        $('.service_type_orders').html('<a href="' + url + '"><i class="ri-shopping-bag-line"></i>{{trans('lang.order_plural')}}</a>');
 
                     } else if (driver_data.serviceType == "parcel_delivery") {
                         var url = "{{route('parcel_orders.driver','id')}}";
                         url = url.replace("id", driver_data.id);
-                        $('.service_type_orders').html('<a href="' + url + '">{{trans('lang.order_plural')}}</a>');
+                        $('.service_type_orders').html('<a href="' + url + '"><i class="ri-shopping-bag-line"></i>{{trans('lang.order_plural')}}</a>');
 
                     }
             }

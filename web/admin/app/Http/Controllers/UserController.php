@@ -678,4 +678,8 @@ class UserController extends Controller
 
         return $payout_response;
     }
+    public function userChat($id)
+    {
+        return view('users.chat', compact('id'));
+    }
 }

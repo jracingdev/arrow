@@ -102,9 +102,7 @@ foreach ($countries as $keycountry => $valuecountry) {
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">{{trans('lang.change_password')}}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                
             </div>
             <div class="modal-body">
                 <div class="form-row">
@@ -137,6 +135,7 @@ foreach ($countries as $keycountry => $valuecountry) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
 <script>
     var id = user_uuid;
+ 
     var database = firebase.firestore();
     var ref = database.collection('users').doc(id);
     var photo = "";
@@ -182,7 +181,7 @@ foreach ($countries as $keycountry => $valuecountry) {
         $state.find("img").attr("src", baseUrl + "/" + newcountriesjs[state.element.value].toLowerCase() + ".png");
         return $state;
     }
-    $(document).ready(function () {
+    $(document).ready(async function () {
         jQuery("#overlay").show();
         jQuery("#country_selector").select2({
             templateResult: formatState,
@@ -190,7 +189,30 @@ foreach ($countries as $keycountry => $valuecountry) {
             placeholder: "Select Country",
             allowClear: true
         });
-        ref.get().then(async function (snapshots) {
+        // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
+        var globalSettingsRef = database.collection('settings').doc('globalSettings');
+        globalSettingsRef.get().then(async function (snapshot) {
+            var globalSettings = snapshot.data();
+            if (globalSettings && globalSettings.defaultCountryCode) {
+                var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
+
+                // Find the option with matching phoneCode
+                var $option = $("#country_selector option").filter(function() {
+                    return $(this).val() === defaultPhoneCode;
+                });
+
+                if ($option.length > 0) {
+                    $("#country_selector").val(defaultPhoneCode).trigger('change');
+                } else {
+                    console.warn("Default country code not found in list:", defaultPhoneCode);
+                }
+            }
+        }).catch(function (error) {
+            console.error("Error fetching global settings: ", error);
+        });
+        // --- END OF DEFAULT COUNTRY LOGIC ---
+        await ref.get().then(async function (snapshots) {
+               
             if (snapshots.data()) {
                 var user = snapshots.data();
                 var wallet_amount_user = 0;
@@ -223,6 +245,7 @@ foreach ($countries as $keycountry => $valuecountry) {
             }
         });
     });
+
     $(".change_user_password").click(function () {
         var userOldPassword = $(".user_old_password").val();
         var userNewPassword = $(".user_new_password").val();
@@ -349,10 +372,4 @@ foreach ($countries as $keycountry => $valuecountry) {
         reader.readAsDataURL(f);
     }
 
-    $(document).on("click", ".alert_demo", function (e) {
-        $('.error_top').hide();
-        $('.error_top_pass').hide();
-        alert("We can't allow to change the password");
-        return false;
-    });
 </script>

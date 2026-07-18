@@ -131,7 +131,7 @@
 
 
 
-    user_permissions = JSON.parse(user_permissions);
+    user_permissions = Object.values(JSON.parse(user_permissions));
 
 
 
@@ -222,13 +222,8 @@
 
                     ],
 
-                    "language": {
+                    "language": datatableLang,
 
-                        "zeroRecords": "{{trans('lang.no_record_found')}}",
-
-                        "emptyTable": "{{trans('lang.no_record_found')}}"
-
-                    },
 
                     responsive: true
 
@@ -238,7 +233,9 @@
                     $('.total_count').text(filteredCount);  // Update count
                 });
 
-
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip();
+                });
 
                 jQuery("#data-table_processing").hide();
 
@@ -344,13 +341,13 @@
 
 
 
-                html = html + '<td><span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
+                html = html + '<td><span class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';
 
                 if (checkDeletePermission) {
 
 
 
-                    html = html + '<a id="' + val.slug + '" class="delete-btn" name="lang-delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a></span></td>';
+                    html = html + '<a id="' + val.slug + '" class="delete-btn" name="lang-delete" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a></span></td>';
 
                 }
 

@@ -32,7 +32,7 @@ transform: rotate(-40deg) translate(0, -50%);}
 [type="checkbox"] + label{padding-left: 0px;padding-right: 26px;}
 
 [type="checkbox"] + label::before, [type="checkbox"]:not(.filled-in) + label::after{left: auto; right: 0;}
-[type="checkbox"]:checked + label::before{left: auto; right: -2px;}
+[type="checkbox"]:checked + label::before{left: auto; right: 10px;}
 
 .btm-btn.form-group i.fa {margin-right: 0px;margin-left: 10px;}
 
@@ -48,6 +48,8 @@ transform: rotate(-40deg) translate(0, -50%);}
 
 }
 
+
+
 @media (max-width: 1023px){
 
 .page-wrapper{padding-right: 0;}
@@ -59,4 +61,10 @@ transform: rotate(-40deg) translate(0, -50%);}
 .mini-sidebar.show-sidebar .left-sidebar, .mini-sidebar.show-sidebar .sidebar-footer{right: 0px;left: auto;}
 
 
+}
+.checkbox_is_check {
+    left: 0 !important;
+}
+.permission {
+    left: 0 !important;
 }

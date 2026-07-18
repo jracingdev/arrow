@@ -47,10 +47,6 @@
 <script type="text/javascript">
     var append_categories = '';
     var createdAtman = firebase.firestore.Timestamp.fromDate(new Date());
-    var createdAt = {
-        _nanoseconds: createdAtman.nanoseconds,
-        _seconds: createdAtman.seconds
-    };
     var completedorsersref = database.collection('booked_table').where("author.id", "==", user_uuid).where("date", ">", createdAtman).orderBy('date', 'desc');
     var history_request = database.collection('booked_table').where("author.id", "==", user_uuid).where("date", "<", createdAtman).orderBy('date', 'desc');
     var deliveryCharge = 0;
@@ -75,9 +71,11 @@
         place_holder_image = placeHolderImage.image;
     });
     $(document).ready(async function() {
+        jQuery("#overlay").show();
         inValidVendors = await getInvaidUserIds();
         getOrders();
         getHistoryRequest();
+        jQuery("#overlay").hide();
     });
 
     async function getOrders() {
@@ -113,7 +111,7 @@
             var val = listval;
             var order_id = val.id;
             var view_contact = "{{ route('contact_us') }}";
-            if (!inValidVendors.has(val.vendorID)) {
+            if (!inValidVendors.includes(val.vendorID)) {
                 var view_vendor_details = "{{ route('dyiningvendor', ':id') }}";
                 view_vendor_details = view_vendor_details.replace(':id', 'id=' + val.vendorID);
             } else {
@@ -133,13 +131,13 @@
             detailHTML = detailHTML + '<div class="sub-details"><span><strong>Phone</strong></span>';
             detailHTML = detailHTML + '<span>' + val.guestPhone + '</span></div>';
             detailHTML = detailHTML + '<div class="sub-details"><span><strong>Occasion</strong></span>';
-            detailHTML = detailHTML + '<span>' + val.occasion + '</span></div>';
+            detailHTML = detailHTML + '<span>' + (val.occasion || '-') + '</span></div>';
             detailHTML = detailHTML + '<div class="sub-details"><span><strong>Total Guest</strong></span>';
             detailHTML = detailHTML + '<span>' + val.totalGuest + '</span></div>';
             detailHTML = detailHTML + '<div class="sub-details"><span><strong>First Visit</strong></span>';
-            detailHTML = detailHTML + '<span>' + val.firstVisit + '</span></div>';
+            detailHTML = detailHTML + '<span>' + (val.firstVisit == true ? 'Yes' : 'No') + '</span></div>';
             detailHTML = detailHTML + '<div class="sub-details"><span><strong>Special Request</strong></span>';
-            detailHTML = detailHTML + '<span>' + val.specialRequest + '</span></div>';
+            detailHTML = detailHTML + '<span>' + (val.specialRequest || '-') + '</span></div>';
             detailHTML = detailHTML + '</div>';
             var statustext = "";
             var statustext_class = "";
@@ -153,10 +151,74 @@
                 statustext = "Request Accepted";
                 statustext_class = "bg-success";
             }
-            html = html + '<div class="pb-3"><div class="p-3 rounded shadow-sm bg-white"><div class="d-flex border-bottom pb-3 m-d-flex"><div class="text-muted mr-3"><img alt="#" src="' + orderRestaurantImage + '" onerror="this.onerror=null;this.src=\'' + place_holder_image + '\'" class="img-fluid order_img rounded"></div><div><p class="mb-0 font-weight-bold"><a href="' + view_vendor_details + '" class="text-dark">' + val.vendor.title +
-                '</a></p><p class="mb-0"><span class="fa fa-map-marker"></span> ' + val.vendor.location + '</p><p>ORDER ' + val.id + '</p></div><div class="ml-auto ord-com-btn"><p class=" ' + statustext_class + ' text-white py-1 px-2 rounded small mb-1">' + statustext + '</p><p class="small font-weight-bold text-center"><i class="feather-clock"></i> ' + val.date.toDate().toDateString() + '<br/>' + val.date.toDate().toTimeString() + '</p></div></div>' + detailHTML +
-                '<div class="d-flex pt-3 m-d-flex"><div class="small">';
-            html = html + '</div><div class="text-right"><a href="' + view_contact + '" class="btn btn-outline-primary px-3">Help</a> </div></div></div></div></div></div>';
+
+            html += `
+            <div class="pb-3">
+                <div class="p-3 rounded shadow-sm bg-white">
+                    <div class="d-flex border-bottom pb-3 m-d-flex">
+
+                        <div class="text-muted mr-3">
+                            <img 
+                                alt="#" 
+                                src="${orderRestaurantImage}" 
+                                onerror="this.onerror=null;this.src='${place_holder_image}'" 
+                                class="img-fluid order_img rounded"
+                            >
+                        </div>
+
+                        <div>
+                            <p class="mb-0 font-weight-bold">
+                                <a href="${view_vendor_details}" class="text-dark">
+                                    ${val.vendor.title}
+                                </a>
+                            </p>
+
+                            <p class="mb-0">
+                                <span class="fa fa-map-marker"></span> ${val.vendor.location}
+                            </p>
+
+                            <p class="mb-0"><b>Order ID:</b> ${val.id}</p>
+                            ${val.discount ? `
+                                <p><b>Discount:</b> 
+                                    ${currencyAtRight 
+                                        ? val.discount + (val.discountType == "percentage" ? '%' : currentCurrency)
+                                        : (val.discountType == "percentage" ? val.discount + '%' : currentCurrency + val.discount)
+                                    }
+                                </p>
+                            ` : ``}
+                        </div>
+
+                        <div class="ml-auto ord-com-btn">
+                            <p class="${statustext_class} text-white py-1 px-2 rounded small mb-1">
+                                ${statustext}
+                            </p>
+
+                            <p class="small font-weight-bold text-center">
+                                <i class="feather-clock"></i> 
+                                ${val.date.toDate().toDateString()}<br>
+                                ${val.date.toDate().toTimeString()}
+                            </p>
+                        </div>
+
+                    </div>
+
+                    ${detailHTML}
+
+                    <div class="d-flex pt-3 m-d-flex">
+                        <div class="small"></div>
+
+                        <div class="text-right">
+                            <a href="${view_contact}" class="btn btn-outline-primary px-3">
+                                Help
+                            </a>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            </div>
+            </div>
+            `;
         });
         return html;
     }
@@ -174,7 +236,7 @@
             var val = listval;
             var order_id = val.id;
             var view_contact = "{{ route('contact_us') }}";
-            if (!inValidVendors.has(val.vendorID)) {
+            if (!inValidVendors.includes(val.vendorID)) {
                 var view_vendor_details = "{{ route('dyiningvendor', ':id') }}";
                 view_vendor_details = view_vendor_details.replace(':id', 'id=' + val.vendorID);
             } else {
@@ -194,13 +256,13 @@
             detailHTML = detailHTML + '<div class="sub-details"><span><strong>Phone</strong></span>';
             detailHTML = detailHTML + '<span>' + val.guestPhone + '</span></div>';
             detailHTML = detailHTML + '<div class="sub-details"><span><strong>Occasion</strong></span>';
-            detailHTML = detailHTML + '<span>' + val.occasion + '</span></div>';
+            detailHTML = detailHTML + '<span>' + (val.occasion || '-') + '</span></div>';
             detailHTML = detailHTML + '<div class="sub-details"><span><strong>Total Guest</strong></span>';
             detailHTML = detailHTML + '<span>' + val.totalGuest + '</span></div>';
             detailHTML = detailHTML + '<div class="sub-details"><span><strong>First Visit</strong></span>';
-            detailHTML = detailHTML + '<span>' + val.firstVisit + '</span></div>';
+            detailHTML = detailHTML + '<span>' + (val.firstVisit == true ? 'Yes' : 'No') + '</span></div>';
             detailHTML = detailHTML + '<div class="sub-details"><span><strong>Special Request</strong></span>';
-            detailHTML = detailHTML + '<span>' + val.specialRequest + '</span></div>';
+            detailHTML = detailHTML + '<span>' + (val.specialRequest || '-') + '</span></div>';
             detailHTML = detailHTML + '</div>';
             var statustext = "";
             var statustext_class = "";
@@ -214,11 +276,63 @@
                 statustext = "Request Accepted";
                 statustext_class = "bg-success";
             }
-            html = html + '<div class="pb-3"><div class="p-3 rounded shadow-sm bg-white"><div class="d-flex border-bottom pb-3 m-d-flex"><div class="text-muted mr-3"><img alt="#" src="' + orderRestaurantImage + '" onerror="this.onerror=null;this.src=\'' + place_holder_image + '\'" class="img-fluid order_img rounded"></div><div><p class="mb-0 font-weight-bold"><a href="' + view_vendor_details + '" class="text-dark">' + val.vendor.title +
-                '</a></p><p class="mb-0"><span class="fa fa-map-marker"></span> ' + val.vendor.location + '</p><p>ORDER ' + val.id + '</p></div><div class="ml-auto ord-com-btn"><p class=" ' + statustext_class + ' text-white py-1 px-2 rounded small mb-1">' + statustext + '</p><p class="small font-weight-bold text-center"><i class="feather-clock"></i> ' + val.date.toDate().toDateString() + '<br/>' + val.date.toDate().toTimeString() + '</p></div></div>' + detailHTML +
-                '<div class="d-flex pt-3 m-d-flex"><div class="small">';
-            html = html + '</div><div class="text-right"><a href="' + view_contact + '" class="btn btn-outline-primary px-3">Help</a></div></div></div></div></div></div>';
+
+           html = html + `
+            <div class="pb-3">
+                <div class="p-3 rounded shadow-sm bg-white">
+                    <div class="d-flex border-bottom pb-3 m-d-flex">
+                        <div class="text-muted mr-3">
+                            <img alt="#"
+                                src="${orderRestaurantImage}"
+                                onerror="this.onerror=null;this.src='${place_holder_image}'"
+                                class="img-fluid order_img rounded">
+                        </div>
+                        <div>
+                            <p class="mb-0 font-weight-bold">
+                                <a href="${view_vendor_details}" class="text-dark">
+                                    ${val.vendor.title}
+                                </a>
+                            </p>
+                            <p class="mb-0">
+                                <span class="fa fa-map-marker"></span> ${val.vendor.location}
+                            </p>
+                            <p class="mb-0"><b>Order ID:</b> ${val.id}</p>
+                            ${val.discount ? `
+                                <p><b>Discount:</b> 
+                                    ${currencyAtRight 
+                                        ? val.discount + (val.discountType == "percentage" ? '%' : currentCurrency)
+                                        : (val.discountType == "percentage" ? val.discount + '%' : currentCurrency + val.discount)
+                                    }
+                                </p>
+                            ` : ``}
+                        </div>
+                        <div class="ml-auto ord-com-btn">
+                            <p class="${statustext_class} text-white py-1 px-2 rounded small mb-1">
+                                ${statustext}
+                            </p>
+
+                            <p class="small font-weight-bold text-center">
+                                <i class="feather-clock"></i>
+                                ${val.date.toDate().toDateString()}<br/>
+                                ${val.date.toDate().toTimeString()}
+                            </p>
+                        </div>
+                    </div>
+
+                    ${detailHTML}
+
+                    <div class="d-flex pt-3 m-d-flex">
+                        <div class="small"></div>
+                        <div class="text-right">
+                            <a href="${view_contact}" class="btn btn-outline-primary px-3">Help</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+            
         });
+
         return html;
     }
 
@@ -235,7 +349,7 @@
             var val = listval;
             var order_id = val.id;
             var view_contact = "{{ route('contact_us') }}";
-            if (!inValidVendors.has(val.vendorID)) {
+            if (!inValidVendors.includes(val.vendorID)) {
                 var view_vendor_details = "{{ route('dyiningvendor', ':id') }}";
                 view_vendor_details = view_vendor_details.replace(':id', 'id=' + val.vendorID);
             } else {
@@ -256,18 +370,65 @@
                 detailHTML = detailHTML + '<div class="sub-details"><span><strong>Phone</strong></span>';
                 detailHTML = detailHTML + '<span>' + val.guestPhone + '</span></div>';
                 detailHTML = detailHTML + '<div class="sub-details"><span><strong>Occasion</strong></span>';
-                detailHTML = detailHTML + '<span>' + val.occasion + '</span></div>';
+                detailHTML = detailHTML + '<span>' + (val.occasion || '-') + '</span></div>';
                 detailHTML = detailHTML + '<div class="sub-details"><span><strong>Total Guest</strong></span>';
                 detailHTML = detailHTML + '<span>' + val.totalGuest + '</span></div>';
                 detailHTML = detailHTML + '<div class="sub-details"><span><strong>First Visit</strong></span>';
-                detailHTML = detailHTML + '<span>' + val.firstVisit + '</span></div>';
+                detailHTML = detailHTML + '<span>' + (val.firstVisit == true ? 'Yes' : 'No') + '</span></div>';
                 detailHTML = detailHTML + '<div class="sub-details"><span><strong>Special Request</strong></span>';
-                detailHTML = detailHTML + '<span>' + val.specialRequest + '</span></div>';
+                detailHTML = detailHTML + '<span>' + (val.specialRequest || '-') + '</span></div>';
                 detailHTML = detailHTML + '</div>';
-                html = html + '<div class="pb-3"><div class="p-3 rounded shadow-sm bg-white"><div class="d-flex border-bottom pb-3 m-d-flex"><div class="text-muted mr-3"><img alt="#" src="' + orderRestaurantImage + '" onerror="this.onerror=null;this.src=\'' + place_holder_image + '\'" class="img-fluid order_img rounded"></div><div><p class="mb-0 font-weight-bold"><a href="' + view_vendor_details + '" class="text-dark">' + val.vendor.title +
-                    '</a></p><p class="mb-0"><span class="fa fa-map-marker"></span> ' + val.vendor.location + '</p><p>ORDER ' + val.id + '</p></div><div class="ml-auto ord-com-btn"><p class="bg-rejected text-white py-1 px-2 rounded small mb-1">Rejected</p><p class="small font-weight-bold text-center"><i class="feather-clock"></i> ' + val.date.toDate().toDateString() + '<br/>' + val.date.toDate().toTimeString() + '</p></div></div>' + detailHTML +
-                    '<div class="d-flex pt-3 m-d-flex"><div class="small">';
-                html = html + '</div><div class="text-right"><a href="' + view_contact + '" class="btn btn-outline-primary px-3">Help</a></div></div></div></div></div></div>';
+                
+                html = `
+                <div class="pb-3">
+                    <div class="p-3 rounded shadow-sm bg-white">
+                        <div class="d-flex border-bottom pb-3 m-d-flex">
+                            <div class="text-muted mr-3">
+                                <img alt="#" 
+                                    src="${orderRestaurantImage}"
+                                    onerror="this.onerror=null;this.src='${place_holder_image}'"
+                                    class="img-fluid order_img rounded">
+                            </div>
+                            <div>
+                                <p class="mb-0 font-weight-bold">
+                                    <a href="${view_vendor_details}" class="text-dark">
+                                        ${val.vendor.title}
+                                    </a>
+                                </p>
+                                <p class="mb-0">
+                                    <span class="fa fa-map-marker"></span> ${val.vendor.location}
+                                </p>
+                                <p class="mb-0"><b>Order ID:</b> ${val.id}</p>
+                                ${val.discount ? `
+                                    <p><b>Discount:</b> 
+                                        ${currencyAtRight 
+                                            ? val.discount + (val.discountType == "percentage" ? '%' : currentCurrency)
+                                            : (val.discountType == "percentage" ? val.discount + '%' : currentCurrency + val.discount)
+                                        }
+                                    </p>
+                                ` : ``}
+                            </div>
+                            <div class="ml-auto ord-com-btn">
+                                <p class="bg-rejected text-white py-1 px-2 rounded small mb-1">Rejected</p>
+                                <p class="small font-weight-bold text-center">
+                                    <i class="feather-clock"></i>
+                                    ${val.date.toDate().toDateString()}<br/>
+                                    ${val.date.toDate().toTimeString()}
+                                </p>
+                            </div>
+                        </div>
+
+                        ${detailHTML}
+
+                        <div class="d-flex pt-3 m-d-flex">
+                            <div class="small"></div>
+                            <div class="text-right">
+                                <a href="${view_contact}" class="btn btn-outline-primary px-3">Help</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
             }
         });
         return html;

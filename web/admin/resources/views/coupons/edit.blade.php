@@ -9,7 +9,7 @@
 
     <div class="col-md-7 align-self-center">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
         <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
           <li class="breadcrumb-item"><a
               href="{{route('vendors.coupons',$_GET['eid'])}}">{{trans('lang.coupon_plural')}}</a></li>
@@ -157,6 +157,7 @@
     var placeholder = database.collection('settings').doc('placeHolderImage');
     var storage = firebase.storage();
     var storageRef = firebase.storage().ref('images');
+    var section_id = getCookie('section_id') || '';
 
     placeholder.get().then(async function (snapshotsimage) {
       var placeholderImageData = snapshotsimage.data();
@@ -176,7 +177,7 @@
       ref.get().then(async function (snapshots) {
         var coupon = snapshots.docs[0].data();
 
-        await database.collection('vendors').get().then(async function (snapshots) {
+        await database.collection('vendors').where('section_id', '==', section_id).get().then(async function (snapshots) {
 
           snapshots.docs.forEach((listval) => {
             var data = listval.data();

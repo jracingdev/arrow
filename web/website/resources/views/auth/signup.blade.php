@@ -67,7 +67,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                                id="email" required>
                     </div>
                     <div class="form-group" id="phone-box">
-                        <div class="col-xs-12 country_size">
+                        <div class="col-xs-12 country_size phone-box position-relative">
                             <select name="country" id="country_selector">
                                 <?php foreach ($newcountries as $keycy => $valuecy) { ?>
                                     <?php $selected = ""; ?>
@@ -103,6 +103,8 @@ foreach ($countries as $keycountry => $valuecountry) {
                     <button type="submit" class="btn btn-primary btn-lg btn-block" id="btn-sign-up">
                         {{trans('lang.sign_up')}}
                     </button>
+                    <input type="hidden" id="hidden_uuid" />
+                    <input type="hidden" id="hidden_loginType" />
                     <button type="button" style="display:none;" onclick="applicationVerifier()" id="verify_btn"
                             class="btn btn-dark btn-lg btn-block text-uppercase waves-effect waves-light btn btn-primary">{{trans('lang.otp_verify')}}
                     </button>
@@ -112,7 +114,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                     </button>
                 </form>
                 <div class="or-line mb-4">
-                    <span>OR</span>
+                    <span>{{trans('lang.or')}}</span>
                 </div>
                 <div class="new-acc d-flex align-items-center justify-content-center">
                     <a href="#" class="btn btn-primary" id="btn-signup-phone" onclick="signupWithPhone()">
@@ -127,7 +129,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                 </div>
             </div>
             <div class="new-acc d-flex align-items-center justify-content-center mt-4 mb-4">
-                <a href="{{url('login')}}">
+                <a href="{{route('login')}}">
                     <p class="text-center m-0">{{trans('lang.already_an_account')}} {{trans('lang.sign_in')}}</p>
                 </a>
             </div>
@@ -138,18 +140,20 @@ foreach ($countries as $keycountry => $valuecountry) {
 <script type="2962f67e2ff6ccac59b12edc-text/javascript" src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script type="2962f67e2ff6ccac59b12edc-text/javascript" src="vendor/slick/slick.min.js"></script>
 <script type="2962f67e2ff6ccac59b12edc-text/javascript" src="vendor/sidebar/hc-offcanvas-nav.js"></script>
-<script type="text/javascript" src="js/siddhi.js"></script>
+<script type="2962f67e2ff6ccac59b12edc-text/javascript" src="js/siddhi.js"></script>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-firestore.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-storage.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>
-<script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="{{ asset('js/geofirestore.js') }}"></script>
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
 <script src="{{ asset('vendor/select2/dist/js/select2.min.js') }}"></script>
 <script src="{{ asset('js/crypto-js.js') }}"></script>
-@include('partials.firebase-init')
+<script src="{{ asset('js/jquery.cookie.js') }}"></script>
+<script src="{{ asset('js/jquery.validate.js') }}"></script>
 <script type="text/javascript">
     var createdAt = firebase.firestore.FieldValue.serverTimestamp();
     var database = firebase.firestore();
@@ -160,92 +164,144 @@ foreach ($countries as $keycountry => $valuecountry) {
         var phoneNumber = jQuery("#mobileNumber").val();
         var countryCode = '+' + jQuery("#country_selector").val();
         var mobileNumber = '+' + jQuery("#country_selector").val() + '' + jQuery("#mobileNumber").val();
-        database.collection("users").where('email', '==', email).get().then(async function (snapshots) {
-            if (snapshots.docs.length > 0) {
-                alert('You already have account with this Email Id')
-                return false;
-            }
-        });
-        database.collection("users").where("role", "==", 'customer').where('phoneNumber', '==', jQuery("#mobileNumber").val()).get().then(async function (snapshots) {
-            if (snapshots.docs.length > 0) {
-                alert('You already have account with this phone number')
-                return false;
-            } else {
-                $(".btn-sign-up").text('Please wait...');
-                var email = $("#email").val();
-                var password = $("#password").val();
-                var firstName = $("#firstName").val();
-                var lastName = $("#lastName").val();
-                var referralCode = $("#referral_code").val();
-                var referralBy = '';
-                if (referralCode) {
-                    var referralByRes = getReferralUserId(referralCode);
-                    var referralBy = await referralByRes.then(function (refUserId) {
-                        return refUserId;
-                    });
+        var loginType = $("#hidden_loginType").val();
+        var existingUUID = $("#hidden_uuid").val();
+
+        const emailCheck = await database.collection("users").where('email', '==', email).get();
+        if (emailCheck.docs.length > 0) {
+            alert("{{trans('lang.already_account_with_same_email')}}");
+            return false;
+        }
+
+        const phoneCheck = await database.collection("users").where("role", "==", 'customer').where('phoneNumber', '==', phoneNumber).get();
+        if (phoneCheck.docs.length > 0) {
+            alert("{{trans('lang.already_account_with_same_phone')}}");
+            return false;
+        }
+
+        $(".btn-sign-up").text("{{trans('lang.please_wait')}}");
+        var password = $("#password").val();
+        var firstName = $("#firstName").val();
+        var lastName = $("#lastName").val();
+        var referralCode = $("#referral_code").val();
+        var referralBy = '';
+
+        if (referralCode) {
+            var referralByRes = getReferralUserId(referralCode);
+            referralBy = await referralByRes.then(function (refUserId) {
+                return refUserId;
+            });
+        }
+
+        var userReferralCode = Math.floor(Math.random() * 899999 + 100000).toString();
+        var uuid = existingUUID; 
+
+        if (loginType === 'google' && uuid) {
+
+            await database.collection("referral").doc(uuid).set({
+                'id': uuid,
+                'referralBy': referralBy ? referralBy : '',
+                'referralCode': userReferralCode,
+            });
+
+            const coordinates = new firebase.firestore.GeoPoint(0, 0);
+
+            await database.collection("users").doc(uuid).set({
+                'email': email,
+                'firstName': firstName,
+                'lastName': lastName,
+                'id': uuid,
+                'countryCode': countryCode,
+                'phoneNumber': phoneNumber,
+                'role': "customer",
+                'profilePictureURL': "",
+                'coordinates': coordinates,
+                'createdAt': createdAt,
+                'active': true
+            });
+
+            var url = "{{route('newRegister')}}";
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: {
+                    userId: uuid,
+                    email: email,
+                    password: password,
+                    firstName: firstName,
+                    lastName: lastName
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (data) {
+                    if (data.access) {
+                        window.location = "{{url('/')}}";
+                    }
                 }
-                var userReferralCode = Math.floor(Math.random() * 899999 + 100000);
-                userReferralCode = userReferralCode.toString();
-                firebase.auth().createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        var uuid = userCredential.user.uid;
-                        database.collection("referral").doc(uuid).set({
-                            'id': uuid,
-                            'referralBy': referralBy ? referralBy : '',
-                            'referralCode': userReferralCode,
-                        });
-                        coordinates = new firebase.firestore.GeoPoint(0, 0);
-                        geoFirestore.collection("users").doc(uuid).set({
-                            'email': email,
-                            'firstName': firstName,
-                            'lastName': lastName,
-                            'id': uuid,
-                            'countryCode':countryCode,
-                            'phoneNumber': phoneNumber,
-                            'role': "customer",
-                            'profilePictureURL': "",
-                            'coordinates': coordinates,
-                            'createdAt': createdAt,
-                            'active': true
-                        })
-                            .then(() => {
-                                firebase.auth().signInWithEmailAndPassword(email, password).then(function (result) {
-                                    var url = "{{route('newRegister')}}";
-                                    $.ajax({
-                                        type: 'POST',
-                                        url: url,
-                                        data: {
-                                            userId: uuid,
-                                            email: email,
-                                            password: password,
-                                            firstName: firstName,
-                                            lastName: lastName
-                                        },
-                                        headers: {
-                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                                        },
-                                        success: function (data) {
-                                            if (data.access) {
-                                                window.location = "{{url('/')}}";
-                                            }
+            });
+        }
+        else {
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    var uuid = userCredential.user.uid;
+                    database.collection("referral").doc(uuid).set({
+                        'id': uuid,
+                        'referralBy': referralBy ? referralBy : '',
+                        'referralCode': userReferralCode,
+                    });
+                    coordinates = new firebase.firestore.GeoPoint(0, 0);
+                    geoFirestore.collection("users").doc(uuid).set({
+                        'email': email,
+                        'firstName': firstName,
+                        'lastName': lastName,
+                        'id': uuid,
+                        'countryCode': countryCode,
+                        'phoneNumber': phoneNumber,
+                        'role': "customer",
+                        'profilePictureURL': "",
+                        'coordinates': coordinates,
+                        'createdAt': createdAt,
+                        'active': true
+                    })
+                        .then(() => {
+                            firebase.auth().signInWithEmailAndPassword(email, password).then(function (result) {
+                                var url = "{{route('newRegister')}}";
+                                $.ajax({
+                                    type: 'POST',
+                                    url: url,
+                                    data: {
+                                        userId: uuid,
+                                        email: email,
+                                        password: password,
+                                        firstName: firstName,
+                                        lastName: lastName
+                                    },
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                    },
+                                    success: function (data) {
+                                        if (data.access) {
+                                            window.location = "{{url('/')}}";
                                         }
-                                    })
+                                    }
                                 })
                             })
-                            .catch((error) => {
-                                console.error("Error writing document: ", error);
-                                $("#field_error").html(error);
-                            });
-                    })
-                    .catch((error) => {
-                        var errorCode = error.code;
-                        var errorMessage = error.message;
-                        $("#field_error").html(errorMessage);
-                        $(".btn-sign-up").text("{{trans('lang.sign_up')}}");
-                    });
-                return false;
-            }
-        });
+                        })
+                        .catch((error) => {
+                            console.error("Error writing document: ", error);
+                            $("#field_error").html(error);
+                        });
+                })
+                .catch((error) => {
+                    var errorCode = error.code;
+                    var errorMessage = error.message;
+                    $("#field_error").html(errorMessage);
+                    $(".btn-sign-up").text("{{trans('lang.sign_up')}}");
+                });
+        }
+
+        return false;
     }
 
     async function getReferralUserId(referralCode) {
@@ -312,13 +368,88 @@ foreach ($countries as $keycountry => $valuecountry) {
     }
 
     jQuery(document).ready(function () {
+
         jQuery("#country_selector").select2({
             templateResult: formatState,
             templateSelection: formatState2,
-            placeholder: "Select Country",
+            placeholder: "{{trans('lang.select_country')}}",
             allowClear: true
         });
+        
+         // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
+        var globalSettingsRef = database.collection('settings').doc('globalSettings');
+        globalSettingsRef.get().then(async function (snapshot) {
+            var globalSettings = snapshot.data();
+            if (globalSettings && globalSettings.defaultCountryCode) {
+                var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
+                // Find the option with matching phoneCode
+                var $option = $("#country_selector option").filter(function() {
+                    return $(this).val() === defaultPhoneCode;
+                });
+                if ($option.length > 0) {
+                    setTimeout(() => {
+                        $("#country_selector").val(defaultPhoneCode).trigger("change.select2");
+                    }, 500);
+                } else {
+                    console.warn("Default country code not found in list:", defaultPhoneCode);
+                }
+            }
+        }).catch(function (error) {
+            console.error("Error fetching global settings: ", error);
+        });
+        // --- END OF DEFAULT COUNTRY LOGIC ---
+
+        const urlParams = new URLSearchParams(window.location.search);          
+
+        const firstName = urlParams.get('firstName') ? decodeURIComponent(urlParams.get('firstName')) : '';
+        const lastName = urlParams.get('lastName') ? decodeURIComponent(urlParams.get('lastName')) : '';
+        const email = urlParams.get('email') ? decodeURIComponent(urlParams.get('email')) : '';
+        const uuid = urlParams.get('uuid') || '';
+        const loginType = urlParams.get('loginType') || '';  
+        if (firstName) {
+            $("#firstName").val(firstName);          
+        }
+        if (lastName) {
+            $("#lastName").val(lastName);          
+        }
+        if (email) {
+            $("#email").val(email);
+            $("#email").attr("readonly", true);           
+        }
+        if (uuid) {
+            $("#hidden_uuid").val(uuid);
+        }
+        if (loginType) {
+            $("#hidden_loginType").val(loginType);
+        }
+        if (loginType == 'google') {
+            $('#pass_div').hide();
+        }else{
+            $('#pass_div').show();
+        }
     });
+    // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
+    var globalSettingsRef = database.collection('settings').doc('globalSettings');
+    globalSettingsRef.get().then(async function (snapshot) {
+        var globalSettings = snapshot.data();
+        if (globalSettings && globalSettings.defaultCountryCode) {
+            var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
+
+            // Find the option with matching phoneCode
+            var $option = $("#country_selector option").filter(function() {
+                return $(this).val() === defaultPhoneCode;
+            });
+
+            if ($option.length > 0) {
+                $("#country_selector").val(defaultPhoneCode).trigger('change');
+            } else {
+                console.warn("Default country code not found in list:", defaultPhoneCode);
+            }
+        }
+    }).catch(function (error) {
+        console.error("Error fetching global settings: ", error);
+    });
+    // --- END OF DEFAULT COUNTRY LOGIC ---
 
     function signupWithPhone() {
         $('#pass_div').hide();
@@ -358,33 +489,33 @@ foreach ($countries as $keycountry => $valuecountry) {
             if(firstName == ""){
                 $("#field_error1").css('display','block');
                 $("#field_error1").html("");
-                jQuery("#field_error1").html("Please enter first name");
+                jQuery("#field_error1").html("{{trans('lang.user_firstname_error')}}");
                 window.scrollTo(0, 0);
             }else if(lastName == ""){
                 $("#field_error1").css('display','block');
                 $("#field_error1").html("");
-                jQuery("#field_error1").html("Please enter last name");
+                jQuery("#field_error1").html("{{trans('lang.user_lastname_error')}}");
                 window.scrollTo(0, 0);
             }else if ($("#email").val() == ""){
                 $("#field_error1").css('display','block');
                 $("#field_error1").html("");
-                jQuery("#field_error1").html("Please enter email");
+                jQuery("#field_error1").html("{{trans('lang.user_email_error')}}");
                 window.scrollTo(0, 0);
             }else if ($("#mobileNumber").val() == ""){
                 $("#field_error1").css('display','block');
                 $("#field_error1").html("");
-                jQuery("#field_error1").html("Please enter phonenumber");
+                jQuery("#field_error1").html("{{trans('lang.user_phone_error')}}");
                 window.scrollTo(0, 0);
             }else if (jQuery("#mobileNumber").val() == "" || jQuery("#country_selector").val() == ""){
                 $("#field_error1").css('display','block');
                 $("#field_error1").html("");
-                jQuery("#field_error1").html("Please enter phonenumber");
+                jQuery("#field_error1").html("{{trans('lang.user_phone_error')}}");
                 window.scrollTo(0, 0);
             }else {
                 database.collection("users").where("role", "==", 'customer').where('phoneNumber', '==', jQuery("#mobileNumber").val()).get().then(async function (snapshots) {
                     $("#field_error1").css('display','none');
                     if (snapshots.docs.length > 0) {
-                        alert('You already have account with this phone number')
+                        alert("{{trans('lang.already_account_with_same_phone')}}");
                         return false;
                     } else {
                         $('#hidden_fName').val(firstName);
@@ -421,7 +552,7 @@ foreach ($countries as $keycountry => $valuecountry) {
     function applicationVerifier() {
         var code = $('#verificationcode').val();
         if (code == "") {
-            $('#otp_error').html('Please Enter OTP')
+            $("#otp_error").html("{{trans('lang.enter_otp')}}");
         } else {
             window.confirmationResult.confirm(document.getElementById("verificationcode").value)
                 .then(async function (result) {
@@ -486,7 +617,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                         $("#field_error").html(error);
                     });
                 }).catch((error) => {
-                $("#otp_error").html("OTP Verification Failed");
+                $("#otp_error").html("{{trans('lang.otp_failed')}}");
             });
         }
     }

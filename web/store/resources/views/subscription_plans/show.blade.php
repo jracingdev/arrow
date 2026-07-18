@@ -68,7 +68,7 @@
                         </div>
                     </div>
                     <div class="row backBtn d-none">
-                        <div class="col-12 text-center"><a href="{{ url('/') }}" class="btn btn-primary">Back</a>
+                        <div class="col-12 text-center"><a href="{{ route('dashboard') }}" class="btn btn-primary">{{trans('lang.cancel')}}</a>
                         </div>
                     </div>
                 </div>
@@ -77,13 +77,14 @@
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script src="{{ asset('assets/plugins/select2/dist/js/select2.min.js') }}"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-firestore.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-storage.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-database.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
         <script src="{{ asset('js/crypto-js.js') }}"></script>
-        @include('partials.firebase-init')
+        <script src="{{ asset('js/jquery.cookie.js') }}"></script>
+        <script src="{{ asset('js/jquery.validate.js') }}"></script>
         <script type="text/javascript" src="{{ asset('assets/plugins/slick/slick.min.js') }}"></script>
         <script type="text/javascript" src="{{ asset('assets/plugins/slick/slick-lightbox.js') }}"></script>
 
@@ -93,10 +94,26 @@
             var currencyAtRight = false;
             var decimal_degits = 0;
             var userId = "{{ $userId }}";
-
+            
             var createdAt = firebase.firestore.FieldValue.serverTimestamp();
             var vendorId = null;
             var sectionId = null;
+            var refSection = database.collection('sections').where('isActive', '==', true).where('serviceType', 'in', [
+                'Multivendor Delivery Service', 'Ecommerce Service'
+            ]);
+            var documentVerificationEnable = false;  
+            refSection.get().then(async function(sectionsSnapshot) {
+                for (const listval of sectionsSnapshot.docs) {
+                    const data = listval.data();
+                    $('#section-input').append(
+                        $("<option></option>")
+                        .attr("value", data.id)
+                        .text(data.name)
+                    );
+                    
+                }
+                await getUserInfo();
+            });
             var refCurrency = database.collection('currencies').where('isActive', '==', true);
             refCurrency.get().then(async function(snapshots) {
                 var currencyData = snapshots.docs[0].data();
@@ -113,19 +130,8 @@
                 var placeholderImageData = snapshotsimage.data();
                 placeholderImage = placeholderImageData.image;
             })
-            var refSection = database.collection('sections').where('isActive', '==', true).where('serviceType', 'in', [
-                'Multivendor Delivery Service', 'Ecommerce Service'
-            ]);
-            refSection.get().then(async function(sectionsSnapshot) {
-                sectionsSnapshot.docs.forEach((listval) => {
-                    var data = listval.data();
-                    $('#section-input').append(
-                        $("<option></option>")
-                        .attr("value", data.id)
-                        .text(data.name)
-                    );
-                });
-            });
+
+
             var refContact = database.collection('settings').doc('ContactUs');
             refContact.get().then(async function(snapshots) {
                 var data = snapshots.data();
@@ -146,7 +152,7 @@
             }
             var commisionModel = false;
             var AdminCommission = '';
-            var vendorSpecificCommission=false;
+            var vendorSpecificCommission = false;
             var subscriptionModel = false;
             var subscriptionBusinessModel = database.collection('settings').doc("vendor");
             subscriptionBusinessModel.get().then(async function(snapshots) {
@@ -165,49 +171,62 @@
                     activeSubscriptionId = data.subscription_plan.id;
                 }
             });
-
-            database.collection('users').where('id', '==', userId).get().then(async function(snapshot) {
-                var userData = snapshot.docs[0].data();
-
-                if (userData.hasOwnProperty('section_id') && userData.section_id != '' && userData.section_id !=
-                    null) {
-                    sectionId = userData.section_id;
-                    $('#section-input').val(sectionId);
-                    $('.sections-div').addClass('d-none');
-                    getCommissionDataBySection();
+            database.collection('settings').doc("document_verification_settings").get().then(function(snapshot) {
+                if (snapshot.exists) {
+                    var settings = snapshot.data();
+                    documentVerificationEnable = !!settings.isStoreVerification;   
+                    
                 } else {
-                    refSection.get().then(async function(sectionsSnapshot) {
-                        sections = document.getElementById('sections');
-                        sections.innerHTML = '';
-                        sectionshtml = buildHTMLSections(sectionsSnapshot);
-                        sections.innerHTML = sectionshtml;
-                        slickcatCarousel();
-                    })
+                    console.log("document_verification_settings document does not exist");
                 }
-                if (userData.hasOwnProperty('vendorID') && userData.vendorID != '' && userData.vendorID != null) {
-                    vendorId = userData.vendorID;
-                    await database.collection('vendors').where('id', '==', vendorId).get().then(async function(snapshot) {
-                        if (snapshot.docs.length > 0) {
-                            var data = snapshot.docs[0].data();
-                            if (data.hasOwnProperty('adminCommission') && data.adminCommission != null && data.adminCommission != '') {
-                                vendorSpecificCommission=true;
-                                if (data.adminCommission.type == "percentage") {
-                                    AdminCommission = data.adminCommission.commission + '' + '%';
-                                } else {
-                                    if (currencyAtRight) {
-                                        AdminCommission = data.adminCommission.commission.toFixed(decimal_degits) + currentCurrency;
+            }).catch(err => {
+                console.error("❌ Error loading document verification settings:", err);
+            });
+
+            async function getUserInfo() {
+
+                await database.collection('users').where('id', '==', userId).get().then(async function(snapshot) {
+                    var userData = snapshot.docs[0].data();
+
+                    if (userData.hasOwnProperty('sectionId') && userData.sectionId != '' && userData.sectionId !=
+                        null) {
+                        sectionId = userData.sectionId;
+                        $('#section-input').val(sectionId);
+                        $('.sections-div').addClass('d-none');
+                        await getCommissionDataBySection();
+                    } else {
+                        refSection.get().then(async function(sectionsSnapshot) {
+                            sections = document.getElementById('sections');
+                            sections.innerHTML = '';
+                            sectionshtml = buildHTMLSections(sectionsSnapshot);
+                            sections.innerHTML = sectionshtml;
+                            slickcatCarousel();
+                        })
+                    }
+                    if (userData.hasOwnProperty('vendorID') && userData.vendorID != '' && userData.vendorID != null) {
+                        vendorId = userData.vendorID;
+                        await database.collection('vendors').where('id', '==', vendorId).get().then(async function(snapshot) {
+                            if (snapshot.docs.length > 0) {
+                                var data = snapshot.docs[0].data();
+                                if (data.hasOwnProperty('adminCommission') && data.adminCommission != null && data.adminCommission != '') {
+                                    vendorSpecificCommission = true;
+                                    if (data.adminCommission.type == "percentage") {
+                                        AdminCommission = data.adminCommission.commission + '' + '%';
                                     } else {
-                                        AdminCommission = currentCurrency + data.adminCommission.commission.toFixed(decimal_degits);
+                                        if (currencyAtRight) {
+                                            AdminCommission = data.adminCommission.commission.toFixed(decimal_degits) + currentCurrency;
+                                        } else {
+                                            AdminCommission = currentCurrency + data.adminCommission.commission.toFixed(decimal_degits);
+                                        }
                                     }
                                 }
                             }
-                        }
-                    })
-                }
+                        })
+                    }
 
-            });
+                });
 
-
+            }
 
             jQuery('#data-table_processing').show();
 
@@ -217,7 +236,7 @@
                 database.collection('subscription_plans').where('isEnable', '==', true).where('sectionId',
                     '==', sectionId).get().then(async function(snapshots) {
                     if (commisionModel == false && snapshots.docs.length == 1) {
-                        $('#default-plan').html('<p class="text-danger">{{ trans('lang.no_subscription_plan_is_created_contact_to_admin') }}</p><span class="font-weight-bold">Email : ' + adminEmail + '<span>');
+                        $('#default-plan').html('<p class="text-danger">{{ trans('lang.no_subscription_plan_is_created_contact_to_admin') }}</p><span class="font-weight-bold">{{trans("lang.email")}} : ' + adminEmail + '<span>');
                     }
                     let plans = [];
                     snapshots.docs.map(doc => {
@@ -311,7 +330,7 @@
                                         </div>
                                         <p class="text-muted">${data.description}</p>
                                         <div class="pricing-card-price">
-                                            <h3 class="text-dark-2">${data.type!=="free"? (currencyAtRight? parseFloat(data.price).toFixed(decimal_degits)+currentCurrency:currentCurrency+parseFloat(data.price).toFixed(decimal_degits)):'<span style="color:red;">Free</span>'}</h3>
+                                            <h3 class="text-dark-2">${data.type!=="free"? (currencyAtRight? parseFloat(data.price).toFixed(decimal_degits)+currentCurrency:currentCurrency+parseFloat(data.price).toFixed(decimal_degits)):'<span style="color:red;">{{trans("lang.free")}}</span>'}</h3>
                                             <span class="price-day">${data.expiryDay==-1? "{{ trans('lang.unlimited') }}":data.expiryDay} {{ trans('lang.days') }}</span>
                                         </div>
                                         </div>
@@ -361,17 +380,25 @@
                             'subscription_plan': planData,
                             'subscriptionPlanId': id,
                             'subscriptionExpiryDate': expiryDay,
-                            'section_id': sectionId
+                            'sectionId': sectionId
 
                         }).then(async function(result) {
+                            var sectionCommissionSetting = {};
                             if (vendorId != null) {
+                                const sectionRef = database.collection('sections').where('id', '==', sectionId);
+                                const sectionSnap = await sectionRef.get();
+                                if (!sectionSnap.empty) {
+                                    const sectionData = sectionSnap.docs[0].data();
+                                    sectionCommissionSetting = sectionData.adminCommision;
+                                }
                                 await database.collection('vendors').doc(vendorId)
                                     .update({
                                         'subscription_plan': planData,
                                         'subscriptionPlanId': id,
                                         'subscriptionExpiryDate': expiryDay,
                                         'subscriptionTotalOrders': planData.orderLimit,
-                                        'section_id': sectionId
+                                        'section_id': sectionId,
+                                        'adminCommission': sectionCommissionSetting
 
                                     })
                             }
@@ -405,9 +432,47 @@
 
                                     success: function(data) {
                                         if (data.access) {
-                                            window.location
-                                                .href =
-                                                '{{ route('dashboard') }}';
+                                           
+                                            database.collection("users").doc(userId).get().then(async function(snapshots_login) {
+                                                var userData=snapshots_login.data();
+                                                var isDocumentVerified = userData.hasOwnProperty('isDocumentVerify') 
+                                                    ? userData.isDocumentVerify 
+                                                    : false;
+                                                var isAutoVerified = userData.hasOwnProperty('isAutoVerify') 
+                                                    ? userData.isAutoVerify 
+                                                    : false;                                                
+
+                                                if (userData.hasOwnProperty('subscriptionPlanId') &&
+                                                    userData.subscriptionPlanId != '' && userData
+                                                    .subscriptionPlanId != null) {
+                                                    if (documentVerificationEnable && (!isDocumentVerified || userData.isDocumentVerify)) {                                                        
+                                                        window.location = "{{ route('vendors.document') }}";
+                                                    } else if(documentVerificationEnable && isAutoVerified){
+                                                        window.location = "{{ route('dashboard') }}";
+                                                    }else if(!documentVerificationEnable && isAutoVerified){
+                                                        window.location = "{{ route('dashboard') }}";
+                                                    }else{
+                                                        window.location = "{{ route('dashboard') }}";
+                                                    }
+                                                } else {
+                                                    if (subscriptionModel || commisionModel) {
+
+                                                        window.location =
+                                                            "{{ route('subscription-plan.show') }}";
+
+                                                    } else {
+                                                        if (documentVerificationEnable && (!isDocumentVerified || userData.isDocumentVerify)) {                                                           
+                                                            window.location = "{{ route('vendors.document') }}";
+                                                        } else if(documentVerificationEnable && isAutoVerified){
+                                                            window.location = "{{ route('dashboard') }}";
+                                                        }else if(!documentVerificationEnable && isAutoVerified){
+                                                            window.location = "{{ route('dashboard') }}";
+                                                        }else{
+                                                            window.location = "{{ route('dashboard') }}";
+                                                        }
+                                                    }
+                                                }
+                                            })
                                         }
                                     }
                                 });
@@ -533,8 +598,11 @@
 
             }
 
-            setInterval(checkBusinessModel, 3000);
+            setInterval(checkBusinessModel, 60000);
             async function checkBusinessModel() {
+
+
+
                 if (commisionModel == false && subscriptionModel == false) {
                     var isSubscribed = "";
 

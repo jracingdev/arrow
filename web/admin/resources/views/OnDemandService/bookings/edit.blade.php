@@ -22,7 +22,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item">{{trans('lang.booking_edit')}}</li>
             </ol>
         </div>
@@ -599,11 +599,12 @@
     let startTime;
     var storedEndTime = '';
     var storedStartTime = '';
+
+    var currencyData = '';
     refCurrency.get().then(async function (snapshots) {
-        var currencyData = snapshots.docs[0].data();
+        currencyData = snapshots.docs[0].data();
         currentCurrency = currencyData.symbol;
         currencyAtRight = currencyData.symbolAtRight;
-
         if (currencyData.decimal_degits) {
             decimal_degits = currencyData.decimal_degits;
         }
@@ -671,10 +672,8 @@
     var place_image = '';
     var ref_place = database.collection('settings').doc("placeHolderImage");
     ref_place.get().then(async function (snapshots) {
-
         var placeHolderImage = snapshots.data();
         place_image = placeHolderImage.image;
-
     });
 
     async function getProvidersWorkerList(providerId) {
@@ -704,6 +703,11 @@
         $('#new_schedule_date').attr('min', minDateTime);
         $('#new_schedule_date').val(minDateTime);
     }
+
+    let taxBreakdownGrouped = {
+        order: {},
+        platform: {}
+    };
 
     $(document).ready(function () {
 
@@ -1604,7 +1608,7 @@
             if (userreviewsnapshot.docs.length > 0) {
                 jQuery("#customers_rating_and_review").append(reviewHTML);
             } else {
-                jQuery("#customers_rating_and_review").html('<h4>No Reviews Found</h4>');
+                jQuery("#customers_rating_and_review").html('<h4>{{ trans('lang.no_reviews_found') }}</h4>');
             }
         });
     }
@@ -1690,191 +1694,153 @@
         });
     }
 
-
     function buildHTMLProductstotal(snapshotsProducts) {
-        var html = '';
-        var alldata = [];
-        var number = [];
-        adminCommission = snapshotsProducts.adminCommission;
-        var adminCommissionType = snapshotsProducts.adminCommissionType;
-        var discount = snapshotsProducts.discount;
-        var couponCode = snapshotsProducts.couponCode;
-        extraCharges = snapshotsProducts.extraCharges;
-        var notes = snapshotsProducts.notes;
-        var status = snapshotsProducts.status;
-        var products = snapshotsProducts;
 
-        var intRegex = /^\d+$/;
-        var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
+        let html = '';
+        const intRegex = /^\d+$/;
+        const floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
 
+        let adminCommission = snapshotsProducts.adminCommission || 0;
+        let adminCommissionType = snapshotsProducts.adminCommissionType || 'fixed';
+        let couponCode = snapshotsProducts.couponCode;
+        let notes = snapshotsProducts.notes || '';
+        let extraCharges = parseFloat(snapshotsProducts.extraCharges || 0);
+        let platformFee = parseFloat(snapshotsProducts.platformFee || 0);
 
-        var val = products;
-
-        var sub_total = parseFloat(val.provider.price);
-
-        if (val.provider.disPrice != null && val.provider.disPrice != undefined && val.provider.disPrice != '' && val.provider.disPrice != '0') {
-            sub_total = parseFloat(val.provider.disPrice)
+        // Base subtotal
+        let quantity = parseFloat(snapshotsProducts.quantity || 1);
+        let basePrice = parseFloat(snapshotsProducts.provider.price || 0);
+        if (snapshotsProducts.provider.disPrice && parseFloat(snapshotsProducts.provider.disPrice) > 0) {
+            basePrice = parseFloat(snapshotsProducts.provider.disPrice);
         }
-        var price = sub_total;
-        var priceUnit = '';
+        let subtotal = basePrice * quantity;
+        let order_subtotal = subtotal;
+        let totalDiscount = parseFloat(snapshotsProducts.discount || 0);
 
-        sub_total = parseFloat(val.quantity) * sub_total;
+        html += '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.price_detail")}}</span></td></tr>';
 
-        total_price += parseFloat(sub_total);
+        let subtotalDisplay = currencyAtRight
+            ? subtotal.toFixed(decimal_degits) + currentCurrency
+            : currentCurrency + subtotal.toFixed(decimal_degits);
 
-        if (currencyAtRight) {
-            sub_total = parseFloat(sub_total).toFixed(decimal_degits) + "" + currentCurrency;
-            price = parseFloat(price).toFixed(decimal_degits) + "" + currentCurrency;
+        let basePriceDisplay = currencyAtRight
+            ? basePrice.toFixed(decimal_degits) + currentCurrency
+            : currentCurrency + basePrice.toFixed(decimal_degits);
+
+
+        // Price row
+        if (snapshotsProducts.provider.priceUnit != 'Hourly') {
+            html += `<tr class="final-rate"><td class="label">{{trans("lang.price")}}</td>
+                    <td style="color:green">${basePriceDisplay} x ${quantity} (${subtotalDisplay})</td></tr>`;
         } else {
-            sub_total = currentCurrency + "" + parseFloat(sub_total).toFixed(decimal_degits);
-            price = currentCurrency + "" + parseFloat(price).toFixed(decimal_degits);
+            html += `<tr class="final-rate"><td class="label">{{trans("lang.price")}}</td>
+                    <td style="color:green">${basePriceDisplay}/hr</td></tr>`;
         }
 
-        html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.price_detail")}}</span></td></tr>';
+        // Discount
+        if ((intRegex.test(totalDiscount) || floatRegex.test(totalDiscount))) { 
+            html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.discount")}}</span></td></tr>';
+            subtotal -= totalDiscount;
+            let discountDisplay = currencyAtRight
+                ? totalDiscount.toFixed(decimal_degits) + currentCurrency
+                : currentCurrency + totalDiscount.toFixed(decimal_degits);
 
-        if (val.provider.priceUnit != 'Hourly') {
-            html = html + '<tr class="final-rate"><td class="label">{{trans("lang.price")}}</td><td class="sub_total" style="color:green">' + price + 'X' + val.quantity + ' (' + sub_total + ')</td></tr>';
-        } else {
-            priceUnit='/hr'
-            html = html + '<tr class="final-rate"><td class="label">{{trans("lang.price")}}</td><td class="sub_total" style="color:green">' + price + 'X' + val.quantity + ' (' + price + priceUnit + ')</td></tr>';
+            let couponHtml = couponCode ? `<br><small>{{trans("lang.coupon_codes")}} : ${couponCode}</small>` : '';
+            html += `<tr><td class="label">{{trans("lang.discount")}} ${couponHtml}</td>
+                    <td style="color:red">(-${discountDisplay})</td></tr>`;
         }
 
-        if ((val.endTime != null && val.provider.priceUnit == 'Hourly') || val.provider.priceUnit != 'Hourly') {
+        // Subtotal after discount
+        let subtotalDisplay2 = currencyAtRight
+            ? subtotal.toFixed(decimal_degits) + currentCurrency
+            : currentCurrency + subtotal.toFixed(decimal_degits);
 
-            if (intRegex.test(discount) || floatRegex.test(discount)) {
-                html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.discount")}}</span></td></tr>';
+        html += '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.sub_total")}}</span></td></tr>';
+        html += `<tr><td class="label">{{trans("lang.sub_total")}}</td><td>${subtotalDisplay2}</td></tr>`;
 
-                discount = parseFloat(discount).toFixed(decimal_degits);
-                total_price -= parseFloat(discount);
+        // TAX CALCULATION
+        let total_tax_amount = 0;
+        let orderTaxable = Math.max(0, subtotal - totalDiscount);
+        let orderCombinedTax = 0;
+        (snapshotsProducts.taxSetting || []).forEach(tax => {
+            if (tax.enable) {
+                let taxAmount = tax.type === "percentage"
+                    ? (parseFloat(tax.tax) / 100) * orderTaxable
+                    : parseFloat(tax.tax);
 
-                if (currencyAtRight) {
-                    discount_val = parseFloat(discount).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    discount_val = currentCurrency + "" + parseFloat(discount).toFixed(decimal_degits);
-                }
-
-                couponCode_html = '';
-                if (couponCode) {
-                    couponCode_html = '</br><small>{{trans("lang.coupon_codes")}} :' + couponCode + '</small>';
-                }
-                html = html + '<tr><td class="label">{{trans("lang.discount")}}' + couponCode_html + '</td><td class="discount" style="color:red">(-' + discount_val + ')</td></tr>';
+                total_tax_amount += isNaN(taxAmount) ? 0 : taxAmount;
+                orderCombinedTax += parseFloat(taxAmount);
             }
-            var total_item_price = total_price;
-            var tax = 0;
-            taxlabel = '';
-            taxlabeltype = '';
+        });
+        taxBreakdownGrouped.order[''] = orderCombinedTax;
 
-            if (currencyAtRight) {
-                total_subtotal_val = parseFloat(total_price).toFixed(decimal_degits) + "" + currentCurrency;
-            } else {
-                total_subtotal_val = currentCurrency + "" + parseFloat(total_price).toFixed(decimal_degits);
-            }
-
-            html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.sub_total")}}</span></td></tr>';
-
-            html = html + '<tr><td class="label">{{trans("lang.sub_total")}}</td><td class="total_price_val">' + total_subtotal_val + '</td></tr>';
-
-            if (snapshotsProducts.hasOwnProperty('taxSetting') && snapshotsProducts.taxSetting.length > 0) {
-                html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.tax_calculation")}}</span></td></tr>';
-
-                var total_tax_amount = 0;
-                for (var i = 0; i < snapshotsProducts.taxSetting.length; i++) {
-                    var data = snapshotsProducts.taxSetting[i];
-
-                    if (data.type && data.tax) {
-                        if (data.type == "percentage") {
-
-                            tax = (data.tax * total_item_price) / 100;
-                            taxlabeltype = "%";
-                            var taxvalue = data.tax;
-
-                        } else {
-                            tax = data.tax;
-                            taxlabeltype = "";
-                            if (currencyAtRight) {
-                                var taxvalue = parseFloat(data.tax).toFixed(decimal_degits) + "" + currentCurrency;
-                            } else {
-                                var taxvalue = currentCurrency + "" + parseFloat(data.tax).toFixed(decimal_degits);
-
-                            }
-
-                        }
-                        taxlabel = data.title;
-
+        // Extra taxes
+        [
+            {key: 'platform', amount: platformFee, taxes: snapshotsProducts.platformTax || []},
+        ].forEach(scope => {
+            scope.taxes?.forEach(tax => {
+                if (tax.enable) {
+                    let taxAmount = 0;
+                    if(scope.amount > 0){
+                        taxAmount = tax.type === "percentage"
+                        ? (parseFloat(tax.tax) / 100) * scope.amount
+                        : parseFloat(tax.tax);
                     }
-                    total_tax_amount += parseFloat(tax);
-
-                    if (!isNaN(tax) && tax != 0) {
-                        if (currencyAtRight) {
-                            html = html + '<tr><td class="label">' + taxlabel + " (" + taxvalue + taxlabeltype + ')</td><td class="tax_amount" id="greenColor" style="color:green">+' + parseFloat(tax).toFixed(decimal_degits) + '' + currentCurrency + '</td></tr>';
-                        } else {
-                            html = html + '<tr><td class="label">' + taxlabel + " (" + taxvalue + taxlabeltype + ')</td><td class="tax_amount" id="greenColor" style="color:green">+' + currentCurrency + parseFloat(tax).toFixed(decimal_degits) + '</td></tr>';
-                        }
-
-
-                    }
+                    total_tax_amount += isNaN(taxAmount) ? 0 : taxAmount;
+                    taxBreakdownGrouped[scope.key][tax.title] = (taxBreakdownGrouped[scope.key][tax.title] || 0) + parseFloat(taxAmount);
                 }
-                total_price = parseFloat(total_price) + parseFloat(total_tax_amount);
-            }
+            });
+        });
 
-            var totalAmount = total_price;
-
-            html += '<tr><td class="seprater" colspan="2"><hr></td></tr>';
-
-            orderPayableAmount = totalAmount;
-
-            if (currencyAtRight) {
-                total_price_val = parseFloat(totalAmount).toFixed(decimal_degits) + "" + currentCurrency;
-            } else {
-                total_price_val = currentCurrency + "" + parseFloat(totalAmount).toFixed(decimal_degits);
-            }
-
-            html = html + '<tr class="grand-total"><td class="label">{{trans("lang.total_amount")}}</td><td class="total_price_val">' + total_price_val + '</td></tr>';
-
-            if (intRegex.test(adminCommission) || floatRegex.test(adminCommission)) {
-                var adminCommHtml = "";
-
-                if (adminCommissionType == "percentage") {
-                    adminCommHtml = "(" + adminCommission + "%)";
-                    adminCommission_val = parseFloat(parseFloat(total_item_price * adminCommission) / 100).toFixed(decimal_degits);
-                } else {
-                    adminCommission_val = parseFloat(adminCommission).toFixed(decimal_degits);
-                }
-
-                if (currencyAtRight) {
-
-                    adminCommission = parseFloat(adminCommission_val).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    adminCommission = currentCurrency + "" + parseFloat(adminCommission_val).toFixed(decimal_degits);
-                }
-
-                html = html + '<tr><td class="label"><small>{{trans("lang.admin_commission")}} ' + adminCommHtml + '</small> </td><td style="color:red"><small>( ' + adminCommission + ' )</small></td></tr>';
-
-            }
-
-            if (extraCharges && extraCharges != null && extraCharges != undefined && extraCharges > 0) {
-
-                if (currencyAtRight) {
-                    extraCharges = parseFloat(extraCharges).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    extraCharges = currentCurrency + "" + parseFloat(extraCharges).toFixed(decimal_degits);
-                }
-
-
-                html = html + '<tr><td class="label">{{trans("lang.extra_charges")}}</td><td class="total_price_val">' + extraCharges + '</td></tr>';
-
-            }
-            if (snapshotsProducts.hasOwnProperty('extraChargesDescription') && snapshotsProducts.extraChargesDescription != null && snapshotsProducts.extraChargesDescription != '') {
-                html = html + '<tr><td class="label">{{trans("lang.extra_charges_note")}}</td><td class="total_price_val">' + snapshotsProducts.extraChargesDescription + '</td></tr>';
-            }
+        // Extra charges
+        if (extraCharges > 0) {
+            let extraDisplay = currencyAtRight
+                ? extraCharges.toFixed(decimal_degits) + currentCurrency
+                : currentCurrency + extraCharges.toFixed(decimal_degits);
+            html += `<tr><td class="label">{{trans("lang.extra_charges")}}</td><td style="color:green">+${extraDisplay}</td></tr>`;
         }
-        html += '<tr><td class="seprater" colspan="2"><hr></td></tr>';
 
+        // FINAL TOTAL
+        let order_total = subtotal + extraCharges + platformFee + total_tax_amount;
+
+        html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.platform_charge') }}</span></td></tr>';
+        html = html +'<tr><td class="label">{{ trans('lang.platform_charge') }}</td><td class="platform_charge " id="greenColor">+' +
+                formatCurrency(platformFee, currencyData) + '</td></tr>';
+
+        html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.tax_calculation') }}</span></td></tr>';
+        html = html + renderTaxSection('order', 'Tax on Order Total');
+        html = html + renderTaxSection('platform', 'Tax on Platform Fee');
+        html = html +'<tr><td class="label"><strong>{{ trans('lang.total_tax') }}</strong></td><td class="total_tax " id="greenColor"><strong>+' +
+        formatCurrency(total_tax_amount, currencyData) + '</strong></td></tr>';
+
+        html += '<tr><td class="seprater" colspan="2"><hr></td></tr>';        
+        html = html +
+            '<tr class="grand-total"><td class="label">{{ trans('lang.total_amount') }}</td><td class="total_price_val " id="greenColor">' +
+            formatCurrency(order_total, currencyData) + '</td></tr>';
+
+        // Admin commission
+        if (adminCommission > 0) {
+            let adminCommHtml = "";
+            let adminCommission_val = 0;
+            if (adminCommissionType === "percentage") {
+                adminCommHtml = "(" + adminCommission + "%)";
+            }
+            let commissionBase = (totalDiscount != 0 && totalDiscount != '') ? orderTaxable : order_subtotal;
+            if (adminCommissionType === "percentage") {
+                adminCommission_val = (commissionBase * adminCommission) / 100;
+            } else {
+                adminCommission_val = parseFloat(adminCommission);
+            }
+            html = html + '<tr><td class="label"><small>{{ trans('lang.admin_commission') }} ' + adminCommHtml +
+            '</small> </td><td style="color:red"><small>( ' +  formatCurrency(adminCommission_val, currencyData) + ' )</small></td></tr>';
+        }
+
+        // Notes
         if (notes) {
-
-
-            html = html + '<tr><td class="label">{{trans("lang.notes")}}</td><td class="adminCommission_val">' + notes + '</td></tr>';
+            html += '<tr><td class="seprater" colspan="2"><hr></td></tr>';
+            html += `<tr><td class="label">{{trans("lang.notes")}}</td><td>${notes}</td></tr>`;
         }
+
         return html;
     }
 
@@ -1989,6 +1955,17 @@
 
     function stopTimer() {
         clearInterval(timerInterval);
+    }
+
+    function renderTaxSection(section, labelSuffix) {
+        let html = '';
+        if (!taxBreakdownGrouped[section]) return '';
+        for (let title in taxBreakdownGrouped[section]) {
+            let taxlabel = title;
+            let taxAmount = parseFloat(taxBreakdownGrouped[section][title]);
+            html = html + '<tr><td class="label">' + taxlabel + " " + labelSuffix + '</td><td class="tax_amount" id="greenColor">+' + formatCurrency(taxAmount, currencyData) + '</td></tr>';
+        }
+        return html;
     }
 
 </script>

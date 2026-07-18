@@ -16,7 +16,7 @@
 
             <ol class="breadcrumb">
 
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
                 <li class="breadcrumb-item active">{{trans('lang.parcel_weight')}}</li>
 
@@ -53,7 +53,7 @@
                                                     <label class="col-12 control-label"
                                                            style="color:red;font-size:15px;">{{trans('lang.edit_button_save_note')}} </label>
                                                 </div>
-                                                <?php if (in_array('parcel.weight.create', json_decode(@session('user_permissions')))) { ?>
+                                                <?php if (in_array('parcel.weight.create', json_decode(@session('user_permissions'),true))) { ?>
                                                     <div class="form-group row">
 
                                                         <div class="col-12">
@@ -72,7 +72,7 @@
                                                             <th style="width:40%"><label class="col-3 control-label">{{trans('lang.delivery_charge')}}</label>
                                                             </th>
 
-                                                            <?php if (in_array('parcel.weight.edit', json_decode(@session('user_permissions'))) || in_array('parcel.weight.delete', json_decode(@session('user_permissions')))) { ?>
+                                                            <?php if (in_array('parcel.weight.edit', json_decode(@session('user_permissions'),true)) || in_array('parcel.weight.delete', json_decode(@session('user_permissions'),true))) { ?>
 
                                                                 <th style="width:20%"><label
                                                                             class="col-3 control-label">{{trans('lang.actions')}}</label>
@@ -138,13 +138,13 @@
                         '<td style="width:40%"><input type="text" value="' + parcel_weight_data.title + '" class="form-control" id="title_' + parcel_weight_data.id + '" onchange="replaceText(`' + parcel_weight_data.id + '`)"></td>' +
                         '<td style="width:40%"><input type="text" value="' + parcel_weight_data.delivery_charge + '" class="form-control" id="price_' + parcel_weight_data.id + '" onchange="replaceText(`' + parcel_weight_data.id + '`)"></td>';
 
-                    <?php if (in_array('parcel.weight.edit', json_decode(@session('user_permissions'))) || in_array('parcel.weight.delete', json_decode(@session('user_permissions')))) { ?>
+                    <?php if (in_array('parcel.weight.edit', json_decode(@session('user_permissions'),true)) || in_array('parcel.weight.delete', json_decode(@session('user_permissions'),true))) { ?>
 
                     html += '<td class="action-btn" style="width:20%">';
-                    <?php if (in_array('parcel.weight.edit', json_decode(@session('user_permissions')))){?>
+                    <?php if (in_array('parcel.weight.edit', json_decode(@session('user_permissions'),true))){?>
                     html += '<span class="edit-form-btn"><button type="button" class="btn btn-primary edit_' + parcel_weight_data.id + '" onclick="editData(`' + editCount + '`,`' + parcel_weight_data.id + '`)"><i class="fa fa-edit"></i></button>&nbsp;&nbsp</span>';
                     <?php }
-                    if (in_array('parcel.weight.delete', json_decode(@session('user_permissions')))){
+                    if (in_array('parcel.weight.delete', json_decode(@session('user_permissions'),true))){
                     ?>
                     html += '<span class="delete-btn"><button type="button" class="btn btn-primary delete_' + parcel_weight_data.id + '" onclick="deleteData(`' + parcel_weight_data.id + '`)"><i class="fa fa-trash"></i></button></span>';
                     <?php }?>

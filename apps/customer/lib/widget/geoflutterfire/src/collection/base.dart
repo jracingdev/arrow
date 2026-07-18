@@ -6,8 +6,8 @@ import 'package:rxdart/rxdart.dart';
 
 import '../models/distance_doc_snapshot.dart';
 import '../models/point.dart';
-import '../utils/math.dart';
 import '../utils/arrays.dart';
+import '../utils/math.dart';
 
 class BaseGeoFireCollectionRef<T> {
   final Query<T> _collectionReference;
@@ -40,8 +40,7 @@ class BaseGeoFireCollectionRef<T> {
       final colRef = _collectionReference as CollectionReference<T>;
       return colRef.add(data);
     } catch (e) {
-      throw Exception(
-          'cannot call add on Query, use collection reference instead');
+      throw Exception('cannot call add on Query, use collection reference instead');
     }
   }
 
@@ -51,8 +50,7 @@ class BaseGeoFireCollectionRef<T> {
       CollectionReference colRef = _collectionReference as CollectionReference;
       return colRef.doc(id).delete();
     } catch (e) {
-      throw Exception(
-          'cannot call delete on Query, use collection reference instead');
+      throw Exception('cannot call delete on Query, use collection reference instead');
     }
   }
 
@@ -62,8 +60,7 @@ class BaseGeoFireCollectionRef<T> {
       CollectionReference colRef = _collectionReference as CollectionReference;
       return colRef.doc(id).set(data, SetOptions(merge: merge));
     } catch (e) {
-      throw Exception(
-          'cannot call set on Query, use collection reference instead');
+      throw Exception('cannot call set on Query, use collection reference instead');
     }
   }
 
@@ -79,8 +76,7 @@ class BaseGeoFireCollectionRef<T> {
       var point = GeoFirePoint(latitude, longitude).data;
       return colRef.doc(id).set({field: point}, SetOptions(merge: true));
     } catch (e) {
-      throw Exception(
-          'cannot call set on Query, use collection reference instead');
+      throw Exception('cannot call set on Query, use collection reference instead');
     }
   }
 
@@ -98,8 +94,7 @@ class BaseGeoFireCollectionRef<T> {
         field: field,
         geopointFrom: geopointFrom,
         strictMode: strictMode,
-      ).map((snapshots) =>
-          snapshots.map((snapshot) => snapshot.documentSnapshot).toList());
+      ).map((snapshots) => snapshots.map((snapshot) => snapshot.documentSnapshot).toList());
 
   /// query firestore documents based on geographic [radius] from geoFirePoint [center]
   /// [field] specifies the name of the key in the document
@@ -128,8 +123,7 @@ class BaseGeoFireCollectionRef<T> {
 
     final filtered = mergedObservable.map((list) {
       final mappedList = list.map((documentSnapshot) {
-        final snapData =
-            documentSnapshot.exists ? documentSnapshot.data() : null;
+        final snapData = documentSnapshot.exists ? documentSnapshot.data() : null;
 
         assert(snapData != null, 'Data in one of the docs is empty');
         if (snapData == null) return null;
@@ -152,10 +146,7 @@ class BaseGeoFireCollectionRef<T> {
 
       final nullableFilteredList = nonNullStrictMode
           ? mappedList
-              .where((doc) =>
-                      doc != null &&
-                      doc.kmDistance <=
-                          radius * 1.02 // buffer for edge distances;
+              .where((doc) => doc != null && doc.kmDistance <= radius * 1.02 // buffer for edge distances;
                   )
               .toList()
           : mappedList.toList();
@@ -172,8 +163,7 @@ class BaseGeoFireCollectionRef<T> {
   Stream<List<QueryDocumentSnapshot<T>>> mergeObservable(
     Iterable<Stream<List<QueryDocumentSnapshot<T>>>> queries,
   ) {
-    final mergedObservable = Rx.combineLatest<List<QueryDocumentSnapshot<T>>,
-        List<QueryDocumentSnapshot<T>>>(queries, (originalList) {
+    final mergedObservable = Rx.combineLatest<List<QueryDocumentSnapshot<T>>, List<QueryDocumentSnapshot<T>>>(queries, (originalList) {
       final reducedList = <QueryDocumentSnapshot<T>>[];
       for (final t in originalList) {
         reducedList.addAll(t);

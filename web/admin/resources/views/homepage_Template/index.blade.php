@@ -22,7 +22,7 @@
 
 				<li class="breadcrumb-item">
 
-					<a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a>
+					<a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a>
 
 				</li>
 

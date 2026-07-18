@@ -10,7 +10,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item"><a href="{!! route('ondemand.bookings.index') !!}">{{trans('lang.booking_plural')}}</a>
                 </li>
                 <li class="breadcrumb-item">{{trans('lang.print_booking')}}</li>
@@ -87,28 +87,33 @@
                     
                 <span><hr style="border-top: 2px dashed;"></span>
                 <div class="row justify-content-md-end mb-5" style="width: 100%;">
-                <div class="col-md-3 col-lg-3">
-                            <table class="table-subtotal" cellpadding="5" cellspacing="5">
-                                <tbody>
-                                    <tr>
-                                        <td>{{trans('lang.sub_total')}} :</td>
-                                        <td><label class="total_price"></label></td>
-                                    </tr>
-                                    <tr>
-                                        <td>{{trans('lang.coupon_discount')}} :</td>
-                                         <td>-<label class="total_discount_amount"></label></td>
-                                    </tr>
-                                    
-                                    
-                                    <tr>
-                                        <td>{{trans('lang.total')}} :</td>
-                                        <td><label class="total_amount"></label></td>
-                                    </tr>
-                                    <tr><td><span class="admin_commission row w-100 m-0"></span></td></tr>
-                                </tbody>
-                            </table>
-                </div>             
-                    
+                    <div class="col-md-3 col-lg-3">
+                        <table class="table-subtotal" cellpadding="5" cellspacing="5">
+                            <tbody>
+                                <tr>
+                                    <td>{{trans('lang.sub_total')}} :</td>
+                                    <td><label class="total_price"></label></td>
+                                </tr>
+                                <tr>
+                                    <td>{{trans('lang.coupon_discount')}} :</td>
+                                        <td>-<label class="total_discount_amount"></label></td>
+                                </tr>
+                                <tr>
+                                    <td>{{trans('lang.add_extra_charges')}} :</td>
+                                        <td><label class="extra_charges"></label></td>
+                                </tr>
+                                <tr id="platform_charge">
+                                    <td>{{trans('lang.platform_charge')}} :</td>
+                                    <td><label class="platform_charge"></label></td>
+                                </tr>
+                                <tr>
+                                    <td>{{trans('lang.total')}} :</td>
+                                    <td><label class="total_amount"></label></td>
+                                </tr>
+                                <tr><td><span class="admin_commission row w-100 m-0"></span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>             
                 </div>
                  <div class="clearfix" style="text-align:center;width: 100%;display:table">
                         <span><hr style="border-top: 2px dashed;"></span>
@@ -171,16 +176,21 @@
         var refCurrency = database.collection('currencies').where('isActive', '==', true);
         var decimal_degits = 0;
 
+        var currencyData = '';
         refCurrency.get().then(async function(snapshots) {
-            var currencyData = snapshots.docs[0].data();
+            currencyData = snapshots.docs[0].data();
             currentCurrency = currencyData.symbol;
             currencyAtRight = currencyData.symbolAtRight;
-
             if (currencyData.decimal_degits) {
                 decimal_degits = currencyData.decimal_degits;
             }
         });
 
+        let taxBreakdownGrouped = {
+            order: {},
+            platform: {}
+        };
+        
         ref.get().then(async function(snapshots) {
 
             jQuery("#data-table_processing").show();
@@ -309,163 +319,142 @@
             jQuery("#data-table_processing").hide();
         })
 
-        
-
         function buildHTMLProductstotal(snapshotsProducts) {
-            var html = '';
-            var alldata = [];
-            var number = [];
 
-            var adminCommission = snapshotsProducts.adminCommission;
-            var adminCommissionType = snapshotsProducts.adminCommissionType;
-            var discount = snapshotsProducts.discount;
-            var couponCode = snapshotsProducts.couponCode;
-          
-            var notes = snapshotsProducts.notes;
-            var status = snapshotsProducts.status;
-            var products = snapshotsProducts;
+            let html = '';
+            let intRegex = /^\d+$/;
+            let floatRegex = /^((\d+(\.\d*)?)|((\d*\.)?\d+))$/;
 
-            var intRegex = /^\d+$/;
-            var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
+            let adminCommission = snapshotsProducts.adminCommission;
+            let adminCommissionType = snapshotsProducts.adminCommissionType;
+            let discount = parseFloat(snapshotsProducts.discount || 0);
+            let couponCode = snapshotsProducts.couponCode;
+            let notes = snapshotsProducts.notes;
+            let extraCharges = parseFloat(snapshotsProducts.extraCharges || 0);
+            let platformFee = parseFloat(snapshotsProducts.platformFee || 0);
 
+            let formattedplatformFee = currencyAtRight
+                ? parseFloat(platformFee).toFixed(decimal_degits) + currentCurrency
+                : currentCurrency + parseFloat(platformFee).toFixed(decimal_degits);
+            $('.platform_charge').text(formattedplatformFee);
 
-           var val = products;
-         
-           var sub_total = parseFloat(val.provider.price);
-
-            if (val.provider.disPrice != null && val.provider.disPrice != undefined && val.provider.disPrice != '' && val.provider.disPrice != '0') {
-                sub_total = parseFloat(val.provider.disPrice)
-            }
-         
-            var price=sub_total;
-            
-            var priceUnit='';
-            sub_total=parseFloat(val.quantity)*sub_total;
-            if(val.provider.priceUnit=='Hourly'){
-                priceUnit=' /hr';
-            }
-            
-            if (currencyAtRight) {
-                $('.total_price').text(parseFloat(sub_total).toFixed(decimal_degits) + "" + currentCurrency);
-                $('#price').text(parseFloat(price).toFixed(decimal_degits) + "" + currentCurrency+priceUnit);
-
-            } else {
-                $('.total_price').text(currentCurrency + "" + parseFloat(sub_total).toFixed(decimal_degits));
-                $('#price').text(currentCurrency + "" + parseFloat(price).toFixed(decimal_degits)+priceUnit);
-
+            let quantity = parseFloat(snapshotsProducts.quantity || 1);
+            let basePrice = parseFloat(snapshotsProducts.provider.price || 0);
+            if (snapshotsProducts.provider.disPrice && parseFloat(snapshotsProducts.provider.disPrice) > 0) {
+                basePrice = parseFloat(snapshotsProducts.provider.disPrice);
             }
 
-            total_price += parseFloat(sub_total);
-            var discount_val = 0;
-        if((val.endTime!=null && val.provider.priceUnit=='Hourly') || val.provider.priceUnit!='Hourly' ){
+            let priceUnit = snapshotsProducts.provider.priceUnit === 'Hourly' ? ' /hr' : '';
+            let sub_total = basePrice * quantity;
+            let total_price = sub_total;
 
-            if (intRegex.test(discount) || floatRegex.test(discount)) {
+            // Display base price
+            let formattedBasePrice = currencyAtRight
+                ? parseFloat(basePrice).toFixed(decimal_degits) + currentCurrency + priceUnit
+                : currentCurrency + parseFloat(basePrice).toFixed(decimal_degits) + priceUnit;
 
-                discount = parseFloat(discount).toFixed(decimal_degits);
-                total_price -= parseFloat(discount);
+            let formattedSubtotal = currencyAtRight
+                ? parseFloat(sub_total).toFixed(decimal_degits) + currentCurrency
+                : currentCurrency + parseFloat(sub_total).toFixed(decimal_degits);
 
-                if (currencyAtRight) {
-                    discount_val = parseFloat(discount).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    discount_val = currentCurrency + "" + parseFloat(discount).toFixed(decimal_degits);
-                }
+            $('#price').text(formattedBasePrice);
+            $('.total_price').text(formattedSubtotal);
 
-                couponCode_html = '';
-                if (couponCode) {
-                    couponCode_html = '</br><small>{{trans("lang.coupon_codes")}} :' + couponCode + '</small>';
-                }
+            // Apply discount
+            let discount_val = 0;
+            if ((intRegex.test(discount) || floatRegex.test(discount))) {
+                total_price -= discount;
+                discount_val = currencyAtRight
+                    ? discount.toFixed(decimal_degits) + currentCurrency
+                    : currentCurrency + discount.toFixed(decimal_degits);
 
                 $('.total_discount_amount').text(discount_val);
-
-
             } else {
-
-                if (currencyAtRight) {
-                    discount_val = parseFloat(discount_val).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    discount_val = currentCurrency + "" + parseFloat(discount_val).toFixed(decimal_degits);
-                }
-                $('.total_discount_amount').text(discount_val);
-
+                $('.total_discount_amount').text(currencyAtRight
+                    ? discount_val.toFixed(decimal_degits) + currentCurrency
+                    : currentCurrency + discount_val.toFixed(decimal_degits));
             }
 
-            var total_item_price = total_price;
+            let total_item_price = total_price;
 
-            var tax = 0;
-            taxlabel = '';
-            taxlabeltype = '';
+            // TAX CALCULATION
+            let total_tax_amount = 0;
+            let orderTaxable = Math.max(0, total_item_price);
+            let orderCombinedTax = 0;
+            (snapshotsProducts.taxSetting || []).forEach(tax => {
+                if (tax.enable) {
+                    let taxAmount = tax.type === "percentage"
+                        ? (parseFloat(tax.tax) / 100) * orderTaxable
+                        : parseFloat(tax.tax);
 
-            if (snapshotsProducts.hasOwnProperty('taxSetting')) {
-                var total_tax_amount = 0;
-                for (var i = 0; i < snapshotsProducts.taxSetting.length; i++) {
-                    var data = snapshotsProducts.taxSetting[i];
+                    total_tax_amount += isNaN(taxAmount) ? 0 : taxAmount;
+                    orderCombinedTax += parseFloat(taxAmount);
+                }
+            });
+            taxBreakdownGrouped.order[''] = orderCombinedTax;
 
-                    if (data.type && data.tax) {
-                        if (data.type == "percentage") {
-                            tax = (data.tax * total_price) / 100;
-                            taxlabeltype = "%";
-                            var taxvalue = data.tax;
-
-                        } else {
-                            tax = data.tax;
-                            taxlabeltype = " ";
-                            if (currencyAtRight) {
-                                var taxvalue = parseFloat(data.tax).toFixed(decimal_degits) + "" + currentCurrency;
-                            } else {
-                                var taxvalue = currentCurrency + "" + parseFloat(data.tax).toFixed(decimal_degits);
-
-                            }
-
+            // Extra taxes
+            [
+                {key: 'platform', amount: platformFee, taxes: snapshotsProducts.platformTax || []},
+            ].forEach(scope => {
+                scope.taxes?.forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if(scope.amount > 0){
+                            taxAmount = tax.type === "percentage"
+                            ? (parseFloat(tax.tax) / 100) * scope.amount
+                            : parseFloat(tax.tax);
                         }
-                        taxlabel = data.title;
+                        total_tax_amount += isNaN(taxAmount) ? 0 : taxAmount;
+                        taxBreakdownGrouped[scope.key][tax.title] = (taxBreakdownGrouped[scope.key][tax.title] || 0) + parseFloat(taxAmount);
                     }
-                    total_tax_amount += parseFloat(tax);
-                    if (currencyAtRight) {
-                    $('.table-subtotal tr:eq(1)').after("<tr><td> " + taxlabel + " (" + taxvalue + taxlabeltype + ")</td><td><label>" + parseFloat(tax).toFixed(decimal_degits) + " " + currentCurrency + "</label></td></tr>");
-                    } else {
-                        $('.table-subtotal tr:eq(1)').after("<tr><td> " + taxlabel + " (" + taxvalue + taxlabeltype + ")</td><td><label>" + currentCurrency + " " + parseFloat(tax).toFixed(decimal_degits) + "</label></td></tr>");
-                    }
+                });
+            });
 
+            var taxHtml = '';
+            taxHtml += renderTaxSection('order', 'Tax on Order Total');
+            taxHtml += renderTaxSection('platform', 'Tax on Platform Fee');
+            taxHtml += '<tr><td>{{ trans('lang.total_tax') }}</td><td>+' + formatCurrency(total_tax_amount, currencyData) + '</td></tr>';
+            $('.table-subtotal tr:eq(3)').after(taxHtml);
 
-                }
-                total_price = parseFloat(total_price) + parseFloat(total_tax_amount);
+            // Extra charges
+            let extraDisplay = currencyAtRight
+                ? extraCharges.toFixed(decimal_degits) + currentCurrency
+                : currentCurrency + extraCharges.toFixed(decimal_degits);
+            $('.extra_charges').text(extraDisplay);
 
+            // FINAL TOTAL
+            let order_total = total_item_price + extraCharges + platformFee + total_tax_amount;
 
-            }
-            if (currencyAtRight) {
-                total_price_val = parseFloat(total_price).toFixed(decimal_degits) + "" + currentCurrency;
-            } else {
-                total_price_val = currentCurrency + "" + parseFloat(total_price).toFixed(decimal_degits);
-            }
+            // Display total amount
+            let total_price_val = currencyAtRight
+                ? order_total.toFixed(decimal_degits) + currentCurrency
+                : currentCurrency + order_total.toFixed(decimal_degits);
 
             $('.total_amount').text(total_price_val);
-            html = html + '<tr><td class="label">{{trans("lang.total_amount")}}</td><td class="total_price_val">' + total_price_val + '</td></tr>';
-            if (intRegex.test(adminCommission) || floatRegex.test(adminCommission)) {
-                var adminCommHtml = "";
+            html += `<tr><td class="label">{{trans("lang.total_amount")}}</td><td class="total_price_val">${total_price_val}</td></tr>`;
 
-                if (adminCommissionType == "percentage") {
-                    adminCommHtml = "(" + adminCommission + "%)";
-                    var adminCommission_val = parseFloat(parseFloat(total_item_price * adminCommission) / 100).toFixed(decimal_degits);
+            // Admin commission
+            if ((intRegex.test(adminCommission) || floatRegex.test(adminCommission)) && adminCommission > 0) {
+                let adminCommHtml = "";
+                let adminCommission_val = 0;
+                if (adminCommissionType.toLowerCase() === "percentage") {
+                    adminCommHtml = `(${adminCommission}%)`;
+                    adminCommission_val = (total_item_price * adminCommission) / 100;
                 } else {
-                    var adminCommission_val = parseFloat(adminCommission).toFixed(decimal_degits);
+                    adminCommission_val = parseFloat(adminCommission);
                 }
+                let formattedAdminCommission = currencyAtRight
+                    ? adminCommission_val.toFixed(decimal_degits) + currentCurrency
+                    : currentCurrency + adminCommission_val.toFixed(decimal_degits);
 
-                if (currencyAtRight) {
-                    adminCommHtml = "(" + adminCommission + ")";
-                    adminCommission = parseFloat(adminCommission_val).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    adminCommission = currentCurrency + "" + parseFloat(adminCommission_val).toFixed(decimal_degits);
-                }
-
-                $('.table-subtotal tr:eq(4)').after("<tr><td>{{trans('lang.admin_commission')}}<label>"+adminCommHtml + "</label></td><td>"+adminCommission+"</td></tr>");
+                $('.table-subtotal tr:eq(7)').after(`<tr><td>{{trans('lang.admin_commission')}} <label>${adminCommHtml}</label></td><td><label>${formattedAdminCommission}</label></td></tr>`);
             }
-        }
 
+            // Notes
             if (notes) {
-
-                html = html + '<tr><td class="label">{{trans("lang.notes")}}</td><td class="adminCommission_val">' + notes + '</td></tr>';
+                html += `<tr><td class="label">{{trans("lang.notes")}}</td><td class="adminCommission_val">${notes}</td></tr>`;
             }
-
 
             return html;
         }
@@ -493,6 +482,18 @@
             printWindow.document.close();
             printWindow.print();
         }
+
+        function renderTaxSection(section, labelSuffix) {
+            let html = '';
+            if (!taxBreakdownGrouped[section]) return '';
+            for (let title in taxBreakdownGrouped[section]) {
+                let taxlabel = title;
+                let taxAmount = parseFloat(taxBreakdownGrouped[section][title]);
+                html = html + '<tr><td>' + taxlabel + " " + labelSuffix + '</td><td>+' + formatCurrency(taxAmount, currencyData) + '</td></tr>';
+            }
+            return html;
+        }
+
     </script>
 
     @endsection

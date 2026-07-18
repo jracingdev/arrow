@@ -33,7 +33,7 @@
                         <div class="col-md-12 provider-detail-right">
                             <div id="service-list"></div>
                             <div id="load-more-div" class="align-items-center mt-4" style="display:none;text-align: center;">
-                                <a href="javascript:void(0)" class="btn btn-primary btn-lg" id="load-more">Load More</a>
+                                <a href="javascript:void(0)" class="btn btn-primary btn-lg" id="load-more">{{trans('lang.load_more')}}</a>
                             </div>
                         </div>
                     </div>

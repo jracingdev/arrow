@@ -245,7 +245,6 @@
                 }
         });
 
-        // jQuery("#total_payment").html('{{trans("lang.total")}} {{trans("lang.Payment")}} : ' + totalPayment);
         jQuery("#overlay").show();
         append_list = document.getElementById('append_list1');
         append_list.innerHTML = '';
@@ -296,11 +295,7 @@
                 html = html + '<div class="transactions-list-wrap mt-4"><div class="bg-white px-4 py-3 border rounded-lg mb-3 transactions-list-view shadow-sm"><div class="gold-members d-flex align-items-center transactions-list">';
                 html = html + '<div class="media transactions-list-left"><div class="mr-3 font-weight-bold card-icon"><span><i class="fa fa-credit-card"></i></span></div><div class="media-body"><h6 class="date">' + date + ' ' + time + '</h6><p class="mb-0 badge badge-success text-light">' + val.payment_status + '</p><p class="text-muted mb-0">' + val.payment_method + '</p></div></div>';
                 html = html + '<div class="float-right ml-auto"><span class="price font-weight-bold h4 ' + txtClass + '">' + price_val + '</span>';
-                if (val.order_id != '') {
-                    var view_details = "{{ route('completed_order',':id')}}";
-                    view_details = view_details.replace(':id', 'id=' + val.order_id);
-                    html = html + '<span class="go-arror text-dark btn-block text-right mt-2"><a href="' + view_details + '"><i class="fa fa-angle-right"></i></a></span>';
-                }
+                
                 html = html + '</div> </div></div></div>';
             });
         } else {

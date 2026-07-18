@@ -15,9 +15,9 @@
                                 <table class="payment-table m-4">
                                     <tbody>
                                     <tr>
-                                        <td style="display:flex">
-                                            {{ trans('lang.pay_total_amount') }} : {{$amount}} <div id="currency"></div>
-                                        </td>
+                                        <td>
+                                            {{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}
+                                         </td>
                                         <td class="text-right payment-button">
                                         <form action="https://{{ $pfHost }}/eng/process" method="POST">
                                             <input type="hidden" name="merchant_id"
@@ -34,7 +34,7 @@
                                                        value="<?php echo $payfast_cancel_url; ?>">
                                                 <input type="hidden" name="notify_url"
                                                        value="<?php echo $payfast_notify_url; ?>">
-                                            <input type="submit" value="Pay Now" class="btn btn-primary"/> 
+                                            <input type="submit" class="btn btn-primary" value="{{ trans('lang.pay_now') }}">
                                         </form>
                                         </td>
                                     </tr>

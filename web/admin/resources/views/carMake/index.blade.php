@@ -12,7 +12,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.car_make')}}</li>
             </ol>
         </div>
@@ -132,7 +132,9 @@
 
 
             html = await buildHTML(snapshots);
-
+ $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
             jQuery("#data-table_processing").hide();
 
             if (snapshots.docs.length > 0) {
@@ -174,13 +176,7 @@
 
                 order: [0, "asc"],
 
-                "language": {
-
-                    "zeroRecords": "{{trans("lang.no_record_found")}}",
-
-                    "emptyTable": "{{trans("lang.no_record_found")}}"
-
-                },
+                "language": datatableLang,
 
                 responsive: true,
 
@@ -264,13 +260,13 @@
 
 
 
-        html = html + '<td><span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
+        html = html + '<td><span class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans("lang.edit") }}"><i class="mdi mdi-lead-pencil"></i></a>';
 
-        <?php if(in_array('make.delete', json_decode(@session('user_permissions')))){?>
+        <?php if(in_array('make.delete', json_decode(@session('user_permissions'),true))){?>
 
 
 
-        html = html + '<a id="' + val.id + '" name="carMake-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a></span>';
+        html = html + '<a id="' + val.id + '" name="carMake-delete" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans("lang.delete") }}"><i class="mdi mdi-delete"></i></a></span>';
 
         <?php }?>
 

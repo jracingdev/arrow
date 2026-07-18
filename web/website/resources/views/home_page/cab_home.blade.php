@@ -29,6 +29,7 @@
 <script type="text/javascript">
     var database = firebase.firestore();
     var cabLandingPageRef = database.collection('sections').where('id', '==', section_id);
+   
     jQuery("#overlay").show();
     cabLandingPageRef.get().then(async function (snapshots) {
         var cabLandingPageData = snapshots.docs[0].data();

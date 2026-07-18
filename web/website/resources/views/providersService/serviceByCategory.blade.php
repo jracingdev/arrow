@@ -134,7 +134,8 @@
             var datas = listval.data();
             datas.id = listval.id;
             var inValidServiceIds = await getProviderServiceLimit(datas.author);
-            if(!inValidProviders.includes(datas.author)) { 
+            let serviceInzone = await getUserZoneId(datas.latitude, datas.longitude);
+            if(serviceInzone && !inValidProviders.includes(datas.author)) { 
                if (inValidServiceIds.length == 0 || !inValidServiceIds.includes(datas.id)) {
                         return datas;
                     }

@@ -1,6 +1,6 @@
 # Arrow (eMart)
 
-Monorepo da plataforma **Arrow** — baseada no eMart 6.3 — com painéis web Laravel, landing page estática, apps Flutter e recursos Firebase.
+Monorepo da plataforma **Arrow** — baseada no eMart 6.8 — com painéis web Laravel, landing page estática, apps Flutter e recursos Firebase.
 
 **Repositório:** https://github.com/jracingdev/arrow.git
 
@@ -156,6 +156,8 @@ node import-user.js
 
 ## Apps Flutter (`apps/`)
 
+Base eMart **6.8** · Flutter SDK **3.44.4** (ou compatível) · arquitetura **GetX**.
+
 | App | Pasta | Público |
 |-----|-------|---------|
 | Cliente | `apps/customer` | Consumidores finais |
@@ -170,6 +172,8 @@ flutter run
 
 Configure `google-services.json` (Android) e credenciais Firebase localmente — arquivos sensíveis estão no `.gitignore`. Veja `firebase/android/README.md` e rode `deploy/prepare-android-apps.sh`.
 
+No código, a URL da API admin fica em `Constant.globalUrl` (`lib/constant/constant.dart`), apontando para `kAdminApiBaseUrl` do pacote `apps/shared` (`arrow_shared`).
+
 Documentação detalhada: `docs/eMart App Documentation.pdf`
 
 ### Android — build de release
@@ -182,7 +186,7 @@ cd apps/store    && flutter build appbundle
 cd apps/driver   && flutter build appbundle
 ```
 
-| App | Package Android | API (`GlobalURL`) |
+| App | Package Android | API (`Constant.globalUrl`) |
 |-----|-----------------|-------------------|
 | Cliente | `com.emart.customer` | `https://admin.arrow.app.br/` |
 | Lojista | `com.emart.store` | `https://admin.arrow.app.br/` |

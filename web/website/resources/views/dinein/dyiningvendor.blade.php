@@ -44,14 +44,16 @@
                 </button>
             </div>
             <div class="modal-body">
+                <div class="error" id="field_error1" style="color:red;display:none;"></div>
                 <div class="form-group row">
                     <div class="col-6">
                         <label for="date" class="font-weight-bold">{{trans('lang.select_date')}}</label>
-                        <input class="form-control event_date" id="date" type="date" value="Select Date">
+                        <input class="form-control" id="event_date" type="date" value="Select Date">
+                        <span>Selected Day of the Week: <b><span id="dayOfWeek"></span></b></span>
                     </div>
                     <div class="col-6">
                         <label for="date" class="font-weight-bold">{{trans('lang.how_many_people')}}</label>
-                        <select name="total_guest" class="form-control total_guest">
+                        <select name="total_guest" class="form-control total_guest" id="total_guest">
                             <option value="">Select</option>
                             <?php for ($i = 1;
                                        $i < 26;
@@ -61,23 +63,28 @@
                         </select>
                     </div>
                 </div>
-                <label for="guest_name" class="font-weight-bold">{{trans('lang.enter_guest_details')}}</label>
-                <div class="form-group row">
+                 <div class="form-group row">
                     <div class="col-6">
-                        <input class="form-control guest_first_name" id="guest_name" type="text"
-                               placeholder="First Name">
-                    </div>
-                    <div class="col-6">
-                        <input class="form-control guest_last_name" type="text" placeholder="Last Name">
+                        <label for="time" class="font-weight-bold">{{trans('lang.select_time')}}</label>
+                        <select class="form-control" id="event_time" value="Select Time">
+                        </select>
                     </div>
                 </div>
+                 <label for="personal_detail" class="font-weight-bold">{{trans('lang.personal_details')}}</label>
                 <div class="form-group row">
                     <div class="col-6">
-                        <input class="form-control guest_email" type="email" placeholder="Email">
+                        <img alt="Profile Image" class="profile-image" id="user_image">
                     </div>
                     <div class="col-6">
-                        <input class="form-control guest_phone" placeholder="Phone">
+                        <h6 id="user_name"></h6>
+                        <h6 id="user_phone"></h6>
+                        <h6 id="user_email"></h6>
+                        <h6 id="dayofweek" style="display:none"></h6>
                     </div>
+                </div>
+                <label for="special_discount" class="font-weight-bold special_discount_label" style ="display:none;" >{{trans('lang.special_discount')}}</label>
+                <div class="form-group row">
+                    <span  style ="display:none;"  id="special_discount"></span><span id="special_discount_lbl" class="pl-2"></span><span style ="display:none;" id="discount_type"></span>
                 </div>
                 <label for="birthday_occasion" class="font-weight-bold">{{trans('lang.special_occasion')}}</label>
                 <div class="form-check">
@@ -122,7 +129,7 @@
                 <div class="bg-white p-3 border rounded-lg mb-3 table-book-view">
                     <div class="d-flex align-items-center">
                         <div class="media align-items-center">
-                            <div class="mr-4 pr-4 border-right"><img src="img/food_delivery.png"></div>
+                            <div class="mr-4 pr-4 border-right"><img onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" src="img/food_delivery.png"></div>
                             <div class="media-body">
                                 <h6 class="mb-1">{{trans('lang.available_food_delivery')}} </h6>
                                 <p class="text-muted mb-0">{{trans('lang.in_30_mins')}}</p>
@@ -131,14 +138,14 @@
                         <div class="float-right add-btn ml-auto">
                                 <span class="menu-itemimg">
                                     <a href="<?php echo url('vendor-detail') . '/' . $_GET['id']; ?>">
-                                    <img src="img/next.png"></a></span>
+                                    <img onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" src="img/next.png"></a></span>
                         </div>
                     </div>
                 </div>
                 <div class="bg-white p-3 border rounded-lg mb-3 table-book-view">
                     <div class="d-flex align-items-center">
                         <div class="media align-items-center">
-                            <div class="mr-4 pr-4 border-right"><img src="img/book_table.png"></div>
+                            <div class="mr-4 pr-4 border-right"><img onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" src="img/book_table.png"></div>
                             <div class="media-body">
                                 <h6 class="mb-1">{{trans('lang.book_table')}}</h6>
                                 <p class="text-muted mb-0">{{trans('lang.get_instant_confirmation')}}</p></div>
@@ -146,9 +153,9 @@
                         <div class="float-right add-btn ml-auto">
                             <?php if (Auth::check()){ ?>
                             <span class="menu-itemimg" id="table_book_btn" type="button" data-toggle="modal"
-                                  data-target="#book_a_table"><img src="img/next.png"></span>
+                                  data-target="#book_a_table"><img onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" src="img/next.png"></span>
                             <?php }else{ ?>
-                            <a href="<?php echo route('login'); ?>"><span class="menu-itemimg" type="button"><img
+                            <a href="<?php echo route('login'); ?>"><span class="menu-itemimg" type="button"><img onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'"
                                             src="img/next.png"></span></a>
                             <?php } ?>
                         </div>
@@ -166,17 +173,17 @@
             <div class="dyntable-detail mb-4 border-bottom pb-4">
                 <ul>
                     <li class="mb-5">
-                        <span><img src="img/time.png"></span>
+                        <span><img onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" src="img/time.png"></span>
                         <h5 class="mb-2">{{trans('lang.timming')}}</h5>
                         <div class="offers-coupons" id="vendor_open_close_time"></div>
                     </li>
                     <li class="mb-5">
-                        <span><img src="img/price.png"></span>
+                        <span><img onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" src="img/price.png"></span>
                         <h5 class="mb-2">{{trans('lang.cost')}}</h5>
                         <div class="offers-coupons" id="cost_for_two"></div>
                     </li>
                     <li class="mb-0">
-                        <span><img src="img/location-1.png"></span>
+                        <span><img onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" src="img/location-1.png"></span>
                         <h5 class="mb-2">{{trans('lang.location')}}</h5>
                         <div class="offers-coupons" id="vendor_location_div"></div>
                     </li>
@@ -207,7 +214,7 @@
                     <h3 class="font-weight-bold h6 w-100">{{trans('lang.location')}}</h3>
                     <div id="map"></div>
                     <div class="address_vendor mt-4 mb-3"></div>
-                    <a class="vendor_direction" target="_blank" href=""><img
+                    <a class="vendor_direction" target="_blank" href=""><img onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'"
                                 src="img/direction.png"> {{trans('lang.directions')}}</a>
                 </div>
             </div>
@@ -324,6 +331,15 @@
         }
         loadcurrency();
     });
+    var dineInOrderSubject='';
+    var dineInOrderMsg='';
+        database.collection('dynamic_notification').where('type','==','dinein_placed').get().then(async function (snapshot) {
+        if (snapshot.docs.length > 0) {
+            data=snapshot.docs[0].data();
+            dineInOrderSubject=data.subject;
+            dineInOrderMsg=data.message;
+        }
+    });
     var vendorCategoriesName = [];
     var uservendorDetailsRef = database.collection('users');
     var vendorDetailsRef = database.collection('vendors').where('id', "==", vendorId);
@@ -343,7 +359,7 @@
         placeholderImage = placeholderImageData.image;
     })
     var diveinEnabledFromAdmin = '';
-    var vendorMenuPhotosOuter = '';
+    var restaurantMenuPhotosOuter = '';
     <?php if (isset($_COOKIE['section_id'])){ ?>
     var section_id = "<?php echo $_COOKIE['section_id'] ?>";
     <?php } ?>
@@ -390,14 +406,191 @@
             jQuery('.currency-symbol-left').text(currentCurrency);
         }
     }
+    function getUserDetailsById(user_uuid) {
+        if (user_uuid) {
+            // Reference to the 'users' collection
+            const userDetailsRef = database.collection('users').where('id', "==", user_uuid);
+            userDetailsRef.get()
+                .then((querySnapshot) => {
+                    if (!querySnapshot.empty) {
+                        const userDetails = querySnapshot.docs[0].data();
+                        $("#user_name").text(userDetails.firstName + ' ' + userDetails.lastName);
+                        $("#user_email").text(userDetails.email); 
+                        $("#user_phone").text(userDetails.phoneNumber);
+                        if (userDetails.profilePictureURL) {
+                            $("#user_image").attr("src", userDetails.profilePictureURL); // Set image source
+                        } else {
+                            $("#user_image").attr("src", placeholderImageSrc);
+                        }
+                    } else {
+                        console.log("No user found with the provided UUID");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error getting user details: ", error);
+                });
+        } else {
+            console.log("User UUID is required");
+        }
+    }   
 
     $(document).ready(function () {
+        jQuery("#overlay").show();
         getVendorDetails();
         getCusinDetails();
         getUsersReviews(true);
         getVendorMap();
+        jQuery("#overlay").hide();
 
     });
+
+    function formatDate(date) {
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Add leading zero for single-digit months
+      const day = date.getDate().toString().padStart(2, '0'); // Add leading zero for single-digit days
+      return `${year}-${month}-${day}`;
+    }
+
+    window.onload = function() {
+        const today = new Date();
+        const sevenDaysLater = new Date(today);
+        sevenDaysLater.setDate(today.getDate() + 6);
+        // Get the date input field
+        const dateInput = document.getElementById('event_date');
+        dateInput.value = formatDate(today);
+        // Set the min and max attributes
+        dateInput.min = formatDate(today); // Set the minimum date to today
+        dateInput.max = formatDate(sevenDaysLater); // Set the maximum date to 7 days from today
+        const dayOfWeekDisplay = document.getElementById('dayOfWeek'); // Assuming there's an element to display the day
+        dayOfWeekDisplay.textContent = getDayOfDate(today); // Display day of the week for today
+        $("#dayofweek").text(dayOfWeekDisplay.textContent);
+        const timeSelect = document.getElementById('event_time');
+        var vendorDetailsRef = database.collection('vendors').where('id', "==", main_vendor_id);
+        vendorDetailsRef.get().then(async function (vendorSnapshots) {
+            if(!vendorSnapshots.empty){
+                var vendorDetails = vendorSnapshots.docs[0].data();
+                if (vendorDetails.openDineTime != undefined && vendorDetails.closeDineTime != undefined) {
+                    res_opentime = vendorDetails.openDineTime;
+                    res_closetime = vendorDetails.closeDineTime;
+                    if(res_opentime && res_closetime){
+                        populateTimeSlots(res_opentime, res_closetime);
+                    }
+                }
+            }
+        });
+        var res_opentime = '';
+        var res_closetime = '';
+        getTimeSlotDiscount(dayOfWeekDisplay.textContent);
+            dateInput.addEventListener('input', function() {
+                const selectedDate = new Date(dateInput.value);
+                const dayOfWeek = getDayOfDate(selectedDate);
+                dayOfWeekDisplay.textContent = dayOfWeek;
+                $("#dayofweek").text(dayOfWeek);
+                getTimeSlotDiscount(dayOfWeek);  
+            });
+            timeSelect.addEventListener('input', function() {
+                var dayOfWeek = document.getElementById('dayofweek').innerText;
+                getTimeSlotDiscount(dayOfWeek);
+            });
+        getUserDetailsById(user_uuid);
+        function getTimeSlotDiscount(dayOfWeek){
+            vendorDetailsRef.get().then(async function (vendorSnapshots) {
+                if(!vendorSnapshots.empty){
+                    var vendorDetails = vendorSnapshots.docs[0].data();
+                    var specialOfferDiscount = 0;
+                    var specialOfferVendor = [];
+                    if(vendorDetails.hasOwnProperty('specialDiscount')){
+                        specialOfferVendor = vendorDetails.specialDiscount;
+                        if(specialOfferVendor.length > 0){
+                            let discountApplied = false;
+                            for(i=0; i< specialOfferVendor.length; i++){
+                                if(specialOfferVendor[i]['day'] == dayOfWeek){
+                                    if(specialOfferVendor[i]['timeslot'].length > 0){
+                                        for(j=0; j< specialOfferVendor[i]['timeslot'].length; j++){
+                                            var selected_slot = $("#event_time").val();
+                                            if(selected_slot >= specialOfferVendor[i]['timeslot'][j]['from'] && selected_slot <= specialOfferVendor[i]['timeslot'][j]['to']){
+                                                if(specialOfferVendor[i]['timeslot'][j]['discount_type'] === 'dinein'){
+                                                    var type_sign = '';
+                                                    if(specialOfferVendor[i]['timeslot'][j]['type'] === 'percentage'){
+                                                        specialOfferDiscount += parseFloat(specialOfferVendor[i]['timeslot'][j]['discount']);                                                      
+                                                        type_sign = "%";
+                                                        $("#discount_type").text("percentage");
+                                                    }else{
+                                                        specialOfferDiscount += parseFloat(specialOfferVendor[i]['timeslot'][j]['discount']);   
+                                                        type_sign = currentCurrency;
+                                                        $("#discount_type").text("amount");
+                                                    }
+                                                    discountApplied = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (discountApplied) {
+                                        if ($("#special_discount").length) {
+                                            $(".special_discount_label").show();
+                                            $("#special_discount_lbl").text(specialOfferDiscount + type_sign); // Display the discount with the correct type (currency or %)
+                                            $("#special_discount").text(specialOfferDiscount); 
+                                        }
+                                    }
+                                    else
+                                    {
+                                        $(".special_discount_label").hide();
+                                         $("#special_discount_lbl").text(''); // Clear the discount text if no match
+                                         $("#special_discount").text(""); 
+                                         $("#discount_type").text("");
+                                    }
+                                }
+                            }
+                        }else {
+                            console.log("No special discounts found.");
+                        }
+                    }
+                }
+            });
+        }
+        function convertTo24HourFormat(timeStr) {
+            const [time, modifier] = timeStr.split(' '); // Split the time and AM/PM modifier
+            let [hours, minutes] = time.split(':'); // Split hours and minutes
+            hours = parseInt(hours);
+            if (modifier === 'PM' && hours !== 12) {
+                hours += 12; // Convert PM hours to 24-hour format (except for 12 PM)
+            } else if (modifier === 'AM' && hours === 12) {
+                hours = 0; // Convert 12 AM to 00 hours
+            }
+            return formatTime(hours, minutes);
+        }
+        function populateTimeSlots(res_opentime,res_closetime) {
+            const [openHour, openMinute] = convertTo24HourFormat(res_opentime).split(':').map(Number);
+            const [closeHour, closeMinute] = convertTo24HourFormat(res_closetime).split(':').map(Number);
+              // Create Date objects for open and close times
+                let startTime = new Date();
+                startTime.setHours(openHour, openMinute, 0, 0); // Set start time (open)
+                let endTime = new Date();
+                endTime.setHours(closeHour, closeMinute, 0, 0); // Set end time (close)
+                // Clear any existing options in the time picker
+                timeSelect.innerHTML = '';
+                if (startTime >= endTime) {
+                    console.log('Error: Start time is greater than or equal to end time.');
+                    return;
+                }
+                while (startTime <= endTime) {
+                    const timeString = formatTime(startTime.getHours(), startTime.getMinutes());
+                    const option = document.createElement('option');
+                    option.value = timeString;
+                    option.textContent = timeString;
+                    timeSelect.appendChild(option);
+                    // Increment by 30 minutes
+                    startTime.setMinutes(startTime.getMinutes() + 30);
+                }
+        }
+        function formatTime(hour, minute) {
+            return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        }
+        function getDayOfDate(date) {
+            const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            return daysOfWeek[date.getDay()]; // Get day of the week (0-6)
+        }
+    } 
 
     async function getVendorDetails() {
         geocollection = geoFirestore.collection('vendors');
@@ -478,9 +671,9 @@
             var menuCardPhotos = "";
             var menuPhotoCount = 0;
             var menuCardPhotos = '';
-            vendorMenuPhotosOuter = vendorDetails.vendorMenuPhotos
-            if (vendorDetails.hasOwnProperty('vendorMenuPhotos')) {
-                vendorDetails.vendorMenuPhotos.forEach((photo) => {
+            restaurantMenuPhotosOuter = vendorDetails.restaurantMenuPhotos
+            if (vendorDetails.hasOwnProperty('restaurantMenuPhotos')) {
+                vendorDetails.restaurantMenuPhotos.forEach((photo) => {
                     menuPhotoCount++;
                     if (menuPhotoCount <= 1) {
                         menuCardPhotos = menuCardPhotos + '<div class="col-md-3"><span class="image-item" id="photo_menu' + menuPhotoCount + '"><span class="remove-btn" data-id="' + menuPhotoCount + '" data-img="' + photo + '"><img width="100px" id="" height="auto" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'"></div>';
@@ -492,19 +685,70 @@
             } else {
                 $("#photos_menu_card").html('<p>Menu card photos not available.</p>');
             }
-            if (vendorDetails.hasOwnProperty("vendorCost")) {
-                if (currencyAtRight) {
-                    $("#cost_for_two").append("Cost for two - " + parseFloat(vendorDetails.vendorCost).toFixed(decimal_degits) + "" + currentCurrency + " (Approx) ");
-                } else {
-                    $("#cost_for_two").append("Cost for two - " + currentCurrency + "" + parseFloat(vendorDetails.vendorCost).toFixed(decimal_degits) + " (Approx) ");
-                }
-            } else {
-                $("#cost_for_two").append("Approx cost is not added");
+            
+            var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            var currentdate = new Date();
+            var currentDay = days[currentdate.getDay()];
+            var currentTime = currentdate.getHours()+":"+currentdate.getMinutes();
+            specialOfferVendor = [];
+            if(vendorDetails.hasOwnProperty('specialDiscount')){
+                specialOfferVendor = vendorDetails.specialDiscount;
             }
+            var specialOfferDiscount = 0;
+            var specialOfferForHour = [];
+             if (vendorDetails.hasOwnProperty("restaurantCost")) {
+                    if(specialOfferVendor.length != 0){
+                        for(i=0; i< specialOfferVendor.length; i++){
+                            if(specialOfferVendor[i]['day'] == currentDay){
+                                if(specialOfferVendor[i]['timeslot'].length > 0){
+                                    for(j=0; j< specialOfferVendor[i]['timeslot'].length; j++){
+                                        if(currentTime >= specialOfferVendor[i]['timeslot'][j]['from'] && currentTime <= specialOfferVendor[i]['timeslot'][j]['to']){
+                                            specialOfferForHour.push(specialOfferVendor[i]['timeslot'][j]);
+                                            if(specialOfferVendor[i]['timeslot'][j]['discount_type'] == 'dinein'){
+                                                if(specialOfferVendor[i]['timeslot'][j]['type'] == 'percentage'){
+                                                specialOfferDiscount += parseFloat(parseFloat(specialOfferVendor[i]['timeslot'][j]['discount'] * vendorDetails.restaurantCost) / 100);
+                                                }else{
+                                                    specialOfferDiscount += parseFloat(specialOfferVendor[i]['timeslot'][j]['discount']);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (currencyAtRight) {
+                        $("#cost_for_two").append("Cost for two - " + vendorDetails.restaurantCost + "" + currentCurrency + " (Approx) ");
+                    } else {
+                        $("#cost_for_two").append("Cost for two - " + currentCurrency + "" + vendorDetails.restaurantCost + " (Approx) ");
+                    }
+            } else {
+                    $("#cost_for_two").append("Approx cost is not added");
+            }
+
             $(".address_vendor").append(vendorDetails.location);
             $("#vendor_location_div").append(vendorDetails.location);
             $(".vendor_direction").attr("href", "https://www.google.com/maps/dir/?api=1&destination=" + vendorDetails.latitude + "," + vendorDetails.longitude);
 
+            async function initializebothMap() {
+                await database.collection('settings').doc("googleMapKey").get().then(function (googleMapKeySnapshotsHeader) {
+                            var placeholderImageHeaderData = googleMapKeySnapshotsHeader.data();
+                            googleMapKey = placeholderImageHeaderData.key;
+                            const script = document.createElement('script');
+                            if(mapType == 'google'){
+                                script.src = "https://maps.googleapis.com/maps/api/js?key=" + googleMapKey + "&libraries=places";
+                                script.async = true;
+                                script.defer = true;
+                                document.head.appendChild(script);
+                            }else{
+                                script.src = "https://unpkg.com/leaflet/dist/leaflet.js";
+                                document.head.appendChild(script);
+                            }
+                            script.onload = function () {
+                                initMap();
+                            }
+                    });
+            }
             function initMap() {
                 if(mapType == "google"){
                     const uluru = {lat: vendorDetails.latitude, lng: vendorDetails.longitude};
@@ -527,9 +771,7 @@
                     const marker = L.marker(uluru).addTo(map);
                 }
             }
-            window.initMap = initMap;
-            initMap();
-
+            initializebothMap();
         })
         let Star5 = Star4 = Star3 = Star2 = Star1 = 0;
         let percent1 = percent2 = percent3 = percent4 = percent5 = 0.0;
@@ -891,80 +1133,111 @@
             occasion = "";
         }
         var firstVisit = $('.first_visit').is(':checked');
-        var date = new Date($(".event_date").val());
-        var totalGuest = $(".total_guest").val();
-        var guestFirstName = $(".guest_first_name").val();
-        var guestLastName = $('.guest_last_name').val();
-        var guestEmail = $('.guest_email').val();
-        var guestPhone = $('.guest_phone').val();
+        
+        var event_date = $("#event_date").val();
+        var event_time = $("#event_time").val();
+        var combinedDateTime = new Date(event_date + "T" + event_time + ":00");
+        var dineDateTime = firebase.firestore.Timestamp.fromDate(combinedDateTime);
+        
+        var totalGuest = $("#total_guest").val();
+        var guestEmail = $('#user_email').text();
+        var guestPhone = $('#user_phone').text();
+        var special_discount = $("#special_discount").text() || 0;
+        var discount_type = $("#discount_type").text();
         var specialRequest = $(".special_request").val();
-        var id = "<?php echo uniqid(); ?>";
+
+        var id = database.collection('tmp').doc().id;
         var sendnotification = "<?php echo url('/'); ?>";
+        
         if (user_uuid) {
             var userData = await userDetailsRef.get();
             var userDetails = userData.docs[0].data();
         }
+        
+        if(discount_type == null || discount_type == "" ){
+            discount_type = "amount";
+        }
+
         var vendorData = await vendorDetailsRef.get();
         var vendorDetails = vendorData.docs[0].data();
         var createdAt = firebase.firestore.FieldValue.serverTimestamp();
         var vendorID = vendorDetails.id;
         var fullname = userDetails.firstName + ' ' + userDetails.lastName;
-        database.collection('booked_table').doc(id).set({
-            'authorID': userDetails.id,
-            'author': userDetails,
-            'vendor': vendorDetails,
-            'date': date,
-            'totalGuest': totalGuest,
-            'guestFirstName': guestFirstName,
-            'guestLastName': guestLastName,
-            'guestEmail': guestEmail,
-            "guestPhone": guestPhone,
-            'specialRequest': specialRequest,
-            'id': id,
-            'firstVisit': firstVisit,
-            'occasion': occasion,
-            "createdAt": createdAt,
-            'vendorID': vendorID,
-            'status': 'Order Placed'
-        }).then(function (result) {
-            $("#book_a_table .close").click();
-            $(".event_date").val("");
-            $(".total_guest").val("");
-            $(".guest_first_name").val("");
-            $('.guest_last_name').val("");
-            $('.guest_email').val("");
-            $('.guest_phone').val("");
-            $(".special_request").val("");
-        });
-        $.ajax({
-            method: 'POST',
-            url: '<?php echo route('sendnotification'); ?>',
-            data: {
-                'fcm': fcmToken,
-                'type': 'booktable_request',
-                'authorName': fullname,
-                '_token': '<?php echo csrf_token() ?>',
-                'subject': dineInOrderSubject,
-                'message': dineInOrderMsg
-            }
-        }).done(function (data) {
-        }).fail(function (xhr, textStatus, errorThrown) {
-        });
+
+        if(totalGuest == ""|| totalGuest == null){
+            $("#field_error1").css('display','block');
+            $("#field_error1").html("");
+            jQuery("#field_error1").html("{{ trans('lang.select_people') }}"); 
+        } else if(event_time == null || event_time == ""){
+            $("#field_error1").css('display','block');
+            $("#field_error1").html("");
+            jQuery("#field_error1").html("{{ trans('lang.select_time') }}"); 
+        }else{
+            jQuery("#overlay").show();
+            database.collection('booked_table').doc(id).set({
+                'authorID': userDetails.id,
+                'author': userDetails,
+                'vendor': vendorDetails,
+                'date': dineDateTime,
+                'totalGuest': totalGuest,
+                'guestFirstName': userDetails.firstName,
+                'guestLastName': userDetails.lastName,
+                'guestEmail': guestEmail,
+                "guestPhone": guestPhone,
+                'discount':String(special_discount),
+                'discountType':discount_type,
+                'specialRequest': specialRequest,
+                'id': id,
+                'firstVisit': firstVisit,
+                'occasion': occasion,
+                "createdAt": createdAt,
+                'vendorID': vendorID,
+                'status': 'Order Placed'
+            }).then(function (result) {
+                $.ajax({
+                    method: 'POST',
+                    url: '<?php echo route('sendnotification'); ?>',
+                    data: {
+                        'fcm': fcmToken,
+                        'type': 'booktable_request',
+                        'authorName': fullname,
+                        '_token': '<?php echo csrf_token() ?>',
+                        'subject': dineInOrderSubject,
+                        'message': dineInOrderMsg
+                    }
+                }).done(function (data) {
+                    window.location.href = "{{ route('my_dinein') }}";
+                }).fail(function (xhr, textStatus, errorThrown) {
+                    window.location.href = "{{ route('my_dinein') }}";
+                });
+            });
+        }
     });
 
     function showAllMenu() {
         var menuPhotoCount = 0;
         var menuCardPhotos = '';
-        Array.from(vendorMenuPhotosOuter).forEach(restaurantMenuPhotos => {
+        Array.from(restaurantMenuPhotosOuter).forEach(restaurantMenuPhotos => {
             menuPhotoCount++;
             menuCardPhotos = menuCardPhotos + '<div class="col-md-3"><span class="image-item" id="photo_menu' + menuPhotoCount + '"><span class="remove-btn" data-id="' + menuPhotoCount + '" data-img="' + restaurantMenuPhotos + '"><img width="100px" id="" height="auto" src="' + restaurantMenuPhotos + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'"></div>';
         })
         $("#vendor_menus").html(menuCardPhotos);
     }
 </script>
+
 <style>
+    .profile-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
     #map {
         height: 400px;
         width: 100%;
     }
+    .menu_space{
+        padding-top: 12px;
+    }
 </style>
+

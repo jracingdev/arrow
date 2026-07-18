@@ -16,7 +16,7 @@
 
                     <ol class="breadcrumb">
 
-                        <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                        <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
 
                         <li class="breadcrumb-item active">{{trans('lang.driver_table')}}</li>
 
@@ -51,7 +51,7 @@
                                             <option value="last_name">{{ trans('lang.last_name')}}</option>
                                 </select>
                                 <div class="form-group">
-                                <input type="search" id="search" class="search form-control" placeholder="Search" aria-controls="users-table"></label>&nbsp;<button onclick="searchtext();" class="btn btn-warning btn-flat">Search</button>&nbsp;<button onclick="searchclear();" class="btn btn-warning btn-flat">Clear</button>
+                                <input type="search" id="search" class="search form-control" placeholder="{{trans('lang.search')}}" aria-controls="users-table"></label>&nbsp;<button onclick="searchtext();" class="btn btn-warning btn-flat">{{trans('lang.search')}}</button>&nbsp;<button onclick="searchclear();" class="btn btn-warning btn-flat">{{trans('lang.clear')}}</button>
                             </div>
                             </div>
 
@@ -198,9 +198,9 @@ $(document).ready(function() {
                 
                 html=html+'<td>'+val.firstName+' '+val.lastName+'</td>';
                 if(val.isActive){
-                  html = html+'<td><span class="badge badge-success">Yes</span></td>';
+                  html = html+'<td><span class="badge badge-success">{{trans('lang.yes')}}</span></td>';
                 }else{
-                  html = html+'<td><span class="badge badge-danger">No</span></td>';
+                  html = html+'<td><span class="badge badge-danger">{{trans('lang.no')}}</span></td>';
                 }
                 html=html+'<td class="action-btn"><a href="'+route1+'"><i class="fa fa-edit"></i></a><a id="'+val.id+'" name="driver-delete" href="javascript:void(0)"><i class="fa fa-trash"></i></a></td>';
                 html=html+'</tr>';

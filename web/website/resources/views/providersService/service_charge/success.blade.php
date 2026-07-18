@@ -48,15 +48,23 @@
 </div>
 @include('layouts.footer')
 @include('layouts.nav')
+
 @if($message = Session::get('success'))
+
     <script src="{{ asset('js/geofirestore.js') }}"></script>
+
     <script type="text/javascript">
+
         var fcmToken = '';
+        var providerAmount = 0;
+        var providerWallet = 0;
         var userId = "<?php echo $id; ?>";
         var userDetailsRef = database.collection('users').where('id', "==", userId);
         var firestore = firebase.firestore();
         var geoFirestore = new GeoFirestore(firestore);
-            <?php if (@$cart['paymentStatus'] == true && !empty(@$cart['cart_order']['total_pay']) && !empty(@$cart['cart_order']['orderId'])) { ?>
+    
+        <?php if (@$cart['paymentStatus'] == true && !empty(@$cart['cart_order']['total_pay']) && !empty(@$cart['cart_order']['orderId'])) { ?>
+            
         var id_order = "{{@$cart['cart_order']['orderId']}}";
         var total_pay = "{{@$cart['cart_order']['total_pay']}}";
         var discount = "{{@$cart['cart_order']['discount']}}";
@@ -67,7 +75,9 @@
         var adminCommission = "{{@$cart['cart_order']['adminCommission']}}";
         var payment_method = "{{$payment_method}}";
         $("#data-table_processing_order").show();
+
         database.collection('users').where('id', '==', providerId).get().then(async function (userSnapshots) {
+
             var userDetails = userSnapshots.docs[0].data();
             if (userDetails.wallet_amount != undefined && userDetails.wallet_amount != '' && !isNaN(userDetails.wallet_amount)) {
                 providerWallet = userDetails.wallet_amount;

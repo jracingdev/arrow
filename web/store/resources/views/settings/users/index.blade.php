@@ -15,7 +15,7 @@
 
                     <ol class="breadcrumb">
 
-                        <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                        <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
 
                         <li class="breadcrumb-item">{{trans('lang.settings')}}</li>
 
@@ -53,7 +53,7 @@
                                         <option value="email">{{ trans('lang.email')}}</option>
                                 </select>
                                 <div class="form-group">
-                                <input type="search" id="search" class="search form-control" placeholder="Search" aria-controls="users-table"></label>&nbsp;<button onclick="searchtext();" class="btn btn-warning btn-flat">{{ trans('lang.search')}}</button>&nbsp;<button onclick="searchclear();" class="btn btn-warning btn-flat">Clear</button>
+                                <input type="search" id="search" class="search form-control" placeholder="{{ trans('lang.search')}}" aria-controls="users-table"></label>&nbsp;<button onclick="searchtext();" class="btn btn-warning btn-flat">{{ trans('lang.search')}}</button>&nbsp;<button onclick="searchclear();" class="btn btn-warning btn-flat">{{trans('lang.clear')}}</button>
                             </div>
                             </div>
 
@@ -121,9 +121,9 @@
 
 @section('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.1.0/firebase-app.js"></script>
-    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.1.0/firebase-firestore.js"></script>
-    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/8.1.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-database.js"></script>
     <script type="text/javascript">@include('vendor.notifications.init_firebase')</script>
 
 <script type="text/javascript">

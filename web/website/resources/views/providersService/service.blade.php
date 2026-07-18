@@ -1,13 +1,5 @@
 @include('layouts.app')
 @include('layouts.header')
-@php
-    $cityToCountry = file_get_contents(public_path('tz-cities-to-countries.json'));
-    $cityToCountry = json_decode($cityToCountry, true);
-    $countriesJs = array();
-    foreach ($cityToCountry as $key => $value) {
-        $countriesJs[$key] = $value;
-    }
-@endphp
 <div class="rentalcar-detail-page pt-5 product-detail-page mb-4">
     <div class="container position-relative">
         <div class="car-detail-inner">
@@ -108,9 +100,12 @@
         </div>
     </div>
 </div>
+
 @include('layouts.footer')
+
 <script src="{{ asset('js/geofirestore.js') }}"></script>
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
+
 <script type="text/javascript">
     var firestore = firebase.firestore();
     var id = '<?php echo $id; ?>';
@@ -125,13 +120,16 @@
     var reviewAttributes = {};
     var vendorLongitude = '';
     var vendorLatitude = '';
+    
     var serviceData = '';
+    
     var placeholderImageRef = database.collection('settings').doc('placeHolderImage');
     var placeholderImageSrc = '';
     placeholderImageRef.get().then(async function (placeholderImageSnapshots) {
         var placeHolderImageData = placeholderImageSnapshots.data();
         placeholderImageSrc = placeHolderImageData.image;
     });
+    
     var specialOfferRef = database.collection('settings').doc('specialDiscountOffer');
     var enableSpecialOffer = false;
     specialOfferRef.get().then(async function (snapShots) {
@@ -140,15 +138,18 @@
             enableSpecialOffer = specialOfferData.isEnable;
         }
     });
+    
     var DeliveryCharge = database.collection('settings').doc('DeliveryCharge');
+    
     var currentCurrency = '';
     var currencyAtRight = false;
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     var deliveryChargemain = [];
     var ecommerce_delivery_charge = 0;
     var decimal_degits = 0;
+    var currencyData = '';
     refCurrency.get().then(async function (snapshots) {
-        var currencyData = snapshots.docs[0].data();
+        currencyData = snapshots.docs[0].data();
         currentCurrency = currencyData.symbol;
         currencyAtRight = currencyData.symbolAtRight;
         loadcurrency();
@@ -156,38 +157,34 @@
             decimal_degits = currencyData.decimal_degits;
         }
     });
-    var cityToCountry = '<?php echo json_encode($countriesJs); ?>';
-    cityToCountry = JSON.parse(cityToCountry);
-    var userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    var userCity = userTimeZone.split('/')[1];
-    var userCountry = cityToCountry[userCity];
-    var inValidProviders=[];
+    
+    var taxScope = 'order';
     var taxSetting = [];
-    var reftaxSetting = database.collection('tax').where('country', '==', userCountry).where('enable', '==', true).where('sectionId', '==', section_id);
-    reftaxSetting.get().then(async function (snapshots) {
-        if (snapshots.docs.length > 0) {
-            snapshots.docs.forEach((val) => {
-                val = val.data();
-                var obj = '';
-                obj = {
-                    'country': val.country,
-                    'enable': val.enable,
-                    'id': val.id,
-                    'tax': val.tax,
-                    'title': val.title,
-                    'type': val.type,
-                };
-                taxSetting.push(obj);
-            })
-        }
+    let userCountry = getCookie('userCountryName');
+    const scopes = ['order', 'platform'];
+    const taxesByScope = {};
+    database.collection('tax').where('country', '==', userCountry).where('enable', '==', true).where('scope', 'in', scopes).where('sectionId', '==', section_id).get().then(snapshot => {
+        snapshot.forEach(doc => {
+            const tax = doc.data();
+            (taxesByScope[tax.scope] ??= []).push(tax);
+        });
     });
+
+    var platformCharge = '0';
+    let platformFeeSettings = JSON.parse(localStorage.getItem('platformFeeSettings'));
+    if (platformFeeSettings && platformFeeSettings.enable) {
+        platformCharge = platformFeeSettings.fee;
+    }
+
     $(document).ready(async function () {
         inValidProviders = await getInvaidUserIds();
         getServiceDetail();
     });
+    
     $(document).on('swipe, afterChange', '.nav-slider', function (event, slick, direction) {
         $('.main-slider').slick('slickGoTo', slick.currentSlide);
     });
+    
     $(document).on('click', '.nav-slider .product-image', function () {
         $('.main-slider').slick('slickGoTo', $(this).data('slick-index'));
     });
@@ -360,6 +357,7 @@
     $(document).on("click", "a[name='loginAlert']", function (e) {
         alert('{{trans("lang.login_to_add_favorite")}}');
     });
+
     $(document).on("click", "a[name='addToFavorite']", function (e) {
         var section_id = "<?php echo @$_COOKIE['section_id'] ?>";
         let providerId = $(this).data('provider-id');
@@ -773,26 +771,34 @@
         var category_id = $('input[name="category_id_' + id + '"]').val();
         var name = $('input[name="name_' + id + '"]').val();
         var image = $('input[name="image_' + id + '"]').val();
+
+        const payload = {
+            _token: '<?php echo csrf_token(); ?>',
+            id,
+            quantity,
+            name,
+            price,
+            dis_price,
+            image,
+            item_price,
+            category_id,
+            decimal_degits,
+            providerId,
+            price_unit,
+            taxSetting,
+            taxScope,
+            taxesByScope,
+            platformCharge,
+            currencyData,
+        };
+
         $.ajax({
             type: 'POST',
             url: "<?php echo route('ondemand-cart'); ?>",
-            data: {
-                _token: '<?php echo csrf_token(); ?>',
-                id: id,
-                quantity: quantity,
-                name: name,
-                price: price,
-                dis_price: dis_price,
-                image: image,
-                item_price: item_price,
-                taxValue: taxSetting,
-                category_id: category_id,
-                decimal_degits: decimal_degits,
-                providerId: providerId,
-                price_unit: price_unit
-            },
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(payload),
             success: function (data) {
-                data = JSON.parse(data);
                 $('#service_cart_list').html(data.html);
                 loadcurrency();
                 $('#close_' + id).trigger("click");
@@ -864,5 +870,7 @@
             });
         }
     })
+
 </script>
+
 @include('layouts.nav')

@@ -5,73 +5,79 @@
 
 <div class="page-wrapper">
     <div class="row page-titles">
-        <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">{{trans('lang.order_review')}}</h3>
+         <div class="col-md-5 align-self-center">
+            <div class="d-flex top-title-section justify-content-between">
+                <div class="d-flex top-title-left align-self-center">
+                    <span class="icon mr-3"><img src="{{ asset('images/users.png') }}"></span>
+                    <h3 class="mb-0">{{trans('lang.order_review')}} <span class="page-title"></span></h3>
+                    <span class="counter ml-3 total_count"></span>
+                </div>
+            </div>
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.order_review_table')}}</li>
             </ol>
         </div>
-        <div>
-        </div>
     </div>
+
     <div class="container-fluid">
-       <div class="admin-top-section"> 
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex top-title-section pb-4 justify-content-between">
-                    <div class="d-flex top-title-left align-self-center">
-                        <span class="icon mr-3"><img src="{{ asset('images/users.png') }}"></span>
-                        <h3 class="mb-0">{{trans('lang.order_review')}}</h3>
-                        <span class="counter ml-3 total_count"></span>
-                    </div>                    
-                </div>
-            </div>
-        </div> 
-    
-       </div>
        <div class="table-list">
        <div class="row">
            <div class="col-12">
 
             <?php if($id!=''){ ?>
                 <div class="menu-tab">
-                    <ul>
-                        <li >
-                            <a href="{{route('vendors.view',$id)}}">{{trans('lang.tab_basic')}}</a>
-                        </li>
-                        <li >
-                            <a href="{{route('vendors.items',$id)}}">{{trans('lang.tab_items')}}</a>
+                    <ul>                       
+                         <li>
+                            <a href="{{route('stores.view',$id)}}"><i class="ri-list-indefinite"></i>{{trans('lang.tab_basic')}}</a>
                         </li>
                         <li>
-                            <a href="{{route('vendors.orders',$id)}}">{{trans('lang.tab_orders')}}</a>
+                            <a href="{{route('vendors.items',$id)}}"><i class="ri-shopping-basket-fill"></i>{{trans('lang.tab_items')}}</a>
+                        </li>
+                        <li>
+                            <a href="{{route('vendors.orders',$id)}}"><i class="ri-shopping-bag-line"></i>{{trans('lang.tab_orders')}}</a>
                         </li>
                         <li class="active">
-                            <a href="{{route('vendors.reviews',$id)}}">{{trans('lang.tab_reviews')}}</a>
+                            <a href="{{route('vendors.reviews',$id)}}"><i class="ri-shield-star-fill"></i>{{trans('lang.tab_reviews')}}</a>
                         </li>
                         <li>
-                            <a href="{{route('vendors.coupons',$id)}}">{{trans('lang.tab_promos')}}</a>
+                            <a href="{{route('vendors.coupons',$id)}}"><i class="ri-discount-percent-fill"></i>{{trans('lang.tab_promos')}}</a>
                         <li>
-                            <a href="{{route('vendors.payout',$id)}}">{{trans('lang.tab_payouts')}}</a>
+                            <a href="{{route('vendors.payout',$id)}}"><i class="ri-bank-card-line"></i>{{trans('lang.tab_payouts')}}</a>
                         </li>
                         <li>
-                            <a href="{{route('payoutRequests.vendor.view',$id)}}">{{trans('lang.tab_payout_request')}}</a>
+                            <a href="{{route('payoutRequests.vendor.view',$id)}}"><i class="ri-refund-line"></i>{{trans('lang.tab_payout_request')}}</a>
                         </li>
                         <li>
-                            <a  class="wallet_transaction">{{trans('lang.wallet_transaction')}}</a>
+                            <a class="wallet_transaction"><i class="ri-wallet-line"></i>{{trans('lang.wallet_transaction')}}</a>
                         </li>
+
                         <li class="dine_in_future" style="display:none;">
-                            <a href="{{route('vendors.booktable',$id)}}">{{trans('lang.dine_in_future')}}</a>
+                            <a href="{{route('vendors.booktable',$id)}}"><i class="ri-restaurant-line"></i>{{trans('lang.dine_in_booking_history')}}</a>
                         </li>
                         <?php
                         $subscription =  route("subscription.subscriptionPlanHistory", ":id");
                         $subscription =  str_replace(":id", "storeID=" . $id, $subscription);
                         ?>
                         <li>
-                            <a href="{{ $subscription }}">{{trans('lang.subscription_history')}}</a>
+                            <a href="{{ $subscription }}"><i class="ri-chat-history-fill"></i>{{trans('lang.subscription_history')}}</a>
                         </li>
+                        <li>
+                            <a href="{{ route('restaurants.advertisements', $id) }}"><i class="mdi mdi-newspaper"></i>{{ trans('lang.advertisement_plural') }}</a>
+                        </li>
+                         @php
+                                    $sectionType = $_COOKIE['service_type'] ?? ''; 
+                                    
+                                @endphp
+                                <?php if($sectionType == 'ecommerce-service'){ ?>
+                               
+                                <?php }else{ ?>
+                                <li class="">
+                                    <a href="{{ route('restaurants.deliveryman', $id) }}"><i class="ri-riding-fill"></i>{{ trans('lang.deliveryman') }}</a>
+                                </li>
+                                    <?php }?>
                     </ul>
                 </div>
             <?php } ?>
@@ -184,6 +190,9 @@
                 }
 
                 html=buildHTML(snapshots);
+                    $(function () {
+                                    $('[data-toggle="tooltip"]').tooltip();
+                                });
 
                 jQuery("#data-table_processing").hide();
 
@@ -212,13 +221,7 @@
 
                     ],
 
-                    "language": {
-
-                        "zeroRecords": "{{trans("lang.no_record_found")}}",
-
-                        "emptyTable": "{{trans("lang.no_record_found")}}"
-
-                    },
+                   "language": datatableLang,
 
                     responsive: true,
 
@@ -245,7 +248,9 @@
             }
 
             html=buildHTML(snapshots);
-
+            $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
             jQuery("#data-table_processing").hide();
 
                 if(html!=''){
@@ -274,13 +279,7 @@
 
                     ],
 
-                    "language": {
-
-                        "zeroRecords": "{{trans("lang.no_record_found")}}",
-
-                        "emptyTable": "{{trans("lang.no_record_found")}}"
-
-                    },
+                   "language": datatableLang,
 
                     responsive: true,
 
@@ -297,32 +296,40 @@
 
 
 
-function getStoreNameFunction(vendorId){
+async function getStoreNameFunction(vendorId){
 
     var vendorName = '';
 
-        database.collection('vendors').where('id', '==', vendorId).get().then(function (snapshots) {
+        await database.collection('vendors').where('id', '==', vendorId).get().then(async function (snapshots) {
 
-        var vendorData = snapshots.docs[0].data();
+            var vendorData = snapshots.docs[0].data();
 
-        vendorName = vendorData.title;
+            vendorName = vendorData.title;
 
-        $(".storeTitle").text(' - '+vendorName);
-
-
-
-        if(vendorData.dine_in_active==true){
-
-            $(".dine_in_future").show();
-
-        }
-        var wallet_route = "{{route('users.walletstransaction','id')}}";
-
-        $(".wallet_transaction").attr("href", wallet_route.replace('id', 'storeID='+vendorData.author));
+            $(".page-title").text(' - '+vendorName);
 
 
 
-    });
+            if(vendorData.dine_in_active==true){
+
+                $(".dine_in_future").show();
+
+            }
+            var wallet_route = "{{route('users.walletstransaction','id')}}";
+
+            $(".wallet_transaction").attr("href", wallet_route.replace('id', 'storeID='+vendorData.author));
+
+            if (vendorData.section_id) {
+                let sectionSnap = await database.collection('sections').doc(vendorData.section_id).get();
+                if (sectionSnap.exists) {
+                    let sectionData = sectionSnap.data();
+                    if (sectionData.dine_in_active === true) {
+                        $(".dine_in_future").show();
+                    }
+                }
+            }
+
+        });
 
     return vendorName;
 
@@ -382,7 +389,7 @@ function getStoreNameFunction(vendorId){
 
 
 
-            var route_vendors =  '{{route("vendors.view",":id")}}';
+            var route_vendors =  '{{route("stores.view",":id")}}';
 
             route_vendors = route_vendors.replace(':id', val.VendorId);
 
@@ -430,7 +437,7 @@ function getStoreNameFunction(vendorId){
 
 
 
-            html=html+'<td class="action-btn"><a href="'+route1+'"><i class="fa fa-edit"></i></a><a id="'+val.Id+'" name="item-review-delete" class="do_not_delete" href="javascript:void(0)"><i class="fa fa-trash"></i></a></td>';
+            html=html+'<td class="action-btn"><a href="'+route1+'" data-toggle="tooltip" title="{{trans('lang.edit')}}"><i class="mdi mdi-lead-pencil"></i></a><a id="'+val.Id+'" name="item-review-delete" class="do_not_delete" href="javascript:void(0)" data-toggle="tooltip" title="{{trans('lang.delete')}}"><i class="mdi mdi-delete"></i></a></td>';
 
 
 
@@ -553,6 +560,9 @@ function next(){
             html='';
 
             html=buildHTML(snapshots);
+             $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
 
             jQuery("#data-table_processing").hide();
 

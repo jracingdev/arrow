@@ -4,16 +4,20 @@
 
 <div class="page-wrapper">
     <div class="row page-titles">
-        <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">{{trans('lang.item_plural')}}</h3>
+         <div class="col-md-5 align-self-center">
+            <div class="d-flex top-title-section justify-content-between">
+                <div class="d-flex top-title-left align-self-center">
+                    <span class="icon mr-3"><img src="{{ asset('images/item_image.png') }}"></span>
+                    <h3 class="mb-0 page-title">{{trans('lang.item_plural')}}</h3>
+                    <span class="counter ml-3 total_count"></span>
+                </div>
+            </div>
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.item_table')}}</li>
             </ol>
-        </div>
-        <div>
         </div>
     </div>
     <div class="container-fluid">
@@ -23,31 +27,21 @@
             <div class="col-12">
                 <div class="d-flex top-title-section pb-4 justify-content-between">
                     <div class="d-flex top-title-left align-self-center">
-                        <span class="icon mr-3"><img src="{{ asset('images/item_image.png') }}"></span>
-                        <h3 class="mb-0">{{trans('lang.item_plural')}}</h3>
-                        <span class="counter ml-3 total_count"></span>
                     </div>  
-                    
                     <div class="d-flex top-title-right align-self-center">
-                            <div class="select-box pl-3"> 
-                                <select class="form-control item_type_selector"> 
-                                    <option value=""  selected>{{trans("lang.type")}}</option>
-                                    <option value="veg">{{trans("lang.veg")}}</option>
-                                    <option value="non-veg">{{trans("lang.non_veg")}}</option>
-                                </select>
-                            </div>
-                            <div class="select-box pl-3">
-                                <select class="form-control category_selector">
-                                    <option value=""  selected>{{trans("lang.category_plural")}}</option>
-                                </select>
-                            </div>
-                            <div class="select-box pl-3"> 
-                                <select class="form-control filteredRecords allModules" id="section_id" onchange="clickLink(this.value)">
-                                <option value="">{{trans('lang.select')}} {{trans('lang.section_plural')}}
-                                </select>
-                                <p style="color: red;font-size: 13px;">  {{trans('lang.rental_parcel_cab_service_are_not')}}</p>
-                            </div>                        
-                    </div>   
+                        <div class="select-box pl-3 item_type_selector_div" style="display:none;"> 
+                            <select class="form-control item_type_selector"> 
+                                <option value=""  selected>{{trans("lang.type")}}</option>
+                                <option value="veg">{{trans("lang.veg")}}</option>
+                                <option value="non-veg">{{trans("lang.non_veg")}}</option>
+                            </select>
+                        </div>
+                        <div class="select-box pl-3">
+                            <select class="form-control category_selector">
+                                <option value=""  selected>{{trans("lang.category_plural")}}</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div> 
@@ -60,39 +54,53 @@
                 <div class="menu-tab">
                     <ul>
                         <li>
-                            <a href="{{route('vendors.view',$id)}}">{{trans('lang.tab_basic')}}</a>
+                            <a href="{{route('stores.view',$id)}}"><i class="ri-list-indefinite"></i>{{trans('lang.tab_basic')}}</a>
                         </li>
                         <li class="active">
-                            <a href="{{route('vendors.items',$id)}}">{{trans('lang.tab_items')}}</a>
+                            <a href="{{route('vendors.items',$id)}}"><i class="ri-shopping-basket-fill"></i>{{trans('lang.tab_items')}}</a>
                         </li>
                         <li>
-                            <a href="{{route('vendors.orders',$id)}}">{{trans('lang.tab_orders')}}</a>
+                            <a href="{{route('vendors.orders',$id)}}"><i class="ri-shopping-bag-line"></i>{{trans('lang.tab_orders')}}</a>
                         </li>
                         <li>
-                            <a href="{{route('vendors.reviews',$id)}}">{{trans('lang.tab_reviews')}}</a>
+                            <a href="{{route('vendors.reviews',$id)}}"><i class="ri-shield-star-fill"></i>{{trans('lang.tab_reviews')}}</a>
                         </li>
                         <li>
-                            <a href="{{route('vendors.coupons',$id)}}">{{trans('lang.tab_promos')}}</a>
+                            <a href="{{route('vendors.coupons',$id)}}"><i class="ri-discount-percent-fill"></i>{{trans('lang.tab_promos')}}</a>
                         <li>
-                            <a href="{{route('vendors.payout',$id)}}">{{trans('lang.tab_payouts')}}</a>
+                            <a href="{{route('vendors.payout',$id)}}"><i class="ri-bank-card-line"></i>{{trans('lang.tab_payouts')}}</a>
                         </li>
                         <li>
-                            <a href="{{route('payoutRequests.vendor.view',$id)}}">{{trans('lang.tab_payout_request')}}</a>
+                            <a href="{{route('payoutRequests.vendor.view',$id)}}"><i class="ri-refund-line"></i>{{trans('lang.tab_payout_request')}}</a>
                         </li>
                         <li>
-                            <a class="wallet_transaction">{{trans('lang.wallet_transaction')}}</a>
+                            <a class="wallet_transaction"><i class="ri-wallet-line"></i>{{trans('lang.wallet_transaction')}}</a>
                         </li>
 
                         <li class="dine_in_future" style="display:none;">
-                            <a href="{{route('vendors.booktable',$id)}}">{{trans('lang.dine_in_future')}}</a>
+                            <a href="{{route('vendors.booktable',$id)}}"><i class="ri-restaurant-line"></i>{{trans('lang.dine_in_booking_history')}}</a>
                         </li>
                         <?php
                         $subscription =  route("subscription.subscriptionPlanHistory", ":id");
                         $subscription =  str_replace(":id", "storeID=" . $id, $subscription);
                         ?>
                         <li>
-                            <a href="{{ $subscription }}">{{trans('lang.subscription_history')}}</a>
+                            <a href="{{ $subscription }}"><i class="ri-chat-history-fill"></i>{{trans('lang.subscription_history')}}</a>
                         </li>
+                        <li>
+                            <a href="{{ route('restaurants.advertisements', $id) }}"><i class="mdi mdi-newspaper"></i>{{ trans('lang.advertisement_plural') }}</a>
+                        </li>
+                         @php
+                                    $sectionType = $_COOKIE['service_type'] ?? ''; 
+                                    
+                                @endphp
+                                <?php if($sectionType == 'ecommerce-service'){ ?>
+                               
+                                <?php }else{ ?>
+                                <li class="">
+                                    <a href="{{ route('restaurants.deliveryman', $id) }}"><i class="ri-riding-fill"></i>{{ trans('lang.deliveryman') }}</a>
+                                </li>
+                                    <?php }?>
                     </ul>
                 </div>
             <?php } ?>
@@ -131,12 +139,12 @@
                                     <?php } ?>                                    
                                     <th>{{trans('lang.item_info')}}</th>
                                     <th>{{trans('lang.item_price')}}</th>
-                                    <th>{{trans('lang.section')}}</th>
+                                   
                                     <?php if ($id == '') { ?>
                                         <th>{{trans('lang.item_vendor_id')}}</th>
                                     <?php } ?>
                                     <th>{{trans('lang.item_category_id')}}</th>
-                                    <th>{{trans('lang.brand')}}</th>
+                                   
                                     <th>{{trans('lang.item_publish')}}</th>
                                     <th>{{trans('lang.actions')}}</th>
                                 </tr>
@@ -160,13 +168,14 @@
 
 <script type="text/javascript">
 
+    var section_id = getCookie('section_id') || '';
     var user_permissions = '<?php echo @session('user_permissions') ?>';
-    user_permissions = JSON.parse(user_permissions);
+    user_permissions = Object.values(JSON.parse(user_permissions));
     var checkDeletePermission = false;
     if ($.inArray('items.delete', user_permissions) >= 0) {
         checkDeletePermission = true;
     }
-
+    
     const urlParams = new URLSearchParams(location.search);
     for (const [key, value] of urlParams) {
         if (key == 'brandID') {
@@ -185,57 +194,52 @@
     var currentCurrency = '';
     var currencyAtRight = false;
     var decimal_degits = 0;
-    var ref_sections = database.collection('sections');
+    var ref_sections = database.collection('sections').where('isActive', '==', true).orderBy('order');
     var vendorID = "{{$id}}";
+
+    let globalTaxScope = null;
+    (async function() {
+            let globalTaxSnapshot = await database.collection('settings').doc('globalSettings').get();
+            let globalTax = globalTaxSnapshot.data();
+            globalTaxScope = globalTax.taxScope;
+        })();
+
     <?php if ($id != '') { ?>
+
         $('.sectionDiv').hide();
+        getStoreNameFunction(vendorID);
+        var ref = database.collection('vendor_products').where('vendorID', '==', vendorID);
+    
+    <?php } else { ?>            
 
-        const getStoreName = getStoreNameFunction('<?php echo $id; ?>');
-        var ref = database.collection('vendor_products').where('vendorID', '==', '<?php echo $id; ?>');
-        <?php } else { ?>
-            var section_id = getCookie('section_id');
-            $('.sectionDiv').show();
-            if (brandID != '' && brandID != undefined) {
-                if (section_id != '') {
-                    var ref = database.collection('vendor_products').where('brandID', '==', brandID).where('section_id', '==', section_id);
-                } else {
-                    var ref = database.collection('vendor_products').where('brandID', '==', brandID);
-                }
+        $('.sectionDiv').show();
+        
+        if (brandID != '' && brandID != undefined) {
+            
+            var ref = database.collection('vendor_products').where('brandID', '==', brandID).where('section_id', '==', section_id);
 
-            } else if (categoryID != '' && categoryID != undefined) {
-                if (section_id != '') {
-                    var ref = database.collection('vendor_products').where('categoryID', '==', categoryID).where('section_id', '==', section_id);
-                } else {
-                    var ref = database.collection('vendor_products').where('categoryID', '==', categoryID);
-                }
+        } else if (categoryID != '' && categoryID != undefined) {
+            
+            var ref = database.collection('vendor_products').where('categoryID', '==', categoryID).where('section_id', '==', section_id);
 
-            } else {
-                if (section_id != '') {
-                    var ref = database.collection('vendor_products').where('section_id', '==', section_id);
-                } else {
-                    var ref = database.collection('vendor_products');
-                }
-            }
-        <?php } ?>
+        } else {
+            
+            var ref = database.collection('vendor_products').where('section_id', '==', section_id);
+        }
+
+    <?php } ?>
 
     async function getStoreNameFunction(vendorId) {
         var vendorName = '';
         await database.collection('vendors').where('id', '==', vendorId).get().then(async function (snapshots) {
-
             if (snapshots.docs.length > 0) {
-
                 var vendorData = snapshots.docs[0].data();
                 vendorName = vendorData.title;
-                $('.itemTitle').html("{{trans('lang.item_plural')}} - " + vendorName);
-                if (vendorData.dine_in_active == true) {
-                    $(".dine_in_future").show();
-
-                }
+                $('.page-title').html("{{trans('lang.item_plural')}} - " + vendorName);
+               
                 var wallet_route = "{{route('users.walletstransaction','id')}}";
                 $(".wallet_transaction").attr("href", wallet_route.replace('id', 'storeID=' + vendorData.author));
-
             }
-
         });
         return vendorName;
     }
@@ -259,7 +263,7 @@
 
     })
 
-    database.collection('vendor_categories').get().then(async function(snapshots) {
+    database.collection('vendor_categories').where('section_id','==',section_id).get().then(async function(snapshots) {
         snapshots.docs.forEach((listval) => {
             var data=listval.data();
             $('.category_selector').append($("<option></option>")
@@ -284,8 +288,17 @@
         $('#itemTable').DataTable().ajax.reload(); 
     });
 
-    $(document).ready(function () {
+    $(document).ready(async function () {
 
+        let sectionSnap = await database.collection('sections').doc(section_id).get();
+        let sectionData = sectionSnap.data();
+        if (sectionData.dine_in_active === true) {
+            $(".dine_in_future").show();
+        }
+        if (sectionData.is_product_details === true) {
+            $(".item_type_selector_div").show();
+        }
+        
         $('.item_type_selector').select2({
             placeholder: "{{trans('lang.type')}}",  
             minimumResultsForSearch: Infinity,
@@ -390,14 +403,14 @@
             columns: [
                 { key: 'foodName', header: "{{trans('lang.item_info')}}" },
                 { key: 'finalPrice', header: "{{trans('lang.item_price')}}" },                            
-                { key: 'section', header: "{{trans('lang.section')}}" }, 
+              
                  
                 <?php if ($id == '') { ?>
                     { key: 'store', header: "{{trans('lang.item_vendor_id')}}" }, 
                 <?php } ?>                   
                 
                 { key: 'category', header: "{{trans('lang.item_category_id')}}" }, 
-                { key: 'brand', header: "{{trans('lang.brand')}}" },
+               
                 { key: 'publish', header: "{{trans('lang.item_publish')}}" },
                
             ],
@@ -417,10 +430,10 @@
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
                 @if ($id != '')
-                    const orderableColumns = (checkDeletePermission) ? ['', 'foodName', 'finalPrice', 'section', 'category', 'brand', '', ''] : ['foodName', 'finalPrice', 'section', 'category', 'brand', '', '']; // Ensure this matches the actual column names
+                    const orderableColumns = (checkDeletePermission) ? ['', 'foodName', 'finalPrice', 'category', '', ''] : ['foodName', 'finalPrice', 'category', '', '']; // Ensure this matches the actual column names
 
                 @else
-                    const orderableColumns = (checkDeletePermission) ? [ '', 'foodName', 'finalPrice', 'section', 'store', 'category', 'brand', '', ''] : [ 'foodName', 'finalPrice', 'section', 'store', 'category', 'brand', '', '']; // Ensure this matches the actual column names
+                    const orderableColumns = (checkDeletePermission) ? [ '', 'foodName', 'finalPrice', 'store', 'category', '', ''] : [ 'foodName', 'finalPrice', 'store', 'category', '', '']; // Ensure this matches the actual column names
                 @endif
 
                 const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
@@ -596,7 +609,9 @@
                         var getData = await buildHTML(childData);
                         records.push(getData);
                     }));
-
+                    $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
                     $('#data-table_processing').hide(); // Hide loader
 
                     callback({
@@ -632,10 +647,8 @@
 
             {
 
-                orderable: false,
-
-                targets: (vendorID == '') ? ((checkDeletePermission) ? [0, 7, 8] : [6, 7]) : ((checkDeletePermission) ? [0,6, 7] : [5, 6])
-
+               orderable: false,
+               targets: (vendorID == '') ? ((checkDeletePermission) ? [0, 5, 6] : [4, 5]) : ((checkDeletePermission) ? [0, 4, 5] : [3, 4])
             },
 
             {
@@ -645,39 +658,31 @@
 
 
             ],
-            "language": {
-
-            "zeroRecords": "{{trans("lang.no_record_found")}}",
-
-            "emptyTable": "{{trans("lang.no_record_found")}}",
-
-            "processing": "" // Remove default loader
-
-            },
+            "language": datatableLang,
             dom: 'lfrtipB',
             buttons: [
                 {
                     extend: 'collection',
-                    text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                    text: '<i class="mdi mdi-cloud-download"></i> {{trans("lang.export_as")}}',
                     className: 'btn btn-info',
                     buttons: [
                         {
                             extend: 'excelHtml5',
-                            text: 'Export Excel',
+                            text: '{{trans("lang.export_excel")}}',
                             action: function (e, dt, button, config) {
                                 exportData(dt, 'excel',fieldConfig);
                             }
                         },
                         {
                             extend: 'pdfHtml5',
-                            text: 'Export PDF',
+                            text: '{{trans("lang.export_pdf")}}',
                             action: function (e, dt, button, config) {
                                 exportData(dt, 'pdf',fieldConfig);
                             }
                         },   
                         {
                             extend: 'csvHtml5',
-                            text: 'Export CSV',
+                            text: '{{trans("lang.export_csv")}}',
                             action: function (e, dt, button, config) {
                                 exportData(dt, 'csv',fieldConfig);
                             }
@@ -754,6 +759,25 @@ async function buildHTML(val) {
 
     route1 = route1.replace(':id', id);
 
+    const tax = val.taxSetting || [];
+
+            let tax_titles = '';            
+            if (globalTaxScope === "product" && tax.length > 0) {
+                const taxDisplay = tax
+                    .map(t => {
+                        const value = t.type === 'percentage'
+                            ? `${t.tax}%`
+                            : currencyAtRight
+                                ? `${t.tax} ${currentCurrency}`
+                                : `${currentCurrency} ${t.tax}`;
+
+                        return `${t.title}(${value})`;
+                    })
+                    .join(', ');
+
+                tax_titles = `<p class="d-block text-muted">Taxes: ${taxDisplay}</p>`;
+            }
+
     <?php if ($id != '') { ?>
         route1 = route1 + '?eid={{$id}}';
 
@@ -761,7 +785,7 @@ async function buildHTML(val) {
 
 
 
-    var vendorroute = '{{route("vendors.view",":id")}}';
+    var vendorroute = '{{route("stores.view",":id")}}';
 
     vendorroute = vendorroute.replace(':id', val.vendorID);
 
@@ -771,14 +795,43 @@ async function buildHTML(val) {
     }
 
     if (val.photo != '') {
-        html.push('<img class="rounded" style="width:50px" src="' + val.photo + '" alt="image" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'"> ' + ' <a href="' + route1 + '" class="redirecttopage left_space"> ' + val.name + '</a>');
+        html.push('<img class="rounded" style="width:50px" src="' + val.photo + '" alt="image" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'"> ' + ' <a href="' + route1 + '" class="redirecttopage left_space"> ' + val.name + tax_titles + '</a>');
 
     } else {
-        html.push('<img class="rounded" style="width:50px" src="' + placeholderImage + '" alt="image"> ' + ' <a href="' + route1 + '" class="redirecttopage left_space">' + val.name + '</a>');
+        html.push('<img class="rounded" style="width:50px" src="' + placeholderImage + '" alt="image"> ' + ' <a href="' + route1 + '" class="redirecttopage left_space">' + val.name + tax_titles + '</a>');
 
     }
 
-    if (val.hasOwnProperty('disPrice') && val.disPrice != '' && val.disPrice != '0') {
+    if (val.item_attribute && val.item_attribute.variants && val.item_attribute.variants.length > 0) {
+
+    let originalVariantPrices = val.item_attribute.variants
+        .map(v => parseFloat(v.variant_price))
+        .filter(price => !isNaN(price) && price > 0);
+
+    if (originalVariantPrices.length > 0) {
+
+        const displayMin = Math.min(...originalVariantPrices);
+        const displayMax = Math.max(...originalVariantPrices);
+
+        let minPriceFormatted = '';
+        let maxPriceFormatted = '';
+
+        if (currencyAtRight) {
+            minPriceFormatted = parseFloat(displayMin).toFixed(decimal_degits) + '' + currentCurrency;
+            maxPriceFormatted = parseFloat(displayMax).toFixed(decimal_degits) + '' + currentCurrency;
+        } else {
+            minPriceFormatted = currentCurrency + '' + parseFloat(displayMin).toFixed(decimal_degits);
+            maxPriceFormatted = currentCurrency + '' + parseFloat(displayMax).toFixed(decimal_degits);
+        }
+
+        if (displayMin === displayMax) {
+            html.push(minPriceFormatted);
+        } else {
+            html.push(minPriceFormatted + ' - ' + maxPriceFormatted);
+        }
+        }
+    }
+    else if (val.hasOwnProperty('disPrice') && val.disPrice != '' && val.disPrice != '0') {
 
         if (currencyAtRight) {
 
@@ -805,16 +858,6 @@ async function buildHTML(val) {
     }
 
 
-    if (val.section_id != undefined) {
-
-        html.push(val.section);
-
-
-    } else {
-
-        html.push('');
-
-    }
 
     <?php if ($id == '') { ?>
 
@@ -847,35 +890,6 @@ async function buildHTML(val) {
 
 
 
-    var brandroute = "Javascript:void(0)";
-
-    if (val.hasOwnProperty('brandID') && val.brandID != '' && val.brandID != null) {
-
-        brandroute = '{{route("brands.edit",":id")}}';
-
-        brandroute = brandroute.replace(':id', val.brandID);
-
-        var brand = val.brand;
-
-        if (val.brand == '') {
-
-            brandroute = "Javascript:void(0)";
-
-            brand = '{{trans("lang.unknown")}}';
-
-        }
-
-    } else {
-
-        var brand = '';
-
-    }
-
-
-
-    html.push('<a href="' + brandroute + '">' + brand + '</a>');
-
-
 
     if (val.publish) {
 
@@ -889,11 +903,11 @@ async function buildHTML(val) {
 
     var actionHtml = '';
 
-    actionHtml = actionHtml + '<span class="action-btn"><a href="' + route1 + '" class="link-td"><i class="mdi mdi-lead-pencil"></i></a>';
+    actionHtml = actionHtml + '<span class="action-btn"><a href="' + route1 + '" class="link-td" data-toggle="tooltip" title="{{trans("lang.edit")}}"><i class="mdi mdi-lead-pencil"></i></a>';
 
     if (checkDeletePermission) {
 
-        actionHtml = actionHtml + '<a id="' + val.id + '" name="item-delete" href="javascript:void(0)" class="delete-btn"><i class="mdi mdi-delete"></i></a>';
+        actionHtml = actionHtml + '<a id="' + val.id + '" name="item-delete" href="javascript:void(0)" class="delete-btn" data-toggle="tooltip" title="{{trans("lang.delete")}}"><i class="mdi mdi-delete"></i></a>';
 
     }
 

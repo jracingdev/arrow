@@ -42,8 +42,8 @@ class PayExtraChargeController extends Controller
                 $razorpayKey = $ondemand_cart['cart_order']['razorpayKey'];
                 $authorName = $ondemand_cart['cart_order']['authorName'];
                 $total_pay = $ondemand_cart['cart_order']['total_pay'];
-                $amount = 0;
-                return view('providersService.extra_charge.razorpay', ['is_checkout' => 1, 'cart' => $ondemand_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'razorpaySecret' => $razorpaySecret, 'razorpayKey' => $razorpayKey, 'cart_order' => $ondemand_cart['cart_order']]);
+                $formatted_price = $ondemand_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $ondemand_cart['cart_order']['currencyData']['decimal_degits']);
+                return view('providersService.extra_charge.razorpay', ['is_checkout' => 1, 'cart' => $ondemand_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'razorpaySecret' => $razorpaySecret, 'razorpayKey' => $razorpayKey, 'cart_order' => $ondemand_cart['cart_order'], 'formatted_price' => $formatted_price]);
             } else if ($ondemand_cart['cart_order']['payment_method'] == 'payfast') {
                 $payfast_merchant_key = $ondemand_cart['cart_order']['payfast_merchant_key'];
                 $payfast_merchant_id = $ondemand_cart['cart_order']['payfast_merchant_id'];
@@ -53,20 +53,46 @@ class PayExtraChargeController extends Controller
                 $payfast_cancel_url = route('extra-pay');
                 $authorName = $ondemand_cart['cart_order']['authorName'];
                 $total_pay = $ondemand_cart['cart_order']['total_pay'];
-                $amount = 0;
+                $formatted_price = $ondemand_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $ondemand_cart['cart_order']['currencyData']['decimal_degits']);
                 $token = uniqid();
                 Session::put('payfast_payment_token', $token);
                 Session::save();
+                
                 $payfast_return_url = $payfast_return_url . '?token=' . $token;
-                return view('providersService.extra_charge.payfast', ['is_checkout' => 1, 'cart' => $ondemand_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'payfast_merchant_key' => $payfast_merchant_key, 'payfast_merchant_id' => $payfast_merchant_id, 'payfast_isSandbox' => $payfast_isSandbox, 'payfast_return_url' => $payfast_return_url, 'payfast_notify_url' => $payfast_notify_url, 'payfast_cancel_url' => $payfast_cancel_url, 'cart_order' => $ondemand_cart['cart_order']]);
+                $amount = number_format($total_pay, 2, '.', '');
+                $data = [
+                    'merchant_id' => $payfast_merchant_id,
+                    'merchant_key' => $payfast_merchant_key,
+                    'return_url' => $payfast_return_url,
+                    'cancel_url' => $payfast_cancel_url,
+                    'notify_url' => $payfast_notify_url,
+                    'name_first' => $authorName,
+                    'm_payment_id' => $token,
+                    'amount' => $amount,
+                    'item_name' => 'Test',
+                ];
+                $signature = $this->generateSignature($data);
+                $data['signature'] = $signature;
+                $pfHost = $payfast_isSandbox == 'true' ? 'sandbox.payfast.co.za' : 'www.payfast.co.za';
+                return view('providersService.payfast', [
+                    'amount' => $amount,
+                    'pfHost' => $pfHost,
+                    'data' => $data,
+                    'payfast_merchant_key' => $payfast_merchant_key,
+                    'payfast_merchant_id' => $payfast_merchant_id,
+                    'payfast_return_url' => $payfast_return_url,
+                    'payfast_notify_url' => $payfast_notify_url,
+                    'payfast_cancel_url' => $payfast_cancel_url,
+                    'formatted_price' => $formatted_price,
+                ]);
+
             } else if ($ondemand_cart['cart_order']['payment_method'] == 'paystack') {
                 $paystack_public_key = $ondemand_cart['cart_order']['paystack_public_key'];
                 $paystack_secret_key = $ondemand_cart['cart_order']['paystack_secret_key'];
                 $paystack_isSandbox = $ondemand_cart['cart_order']['paystack_isSandbox'];
                 $authorName = $ondemand_cart['cart_order']['authorName'];
                 $total_pay = $ondemand_cart['cart_order']['total_pay'];
-                $amount = 0;
-               
+                
                 \Paystack\Paystack::init($paystack_secret_key);
                 $payment = \Paystack\Transaction::initialize([
                     'email' => $email,
@@ -97,12 +123,13 @@ class PayExtraChargeController extends Controller
                 $flutterWave_encryption_key = $ondemand_cart['cart_order']['flutterWave_encryption_key'];
                 $authorName = $ondemand_cart['cart_order']['authorName'];
                 $total_pay = $ondemand_cart['cart_order']['total_pay'];
+                $formatted_price = $ondemand_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $ondemand_cart['cart_order']['currencyData']['decimal_degits']);
                 Session::put('flutterwave_pay', 1);
                 Session::save();
                 $token = uniqid();
                 Session::put('flutterwave_pay_tx_ref', $token);
                 Session::save();
-                return view('providersService.extra_charge.flutterwave', ['is_checkout' => 1, 'cart' => $ondemand_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'cart_order' => $ondemand_cart['cart_order'], 'currency' => $currency]);
+                return view('providersService.extra_charge.flutterwave', ['is_checkout' => 1, 'cart' => $ondemand_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'cart_order' => $ondemand_cart['cart_order'], 'currency' => $currency, 'formatted_price' => $formatted_price]);
             } else if ($ondemand_cart['cart_order']['payment_method'] == 'stripe') {
                 $stripeKey = $ondemand_cart['cart_order']['stripeKey'];
                 $stripeSecret = $ondemand_cart['cart_order']['stripeSecret'];
@@ -118,8 +145,8 @@ class PayExtraChargeController extends Controller
                 $isStripeSandboxEnabled = $ondemand_cart['cart_order']['isStripeSandboxEnabled'];
                 $authorName = $ondemand_cart['cart_order']['authorName'];
                 $total_pay = $ondemand_cart['cart_order']['total_pay'];
-                $amount = 0;
-                return view('providersService.extra_charge.stripe', ['is_checkout' => 1, 'cart' => $ondemand_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'stripeSecret' => $stripeSecret, 'stripeKey' => $stripeKey, 'cart_order' => $ondemand_cart['cart_order']]);
+                $formatted_price = $ondemand_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $ondemand_cart['cart_order']['currencyData']['decimal_degits']);
+                return view('providersService.extra_charge.stripe', ['is_checkout' => 1, 'cart' => $ondemand_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'stripeSecret' => $stripeSecret, 'stripeKey' => $stripeKey, 'cart_order' => $ondemand_cart['cart_order'], 'formatted_price' => $formatted_price]);
             } else if ($ondemand_cart['cart_order']['payment_method'] == 'paypal') {
                 $paypalKey = $ondemand_cart['cart_order']['paypalKey'];
                 $paypalSecret = $ondemand_cart['cart_order']['paypalSecret'];
@@ -135,8 +162,8 @@ class PayExtraChargeController extends Controller
                 $ispaypalSandboxEnabled = $ondemand_cart['cart_order']['ispaypalSandboxEnabled'];
                 $authorName = $ondemand_cart['cart_order']['authorName'];
                 $total_pay = $ondemand_cart['cart_order']['total_pay'];
-                $amount = 0;
-                return view('providersService.extra_charge.paypal', ['is_checkout' => 1, 'cart' => $ondemand_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'paypalSecret' => $paypalSecret, 'paypalKey' => $paypalKey, 'cart_order' => $ondemand_cart['cart_order']]);
+                $formatted_price = $ondemand_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $ondemand_cart['cart_order']['currencyData']['decimal_degits']);
+                return view('providersService.extra_charge.paypal', ['is_checkout' => 1, 'cart' => $ondemand_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'paypalSecret' => $paypalSecret, 'paypalKey' => $paypalKey, 'cart_order' => $ondemand_cart['cart_order'], 'formatted_price' => $formatted_price]);
             } else if ($ondemand_cart['cart_order']['payment_method'] == 'mercadopago') {
                 $currency = "USD";
                 if (@$ondemand_cart['cart_order']['currencyData']['code']) {
@@ -168,12 +195,21 @@ class PayExtraChargeController extends Controller
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json", "Authorization:Bearer " . $mercadopago_access_token));
                 $response = curl_exec($ch);
+                $response = curl_exec($ch);
+                if ($response === false) {
+                    $error = curl_error($ch);
+                    curl_close($ch);
+                    Session::put('payment_error', 'Unable to initialize payment, credentials are invalid or not authorized. Please check credentials, environment (sandbox/live), and account region.');
+                    return redirect()->route('pay-extra-charge');
+                }
+                curl_close($ch);
                 $mercadopago = json_decode($response);
+                if (!isset($mercadopago->id)) {
+                    Session::put('payment_error', 'Unable to initialize payment, credentials are invalid or not authorized. Please check credentials, environment (sandbox/live), and account region.');
+                    return redirect()->route('pay-extra-charge');
+                }
                 Session::put('mercadopago_preference_id', $mercadopago->id);
                 Session::save();
-                if ($mercadopago === null) {
-                    die(curl_error($ch));
-                }
                 $authorName = $ondemand_cart['cart_order']['authorName'];
                 $total_pay = $ondemand_cart['cart_order']['total_pay'];
                 if ($mercadopago_isSandbox == "true") {
@@ -332,11 +368,11 @@ class PayExtraChargeController extends Controller
         }
     }
 
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
+    public function generateSignature($data) {
+        $getString = http_build_query($data, '', '&', PHP_QUERY_RFC3986);
+        return md5( $getString );
+    } 
+    
     public function processStripePayment(Request $request)
     {
         $email = Auth::user()->email;
@@ -413,14 +449,15 @@ class PayExtraChargeController extends Controller
         $payment = $api->payment->fetch($input['razorpay_payment_id']);
         if (count($input) && !empty($input['razorpay_payment_id'])) {
             try {
-                $response = $api->payment->fetch($input['razorpay_payment_id'])->capture(array('amount' => $payment['amount']));
+                if($payment['status'] !== 'captured'){
+                    $response = $api->payment->fetch($input['razorpay_payment_id'])->capture(array('amount' => $payment['amount']));
+                }
                 $ondemand_cart['paymentStatus'] = true;
                 Session::put('ondemand_cart', $ondemand_cart);
                 Session::save();
             } catch (Exception $e) {
-                return $e->getMessage();
                 Session::put('error', $e->getMessage());
-                return redirect()->back();
+                return $e->getMessage();
             }
         }
         Session::put('success', 'Payment successful');
@@ -451,6 +488,12 @@ class PayExtraChargeController extends Controller
     }
     public function success()
     {
+        $requestUri = $_SERVER['REQUEST_URI'];
+        if (strpos($requestUri, 'status_code=') !== false || strpos($requestUri, '&midtrans_token') !== false) {
+            $fixedUri = preg_replace('/[?&]status_code=[^&]+/', '', $requestUri);
+            $fixedUri = preg_replace('/&/', '?', $fixedUri, 1);
+            return redirect($fixedUri);
+        }
         $ondemand_cart = Session::get('ondemand_cart', []);
         $order_json = array();
         $email = Auth::user()->email;

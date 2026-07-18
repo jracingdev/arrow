@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.service_plural')}}</li>
             </ol>
         </div>
@@ -25,30 +25,30 @@
 
                             <div class="menu-tab tabDiv">
                                 <ul>
-                                    <li><a href="{{route('providers.view', $id)}}">{{trans('lang.tab_basic')}}</a>
+                                    <li><a href="{{route('providers.view', $id)}}"><img src="{{ asset('images/provider.png') }}"> {{trans('lang.tab_basic')}}</a>
                                     </li>
                                     <li class="active"><a
-                                                href="{{route('ondemand.services.index', $id)}}">{{trans('lang.services')}}</a>
+                                                href="{{route('ondemand.services.index', $id)}}"><img src="{{ asset('images/service.png') }}"> {{trans('lang.services')}}</a>
                                     </li>
                                     <li>
-                                    <li><a href="{{route('ondemand.workers.index', $id)}}">{{trans('lang.workers')}}</a>
+                                    <li><a href="{{route('ondemand.workers.index', $id)}}"><img src="{{ asset('images/worker.png') }}"> {{trans('lang.workers')}}</a>
                                     </li>
                                     <li>
                                     <li>
-                                        <a href="{{route('ondemand.bookings.index',$id)}}">{{trans('lang.booking_plural')}}</a>
+                                        <a href="{{route('ondemand.bookings.index',$id)}}"><img src="{{ asset('images/booking.png') }}"> {{trans('lang.booking_plural')}}</a>
                                     </li>
                                     <li>
-                                    <li><a href="{{route('ondemand.coupons', $id)}}">{{trans('lang.coupon_plural')}}</a>
+                                    <li><a href="{{route('ondemand.coupons', $id)}}"><img src="{{ asset('images/coupon.png') }}"> {{trans('lang.coupon_plural')}}</a>
                                     </li>
                                     <li>
-                                        <a href="{{route('providerPayouts.payout', $id)}}">{{trans('lang.tab_payouts')}}</a>
+                                        <a href="{{route('providerPayouts.payout', $id)}}"><img src="{{ asset('images/payment.png') }}"> {{trans('lang.tab_payouts')}}</a>
                                     </li>
                                     <li>
-                                        <a href="{{route('payoutRequests.providers', $id)}}">{{trans('lang.tab_payout_request')}}</a>
+                                        <a href="{{route('payoutRequests.providers', $id)}}"><img src="{{ asset('images/payment.png') }}"> {{trans('lang.tab_payout_request')}}</a>
                                     </li>
                                     <li>
                                         <a href="{{route('users.walletstransaction',$id)}}"
-                                           class="wallet_transaction">{{trans('lang.wallet_transaction')}}</a>
+                                           class="wallet_transaction"><img src="{{ asset('images/wallet.png') }}"> {{trans('lang.wallet_transaction')}}</a>
                                     </li>
                                     <?php 
                     
@@ -56,7 +56,7 @@
                                     $subscription =  str_replace(":id", "providerID=" . $id, $subscription);
                                     ?>
                                     <li> 
-                                        <a href="{{ $subscription }}">{{trans('lang.subscription_history')}}</a>
+                                        <a href="{{ $subscription }}"><img src="{{ asset('images/subscription.png') }}"> {{trans('lang.subscription_history')}}</a>
                                     </li>
                                 </ul>
                             </div>
@@ -116,7 +116,7 @@
                             <table id="serviceTable" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">
                                 <thead>
                                 <tr>
-                                <?php if (in_array('ondemand.services.delete', json_decode(@session('user_permissions')))) { ?>
+                                <?php if (in_array('ondemand.services.delete', json_decode(@session('user_permissions'),true))) { ?>
                                         <th class="delete-all"><input type="checkbox" id="is_active"><label
                                                     class="col-3 control-label" for="is_active"
                                             ><a id="deleteAll" class="do_not_delete"
@@ -126,8 +126,9 @@
                                         <?php } ?>
                                         <th>{{trans('lang.name')}}</th>
                                         <th>{{trans('lang.ondemand_category')}}</th>
-                                        <th>{{trans('lang.section')}}</th>
+                                       @unless($id != '')
                                         <th>{{trans('lang.provider')}}</th>
+                                        @endunless
                                         <th>{{trans('lang.price')}}</th>
                                         <th>{{trans('lang.publish')}}</th>
                                         <th>{{trans('lang.actions')}}</th>
@@ -150,10 +151,11 @@
 
 @section('scripts')
     <script type="text/javascript">
-        var id = "{{$id}}";
 
+        var section_id = getCookie('section_id') || '';
+        var id = "{{$id}}";
         var user_permissions = '<?php echo @session('user_permissions') ?>';
-        user_permissions = JSON.parse(user_permissions);
+        user_permissions = Object.values(JSON.parse(user_permissions));
         var checkDeletePermission = false;
         if ($.inArray('ondemand.services.delete', user_permissions) >= 0) {
             checkDeletePermission = true;
@@ -165,13 +167,13 @@
             var wallet_route = "{{route('users.walletstransaction','id')}}";
             $(".wallet_transaction").attr("href", wallet_route.replace('id', 'providerID=' + id));
             $('.tabDiv').show();
-            var ref = database.collection('providers_services').where('author', '==', id).orderBy('createdAt', 'desc');
+            var ref = database.collection('providers_services').where('sectionId', '==', section_id).where('author', '==', id).orderBy('createdAt', 'desc');
 
         } else {
             $('.tabDiv').show();
-            var ref = database.collection('providers_services').orderBy('createdAt', 'desc');
+            var ref = database.collection('providers_services').where('sectionId', '==', section_id).orderBy('createdAt', 'desc');
 
-        }
+        }       
 
         var currentCurrency = '';
         var currencyAtRight = false;
@@ -189,10 +191,10 @@
         });
 
         var ctegoryRef = database.collection('provider_categories');
-        var ref_sections = database.collection('sections');
+        var ref_sections = database.collection('sections').where('isActive', '==', true).orderBy('order');
         var refProvider = database.collection('users');
 
-        database.collection('provider_categories').get().then(async function(snapshots) {
+        database.collection('provider_categories').where('sectionId','==',section_id).get().then(async function(snapshots) {
             snapshots.docs.forEach((listval) => {
                 var data=listval.data();
                 $('.category_selector').append($("<option></option>")
@@ -267,7 +269,31 @@
                     const searchValue = data.search.value.toLowerCase();
                     const orderColumnIndex = data.order[0].column;
                     const orderDirection = data.order[0].dir;
-                    var orderableColumns = (checkDeletePermission) ? ['', 'title','categoryName','sectionName','providerName','finalPrice', '', ''] : ['', 'title','categoryName','sectionName','providerName','finalPrice', '', '']; // Ensure this matches the actual column names
+                    
+                    let orderableColumns = [];
+
+                    if (checkDeletePermission) {
+                        orderableColumns.push(''); 
+                    }
+
+                    // Name
+                    orderableColumns.push('title');
+
+                    // Category
+                    orderableColumns.push('categoryName');
+
+                    // Provider column only when id == ''
+                    if (id === '') {
+                        orderableColumns.push('providerName');
+                    }
+
+                    // Price
+                    orderableColumns.push('finalPrice');
+
+                    // Publish + Action (not orderable)
+                    orderableColumns.push('');
+                    orderableColumns.push('');
+
                     const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                     if (searchValue.length >= 3 || searchValue.length === 0) {
                         $('#data-table_processing').show();
@@ -364,7 +390,9 @@
                             var getData = await buildHTML(childData);
                             records.push(getData);
                         }));
-
+                        $(function () {
+                            $('[data-toggle="tooltip"]').tooltip();
+                        });
                         $('#data-table_processing').hide(); // Hide loader
                         callback({
                             draw: data.draw,
@@ -384,40 +412,59 @@
                         });
                     });
                 },
-                order: (checkDeletePermission) ? [[1, 'asc']] : [[0, 'asc']],
-                columnDefs: [
-                    
-                    { orderable: false, targets: (checkDeletePermission) ? [0, 6, 7] : [5, 6] },
-                ],
-                "language": {
-                    "zeroRecords": "{{trans("lang.no_record_found")}}",
-                    "emptyTable": "{{trans("lang.no_record_found")}}",
-                    "processing": "" // Remove default loader
-                },
+               
+                order: (function() {
+                    const show = (id === '');
+                    const titleColIndex = checkDeletePermission 
+                        ? (show ? 2 : 1)  
+                        : (show ? 1 : 0);  
+                    return [[titleColIndex, 'asc']];
+                })(),
+
+                columnDefs: (function() {
+                    const show = (id === '');
+                    let targets = [];
+
+                    if (checkDeletePermission) {
+                        targets.push(0); // Checkbox always non-sortable
+                    }
+
+                    const publishCol = checkDeletePermission 
+                        ? (show ? 5 : 4)   // Publish column index
+                        : (show ? 4 : 3);
+
+                    const actionsCol = publishCol + 1;
+
+                    targets.push(publishCol);  // Publish toggle
+                    targets.push(actionsCol);  // Actions
+
+                    return [{ orderable: false, targets: targets }];
+                })(),
+               "language": datatableLang,
                 dom: 'lfrtipB',
                 buttons: [
                         {
                             extend: 'collection',
-                            text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                            text: '<i class="mdi mdi-cloud-download"></i> {{trans('lang.export_as')}}',
                             className: 'btn btn-info',
                             buttons: [
                                 {
                                     extend: 'excelHtml5',
-                                    text: 'Export Excel',
+                                    text: '{{trans('lang.export_excel')}}',
                                     action: function (e, dt, button, config) {
                                         exportData(dt, 'excel',fieldConfig);
                                     }
                                 },
                                 {
                                     extend: 'pdfHtml5',
-                                    text: 'Export PDF',
+                                    text: '{{trans('lang.export_pdf')}}',
                                     action: function (e, dt, button, config) {
                                         exportData(dt, 'pdf',fieldConfig);
                                     }
                                 },   
                                 {
                                     extend: 'csvHtml5',
-                                    text: 'Export CSV',
+                                    text: '{{trans('lang.export_csv')}}',
                                     action: function (e, dt, button, config) {
                                         exportData(dt, 'csv',fieldConfig);
                                     }
@@ -454,7 +501,8 @@
                 }
             }, 300));
         });
-
+var id = "{{$id}}";
+var showProviderColumn = (id === '');
         async function buildHTML(val) {
 
             var html = [];
@@ -480,17 +528,25 @@
             html.push('<a href="' + route1 + '">' + val.title + '</a>');
 
             html.push('<a href="' + route2 + '">' + val.categoryName + '</a>');
-            html.push(val.sectionName);
+          
           
             if (val.hasOwnProperty("author")) {
                 var providerView = '{{route("providers.view",":id")}}';
                 providerView = providerView.replace(':id', val.author);
                 
-                if (val.providerName == "") {
-                    providerView = "javascript:void(0)";
-                    providerName = "{{trans('lang.unknown')}}"
-                }
-                html.push('<a href="' + providerView + '">' + val.providerName + '</a>');
+                // if (val.providerName == "") {
+                //     providerView = "javascript:void(0)";
+                //     providerName = "{{trans('lang.unknown')}}"
+                // }
+                // html.push('<a href="' + providerView + '">' + val.providerName + '</a>');
+                if (showProviderColumn) {
+        if (val.author && val.providerName) {
+            var provRoute = '{{ route("providers.view", ":id") }}'.replace(':id', val.author);
+            html.push('<td><a href="' + provRoute + '">' + val.providerName + '</a></td>');
+        } else {
+            html.push('<td>-</td>');
+        }
+    }
             } else {
                 html.push('<td></td>');
             }
@@ -533,9 +589,9 @@
             }
 
             var actionHtml = '';
-            actionHtml = actionHtml + '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
+            actionHtml = actionHtml + '<span class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" title="{{trans("lang.edit")}}"><i class="mdi mdi-lead-pencil"></i></a>';
             if (checkDeletePermission) {
-                actionHtml = actionHtml + '<a id="' + val.id + '" name="service-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
+                actionHtml = actionHtml + '<a id="' + val.id + '" name="service-delete" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" title="{{trans("lang.delete")}}"><i class="mdi mdi-delete"></i></a>';
             }
             actionHtml = actionHtml + '</span>';
             html.push(actionHtml);

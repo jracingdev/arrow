@@ -13,7 +13,7 @@
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">
-                    <a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a>
+                    <a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a>
                 </li>
                 <li class="breadcrumb-item active">
                     {{trans('lang.god_eye')}}
@@ -36,7 +36,7 @@
                         <div class="table-responsive ride-list">
 
                             <div class="form-group" id="search-box">
-                                <input type="text" name="search" id="search" class="form-control" style="width:90%" placeholder="Search Driver">
+                                <input type="text" name="search" id="search" class="form-control" style="width:90%" placeholder="{{trans('lang.search_driver')}}">
                             </div>
 
                             <div class="live-tracking-list">
@@ -52,7 +52,7 @@
                         <div id="map" style="height:450px"></div>
 
                         <div id="legend">
-                            <h3>Legend</h3>
+                            <h3>{{trans('lang.legend')}}</h3>
                         </div>
 
                     </div>
@@ -100,17 +100,18 @@
         var map_data = [];
         var base_url = '{!! asset('/images/') !!}';
         var mapType = 'ONLINE';
-        $(document).ready(function () {
-            var database = firebase.firestore();
-            database.collection('settings').doc('DriverNearBy').get().then(async function (snapshots) {
+        $(document).ready(async function () {
+            // InitializeGodsEyeMap();
+            await database.collection('settings').doc('DriverNearBy').get().then(async function (snapshots) {
                 var data = snapshots.data();
                 if (data && data.selectedMapType && data.selectedMapType == "osm") {
                     mapType = "OFFLINE"
+                    InitializeGodsEyeMap();
                 }
             });
             var orders = [];
             var orders_drivers = [];
-            database.collection('vendor_orders').where('status', '==', 'In Transit').get().then(async function (snapshots) {
+            await database.collection('vendor_orders').where('status', '==', 'In Transit').get().then(async function (snapshots) {
                 if (snapshots.docs.length > 0) {
                     snapshots.docs.forEach((doc) => {
                         var data = doc.data();
@@ -121,6 +122,7 @@
                         }
                     });
                 }
+                // fetchDrivers(orders_drivers, orders);
             });
 
             var drivers = [];
@@ -182,7 +184,16 @@
             var default_lng = getCookie('default_longitude');
             var legend = document.getElementById('legend');
             if (mapType == "OFFLINE" ){
+              
+                if (map && map.remove) {
+                    map.remove(); // properly remove the map instance and listeners
+                }
+                if (L.DomUtil.get('map') != null) {
+                    L.DomUtil.get('map')._leaflet_id = null; // reset internal Leaflet id
+                }
+
                 map = L.map('map').setView([default_lat, default_lng], 10);
+
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
                     attribution: '© OpenStreetMap'
@@ -209,20 +220,23 @@
                     icon: base_url + '/ontrip.png'
                 }
             };
-
+            
+            legend.innerHTML = "<h3>Legend</h3>";
             for (var key in fliter_icons) {
                 var type = fliter_icons[key];
                 var name = type.name;
                 var icon = type.icon;
+
                 var div = document.createElement('div');
-                div.innerHTML = '<img src="' + icon + '"> ' + name;
+                div.innerHTML = '<img src="' + icon + '" style="width:14px; margin-right:5px;"> ' + name;
                 legend.appendChild(div);
             }
+
             if (mapType == "OFFLINE" ){
                 var lmaplegend  = L.control({ position: 'bottomleft' });
                 lmaplegend.onAdd = function (map) {
                     var div = L.DomUtil.create('div', 'legend');
-                    div.innerHTML = "<h4>Map Legend</h4>";
+                    div.innerHTML = "<h4>{{trans('lang.map_legend')}}/h4>";
                     div.appendChild(legend);
                     return div;
                 };
@@ -252,9 +266,19 @@
 
                 let driver = await getDriverDetail(driverId);
                 if(driver!='' && driver != undefined){
-                    if (mapType == "OFFLINE" ){
-                        html += '<div class="live-tracking-box track-from" data-index="' + i + '" data-lat="' + driver.location.latitude + '" data-lng="' + driver.location.longitude + '">';
+                   
+                    if (driver && driver.location && 
+                        typeof driver.location.latitude !== 'undefined' && 
+                        typeof driver.location.longitude !== 'undefined') {
+
+                        if (mapType == "OFFLINE") {
+                            html += '<div class="live-tracking-box track-from" data-index="' + i + '" data-lat="' + driver.location.latitude + '" data-lng="' + driver.location.longitude + '">';
+                        }
+
+                    } else {
+                        continue; 
                     }
+
                     if (val.flag == "in_transit") {
                         if(val.hasOwnProperty('author')){
                             userId=val.author.id;
@@ -287,7 +311,11 @@
                                 html += '</div>';
                             }
                             html += '<span class="badge badge-danger">In Tranist</span>';
-                            html += '&nbsp;&nbsp;<a href="/orders/edit/' + val.id + '" class="badge badge-info" target="_blank">{{trans("lang.order_id")}} : ' + val.id.substring(0, 7) + '</a>';
+
+                            var orderEditUrl = "{{ route('orders.edit', ['id' => ':id']) }}";
+                                orderEditUrl = orderEditUrl.replace(':id', val.id.trim());
+                                
+                            html += '&nbsp;&nbsp;<a href="' + orderEditUrl + '" class="badge badge-info" target="_blank">{{trans("lang.order_id")}} : ' + val.id.substring(0, 7) + '</a>';
                             html += '</div>';
                             html += '</div>';
 
@@ -322,13 +350,11 @@
                         } else {
                             iconImg = base_url + '/car_on_trip.png';
                         }
-
+                        //let iconImg = val.flag === 'available' ? '/car_available.png' : '/car_on_trip.png';
                         var content = `
                         <div class="p-2">
                             <h6>{{trans('lang.driver_name')}} : ${driver.firstName + " " + driver.lastName ?? '-'} </h6>
-                            <h6>{{trans('lang.phone')}} : ${driver.phoneNumber ?? '-'} </h6>
-                            <h6>{{trans('lang.car_number')}} : ${driver.carNumber ?? '-'} </h6>
-                            <h6>{{trans('lang.car_name')}} : ${driver.carName ?? '-'} </h6>
+                            <h6>{{trans('lang.phone')}} : ${driver.phoneNumber ?? '-'} </h6>                           
                         </div>`;
                         if (mapType == "OFFLINE" ){
                             var customIcon = L.icon({

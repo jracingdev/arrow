@@ -116,4 +116,9 @@ class RideController extends Controller
         return response()->json($response);
     }
 
+    public function ownerRides($id = '')
+    {
+        return view("rides.owner_index")->with('id', $id);
+    }
+
 }

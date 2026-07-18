@@ -43,4 +43,7 @@ class FoodController extends Controller
 
       return view('items.create')->with('id',$id);
     }
+    public function items(){
+       return view('items.global')->with('id',Auth::id());
+    }
 }

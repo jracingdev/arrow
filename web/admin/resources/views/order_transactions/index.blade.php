@@ -15,7 +15,7 @@
 
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.order_transaction_table')}}</li>
             </ol>
         </div>
@@ -199,10 +199,7 @@
                     {orderable: false, targets: [0, 4, 6]},
                 ],
                 order: [5,"desc"],
-                "language": {
-                    "zeroRecords": "{{trans("lang.no_record_found")}}",
-                    "emptyTable": "{{trans("lang.no_record_found")}}"
-                },
+               "language": datatableLang,
                 responsive: true,
             });
             jQuery("#data-table_processing").hide();
@@ -288,7 +285,7 @@ async function getListData(val) {
 
             }
 
-            html = html + '<td>' + date + ' ' + time + '</td>';
+            html = html + '<td>' + date + '<br> ' + time + '</td>';
 
             const orderStatus = orderFunction(val.order_id);
             html = html + '<td class="order_' + val.order_id + '"></td>';

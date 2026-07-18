@@ -8,13 +8,9 @@ admin.initializeApp({
 });
 
 const delivery = require('./products/delivery')
-const parcel_delivery = require('./products/parcel_delivery')
 
 //Multivendor service function
 exports.deliveryDispatch = delivery.dispatch
-
-//Parcel service function
-exports.parcelDispatch = parcel_delivery.dispatch
 
 //Delete auth user function
 exports.deleteUser = functions.https.onCall(async (data, context) => {

@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.rental_vehicle')}}</li>
             </ol>
         </div>
@@ -84,11 +84,12 @@
 
     var append_list = '';
     var user_number = [];
-    var refData = database.collection('users').where('serviceType', '==', 'rental-service');
+     $section_id = getCookie('section_id');
+    var refData = database.collection('users').where('serviceType', '==', 'rental-service').where('sectionId','==',$section_id);
 
      var placeholderImage = '';
     var placeholder = database.collection('settings').doc('placeHolderImage');
-placeholder.get().then(async function (snapshotsimage) {
+    placeholder.get().then(async function (snapshotsimage) {
       var placeholderImageData = snapshotsimage.data();
       placeholderImage = placeholderImageData.image;
     })
@@ -122,7 +123,8 @@ placeholder.get().then(async function (snapshotsimage) {
                 }
 
                 try {
-                    const querySnapshot = await  database.collection('users').where('serviceType', '==', 'rental-service').get();
+                   
+                    const querySnapshot = await  database.collection('users').where('serviceType', '==', 'rental-service').where('sectionId','==',$section_id).get();
                     if (!querySnapshot || querySnapshot.empty) {
                         $('.total_count').text(0); 
                         $('#data-table_processing').hide();
@@ -174,7 +176,9 @@ placeholder.get().then(async function (snapshotsimage) {
                     const formattedRecords = await Promise.all(paginatedRecords.map(async (childData) => {
                         return await buildHTML(childData);
                     }));
-
+                    $(function () {
+                        $('[data-toggle="tooltip"]').tooltip();
+                    });
                     $('#data-table_processing').hide();
                     callback({
                         draw: data.draw,
@@ -198,11 +202,8 @@ placeholder.get().then(async function (snapshotsimage) {
             columnDefs: [
                 {orderable: false, targets: [2]},
             ],
-            "language": {
-                "zeroRecords": "{{trans('lang.no_record_found')}}",
-                "emptyTable": "{{trans('lang.no_record_found')}}",
-                "processing": "" // Remove default loader
-            },
+            "language": datatableLang,
+
         });
         function debounce(func, wait) {
             let timeout;
@@ -232,7 +233,7 @@ placeholder.get().then(async function (snapshotsimage) {
         var route1 = '{{route("rental_orders.edit",":id")}}';
         route1 = route1.replace(':id', id);
 
-        var route1 = '{{route("drivers.view",":id")}}';
+        var route1 = '{{route("drivers.edit",":id")}}';
         route1 = route1.replace(':id', val.id);
         var route2 = '{{route("drivers.vehicle",":id")}}';
         route2 = route2.replace(':id', val.id);
@@ -245,7 +246,7 @@ placeholder.get().then(async function (snapshotsimage) {
         }
        
         html.push('<td><a href="'+route1+'" class="redirecttopage">' + val.driverName + '</a></td>');
-        html.push('<span class="action-btn"><a href="' + route2 + '"><i class="mdi mdi-eye"></i></a><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a></span>');
+        html.push('<span class="action-btn"><a href="' + route2 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.view') }}"><i class="mdi mdi-eye"></i></a><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a></span>');
         return html;
 
     }

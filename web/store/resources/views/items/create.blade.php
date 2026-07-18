@@ -39,13 +39,31 @@
                             </div>
 
                             <div class="form-group row width-50">
-                                <label class="col-3 control-label">{{ trans('lang.item_name') }}</label>
-                                <div class="col-7">
-                                    <input type="text" class="form-control item_name" required>
-                                    <div class="form-text text-muted">
-                                        {{ trans('lang.item_name_help') }}
+                                 @if (isset($openai_settings) && data_get($openai_settings, 'status') == true)
+                                    <div class="col-12"> 
+                                        <label class="control-label">{{ trans('lang.item_name') }}</label>
+                                        <button type="button" class="btn bg-white text-primary generate_btn_wrapper opacity-1 pl-1 mb-2 auto_fill_title"
+                                            data-error="{{ trans('lang.ai_name_error') }}"
+                                            data-lang="{{ App::getLocale() }}"
+                                            data-route="{{ route('ai.title-auto-fill') }}">
+                                            <div class="btn-svg-wrapper">
+                                                <img width="18" height="18" class="" src="{{ asset('images/svg/blink-icon-orange.svg') }}" alt="">
+                                            </div>
+                                            <span class="ai-text-animation d-none" role="status">
+                                                {{ trans('lang.ai_just_asecond') }}
+                                            </span>
+                                            <span class="btn-text">{{ trans('lang.ai_generate') }}</span>
+                                        </button>
+                                        <div class="col-7 outline-wrapper">
+                                            <input type="text" class="form-control item_name" id="item_name" required>
+                                        </div>
                                     </div>
-                                </div>
+                                @else
+                                    <label class="control-label col-3">{{ trans('lang.item_name') }}</label>
+                                    <div class="col-7">
+                                        <input type="text" class="form-control item_name" id="item_name" required>
+                                    </div>
+                                @endif
                             </div>
 
                             <div class="form-group row width-50">
@@ -69,15 +87,33 @@
                             </div>
 
                             <div class="form-group row width-50">
+                                @if (isset($openai_settings) && data_get($openai_settings, 'status') == true)
                                 <label class="col-3 control-label">{{ trans('lang.item_category_id') }}</label>
-                                <div class="col-7">
-                                    <select id='item_category' class="form-control" required>
-                                        <option value="">{{ trans('lang.select_category') }}</option>
-                                    </select>
-                                    <div class="form-text text-muted">
-                                        {{ trans('lang.item_category_id_help') }}
+                                <div class="d-flex page-content">
+                                    <div class="col-7">
+                                        <select id='item_category' class="form-control" required>
+                                            <option value="">{{ trans('lang.select_category') }}</option>
+                                        </select>
+                                        <div class="form-text text-muted">
+                                            {{ trans('lang.item_category_id_help') }}
+                                        </div>
+                                    </div>
+                                    <div class="width-100 text-right">
+                                        <button type="button" class="btn bg-white text-primary generate_btn_wrapper opacity-1 pl-1 mb-2 variation_setup_auto_fill"
+                                            data-error="{{ trans('lang.ai_name_description_error') }}"
+                                            data-lang="{{ App::getLocale() }}"
+                                            data-route="{{ route('ai.variation-setup-auto-fill') }}">
+                                            <div class="btn-svg-wrapper">
+                                                <img width="18" height="18" class="" src="{{ asset('images/svg/blink-icon-orange.svg') }}" alt="">
+                                            </div>
+                                            <span class="ai-text-animation d-none" role="status">
+                                                {{ trans('lang.ai_just_asecond') }}
+                                            </span>
+                                            <span class="btn-text">{{ trans('lang.ai_generate') }}</span>
+                                        </button>
                                     </div>
                                 </div>
+                                @endif
                             </div>
 
                             <div class="form-check width-50" id="is_digital_div" style="display: none;">
@@ -145,11 +181,32 @@
                                 </div>
                             </div>
 
-                            <div class="form-group row width-100">
-                                <label class="col-3 control-label">{{ trans('lang.item_description') }}</label>
-                                <div class="col-7">
-                                    <textarea rows="8" class="form-control item_description" id="item_description"></textarea>
-                                </div>
+                            <div class="form-group row width-100 desciption-wrapper">
+                                @if (isset($openai_settings) && data_get($openai_settings, 'status') == true)
+                                    <div class="col-12"> 
+                                        <label class="control-label">{{ trans('lang.item_description') }}</label>
+                                        <button type="button" class="btn bg-white text-primary generate_btn_wrapper opacity-1 pl-1 mb-2 auto_fill_description"
+                                            data-error="{{ trans('lang.ai_description_error') }}"
+                                            data-lang="{{ App::getLocale() }}"
+                                            data-route="{{ route('ai.description-auto-fill') }}">
+                                            <div class="btn-svg-wrapper">
+                                                <img width="18" height="18" class="" src="{{ asset('images/svg/blink-icon-orange.svg') }}" alt="">
+                                            </div>
+                                            <span class="ai-text-animation d-none" role="status">
+                                                {{ trans('lang.ai_just_asecond') }}
+                                            </span>
+                                            <span class="btn-text">{{ trans('lang.ai_generate') }}</span>
+                                        </button>
+                                        <div class="col-7 outline-wrapper">
+                                            <textarea rows="8" class="form-control item_description" id="item_description"></textarea>
+                                        </div>
+                                    </div>
+                                @else
+                                    <label class="control-label col-3">{{ trans('lang.item_description') }}</label>
+                                    <div class="col-7">
+                                        <textarea rows="8" class="form-control item_description" id="item_description"></textarea>
+                                    </div>    
+                                @endif
                             </div>
                             <div class="form-check width-100">
                                 <input type="checkbox" class="item_publish" id="item_publish">
@@ -169,121 +226,180 @@
                             </div>
 
                         </fieldset>
+                        <fieldset class="product-taxes d-none">
+                            <legend>{{ trans('lang.tax_settings') }}</legend>
+                            <div class="form-group row">
+                                <label class="col-3 control-label">{{ trans('lang.select_taxes') }}</label>
+                                <div class="col-7">
+                                    <select id="taxes" class="form-control chosen-select" multiple="multiple"></select>
+                                </div>
+                            </div>
+                        </fieldset>
 
-                        <fieldset class="food_delivery_div d-none">
+                        <fieldset class="food_delivery_div ingredients-wrapper d-none">
 
                             <legend>{{ trans('lang.ingredients') }}</legend>
-
-                            <div class="form-group row width-50">
-                                <label class="col-3 control-label">{{ trans('lang.calories') }}</label>
-                                <div class="col-7">
-                                    <input type="number" class="form-control item_calories">
-                                </div>
+                            @if (isset($openai_settings) && data_get($openai_settings, 'status') == true)
+                            <div class="width-100 text-right">
+                                <button type="button" class="btn bg-white text-primary generate_btn_wrapper opacity-1 pl-1 mb-2 ingredients_auto_fill"
+                                    data-error="{{ trans('lang.ai_ingredients_error') }}"
+                                    data-lang="{{ App::getLocale() }}"
+                                    data-route="{{ route('ai.ingredients-auto-fill') }}">
+                                    <div class="btn-svg-wrapper">
+                                        <img width="18" height="18" class="" src="{{ asset('images/svg/blink-icon-orange.svg') }}" alt="">
+                                    </div>
+                                    <span class="ai-text-animation d-none" role="status">
+                                        {{ trans('lang.ai_just_asecond') }}
+                                    </span>
+                                    <span class="btn-text">{{ trans('lang.ai_generate') }}</span>
+                                </button>
                             </div>
-
-                            <div class="form-group row width-50">
-                                <label class="col-3 control-label">{{ trans('lang.grams') }}</label>
-                                <div class="col-7">
-                                    <input type="number" class="form-control item_grams">
+                            @endif
+                            <div class="outline-wrapper">
+                                <div class="form-group row width-50">
+                                    <label class="col-3 control-label">{{ trans('lang.calories') }}</label>
+                                    <div class="col-7">
+                                        <input type="number" class="form-control item_calories">
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="form-group row width-50">
-                                <label class="col-3 control-label">{{ trans('lang.fats') }}</label>
-                                <div class="col-7">
-                                    <input type="number" class="form-control item_fats">
+                                <div class="form-group row width-50">
+                                    <label class="col-3 control-label">{{ trans('lang.grams') }}</label>
+                                    <div class="col-7">
+                                        <input type="number" class="form-control item_grams">
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="form-group row width-50">
-                                <label class="col-3 control-label">{{ trans('lang.proteins') }}</label>
-                                <div class="col-7">
-                                    <input type="number" class="form-control item_proteins">
+                                <div class="form-group row width-50">
+                                    <label class="col-3 control-label">{{ trans('lang.fats') }}</label>
+                                    <div class="col-7">
+                                        <input type="number" class="form-control item_fats">
+                                    </div>
+                                </div>
+
+                                <div class="form-group row width-50">
+                                    <label class="col-3 control-label">{{ trans('lang.proteins') }}</label>
+                                    <div class="col-7">
+                                        <input type="number" class="form-control item_proteins">
+                                    </div>
                                 </div>
                             </div>
 
                         </fieldset>
 
-                        <fieldset>
+                        <fieldset class="addons-wrapper">
                             <legend>{{ trans('lang.item_add_one') }}</legend>
-
-                            <div class="form-group add_ons_list extra-row">
+                            @if (isset($openai_settings) && data_get($openai_settings, 'status') == true)
+                            <div class="width-100 text-right">
+                                <button type="button" class="btn bg-white text-primary generate_btn_wrapper opacity-1 pl-1 mb-2 addons_auto_fill"
+                                    data-error="{{ trans('lang.ai_addons_error') }}"
+                                    data-lang="{{ App::getLocale() }}"
+                                    data-route="{{ route('ai.addons-auto-fill') }}">
+                                    <div class="btn-svg-wrapper">
+                                        <img width="18" height="18" class="" src="{{ asset('images/svg/blink-icon-orange.svg') }}" alt="">
+                                    </div>
+                                    <span class="ai-text-animation d-none" role="status">
+                                        {{ trans('lang.ai_just_asecond') }}
+                                    </span>
+                                    <span class="btn-text">{{ trans('lang.ai_generate') }}</span>
+                                </button>
                             </div>
-
-                            <div class="form-group row width-100">
-                                <div class="col-7">
-                                    <button type="button" onclick="addOneFunction()" class="btn btn-primary"
-                                        id="add_one_btn">{{ trans('lang.item_add_one') }}
-                                    </button>
+                            @endif
+                             <div class="outline-wrapper">
+                                <div class="form-group add_ons_list extra-row">
                                 </div>
-                            </div>
 
-                            <div class="form-group row width-100" id="add_ones_div" style="display:none">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <label class="col-3 control-label">{{ trans('lang.item_title') }}</label>
-                                        <div class="col-7">
-                                            <input type="text" class="form-control add_ons_title">
+                                <div class="form-group row width-100">
+                                    <div class="col-7">
+                                        <button type="button" onclick="addOneFunction()" class="btn btn-primary"
+                                            id="add_one_btn">{{ trans('lang.item_add_one') }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row width-100" id="add_ones_div" style="display:none">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="col-3 control-label">{{ trans('lang.item_title') }}</label>
+                                            <div class="col-7">
+                                                <input type="text" class="form-control add_ons_title">
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="col-3 control-label">{{ trans('lang.item_price') }}</label>
+                                            <div class="col-7">
+                                                <input type="number" class="form-control add_ons_price">
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-6">
-                                        <label class="col-3 control-label">{{ trans('lang.item_price') }}</label>
-                                        <div class="col-7">
-                                            <input type="number" class="form-control add_ons_price">
-                                        </div>
-                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="form-group row save_add_one_btn width-100" style="display:none">
-                                <div class="col-7">
-                                    <button type="button" onclick="saveAddOneFunction()" class="btn btn-primary">
-                                        {{ trans('lang.save_add_ones') }}
-                                    </button>
+                                <div class="form-group row save_add_one_btn width-100" style="display:none">
+                                    <div class="col-7">
+                                        <button type="button" onclick="saveAddOneFunction()" class="btn btn-primary">
+                                            {{ trans('lang.save_add_ones') }}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
                         </fieldset>
-                        <fieldset>
+                        <fieldset class="specification-wrapper">
 
                             <legend>{{ trans('lang.product_specification') }}</legend>
-
-                            <div class="form-group product_specification extra-row">
+                            @if (isset($openai_settings) && data_get($openai_settings, 'status') == true)
+                            <div class="width-100 text-right">
+                                <button type="button" class="btn bg-white text-primary generate_btn_wrapper opacity-1 pl-1 mb-2 specification_auto_fill"
+                                    data-error="{{ trans('lang.ai_specification_error') }}"
+                                    data-lang="{{ App::getLocale() }}"
+                                    data-route="{{ route('ai.specification-auto-fill') }}">
+                                    <div class="btn-svg-wrapper">
+                                        <img width="18" height="18" class="" src="{{ asset('images/svg/blink-icon-orange.svg') }}" alt="">
+                                    </div>
+                                    <span class="ai-text-animation d-none" role="status">
+                                        {{ trans('lang.ai_just_asecond') }}
+                                    </span>
+                                    <span class="btn-text">{{ trans('lang.ai_generate') }}</span>
+                                </button>
                             </div>
-
-                            <div class="form-group row width-100">
-                                <div class="col-7">
-                                    <button type="button" onclick="addProductSpecificationFunction()"
-                                        class="btn btn-primary" id="add_one_btn">
-                                        {{ trans('lang.add_product_specification') }}
-                                    </button>
+                            @endif
+                            <div class="outline-wrapper">
+                                <div class="form-group product_specification extra-row">
                                 </div>
-                            </div>
-                            <div class="form-group row width-100" id="add_product_specification_div"
-                                style="display:none">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <label class="col-3 control-label">{{ trans('lang.lable') }}</label>
-                                        <div class="col-7">
-                                            <input type="text" class="form-control add_label">
+
+                                <div class="form-group row width-100">
+                                    <div class="col-7">
+                                        <button type="button" onclick="addProductSpecificationFunction()"
+                                            class="btn btn-primary" id="add_one_btn">
+                                            {{ trans('lang.add_product_specification') }}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group row width-100" id="add_product_specification_div"
+                                    style="display:none">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="col-3 control-label">{{ trans('lang.lable') }}</label>
+                                            <div class="col-7">
+                                                <input type="text" class="form-control add_label">
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="col-3 control-label">{{ trans('lang.value') }}</label>
+                                            <div class="col-7">
+                                                <input type="text" class="form-control add_value">
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-6">
-                                        <label class="col-3 control-label">{{ trans('lang.value') }}</label>
-                                        <div class="col-7">
-                                            <input type="text" class="form-control add_value">
-                                        </div>
+                                </div>
+                                <div class="form-group row save_product_specification_btn width-100" style="display:none">
+                                    <div class="col-7">
+                                        <button type="button" onclick="saveProductSpecificationFunction()"
+                                            class="btn btn-primary">{{ trans('lang.save_product_specification') }}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group row save_product_specification_btn width-100" style="display:none">
-                                <div class="col-7">
-                                    <button type="button" onclick="saveProductSpecificationFunction()"
-                                        class="btn btn-primary">{{ trans('lang.save_product_specification') }}
-                                    </button>
-                                </div>
-                            </div>
-
                         </fieldset>
                     </div>
                 </div>
@@ -298,9 +414,18 @@
             </div>
         </div>
     </div>
+    @includeif('layouts.ai_sidebar')
 @endsection
 
 @section('scripts')
+    @if (isset($openai_settings) && data_get($openai_settings, 'status') == true)
+        <link href="{{ asset('css/AI/ai-sidebar.css') }}" rel="stylesheet">
+        <script src="{{ asset('js/AI/product-details-autofill.js') }}"></script>
+        <script src="{{ asset('js/AI/variation-setup-auto-fill.js') }}"></script>
+        <script src="{{ asset('js/AI/ai-sidebar.js') }}"></script>
+        <script src="{{ asset('js/AI/compressor/image-compressor.js')}}"></script>
+        <script src="{{ asset('js/AI/compressor/compressor.min.js')}}"></script>
+    @endif
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
 
 
@@ -335,6 +460,15 @@
         var currentCurrency = '';
         var currencyAtRight = false;
         var decimal_degits = 0;
+        var categories_list=[];
+        var authRole = "{{ $authRole }}";
+        var empVendorId = "{{ $empVendorId }}";
+        let currentPermissions = {
+            isActive: true   
+        };
+        var vendorLatitude = '';
+        var vendorLongitude = '';
+        var countryName = '';
         var subscriptionBusinessModel = database.collection('settings').doc("vendor");
         subscriptionBusinessModel.get().then(async function(snapshots) {
                 var subscriptionSetting = snapshots.data();
@@ -363,7 +497,20 @@
             }
 
         });
-
+        $(document).ready(async function() {   
+            if (authRole === 'employee') {               
+                const perm = await getEmployeePermissionForTitle(vendorUserId, "Manage Products");
+                currentPermissions = {
+                    isActive: perm.isActive ?? false
+                };
+                if (!currentPermissions.isActive) {
+                    alert('{{ trans("lang.no_permission") }}');
+                    $('.page-btn').hide();
+                    $('.restaurant_payout_create').html('<p class="text-center text-danger font-weight-bold">{{ trans("lang.no_permission") }}</p>');
+                    return;
+                }
+            }             
+        });
         getVendorId(vendorUserId).then(async data => {
 
             vandorId = data.id;
@@ -371,8 +518,53 @@
             itemCountRef = await database.collection('vendor_products').where('vendorID', '==', vandorId).get();
             createdItem = itemCountRef.size;
             section_id = data.section_id;
-
-
+           
+            database.collection('settings').doc('globalSettings').get().then(async function(snapshots) {
+               
+                let globalTax = snapshots.data();
+               
+                if (!countryName && (vendorLatitude && vendorLongitude)) {
+                    countryName = await getCountryFromLatLng(vendorLatitude,vendorLongitude);
+                    setCookie('countryName', countryName, 365);
+                }
+                if(globalTax.taxScope == "product" && countryName){
+                   
+                    $(".product-taxes").removeClass('d-none');
+                    $('#taxes').chosen('destroy').empty();
+                    database.collection('tax').where('enable','==',true).where('scope','==','product').where('country','==',countryName).where('sectionId','==',section_id).get().then(async function(snapshots) {
+                        if(snapshots.docs.length > 0){
+                            snapshots.docs.forEach((listval) => {
+                                var data = listval.data();
+                                let taxText = data.title + ' (';
+                                if (data.type === 'percentage') {
+                                    taxText += data.tax + '%';
+                                } else {
+                                    if (currencyAtRight) {
+                                        taxText += parseFloat(data.tax).toFixed(decimal_degits) + ' ' + currentCurrency;
+                                    } else {
+                                        taxText += currentCurrency + parseFloat(data.tax).toFixed(decimal_degits);
+                                    }
+                                }
+                                taxText += ')';
+                                $('#taxes').append(
+                                    $('<option></option>')
+                                        .attr('value', data.id)
+                                        .attr('data-tax', encodeURIComponent(JSON.stringify(data)))
+                                        .text(taxText)
+                                );
+                            })
+                            $('#taxes').chosen({
+                                width: '100%',
+                                placeholder_text_multiple: '{{ trans('lang.select_taxes') }}',
+                            });
+                        }else{
+                            $(".product-taxes").addClass('d-none');        
+                        }
+                    });
+                }else{
+                    $(".product-taxes").addClass('d-none');
+                }
+            });
 
             if (section_id) {
                 var section = database.collection('sections').where('id', '==', section_id);
@@ -442,11 +634,23 @@
             vendor_categories.get().then(async function(snapshots) {
                 snapshots.docs.forEach((listval) => {
                     var data = listval.data();
-
-                    $('#item_category').append($("<option></option>")
-                        .attr("value", data.id)
-                        .text(data.title));
+                    categories_list.push(data);
+                  
                 });
+                 database.collection('vendors').doc(vandorId).get().then(async function(snapshot) {
+                        if (snapshot.exists) {
+                            var data = snapshot.data();
+                            var categoryIDs = []
+                            categoryIDs = data.categoryID;
+                            categories_list.forEach((val) => {
+                                if (categoryIDs.includes(val.id)) {
+                                    $('#item_category').append($("<option></option>")
+                                        .attr("value", val.id)
+                                        .text(val.title));
+                                }
+                            })
+                        }
+                    })
             });
 
             brand.get().then(async function(snapshots) {
@@ -724,6 +928,13 @@
                             };
                         }
                         //end-item attribute
+                        let selectedTaxes = [];
+                        $('#taxes option:selected').each(function() {
+                            let taxData = $(this).attr('data-tax');
+                            if (taxData) {
+                                selectedTaxes.push(JSON.parse(decodeURIComponent(taxData)));
+                            }
+                        });
                         jQuery("#data-table_processing").show();
                         await storeDigitalImageData().then(async (DigitalImg) => {
                             await storeProductImageData().then(async (IMG) => {
@@ -737,7 +948,7 @@
                                         'quantity': parseInt(
                                             item_quantity),
                                         'disPrice': discount,
-                                        'vendorID': vandorId,
+                                        'vendorID': (authRole === 'vendor') ? vandorId : empVendorId,
                                         'categoryID': category,
                                         'brandID': brand,
                                         'photo': photo,
@@ -759,7 +970,8 @@
                                         'product_specification': product_specification,
                                         'isDigitalProduct': is_digital_product,
                                         'digitalProduct': DigitalImg,
-                                        'createdAt': firebase.firestore.FieldValue.serverTimestamp() 
+                                        'createdAt': firebase.firestore.FieldValue.serverTimestamp() ,
+                                        'taxSetting': selectedTaxes,
                                     }).then(function(result) {
                                         window.location.href =
                                             '{{ route('items') }}';
@@ -939,11 +1151,25 @@
             var vendorID = '';
             var vendorData = '';
             var ref;
-            await database.collection('vendors').where('author', "==", vendorUser).get().then(async function(
-                vendorSnapshots) {
-                vendorData = vendorSnapshots.docs[0].data();
-                vendorID = vendorData.id;
-            })
+            if(authRole == 'vendor'){
+                await database.collection('vendors').where('author', "==", vendorUser).get().then(async function(
+                    vendorSnapshots) {
+                    vendorData = vendorSnapshots.docs[0].data();
+                    vendorID = vendorData.id;
+                    vendorLatitude = vendorData.latitude;
+                    vendorLongitude = vendorData.longitude;
+                    countryName = getCookie('vendorCountryName');
+                })
+            }else{
+                await database.collection('vendors').where('id', "==", empVendorId).get().then(async function(
+                    vendorSnapshots) {
+                    vendorData = vendorSnapshots.docs[0].data();
+                    vendorID = vendorData.id;
+                    vendorLatitude = vendorData.latitude;
+                    vendorLongitude = vendorData.longitude;
+                    countryName = getCookie('vendorCountryName');
+                })
+            }
             return vendorData;
         }
 
@@ -1069,10 +1295,10 @@
                     html += '<table class="table table-bordered">';
                     html += '<thead class="thead-light">';
                     html += '<tr>';
-                    html += '<th class="text-center"><span class="control-label">Variant</span></th>';
-                    html += '<th class="text-center"><span class="control-label">Variant Price</span></th>';
-                    html += '<th class="text-center"><span class="control-label">Variant Quantity</span></th>';
-                    html += '<th class="text-center"><span class="control-label">Variant Image</span></th>';
+                    html += '<th class="text-center"><span class="control-label">{{ trans('lang.variant') }}</span></th>';
+                    html += '<th class="text-center"><span class="control-label">{{ trans('lang.variant_price') }}</span></th>';
+                    html += '<th class="text-center"><span class="control-label">{{ trans('lang.variant_quantity') }}</span></th>';
+                    html += '<th class="text-center"><span class="control-label">{{ trans('lang.variant_image') }}</span></th>';
                     html += '</tr>';
                     html += '</thead>';
                     html += '<tbody>';

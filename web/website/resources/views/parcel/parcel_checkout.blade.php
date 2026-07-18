@@ -24,6 +24,12 @@ session_start();
     <div class="parcel_payment mt-5 mb-5">
         <div class="container">
             <div class="row">
+                @if(!empty($errorMessage))
+                    <div class="alert alert-danger">
+                        {{ $errorMessage }}
+                    </div>
+                    @php Session::forget('payment_error'); @endphp
+                @endif
                 <div class="parcel_payment_left col-md-8">
                     <div class="card">
                         <div class="parcel_payment-detail">
@@ -65,15 +71,18 @@ session_start();
                         </div>
                         <div class="parcel_payment_total">
                             <div class="row">
-                                <div class="col-md-5 parcel_payment-box">
+                                <div class="col-md-4 parcel_payment-box">
                                     <span class="label">{{trans('lang.distance')}}</span>
                                     <span class="total">
+                                        <span class="distance-number">
                                         <?php if (@$parcel_cart['parcelDeliveryKM']) {
                                             echo round($parcel_cart['parcelDeliveryKM'], 2);
-                                        } ?> KM
+                                        } ?>
+                                        </span><span class="distance-type"> KM</span>
                                     </span>
+                                    <input type="hidden" id="parcelDistanceValue" value="{{ @$parcel_cart['parcelDeliveryKM'] }}">
                                 </div>
-                                <div class="col-md-5 parcel_payment-box">
+                                <div class="col-md-4 parcel_payment-box">
                                     <span class="label">{{trans('lang.weight')}}</span>
                                     <span class="total">
                                         <?php if (@$parcel_cart['senderParcelWeightName']) {
@@ -81,16 +90,10 @@ session_start();
                                         } ?>
                                     </span>
                                 </div>
-                                <div class="col-md-2 parcel_payment-box">
+                                <div class="col-md-4 parcel_payment-box">
                                     <span class="label">{{trans('lang.rate')}}</span>
-                                    <span class="total price"><span class="currency-symbol-left"></span>
-                                        <?php if (@$parcel_cart['parcelDeliveryCharge']) {
-                                            $decimal_degits = 0;
-                                            if (@$parcel_cart['decimal_degits']) {
-                                                $decimal_degits = $parcel_cart['decimal_degits'];
-                                            }
-                                            echo number_format($parcel_cart['parcelDeliveryCharge'], $decimal_degits);
-                                        } ?><span class="currency-symbol-right"></span>
+                                    <span class="total price">
+                                         {{ formatCurrency($parcel_cart['parcelDeliveryCharge'], $parcel_cart['currencyData']) }}
                                     </span>
                                 </div>
                             </div>
@@ -110,6 +113,10 @@ session_start();
                         <input type="hidden" id="receiverPhone" value="<?php echo $parcel_cart['receiverPhone']; ?>">
                         <input type="hidden" id="receiverAddress"
                                value="<?php echo $parcel_cart['receiverAddress']; ?>">
+                        <input type="hidden" id="receiverZoneId"
+                               value="<?php echo $parcel_cart['receiverZoneId']; ?>">
+                         <input type="hidden" id="senderZoneId"
+                               value="<?php echo $parcel_cart['senderZoneId']; ?>">
                         <input type="hidden" id="parcelDeliveryKM"
                                value="<?php echo round($parcel_cart['parcelDeliveryKM'], 2); ?>">
                         <input type="hidden" id="senderParcelWeight"
@@ -122,6 +129,7 @@ session_start();
                                value="<?php echo $parcel_cart['parcelCategoryId']; ?>">
                         <input type="hidden" id="parcelType" value="<?php echo $parcel_cart['parcelType']; ?>">
                         <input type="hidden" id="senderNote" value="<?php echo $parcel_cart['senderNote']; ?>">
+                        <input type="hidden" id="receiverNote" value="<?php echo $parcel_cart['receiverNote']; ?>">
                         <input type="hidden" id="sender_address_lat"
                                value="<?php echo $parcel_cart['sender_address_lat']; ?>">
                         <input type="hidden" id="sender_address_lng"
@@ -251,15 +259,9 @@ session_start();
                                 </div>
                             </div>
                             <div class="payment-total d-flex">
-                                <label>{{trans('lang.sub_total')}}</label>
-                                <span class="price ml-auto"><span class="currency-symbol-left"></span>
-                                    <?php if (@$parcel_cart['parcelDeliveryCharge']) {
-                                        $decimal_degits = 0;
-                                        if (@$parcel_cart['decimal_degits']) {
-                                            $decimal_degits = $parcel_cart['decimal_degits'];
-                                        }
-                                        echo number_format($parcel_cart['parcelDeliveryCharge'], $decimal_degits);
-                                    } ?><span class="currency-symbol-right"></span>
+                                <label><strong>{{trans('lang.sub_total')}}</strong></label>
+                                <span class="price ml-auto">
+                                    {{ formatCurrency($parcel_cart['parcelDeliveryCharge'], $parcel_cart['currencyData']) }}
                                 </span>
                             </div>
                             <div class="payment-total d-flex">
@@ -271,119 +273,91 @@ session_start();
                                 $couponHtml = "";
                                 if (@$parcel_cart['coupon']['discountType'] && $parcel_cart['coupon']['discountType']) {
                                     if ($parcel_cart['coupon']['discountType'] == "Percentage") {
-                                        $couponHtml = " (" . $parcel_cart['coupon']['discount'] . "%)";
+                                        $couponHtml = " (".$parcel_cart['coupon']['discount']."%)";
                                     } else {
-                                        $couponHtml = ' (<span class="currency-symbol-left"></span> ' . $parcel_cart['coupon']['discount'] . ' <span class="currency-symbol-right"></span>)';
+                                        $couponHtml = "(".formatCurrency($parcel_cart['coupon']['discount'], $parcel_cart['currencyData']).")";
                                     }
+                                    $discount = $parcel_cart['coupon']['discount_amount'];
+                                    $discountType = $parcel_cart['coupon']['discountType'];
+                                    $discount_label = $parcel_cart['coupon']['discount'];
+                                    $coupon_id = $parcel_cart['coupon']['coupon_id'];
                                 }
                                 ?>
                                 <label>{{trans('lang.discount')}}
                                     <?php echo $couponHtml; ?>
                                 </label>
-                                <span class="price ml-auto">
-                                    <span class="currency-symbol-left"></span>
-                                    <?php if (@$parcel_cart['coupon']['discount_amount'] && @$parcel_cart['coupon']['discountType']) {
-                                        $discount = $parcel_cart['coupon']['discount_amount'];
-                                        $discountType = $parcel_cart['coupon']['discountType'];
-                                        $discount_label = $parcel_cart['coupon']['discount'];
-                                        $coupon_id = $parcel_cart['coupon']['coupon_id'];
-                                        $decimal_degits = 0;
-                                        if (@$parcel_cart['decimal_degits']) {
-                                            $decimal_degits = $parcel_cart['decimal_degits'];
-                                        }
-                                        echo number_format($parcel_cart['coupon']['discount_amount'], $decimal_degits);
-                                    } else {
-                                        $decimal_degits = 0;
-                                        if (@$parcel_cart['decimal_degits']) {
-                                            $decimal_degits = $parcel_cart['decimal_degits'];
-                                        }
-                                        echo number_format(0, $decimal_degits);
-                                        ?>
-                                    <?php } ?>
-                                    <span class="currency-symbol-right"></span>
+                                <span class="price ml-auto text-danger">
+                                    @if(@$parcel_cart['coupon']['discount_amount'] && @$parcel_cart['coupon']['discountType'])
+                                        (-{{ formatCurrency($parcel_cart['coupon']['discount_amount'], $parcel_cart['currencyData']) }})
+                                    @else
+                                        (-{{ formatCurrency(0, $parcel_cart['currencyData']) }})
+                                    @endif
                                 </span>
                             </div>
-                            <input type="hidden" id="discount"
-                                   value="<?php echo number_format($discount, $decimal_degits);; ?>">
+
+                            @if(isset($parcel_cart['coupon']) && !empty($parcel_cart['coupon']['coupon_code']))
+                                <div class="remove-coupon text-right">
+                                    <small><a href="javascript:void(0)" class="text-primary">{{ trans('lang.remove_discount') }}</a></small>
+                                </div>
+                            @endif
+
+                            <div class="payment-total d-flex">
+                                <label>{{ trans('lang.platform_charge') }} </label>
+                                <span class="price ml-auto">
+                                    {{ formatCurrency($parcel_cart['platformCharge'], $parcel_cart['currencyData']) }}                                                                        
+                                </span>
+                            </div>
+
+                            <input type="hidden" id="discount" value="<?php echo number_format($discount, $parcel_cart['decimal_degits']); ?>">
                             <input type="hidden" id="discountType" value="<?php echo $discountType ?>">
                             <input type="hidden" id="discountLabel" value="<?php echo $discount_label; ?>">
                             <input type="hidden" id="coupon_id" value="<?php echo $coupon_id; ?>">
-                            <?php
-                            $total_item_price = $parcel_cart['parcelDeliveryCharge'] - $discount;
-                            $total_tax_amount = 0;
-                            if (@$parcel_cart['taxValue']) { ?>
-                            <input type="hidden" id="total_item_price" value="<?php echo $total_item_price; ?>">
-                                <?php
-                            foreach ($parcel_cart['taxValue'] as $val) {
-                                ?>
+                            <input type="hidden" id="total_item_price" value="<?php echo $parcel_cart['parcelDeliveryCharge']; ?>">
+                            <input type="hidden" id="total_pay" value="<?php echo $parcel_cart['total_pay']; ?>">
+
+                            @if(!empty($parcel_cart['taxBreakdownGrouped']))
+                                {{-- Order-level --}}
+                                @if($parcel_cart['taxScope'] === 'order')
+                                    <div class="payment-total d-flex">
+                                        <label>{{ trans('lang.tax_on_order_total') }} </label>
+                                        <span class="price ml-auto">
+                                            {{ formatCurrency(array_sum($parcel_cart['taxBreakdownGrouped']['order']), $parcel_cart['currencyData']) }}                                                          
+                                        </span>
+                                    </div>
+                                @endif
+
+                                {{-- Platform-level --}}
+                                @foreach($parcel_cart['taxBreakdownGrouped']['platform'] ?? [] as $title => $amount)
+                                    <div class="payment-total d-flex">
+                                        <label>{{ trans('lang.tax_on_platform_fee') }} </label>
+                                        <span class="price ml-auto">
+                                            {{ formatCurrency($amount, $parcel_cart['currencyData']) }}
+                                        </span>
+                                    </div>
+                                @endforeach
+                                
+                                {{-- Total --}}
+                                <div class="payment-total d-flex">
+                                    <label><strong>{{ trans('lang.total_tax_amount') }}</strong></label>
+                                    <span class="price ml-auto">
+                                        {{ formatCurrency($parcel_cart['tax_total_amount'], $parcel_cart['currencyData']) }}
+                                    </span>
+                                </div>
+                            @endif
+                            
                             <div class="payment-total d-flex">
-                                <label>
-                                        <?php echo $val['title']; ?>
-                                        <?php if ($val['type'] == 'fix') { ?>
-                                    ( <span class="currency-symbol-left"></span>
-                                        <?php
-                                        $digit_decimal = 0;
-                                        if (@$parcel_cart['decimal_degits']) {
-                                            $digit_decimal = $parcel_cart['decimal_degits'];
-                                        }
-                                        echo number_format($val['tax'], $digit_decimal);
-                                        $tax = $val['tax'];
-                                        ?>
-                                    <span class="currency-symbol-right"></span> )
-                                    <?php } else {
-                                        $tax = ($val['tax'] * $total_item_price) / 100; ?>
-                                    (
-                                        <?php echo $val['tax']; ?>%)
-                                    <?php } ?>
-                                </label>
+                                <label><strong>{{trans('lang.order_total')}}</strong></label>
                                 <span class="price ml-auto">
-                                    <span class="currency-symbol-left"></span>
-                                    <?php
-                                        $digit_decimal = 0;
-                                        if (@$parcel_cart['decimal_degits']) {
-                                            $digit_decimal = $parcel_cart['decimal_degits'];
-                                        }
-                                        echo number_format($tax, $digit_decimal);
-                                        ?>
-                                    <span class="currency-symbol-right"></span>
-                                </span> <input type="hidden" id="<?php echo $val['title'];?>"
-                                               value="<?php echo $tax; ?>">
-                                    <?php
-                                    $total_tax_amount = $total_tax_amount + $tax;
-                                    ?>
-                            </div>
-                            <?php }
-                            }
-                            $total = $total_item_price + $total_tax_amount;
-                            ?>
-                            <div class="payment-total d-flex">
-                                <label>{{trans('lang.order_total')}}</label>
-                                <span class="price ml-auto"><span class="currency-symbol-left"></span>
-                                    <?php
-                                    $decimal_degits = 0;
-                                    if (@$parcel_cart['decimal_degits']) {
-                                        $decimal_degits = $parcel_cart['decimal_degits'];
-                                    }
-                                    echo number_format($total, $decimal_degits);
-                                    ?>
-                                    <span class="currency-symbol-right"></span>
+                                    {{ formatCurrency($parcel_cart['total_pay'], $parcel_cart['currencyData']) }}
                                 </span>
                             </div>
+
                         </div>
-                        <input type="hidden" id="total_pay"
-                               value="<?php echo $total; ?>">
+
                         <div class="pay-btn">
-                            <a href="Javascript:void(0)" id="pay_parcel"
-                               onclick="payCheckoutParcel()">{{trans('lang.pay')}} <span
-                                        class="currency-symbol-left"></span> <span class="price ml-auto">
-                                    <?php
-                                    $decimal_degits = 0;
-                                    if (@$parcel_cart['decimal_degits']) {
-                                        $decimal_degits = $parcel_cart['decimal_degits'];
-                                    }
-                                    echo number_format($total, $decimal_degits);
-                                    ?> <span class="currency-symbol-right"></span>
-                                </span></a>
+                            <a href="Javascript:void(0)" id="pay_parcel" onclick="payCheckoutParcel()">{{trans('lang.pay')}} 
+                                {{ formatCurrency($parcel_cart['total_pay'], $parcel_cart['currencyData']) }}
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -392,16 +366,20 @@ session_start();
     </div>
 </div>
 @include('layouts.footer')
+
 <script src="{{ asset('js/geofirestore.js') }}"></script>
+
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
 <script type="text/javascript" src="{{asset('vendor/slick/slick.min.js')}}"></script>
+
 <script type="text/javascript">
+
     var currentCurrency = '';
     var currencyAtRight = false;
     var wallet_amount = 0;
     var decimal_degits = 0;
     var fcmToken = '';
-    var id_order = "<?php echo uniqid(); ?>";
+    var id_order = database.collection('temp').doc().id;
     var userId = "<?php echo $id; ?>";
     var userDetailsRef = database.collection('users').where('id', "==", userId);
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
@@ -417,11 +395,19 @@ session_start();
     var XenditSettings = database.collection('settings').doc('xendit_settings');
     var Midtrans_settings = database.collection('settings').doc('midtrans_settings');
     var OrangePaySettings = database.collection('settings').doc('orange_money_settings');
+    var distanceSetting = database.collection('settings').doc('DriverNearBy');
+
+    var cart = @json($parcel_cart);
+    var taxSetting = cart?.taxSetting ?? [];
+    var taxScope = cart?.taxScope ?? 'order';
+    var platformTax        = cart?.taxesByScope?.platform ?? [];
+    var platformCharge = cart?.platformCharge ?? '0';
+
     var firestore = firebase.firestore();
     var geoFirestore = new GeoFirestore(firestore);
-    let currencyData = "";
     var section_id = "<?php echo @$_COOKIE['section_id'] ?>";
 
+    var currencyData = "";
     refCurrency.get().then(async function (snapshots) {
         currencyData = snapshots.docs[0].data();
         currentCurrency = currencyData.symbol;
@@ -431,6 +417,30 @@ session_start();
         }
         loadcurrency();
     });
+
+    let distanceType = "Km"; 
+    $(document).ready(async function (){
+        await database.collection('settings').doc('DriverNearBy').get().then(doc => {
+            if (doc.exists) {
+                distanceType = doc.data().distanceType || "Km";
+                updateDistanceLabel(distanceType);
+            }
+        });
+        function updateDistanceLabel(distanceType) {
+            let km = parseFloat($('#parcelDistanceValue').val()); 
+
+            if (isNaN(km)) return;
+            let distance = km;
+            if (distanceType.toLowerCase() === "miles") {
+                distance = km * 0.621371;  // convert km → miles
+            }
+            $(".total .distance-number").text(distance.toFixed(2));
+            $(".distance-type").text(distanceType);
+        }
+    })   
+    
+
+
     $('input[name="payment_by"]').on('change', function () {
         var payment_by = $('input[name="payment_by"]:checked').val();
         if (payment_by == 'receiver') {
@@ -621,10 +631,11 @@ session_start();
 
     async function getCouponDetails() {
         var today = new Date();
-        var couponRef = database.collection('parcel_coupons').where('expiresAt', '>=', today);
+        var sectionid = getCookie('section_id');
+        var couponRef = database.collection('parcel_coupons').where('sectionId', '==', sectionid).where('expiresAt', '>=', today);
         var couponHtml = '';
         let menuHtmlx = couponRef.get().then(async function (couponRefSnapshots) {
-            couponHtml += '<div class="coupon-code"><label>Select Available Coupons to apply</label><span></span></div>';
+            couponHtml += '<div class="coupon-code"><label>{{ trans("lang.select_available_coupon") }}</label><span></span></div>';
             couponHtml += '<div class="copupon-list">';
             couponHtml += '<ul>';
             couponRefSnapshots.docs.forEach((doc) => {
@@ -664,6 +675,12 @@ session_start();
                         coupon_id: coupondata.id
                     },
                     success: function (data) {
+
+                        Swal.fire({
+                            text: "{{ trans('lang.discount_applied') }}",
+                            icon: "success"
+                        });
+
                         data = JSON.parse(data);
                         window.location.reload();
                         loadcurrency();
@@ -696,11 +713,33 @@ session_start();
                     }
                 });
             } else {
-                alert("Coupon code is not valid.");
+                Swal.fire({text: "{{trans('lang.coupon_code_not_valid')}}", icon: "error"});
                 $("#parcel_coupon_code").val('');
+                return false;
             }
         });
     });
+
+     $(document).on("click", '.remove-coupon a', function(event) {
+        $.ajax({
+            type: 'POST',
+            url: "<?php echo route('remove_parcel_coupon'); ?>",
+            data: {
+                _token: '<?php echo csrf_token(); ?>',
+            },
+            success: function(data) {
+                Swal.fire({
+                    text: "{{ trans('lang.discount_removed') }}",
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
+            }
+        });
+    });
+
     $(document).on('click', '.copupon-list li', function (e) {
         var navSelectedValue = $(this).attr('value');
         $('#parcel_coupon_code').val(navSelectedValue);
@@ -735,24 +774,15 @@ session_start();
     });
 
     function payCheckoutParcel() {
+
         userDetailsRef.get().then(async function (userSnapshots) {
+
             var userDetails = userSnapshots.docs[0].data();
             var author = userDetails;
             var authorName = userDetails.firstName;
             var authorID = userId;
             var status = 'Order Placed';
             var payment_by = $('input[name="payment_by"]:checked').val();
-            var taxSetting = '<?php echo json_encode(@$parcel_cart['taxValue']) ?>';
-            if (taxSetting && taxSetting != null && taxSetting != "null" && taxSetting != undefined) {
-                taxSetting = JSON.parse(taxSetting);
-            } else {
-                taxSetting = [];
-            }
-            for (var i = 0; i < taxSetting.length; i++) {
-                var data = taxSetting[i];
-                data.enable = Boolean(data.enable);
-                taxSetting[i] = data;
-            }
             if (payment_by == 'receiver') {
                 var payment_method = '';
                 var paymentCollectByReceiver = true;
@@ -761,9 +791,10 @@ session_start();
                 var paymentCollectByReceiver = false;
             }
             if (payment_method == "" && payment_by == "sender") {
-                alert("select payment method");
+                Swal.fire({text: "{{trans('lang.Select_Payment')}}", icon: "error"});
                 return false;
             }
+           
             var adminCommission = $("#adminCommission").val();
             var adminCommissionType = $("#adminCommissionType").val();
             var senderName = $('#senderName').val();
@@ -772,6 +803,8 @@ session_start();
             var receiverName = $('#receiverName').val();
             var receiverPhone = $('#receiverPhone').val();
             var receiverAddress = $('#receiverAddress').val();
+            var receiverZoneId = $('#receiverZoneId').val();
+            var senderZoneId = $('#senderZoneId').val();
             var parcelDeliveryKM = $('#parcelDeliveryKM').val();
             var senderParcelWeight = $('#senderParcelWeight').val();
             var senderParcelWeightName = $('#senderParcelWeightName').val();
@@ -779,6 +812,7 @@ session_start();
             var parcelCategoryId = $('#parcelCategoryId').val();
             var parcelType = $('#parcelType').val();
             var senderNote = $('#senderNote').val();
+            var receiverNote = $('#receiverNote').val();
             var sender_address_lat = $('#sender_address_lat').val();
             var sender_address_lng = $('#sender_address_lng').val();
             var receiver_address_lng = $('#receiver_address_lng').val();
@@ -794,30 +828,30 @@ session_start();
             var receiverPickupDateTime = $('#receiverPickupDateTime').val();
             var createdAt = new Date();
             var parcelImages = '<?php echo $parcel_cart['parcelImages'] ?>';
-            parcelImages = JSON.parse(parcelImages);
+                parcelImages = JSON.parse(parcelImages);
+
             if (discount == null && coupon_id == null && discountType == null && discountLabel == null) {
                 discount = "0";
-                coupon_id = "";
-                discountType = "";
-                discountLabel = "";
-            }
-            if ((senderPickupDateTime == null || senderPickupDateTime == "") && (receiverPickupDateTime == null || receiverPickupDateTime == "")) {
+                coupon_id = null;
+                discountType = null;
+                discountLabel = null;
+            }           
+            if (!senderPickupDateTime || senderPickupDateTime.trim() === "") {
                 senderPickupDateTime = createdAt;
+            }
+
+            if (!receiverPickupDateTime || receiverPickupDateTime.trim() === "") {
                 receiverPickupDateTime = createdAt;
             }
             senderPickupDateTime = firebase.firestore.Timestamp.fromDate(new Date(senderPickupDateTime)).toDate();
             receiverPickupDateTime = firebase.firestore.Timestamp.fromDate(new Date(receiverPickupDateTime)).toDate();
             regex = /^\s*(true|1|on)\s*$/i;
             isSchedule = regex.test(isSchedule);
-            var sendToDriver = true;
-            if (isSchedule == true) {
-                var d1 = new Date();
-                var today = new Date(d1.getUTCMonth(), d1.getUTCDate(), d1.getUTCFullYear(), d1.getUTCHours(), d1.getUTCMinutes(), d1.getUTCSeconds());
-                if (senderPickupDateTime > today) {
-                    sendToDriver = false;
-                }
-            }
+
+            $("#overlay").show();
+
             if (payment_method == "razorpay") {
+
                 var razorpayKey = $("#razorpayKey").val();
                 var razorpaySecret = $("#razorpaySecret").val();
                 var order_json = {
@@ -837,13 +871,16 @@ session_start();
                     senderParcelWeight: senderParcelWeight,
                     senderParcelWeightName: senderParcelWeightName,
                     senderNote: senderNote,
+                    receiverNote: receiverNote,
                     receiverAddress: receiverAddress,
                     receiverName: receiverName,
                     receiverPhone: receiverPhone,
                     sender_address_lng: sender_address_lng,
                     sender_address_lat: sender_address_lat,
+                    senderZoneId: senderZoneId,
                     receiver_address_lng: receiver_address_lng,
                     receiver_address_lat: receiver_address_lat,
+                    receiverZoneId: receiverZoneId,
                     deliveryCharge: deliveryCharge,
                     discount: discount,
                     discountType: discountType,
@@ -854,8 +891,10 @@ session_start();
                     senderPickupDateTime: senderPickupDateTime,
                     receiverPickupDateTime: receiverPickupDateTime,
                     parcelImages: parcelImages,
-                    sendToDriver: sendToDriver,
                     taxSetting: taxSetting,
+                    taxScope: taxScope,
+                    platformFee: platformCharge,
+                    platformTax: platformTax,
                 };
                 $.ajax({
                     type: 'POST',
@@ -867,7 +906,8 @@ session_start();
                         razorpayKey: razorpayKey,
                         payment_method: payment_method,
                         authorName: authorName,
-                        total_pay: total_pay
+                        total_pay: total_pay,
+                        currencyData: currencyData,
                     },
                     success: function (data) {
                         data = JSON.parse(data);
@@ -875,7 +915,9 @@ session_start();
                         window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
                     }
                 });
+
             } else if (payment_method == "mercadopago") {
+
                 var mercadopago_public_key = $("#mercadopago_public_key").val();
                 var mercadopago_access_token = $("#mercadopago_access_token").val();
                 var mercadopago_isSandbox = $("#mercadopago_isSandbox").val();
@@ -897,6 +939,7 @@ session_start();
                     senderParcelWeight: senderParcelWeight,
                     senderParcelWeightName: senderParcelWeightName,
                     senderNote: senderNote,
+                    receiverNote: receiverNote,
                     receiverAddress: receiverAddress,
                     receiverName: receiverName,
                     receiverPhone: receiverPhone,
@@ -914,8 +957,12 @@ session_start();
                     senderPickupDateTime: senderPickupDateTime,
                     receiverPickupDateTime: receiverPickupDateTime,
                     parcelImages: parcelImages,
-                    sendToDriver: sendToDriver,
+                    senderZoneId: senderZoneId,
+                    receiverZoneId: receiverZoneId,
                     taxSetting: taxSetting,
+                    taxScope: taxScope,
+                    platformFee: platformCharge,
+                    platformTax: platformTax,
                 };
                 $.ajax({
                     type: 'POST',
@@ -935,7 +982,8 @@ session_start();
                         address_line2: $("#address_line2").val(),
                         address_zipcode: $("#address_zipcode").val(),
                         address_city: $("#address_city").val(),
-                        address_country: $("#address_country").val()
+                        address_country: $("#address_country").val(),
+                        currencyData: currencyData,
                     },
                     success: function (data) {
                         data = JSON.parse(data);
@@ -943,7 +991,9 @@ session_start();
                         window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
                     }
                 });
+
             } else if (payment_method == "stripe") {
+
                 var stripeKey = $("#stripeKey").val();
                 var stripeSecret = $("#stripeSecret").val();
                 var isStripeSandboxEnabled = $("#isStripeSandboxEnabled").val();
@@ -965,6 +1015,7 @@ session_start();
                     senderParcelWeight: senderParcelWeight,
                     senderParcelWeightName: senderParcelWeightName,
                     senderNote: senderNote,
+                    receiverNote: receiverNote,
                     receiverAddress: receiverAddress,
                     receiverName: receiverName,
                     receiverPhone: receiverPhone,
@@ -982,8 +1033,12 @@ session_start();
                     senderPickupDateTime: senderPickupDateTime,
                     receiverPickupDateTime: receiverPickupDateTime,
                     parcelImages: parcelImages,
-                    sendToDriver: sendToDriver,
+                    senderZoneId: senderZoneId,
+                    receiverZoneId: receiverZoneId,
                     taxSetting: taxSetting,
+                    taxScope: taxScope,
+                    platformFee: platformCharge,
+                    platformTax: platformTax,
                 };
                 $.ajax({
                     type: 'POST',
@@ -998,6 +1053,7 @@ session_start();
                         total_pay: total_pay,
                         isStripeSandboxEnabled: isStripeSandboxEnabled,
                         senderAddress: senderAddress,
+                        currencyData: currencyData,
                     },
                     success: function (data) {
                         data = JSON.parse(data);
@@ -1005,7 +1061,9 @@ session_start();
                         window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
                     }
                 });
+
             } else if (payment_method == "paypal") {
+
                 var paypalKey = $("#paypalKey").val();
                 var paypalSecret = $("#paypalSecret").val();
                 var ispaypalSandboxEnabled = $("#ispaypalSandboxEnabled").val();
@@ -1027,6 +1085,7 @@ session_start();
                     senderParcelWeight: senderParcelWeight,
                     senderParcelWeightName: senderParcelWeightName,
                     senderNote: senderNote,
+                    receiverNote: receiverNote,
                     receiverAddress: receiverAddress,
                     receiverName: receiverName,
                     receiverPhone: receiverPhone,
@@ -1044,8 +1103,12 @@ session_start();
                     senderPickupDateTime: senderPickupDateTime,
                     receiverPickupDateTime: receiverPickupDateTime,
                     parcelImages: parcelImages,
-                    sendToDriver: sendToDriver,
+                    senderZoneId: senderZoneId,
+                    receiverZoneId: receiverZoneId,
                     taxSetting: taxSetting,
+                    taxScope: taxScope,
+                    platformFee: platformCharge,
+                    platformTax: platformTax,
                 };
                 $.ajax({
                     type: 'POST',
@@ -1058,7 +1121,8 @@ session_start();
                         payment_method: payment_method,
                         authorName: authorName,
                         total_pay: total_pay,
-                        ispaypalSandboxEnabled: ispaypalSandboxEnabled
+                        ispaypalSandboxEnabled: ispaypalSandboxEnabled,
+                        currencyData: currencyData,
                     },
                     success: function (data) {
                         data = JSON.parse(data);
@@ -1066,7 +1130,9 @@ session_start();
                         window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
                     }
                 });
+
             } else if (payment_method == "payfast") {
+
                 var payfast_merchant_key = $("#payfast_merchant_key").val();
                 var payfast_merchant_id = $("#payfast_merchant_id").val();
                 var payfast_return_url = $("#payfast_return_url").val();
@@ -1091,6 +1157,7 @@ session_start();
                     senderParcelWeight: senderParcelWeight,
                     senderParcelWeightName: senderParcelWeightName,
                     senderNote: senderNote,
+                    receiverNote: receiverNote,
                     receiverAddress: receiverAddress,
                     receiverName: receiverName,
                     receiverPhone: receiverPhone,
@@ -1108,8 +1175,12 @@ session_start();
                     senderPickupDateTime: senderPickupDateTime,
                     receiverPickupDateTime: receiverPickupDateTime,
                     parcelImages: parcelImages,
-                    sendToDriver: sendToDriver,
+                    senderZoneId: senderZoneId,
+                    receiverZoneId: receiverZoneId,
                     taxSetting: taxSetting,
+                    taxScope: taxScope,
+                    platformFee: platformCharge,
+                    platformTax: platformTax,
                 };
                 $.ajax({
                     type: 'POST',
@@ -1126,6 +1197,7 @@ session_start();
                         payfast_return_url: payfast_return_url,
                         payfast_notify_url: payfast_notify_url,
                         payfast_cancel_url: payfast_cancel_url,
+                        currencyData: currencyData,
                     },
                     success: function (data) {
                         data = JSON.parse(data);
@@ -1133,7 +1205,9 @@ session_start();
                         window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
                     }
                 });
+
             } else if (payment_method == "paystack") {
+
                 var paystack_public_key = $("#paystack_public_key").val();
                 var paystack_secret_key = $("#paystack_secret_key").val();
                 var paystack_isSandbox = $("#paystack_isSandbox").val();
@@ -1155,6 +1229,7 @@ session_start();
                     senderParcelWeight: senderParcelWeight,
                     senderParcelWeightName: senderParcelWeightName,
                     senderNote: senderNote,
+                    receiverNote: receiverNote,
                     receiverAddress: receiverAddress,
                     receiverName: receiverName,
                     receiverPhone: receiverPhone,
@@ -1172,8 +1247,12 @@ session_start();
                     senderPickupDateTime: senderPickupDateTime,
                     receiverPickupDateTime: receiverPickupDateTime,
                     parcelImages: parcelImages,
-                    sendToDriver: sendToDriver,
+                    senderZoneId: senderZoneId,
+                    receiverZoneId: receiverZoneId,
                     taxSetting: taxSetting,
+                    taxScope: taxScope,
+                    platformFee: platformCharge,
+                    platformTax: platformTax,
                 };
                 $.ajax({
                     type: 'POST',
@@ -1186,7 +1265,8 @@ session_start();
                         total_pay: total_pay,
                         paystack_isSandbox: paystack_isSandbox,
                         paystack_public_key: paystack_public_key,
-                        paystack_secret_key: paystack_secret_key
+                        paystack_secret_key: paystack_secret_key,
+                        currencyData: currencyData,
                     },
                     success: function (data) {
                         data = JSON.parse(data);
@@ -1194,7 +1274,9 @@ session_start();
                         window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
                     }
                 });
+
             } else if (payment_method == "flutterwave") {
+
                 var flutterwave_isenabled = $("#flutterWave_isEnabled").val();
                 var flutterWave_encryption_key = $("#flutterWave_encryption_key").val();
                 var flutterWave_public_key = $("#flutterWave_public_key").val();
@@ -1218,6 +1300,7 @@ session_start();
                     senderParcelWeight: senderParcelWeight,
                     senderParcelWeightName: senderParcelWeightName,
                     senderNote: senderNote,
+                    receiverNote: receiverNote,
                     receiverAddress: receiverAddress,
                     receiverName: receiverName,
                     receiverPhone: receiverPhone,
@@ -1235,8 +1318,12 @@ session_start();
                     senderPickupDateTime: senderPickupDateTime,
                     receiverPickupDateTime: receiverPickupDateTime,
                     parcelImages: parcelImages,
-                    sendToDriver: sendToDriver,
+                    senderZoneId: senderZoneId,
+                    receiverZoneId: receiverZoneId,
                     taxSetting: taxSetting,
+                    taxScope: taxScope,
+                    platformFee: platformCharge,
+                    platformTax: platformTax,
                 };
                 $.ajax({
                     type: 'POST',
@@ -1260,207 +1347,233 @@ session_start();
                         window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
                     }
                 });
+
             } else if (payment_method == "xendit") {
-                        if (!['IDR', 'PHP', 'USD', 'VND', 'THB', 'MYR', 'SGD'].includes(currencyData.code)) {
-                            alert("Currency restriction");
-                            return false;
-                        }
-                        var xendit_enable = $("#xendit_enable").val();
-                        var xendit_apiKey = $("#xendit_apiKey").val();
-                        var order_json = {
-                            authorID: authorID,
-                            id: id_order,
-                            status: status,
-                            isSchedule: isSchedule,
-                            adminCommissionType: adminCommissionType,
-                            adminCommission: adminCommission,
-                            payment_method: payment_method,
-                            paymentCollectByReceiver: paymentCollectByReceiver,
-                            senderName: senderName,
-                            section_id: section_id,
-                            parcelCategoryId: parcelCategoryId,
-                            parcelType: parcelType,
-                            senderAddress: senderAddress,
-                            senderPhone: senderPhone,
-                            senderParcelWeight: senderParcelWeight,
-                            senderParcelWeightName: senderParcelWeightName,
-                            senderNote: senderNote,
-                            receiverAddress: receiverAddress,
-                            receiverName: receiverName,
-                            receiverPhone: receiverPhone,
-                            sender_address_lng: sender_address_lng,
-                            sender_address_lat: sender_address_lat,
-                            receiver_address_lng: receiver_address_lng,
-                            receiver_address_lat: receiver_address_lat,
-                            deliveryCharge: deliveryCharge,
-                            discount: discount,
-                            discountType: discountType,
-                            discountLabel: discountLabel,
-                            coupon_id: coupon_id,
-                            distance: parcelDeliveryKM,
-                            subTotal: parcelDeliveryCharge,
-                            senderPickupDateTime: senderPickupDateTime,
-                            receiverPickupDateTime: receiverPickupDateTime,
-                            parcelImages: parcelImages,
-                            sendToDriver: sendToDriver,
-                            taxSetting: taxSetting,
-                        };
-                        $.ajax({
-                            type: 'POST',
-                            url: "<?php echo route('parcel_order_proccessing'); ?>",
-                            data: {
-                                _token: '<?php echo csrf_token() ?>',
-                                order_json: order_json,
-                                payment_method: payment_method,
-                                authorName: authorName,
-                                total_pay: total_pay,
-                                xendit_enable: xendit_enable,
-                                xendit_apiKey: xendit_apiKey,
-                                currencyData: currencyData
-                            },
-                            success: function (data) {
-                                data = JSON.parse(data);
-                                loadcurrency();
-                                window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
-                            }
-                        });
-                    } else if (payment_method == "midtrans") {
-                        var midtrans_enable = $("#midtrans_enable").val();
-                        var midtrans_serverKey = $("#midtrans_serverKey").val();
-                        var midtrans_isSandbox = $("#midtrans_isSandbox").val();
-                        var order_json = {
-                            authorID: authorID,
-                            id: id_order,
-                            status: status,
-                            isSchedule: isSchedule,
-                            adminCommissionType: adminCommissionType,
-                            adminCommission: adminCommission,
-                            payment_method: payment_method,
-                            paymentCollectByReceiver: paymentCollectByReceiver,
-                            senderName: senderName,
-                            section_id: section_id,
-                            parcelCategoryId: parcelCategoryId,
-                            parcelType: parcelType,
-                            senderAddress: senderAddress,
-                            senderPhone: senderPhone,
-                            senderParcelWeight: senderParcelWeight,
-                            senderParcelWeightName: senderParcelWeightName,
-                            senderNote: senderNote,
-                            receiverAddress: receiverAddress,
-                            receiverName: receiverName,
-                            receiverPhone: receiverPhone,
-                            sender_address_lng: sender_address_lng,
-                            sender_address_lat: sender_address_lat,
-                            receiver_address_lng: receiver_address_lng,
-                            receiver_address_lat: receiver_address_lat,
-                            deliveryCharge: deliveryCharge,
-                            discount: discount,
-                            discountType: discountType,
-                            discountLabel: discountLabel,
-                            coupon_id: coupon_id,
-                            distance: parcelDeliveryKM,
-                            subTotal: parcelDeliveryCharge,
-                            senderPickupDateTime: senderPickupDateTime,
-                            receiverPickupDateTime: receiverPickupDateTime,
-                            parcelImages: parcelImages,
-                            sendToDriver: sendToDriver,
-                            taxSetting: taxSetting,
-                        };
-                        $.ajax({
-                            type: 'POST',
-                            url: "<?php echo route('parcel_order_proccessing'); ?>",
-                            data: {
-                                _token: '<?php echo csrf_token() ?>',
-                                order_json: order_json,
-                                payment_method: payment_method,
-                                authorName: authorName,
-                                total_pay: total_pay,
-                                midtrans_enable: midtrans_enable,
-                                midtrans_serverKey: midtrans_serverKey,
-                                midtrans_isSandbox: midtrans_isSandbox,
-                                currencyData: currencyData
-                            },
-                            success: function (data) {
-                                data = JSON.parse(data);
-                                loadcurrency();
-                                window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
-                            }
-                        });
-                    } else if (payment_method == "orangepay") {
-                        var orangepay_enable = $("#orangepay_enable").val();
-                        var orangepay_isSandbox = $("#orangepay_isSandbox").val();
-                        var orangepay_clientId = $("#orangepay_clientId").val();
-                        var orangepay_clientSecret = $("#orangepay_clientSecret").val();
-                        var orangepay_merchantKey = $("#orangepay_merchantKey").val();
-                        var order_json = {
-                            authorID: authorID,
-                            id: id_order,
-                            status: status,
-                            isSchedule: isSchedule,
-                            adminCommissionType: adminCommissionType,
-                            adminCommission: adminCommission,
-                            payment_method: payment_method,
-                            paymentCollectByReceiver: paymentCollectByReceiver,
-                            senderName: senderName,
-                            section_id: section_id,
-                            parcelCategoryId: parcelCategoryId,
-                            parcelType: parcelType,
-                            senderAddress: senderAddress,
-                            senderPhone: senderPhone,
-                            senderParcelWeight: senderParcelWeight,
-                            senderParcelWeightName: senderParcelWeightName,
-                            senderNote: senderNote,
-                            receiverAddress: receiverAddress,
-                            receiverName: receiverName,
-                            receiverPhone: receiverPhone,
-                            sender_address_lng: sender_address_lng,
-                            sender_address_lat: sender_address_lat,
-                            receiver_address_lng: receiver_address_lng,
-                            receiver_address_lat: receiver_address_lat,
-                            deliveryCharge: deliveryCharge,
-                            discount: discount,
-                            discountType: discountType,
-                            discountLabel: discountLabel,
-                            coupon_id: coupon_id,
-                            distance: parcelDeliveryKM,
-                            subTotal: parcelDeliveryCharge,
-                            senderPickupDateTime: senderPickupDateTime,
-                            receiverPickupDateTime: receiverPickupDateTime,
-                            parcelImages: parcelImages,
-                            sendToDriver: sendToDriver,
-                            taxSetting: taxSetting,
-                        };
-                        $.ajax({
-                            type: 'POST',
-                            url: "<?php echo route('parcel_order_proccessing'); ?>",
-                            data: {
-                                _token: '<?php echo csrf_token() ?>',
-                                order_json: order_json,
-                                payment_method: payment_method,
-                                authorName: authorName,
-                                total_pay: total_pay,
-                                orangepay_enable: orangepay_enable,
-                                orangepay_clientId: orangepay_clientId,
-                                orangepay_clientSecret: orangepay_clientSecret,
-                                orangepay_merchantKey: orangepay_merchantKey,
-                                currencyData: currencyData
-                            },
-                            success: function (data) {
-                                data = JSON.parse(data);
-                                loadcurrency();
-                                window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
-                            }
-                        });
-                    } else {
+
+                if (!['IDR', 'PHP', 'USD', 'VND', 'THB', 'MYR', 'SGD'].includes(currencyData.code)) {
+                    Swal.fire({text: "{{trans('lang.currency_restriction')}}", icon: "error"});
+                    return false;
+                }
+                var xendit_enable = $("#xendit_enable").val();
+                var xendit_apiKey = $("#xendit_apiKey").val();
+                var order_json = {
+                    authorID: authorID,
+                    id: id_order,
+                    status: status,
+                    isSchedule: isSchedule,
+                    adminCommissionType: adminCommissionType,
+                    adminCommission: adminCommission,
+                    payment_method: payment_method,
+                    paymentCollectByReceiver: paymentCollectByReceiver,
+                    senderName: senderName,
+                    section_id: section_id,
+                    parcelCategoryId: parcelCategoryId,
+                    parcelType: parcelType,
+                    senderAddress: senderAddress,
+                    senderPhone: senderPhone,
+                    senderParcelWeight: senderParcelWeight,
+                    senderParcelWeightName: senderParcelWeightName,
+                    senderNote: senderNote,
+                    receiverNote: receiverNote,
+                    receiverAddress: receiverAddress,
+                    receiverName: receiverName,
+                    receiverPhone: receiverPhone,
+                    sender_address_lng: sender_address_lng,
+                    sender_address_lat: sender_address_lat,
+                    receiver_address_lng: receiver_address_lng,
+                    receiver_address_lat: receiver_address_lat,
+                    deliveryCharge: deliveryCharge,
+                    discount: discount,
+                    discountType: discountType,
+                    discountLabel: discountLabel,
+                    coupon_id: coupon_id,
+                    distance: parcelDeliveryKM,
+                    subTotal: parcelDeliveryCharge,
+                    senderPickupDateTime: senderPickupDateTime,
+                    receiverPickupDateTime: receiverPickupDateTime,
+                    parcelImages: parcelImages,
+                    senderZoneId: senderZoneId,
+                    receiverZoneId: receiverZoneId,
+                    taxSetting: taxSetting,
+                    taxScope: taxScope,
+                    platformFee: platformCharge,
+                    platformTax: platformTax,
+                };
+                $.ajax({
+                    type: 'POST',
+                    url: "<?php echo route('parcel_order_proccessing'); ?>",
+                    data: {
+                        _token: '<?php echo csrf_token() ?>',
+                        order_json: order_json,
+                        payment_method: payment_method,
+                        authorName: authorName,
+                        total_pay: total_pay,
+                        xendit_enable: xendit_enable,
+                        xendit_apiKey: xendit_apiKey,
+                        currencyData: currencyData
+                    },
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        loadcurrency();
+                        window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
+                    }
+                });
+
+            } else if (payment_method == "midtrans") {
+
+                var midtrans_enable = $("#midtrans_enable").val();
+                var midtrans_serverKey = $("#midtrans_serverKey").val();
+                var midtrans_isSandbox = $("#midtrans_isSandbox").val();
+                var order_json = {
+                    authorID: authorID,
+                    id: id_order,
+                    status: status,
+                    isSchedule: isSchedule,
+                    adminCommissionType: adminCommissionType,
+                    adminCommission: adminCommission,
+                    payment_method: payment_method,
+                    paymentCollectByReceiver: paymentCollectByReceiver,
+                    senderName: senderName,
+                    section_id: section_id,
+                    parcelCategoryId: parcelCategoryId,
+                    parcelType: parcelType,
+                    senderAddress: senderAddress,
+                    senderPhone: senderPhone,
+                    senderParcelWeight: senderParcelWeight,
+                    senderParcelWeightName: senderParcelWeightName,
+                    senderNote: senderNote,
+                    receiverNote: receiverNote,
+                    receiverAddress: receiverAddress,
+                    receiverName: receiverName,
+                    receiverPhone: receiverPhone,
+                    sender_address_lng: sender_address_lng,
+                    sender_address_lat: sender_address_lat,
+                    receiver_address_lng: receiver_address_lng,
+                    receiver_address_lat: receiver_address_lat,
+                    deliveryCharge: deliveryCharge,
+                    discount: discount,
+                    discountType: discountType,
+                    discountLabel: discountLabel,
+                    coupon_id: coupon_id,
+                    distance: parcelDeliveryKM,
+                    subTotal: parcelDeliveryCharge,
+                    senderPickupDateTime: senderPickupDateTime,
+                    receiverPickupDateTime: receiverPickupDateTime,
+                    parcelImages: parcelImages,
+                    senderZoneId: senderZoneId,
+                    receiverZoneId: receiverZoneId,
+                    taxSetting: taxSetting,
+                    taxScope: taxScope,
+                    platformFee: platformCharge,
+                    platformTax: platformTax,
+                };
+                $.ajax({
+                    type: 'POST',
+                    url: "<?php echo route('parcel_order_proccessing'); ?>",
+                    data: {
+                        _token: '<?php echo csrf_token() ?>',
+                        order_json: order_json,
+                        payment_method: payment_method,
+                        authorName: authorName,
+                        total_pay: total_pay,
+                        midtrans_enable: midtrans_enable,
+                        midtrans_serverKey: midtrans_serverKey,
+                        midtrans_isSandbox: midtrans_isSandbox,
+                        currencyData: currencyData,
+                    },
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        loadcurrency();
+                        window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
+                    }
+                });
+
+            } else if (payment_method == "orangepay") {
+
+                var orangepay_enable = $("#orangepay_enable").val();
+                var orangepay_isSandbox = $("#orangepay_isSandbox").val();
+                var orangepay_clientId = $("#orangepay_clientId").val();
+                var orangepay_clientSecret = $("#orangepay_clientSecret").val();
+                var orangepay_merchantKey = $("#orangepay_merchantKey").val();
+                var order_json = {
+                    authorID: authorID,
+                    id: id_order,
+                    status: status,
+                    isSchedule: isSchedule,
+                    adminCommissionType: adminCommissionType,
+                    adminCommission: adminCommission,
+                    payment_method: payment_method,
+                    paymentCollectByReceiver: paymentCollectByReceiver,
+                    senderName: senderName,
+                    section_id: section_id,
+                    parcelCategoryId: parcelCategoryId,
+                    parcelType: parcelType,
+                    senderAddress: senderAddress,
+                    senderPhone: senderPhone,
+                    senderParcelWeight: senderParcelWeight,
+                    senderParcelWeightName: senderParcelWeightName,
+                    senderNote: senderNote,
+                    receiverNote: receiverNote,
+                    receiverAddress: receiverAddress,
+                    receiverName: receiverName,
+                    receiverPhone: receiverPhone,
+                    sender_address_lng: sender_address_lng,
+                    sender_address_lat: sender_address_lat,
+                    receiver_address_lng: receiver_address_lng,
+                    receiver_address_lat: receiver_address_lat,
+                    deliveryCharge: deliveryCharge,
+                    discount: discount,
+                    discountType: discountType,
+                    discountLabel: discountLabel,
+                    coupon_id: coupon_id,
+                    distance: parcelDeliveryKM,
+                    subTotal: parcelDeliveryCharge,
+                    senderPickupDateTime: senderPickupDateTime,
+                    receiverPickupDateTime: receiverPickupDateTime,
+                    parcelImages: parcelImages,
+                    senderZoneId: senderZoneId,
+                    receiverZoneId: receiverZoneId,
+                    taxSetting: taxSetting,
+                    taxScope: taxScope,
+                    platformFee: platformCharge,
+                    platformTax: platformTax,
+                };
+                $.ajax({
+                    type: 'POST',
+                    url: "<?php echo route('parcel_order_proccessing'); ?>",
+                    data: {
+                        _token: '<?php echo csrf_token() ?>',
+                        order_json: order_json,
+                        payment_method: payment_method,
+                        authorName: authorName,
+                        total_pay: total_pay,
+                        orangepay_enable: orangepay_enable,
+                        orangepay_clientId: orangepay_clientId,
+                        orangepay_clientSecret: orangepay_clientSecret,
+                        orangepay_merchantKey: orangepay_merchantKey,
+                        orangepay_isSandbox: orangepay_isSandbox,
+                        currencyData: currencyData,
+                    },
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        loadcurrency();
+                        window.location.href = "<?php echo route('process_parcel_order_pay'); ?>";
+                    }
+                });
+
+            } else {
+
                 if (payment_method == "wallet") {
                     payment_method = "wallet";
                     if (parseFloat(wallet_amount) < parseFloat(total_pay)) {
-                        alert("you don't have sufficient balance to place this order!");
+                        $("#overlay").hide();
+                        Swal.fire({text: "{{trans('lang.dont_have_sufficient_balance')}}", icon: "error"});
                         return false;
                     }
                 } else {
                     payment_method = "cod";
                 }
+
                 var receiverObject = {
                     'address': receiverAddress,
                     'name': receiverName,
@@ -1479,6 +1592,15 @@ session_start();
                     'latitude': parseFloat(sender_address_lat),
                     'longitude': parseFloat(sender_address_lng)
                 }
+                var sourcePoint = {
+                    geohash: encodeGeohash(sender_address_lat, sender_address_lng, 9),
+                    geopoint: new firebase.firestore.GeoPoint(sender_address_lat, sender_address_lng)
+                }
+                var destinationPoint = {
+                    geohash: encodeGeohash(receiver_address_lat, receiver_address_lng, 9),
+                    geopoint: new firebase.firestore.GeoPoint(receiver_address_lat, receiver_address_lng)
+                }
+                
                 database.collection('parcel_orders').doc(id_order).set({
                     'adminCommission': adminCommission,
                     'adminCommissionType': adminCommissionType,
@@ -1493,6 +1615,7 @@ session_start();
                     'id': id_order,
                     'isSchedule': isSchedule,
                     'note': senderNote,
+                    'receiverNote': receiverNote ? receiverNote : '',
                     'parcelWeight': senderParcelWeightName,
                     'parcelWeightCharge': deliveryCharge,
                     'paymentCollectByReceiver': paymentCollectByReceiver,
@@ -1505,13 +1628,22 @@ session_start();
                     'senderPickupDateTime': senderPickupDateTime,
                     'status': status,
                     'subTotal': parcelDeliveryCharge,
-                    'section_id': section_id,
+                    'sectionId': section_id,
                     'parcelCategoryID': parcelCategoryId,
                     'parcelType': parcelType,
                     'parcelImages': parcelImages,
-                    'sendToDriver': sendToDriver,
+                    'driverId': null,
+                    'rejectedByDrivers': null,
+                    'sourcePoint': sourcePoint,
+                    'destinationPoint': destinationPoint,
+                    'senderZoneId': senderZoneId,
+                    'receiverZoneId': receiverZoneId,
                     'taxSetting': taxSetting,
+                    'taxScope': taxScope,
+                    'platformFee': platformCharge,
+                    'platformTax': platformTax,
                 }).then(function (result) {
+
                     $.ajax({
                         type: 'POST',
                         url: "<?php echo route('parcel_order_complete'); ?>",
@@ -1534,11 +1666,13 @@ session_start();
                                         'serviceType': 'parcel-service',
                                         'user_id': authorID
                                     }).then(async function (result) {
-                                        window.location.href = "<?php echo url('parcel_success'); ?>";
+                                        await sendMailToParcel(id_order, authorID);
+                                        window.location.href = "{{ route('parcel_success') }}";
                                     })
                                 });
                             } else {
-                                window.location.href = "<?php echo url('parcel_success'); ?>";
+                                await sendMailToParcel(id_order, authorID);
+                                window.location.href = "{{ route('parcel_success') }}";
                             }
                         }
                     });
@@ -1546,5 +1680,7 @@ session_start();
             }
         });
     }
+
 </script>
+
 @include('layouts.nav')

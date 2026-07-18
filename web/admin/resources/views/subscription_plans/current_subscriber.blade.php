@@ -7,8 +7,8 @@
             </div>
             <div class="col-md-7 align-self-center">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
-                    <li class="breadcrumb-item"><a href="{{ url('/subscription-plans') }}">{{ trans('lang.subscription_plans') }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('subscription-plans.index') }}">{{ trans('lang.subscription_plans') }}</a></li>
                     <li class="breadcrumb-item active">{{ trans('lang.current_subscriber_list') }}</li>
                 </ol>
             </div>
@@ -31,7 +31,7 @@
                                 <table id="subscriptionHistoryTable" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">
                                     <thead>
                                         <tr>
-                                            <th>{{ trans('lang.user') }}</th>
+                                            <th>{{ trans('lang.vendor_name') }}</th>
                                             <th>{{ trans('lang.plan_name') }}</th>
                                             <th>{{ trans('lang.plan_type') }}</th>
                                             <th id="order_booking">{{ trans('lang.order_limit') }}</th>
@@ -53,32 +53,24 @@
     </div>
 @endsection
 @section('scripts')
+
     <script>
+
         var database = firebase.firestore();
         var intRegex = /^\d+$/;
         var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
         var planId = '{{ $id }}';
-        var section_id = '';
-
+        
         database.collection('subscription_plans').where('id', '==', planId).get().then(async function(snapshot) {
             var data = snapshot.docs[0].data();
-            section_id = data.sectionId;
+            var section_id = data.sectionId;
+
             $('.plan_title').html('{{ trans('lang.current_subscriber_list_of') }} - ' + data.name);
 
-            var sectionData = await database.collection('sections').where('id', '==', section_id).get();
-
-            if (sectionData.empty) {
-                console.log("No section found!");
-                return;
-            }
-
-            var section = sectionData.docs[0].data();
-
-
+            var sectionData = await database.collection('sections').doc(section_id).get();
+            var section = sectionData.data();
             adjustHeadersBasedOnSection(section.serviceTypeFlag);
-
-        })
-
+        });
 
         var subscriberListRef = database.collection('users').where('subscriptionPlanId', '==', planId);
         var currentCurrency = '';
@@ -218,11 +210,8 @@
                         return data;
                     }
                 }, ],
-                "language": {
-                    "zeroRecords": "{{ trans('lang.no_record_found') }}",
-                    "emptyTable": "{{ trans('lang.no_record_found') }}",
-                    "processing": ""
-                },
+                "language": datatableLang,
+
             });
 
             function debounce(func, wait) {
@@ -250,22 +239,22 @@
             const serviceLimitHeader = document.getElementById("item_service");
             const bookingLimitHeader = document.getElementById('order_booking');
             if (sectionType === "ondemand-service") {
-
                 serviceLimitHeader.textContent = "{{ trans('lang.service_limit') }}";
                 bookingLimitHeader.textContent = "{{ trans('lang.booking_limit') }}";
             } else {
-
                 serviceLimitHeader.textContent = "{{ trans('lang.item_limit') }}";
                 bookingLimitHeader.textContent = "{{ trans('lang.order_limit') }}";
             }
-
         }
+
         async function buildHTML(val) {
             var html = [];
-            var route = '{{ route('users.view', ':id') }}';
+            var route = '{{ route('vendors.edit', ':id') }}';
             route = route.replace(':id', val.id);
+            
             html.push('<a href="' + route + '" class="redirecttopage" >' + val.owner + '</a>');
             html.push('<span>' + val.subscription_plan.name + '</span>');
+
             if (val.subscription_plan.type == 'free') {
                 html.push('<span class="badge badge-success">' + val.subscription_plan.type.toUpperCase() + '</span>');
             } else {
@@ -296,6 +285,7 @@
             }
             return html;
         }
+
         async function getOrderCount(vendorid) {
             var orderCount = 0;
             

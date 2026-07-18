@@ -22,7 +22,7 @@
 
             <ol class="breadcrumb">
 
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
                 <?php if ($id != '') { ?>
 
@@ -58,7 +58,7 @@
 
                             <label class="col-3 control-label">{{ trans('lang.provider')}}</label>
 
-                            <div class="col-7">
+                            <div class="col-7 select2-container-full">
 
                                 <select id="select_provider" class="form-control">
 
@@ -167,7 +167,7 @@
     var currentCurrency = '';
     var currencyAtRight = false;
     var decimal_degits = 0;
-
+    var section_id = getCookie('section_id');
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     refCurrency.get().then(async function(snapshots) {
         var currencyData = snapshots.docs[0].data();
@@ -194,7 +194,7 @@
             adminEmail = emailSettingData.userName;
         });
 
-        database.collection('users').get().then(async function(snapshots) {
+        database.collection('users').where('role', '==', 'provider').where('section_id','==',section_id).get().then(async function(snapshots) {
             snapshots.docs.forEach((listval) => {
                 var data = listval.data();
                 providers.push(data);
@@ -285,7 +285,7 @@
 
                                     emailTemplatesData.message = message;
 
-                                    var url = "{{url('send-email')}}";
+                                    var url = "{{route('send-email')}}";
                                     if (providerEmail != '' && providerEmail != null) {
 
                                         var sendEmailStatus = await sendEmail(url, emailTemplatesData.subject, emailTemplatesData.message, [adminEmail, providerEmail]);
@@ -294,14 +294,14 @@
                                             <?php if ($id != '') { ?>
                                                 window.location.href = "{{route('providerPayouts.payout',$id)}}";
                                             <?php } else { ?>
-                                                window.location.href = '{{ route("providerPayouts")}}';
+                                                window.location.href = '{{ route("payoutRequests.providers.disbursement")}}';
                                             <?php } ?>
                                         }
                                     } else {
                                         <?php if ($id != '') { ?>
                                             window.location.href = "{{route('providerPayouts.payout',$id)}}";
                                         <?php } else { ?>
-                                            window.location.href = '{{ route("providerPayouts")}}';
+                                            window.location.href = '{{ route("payoutRequests.providers.disbursement")}}';
                                         <?php } ?>
                                     }
 

@@ -17,9 +17,15 @@
     </div>
 </div>
 @include('layouts.footer')
+<script src="https://unpkg.com/geofirestore/dist/geofirestore.js"></script>
+<script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
 <script type="text/javascript">
+    var firestore = firebase.firestore();
+    var geoFirestore = new GeoFirestore(firestore);
     var type = '<?php echo $type; ?>';
     var id = '<?php echo $id; ?>';
+    var inValidVendors = [];
+    var vendorIds = [];
     if (type == "category") {
         var idRef = database.collection('vendor_categories').doc(id);
         var catsRef = database.collection('vendor_categories').where('section_id', '==', section_id).where("publish", "==", true);
@@ -37,6 +43,18 @@
         var idRefData = idRefSnapshots.data();
         $("#title").text(idRefData.title + ' ' + "{{trans('lang.products')}}");
     })
+    var VendorNearBy = '';
+    var DriverNearByRef = database.collection('settings').doc('DriverNearBy');
+    DriverNearByRef.get().then(async function(DriverNearByRefSnapshots) {
+        var DriverNearByRefData = DriverNearByRefSnapshots.data();
+        VendorNearBy = parseInt(DriverNearByRefData.driverRadios);
+        radiusUnit=DriverNearByRefData.distanceType;
+            if (radiusUnit == 'miles') {
+                VendorNearBy = parseInt(VendorNearBy * 1.60934)
+            }
+        address_lat = parseFloat(address_lat);
+        address_lng = parseFloat(address_lng);
+    });
     var decimal_degits = 0;
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     refCurrency.get().then(async function (snapshots) {
@@ -49,6 +67,7 @@
     });
     jQuery("#overlay").show();
     $(document).ready(async function () {
+        inValidVendors = await getInvaidUserIds();
         priceData=await fetchVendorPriceData();
 
         if (type == "category") {
@@ -186,13 +205,30 @@
             var idRefData = idRefSnapshots.data();
             $("#title").text(idRefData.title + ' ' + "{{trans('lang.products')}}");
         })
-        productsRef.get().then(async function (snapshots) {
-            html = await buildProductsHTML(snapshots);
-            if (html != '') {
-                product_list.innerHTML = html;
-                jQuery("#overlay").hide();
-            }
-        });
+        var vendorsSnapshots = await geoFirestore.collection('vendors').near({
+            center: new firebase.firestore.GeoPoint(address_lat, address_lng),
+            radius: VendorNearBy
+        }).limit(200).where('section_id', '==', section_id).where('zoneId', '==', user_zone_id).get();
+        if (vendorsSnapshots.docs.length > 0) {
+            vendorsSnapshots.docs.forEach((listval) => {
+                if (!inValidVendors.includes(listval.author)) {
+                    vendorIds.push(listval.id);
+                }
+            });
+            productsRef.get().then(async function (snapshots) {
+                if (snapshots.docs.length > 0) {
+                    html = await buildProductsHTML(snapshots);
+                    product_list.innerHTML = html;
+                }else{
+                    html = html + "<h5 class='font-weight-bold text-center mt-3'>{{ trans('lang.no_results') }}</h5>";
+                    product_list.innerHTML = html;
+                }
+            });
+        } else {
+            html = html + "<h5 class='font-weight-bold text-center mt-3'>{{ trans('lang.no_results') }}</h5>";
+            product_list.innerHTML = html;
+        }
+        jQuery("#overlay").hide();        
     }
 
    async function buildProductsHTML(snapshots) {
@@ -202,10 +238,12 @@
         snapshots.docs.forEach((listval) => {
             var datas = listval.data();
             datas.id = listval.id;
-            if (!groupedData[datas.vendorID]) {
-                groupedData[datas.vendorID] = [];
+            if (vendorIds.includes(datas.vendorID)) { 
+                if (!groupedData[datas.vendorID]) {
+                    groupedData[datas.vendorID] = [];
+                }
+                groupedData[datas.vendorID].push(datas);
             }
-            groupedData[datas.vendorID].push(datas);
         });
         await Promise.all(Object.keys(groupedData).map(async (vendorID) => {
             let products = groupedData[vendorID];
@@ -222,7 +260,7 @@
                 var val = listval;
                 var rating = 0;
                 var reviewsCount = 0;
-                if (val.hasOwnProperty('reviewsSum') && val.reviewsSum != 0 && val.hasOwnProperty('reviewsCount') && val.reviewsCount != 0) {
+                if (val.hasOwnProperty('reviewsSum') && val.reviewsSum > 0 && val.hasOwnProperty('reviewsCount') && val.reviewsCount > 0) {
                     rating = (val.reviewsSum / val.reviewsCount);
                     rating = Math.round(rating * 10) / 10;
                     reviewsCount = val.reviewsCount;

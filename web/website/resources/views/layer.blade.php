@@ -58,7 +58,7 @@
     });
 
     async function getSections() {
-        database.collection('sections').where('isActive', '==', true).get().then(async function (sectionsSnapshot) {
+        database.collection('sections').where('isActive', '==', true).orderBy('order').get().then(async function (sectionsSnapshot) {
             sections = document.getElementById('sections');
             sections.innerHTML = '';
             sectionshtml = buildHTMLSections(sectionsSnapshot);

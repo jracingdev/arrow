@@ -12,31 +12,14 @@
                     <div class="siddhi-cart-item mb-3 rounded shadow-sm bg-white overflow-hidden">
                         <div class="siddhi-cart-item-profile bg-white p-3">
                             <div class="card card-default payment-wrap">
-                                <table class="payment-table">
-                                    <thead>
-                                    <tr>
-                                        <th>
-                                            {{trans('lang.pay')}}
-                                        </th>
-                                        <th class="text-right">
-                                            {{trans('lang.total')}}
-                                        </th>
-                                    </tr>
-                                    </thead>
+                                <table class="payment-table m-4">
                                     <tbody>
                                     <tr>
                                         <td>
-                                            {{trans('lang.payfast_payment')}}
-                                        </td>
+                                            {{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}
+                                         </td>
                                         <td class="text-right payment-button">
-                                            <?php
-                                            if ($payfast_isSandbox) {
-                                                $form_url = "https://sandbox.payfast.co.za/eng/process";
-                                            } else {
-                                                $form_url = "https://payfast.co.za/eng/process";
-                                            }
-                                            ?>
-                                            <form action="<?php echo $form_url; ?>" method="post">
+                                            <form action="https://{{ $pfHost }}/eng/process" method="POST">
                                                 <input type="hidden" name="merchant_id"
                                                        value="<?php echo $payfast_merchant_id; ?>">
                                                 <input type="hidden" name="merchant_key"
@@ -52,7 +35,7 @@
                                                        value="<?php echo $payfast_cancel_url; ?>">
                                                 <input type="hidden" name="notify_url"
                                                        value="<?php echo $payfast_notify_url; ?>">
-                                                <input type="submit">
+                                                <input type="submit" class="btn btn-primary" value="{{ trans('lang.pay_now') }}">
                                             </form>
                                         </td>
                                     </tr>

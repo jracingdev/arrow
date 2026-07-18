@@ -102,17 +102,6 @@
 
 
 
-                <li class="nav-item">
-
-                        <a class="nav-link parcel_payfast_active_label" href="{!! url('settings/payment/parcelPayStack') !!}"><i
-
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.parcelPayStack')}}<span
-
-                            class="badge ml-2"></span>
-
-                    </a>
-
-                </li>
 
 
 
@@ -262,7 +251,7 @@ var payFastSettings = database.collection('settings').doc('payFastSettings');
 
 var payStackSettings = database.collection('settings').doc('payStack');
 
-var parcelPayStack = database.collection('settings').doc('parcelPayStack');
+// var parcelPayStack = database.collection('settings').doc('parcelPayStack');
 
 var flutterWaveSettings = database.collection('settings').doc('flutterWave');
 
@@ -392,21 +381,6 @@ $(document).ready(function () {
 
         })
 
-
-
-        parcelPayStack.get().then(async function (payStackSnapShots) {
-
-            var payStack = payStackSnapShots.data();
-
-            if (payStack.isEnable) {
-
-                jQuery(".parcel_payfast_active_label span").addClass('badge-success');
-
-                jQuery(".parcel_payfast_active_label span").text('Active');
-
-            }
-
-        })
 
 
 

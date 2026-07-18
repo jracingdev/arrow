@@ -63,7 +63,7 @@ error_reporting(E_ALL ^ E_NOTICE);
                                     <option value="title">{{trans('lang.title')}}</option>
                                 </select>
                                 <div class="form-group">
-                                <input type="search" id="search" class="search form-control" placeholder="Search" aria-controls="users-table"></label>&nbsp;<button onclick="searchtext();" class="btn btn-warning btn-flat">{{trans('lang.search')}}</button>&nbsp;<button onclick="searchclear();" class="btn btn-warning btn-flat">{{trans('lang.clear')}}</button>
+                                <input type="search" id="search" class="search form-control" placeholder="{{trans('lang.search')}}" aria-controls="users-table"></label>&nbsp;<button onclick="searchtext();" class="btn btn-warning btn-flat">{{trans('lang.search')}}</button>&nbsp;<button onclick="searchclear();" class="btn btn-warning btn-flat">{{trans('lang.clear')}}</button>
                             </div>
                             </div>
  
@@ -99,8 +99,8 @@ error_reporting(E_ALL ^ E_NOTICE);
 
                                     </table>
                                                     <div class="dataTables_paginate paging_simple_numbers" id="data-table_paginate"><ul class="pagination"><li class="paginate_button previous" id="users-table_previous">
-                <a href="javascript:void(0);" id="users_table_previous_btn" onclick="prev()" aria-controls="users-table" data-dt-idx="0" tabindex="0">Previous</a></li><li class="paginate_button">
-                <a href="javascript:void(0);" id="users_table_next_btn" onclick="next()" aria-controls="users-table" data-dt-idx="2" tabindex="0">Next</a></li></ul></div>
+                <a href="javascript:void(0);" id="users_table_previous_btn" onclick="prev()" aria-controls="users-table" data-dt-idx="0" tabindex="0">{{trans('lang.previous')}}</a></li><li class="paginate_button">
+                <a href="javascript:void(0);" id="users_table_next_btn" onclick="next()" aria-controls="users-table" data-dt-idx="2" tabindex="0">{{trans('lang.next')}}</a></li></ul></div>
                 </div>
 
                                 </div>

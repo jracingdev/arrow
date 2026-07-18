@@ -1,63 +1,80 @@
 <nav id="main-nav">
     <ul class="second-nav">
+        <li> <a href="{{route('search')}}" class="widget-header mr-4 page text-dark">
+            <div class="icon d-flex align-items-center">
+                <i class="feather-search h6 mr-2 mb-0"></i> <span>{{trans('lang.search')}}</span>
+            </div>
+        </a></li>
         <li><a href="{{url('/')}}"><i class="fa fa-home mr-2"></i> {{trans('lang.home_page')}}</a></li>
         @auth
+            <li><a href="{{route('offers')}}" class="widget-header mr-4 page text-dark offer-link">
+                <div class="icon d-flex align-items-center">
+                    <img alt="#" class="img-fluid mr-2"
+                                                                            src="{{asset('img/discount.png')}}">
+                    <span>{{trans('lang.offers')}}</span>
+                </div>
+            </a></li>
+            <li> <a href="{{route('checkout')}}" class="widget-header mr-4 page text-dark">
+                <div class="icon d-flex align-items-center">
+                    <i class="feather-shopping-cart h6 mr-2 mb-0"></i> <span>{{trans('lang.cart')}}</span>
+                </div>
+            </a></li>
             @if(@$_COOKIE['service_type'] == "Parcel Delivery Service")
-                <li><a href="{{url('parcel_orders')}}"><i class="fa fa-list-ul mr-2"></i> {{trans('lang.my_orders')}}
+                <li><a href="{{route('parcel_orders')}}"><i class="fa fa-list-ul mr-2"></i> {{trans('lang.my_orders')}}
                     </a></li>
             @elseif(@$_COOKIE['service_type'] == "Rental Service")
                 <li><a href="{{route('rental_orders')}}"><i class="fa fa-list-ul mr-2"></i> {{trans('lang.my_orders')}}
                     </a></li>
             @elseif(@$_COOKIE['service_type'] == "Cab Service")
-                <li><a href="{{url('my_order')}}" style="display:none"><i class="fa fa-list-ul mr-2"
+                <li><a href="{{route('my_order')}}" style="display:none"><i class="fa fa-list-ul mr-2"
                                                                           style="display:none"></i> {{trans('lang.my_orders')}}
                     </a></li>
             @elseif(@$_COOKIE['service_type'] == "On Demand Service")
-                <li><a href="{{url('my-bookings')}}"><i class="fa fa-list-ul mr-2"></i> {{trans('lang.my_booking')}}</a>
+                <li><a href="{{route('my-bookings')}}"><i class="fa fa-list-ul mr-2"></i> {{trans('lang.my_booking')}}</a>
                 </li>
             @else
-                <li><a href="{{url('my_order')}}"><i class="fa fa-list-ul mr-2"></i> {{trans('lang.my_orders')}}</a>
+                <li><a href="{{route('my_order')}}"><i class="fa fa-list-ul mr-2"></i> {{trans('lang.my_orders')}}</a>
                 </li>
             @endif
             @if(@$_COOKIE['service_type'] == "Cab Service")
-                <li><a href="{{url('transactions')}}" style="display:none"><i class="fa fa-list-ol mr-2"
+                <li><a href="{{route('transactions')}}" style="display:none"><i class="fa fa-list-ol mr-2"
                                                                               style="display:none"></i> {{trans('lang.my_transactions')}}
                     </a></li>
             @else
-                <li><a href="{{url('transactions')}}"><i
+                <li><a href="{{route('transactions')}}"><i
                                 class="fa fa-list-ol mr-2"></i> {{trans('lang.my_transactions')}}</a></li>
             @endif
             @if(@$_COOKIE['service_type'] == "Multivendor Delivery Service" || @$_COOKIE['service_type']=="Ecommerce Service" )
-                <li><a href="{{url('favorite-stores')}}"><i
+                <li><a href="{{route('favorites')}}"><i
                                 class="fa fa-heart mr-2"></i> {{trans('lang.favorite_stores')}}</a></li>
-                <li><a href="{{url('favorite-products')}}"><i
+                <li><a href="{{route('favorites.product')}}"><i
                                 class="fa fa-heart mr-2"></i> {{trans('lang.favorite_products')}}</a></li>
-                <li><a href="{{url('vendors')}}"><i class="fa fa-th-list mr-2"></i> {{trans('lang.all_store')}}</a></li>
-                <li><a href="{{url('delivery-address')}}"><i
+                <li><a href="{{route('vendors')}}"><i class="fa fa-th-list mr-2"></i> {{trans('lang.all_store')}}</a></li>
+                <li><a href="{{route('delivery-address.index')}}"><i
                                 class="feather-book mr-2"></i> {{trans('lang.address_book')}}</a></li>
             @endif
             @if(@$_COOKIE['service_type'] == "On Demand Service")
-                <li><a href="{{url('ondemand-services')}}"><i
+                <li><a href="{{route('ondemand-services')}}"><i
                                 class="fa fa-th-list mr-2"></i> {{trans('lang.all_services')}}</a></li>
-                <li><a href="{{url('favorite-providers')}}"><i
+                <li><a href="{{route('favorites.provider')}}"><i
                                 class="fa fa-heart mr-2"></i> {{trans('lang.favorite_providers')}}</a></li>
-                <li><a href="{{url('favorite-services')}}"><i
+                <li><a href="{{route('favorites.service')}}"><i
                                 class="fa fa-heart mr-2"></i> {{trans('lang.favorite_services')}}</a></li>
-                <li><a href="{{url('delivery-address')}}"><i
+                <li><a href="{{route('delivery-address.index')}}"><i
                                 class="feather-book mr-2"></i> {{trans('lang.address_book')}}</a></li>
             @endif
-            <li><a href="{{url('buy-gift-card')}}"><i class="fa fa-gift mr-2"></i> {{trans('lang.buy_gift_card')}}</a>
+            <li><a href="{{route('customize.giftcard')}}"><i class="fa fa-gift mr-2"></i> {{trans('lang.buy_gift_card')}}</a>
             </li>
-            <li><a href="{{url('giftcards')}}"><i class="fa fa-gift mr-2"></i> {{trans('lang.my_gift_cards')}}</a></li>
+            <li><a href="{{route('giftcards')}}"><i class="fa fa-gift mr-2"></i> {{trans('lang.my_gift_cards')}}</a></li>
             @if (@$_COOKIE['dine_in_active'] && @$_COOKIE['dine_in_active'] == 'true')
-                <li class="dine_in_menu"><a href="{{url('vendors')}}?dinein=1"><i
+                <li class="dine_in_menu"><a href="{{route('vendors')}}?dinein=1"><i
                                 class="fa fa-list-ul mr-2"></i>{{trans('lang.dine_in_vendor')}}</a></li>
-                <li class="dine_in_menu dineinrestaurant_tab "><a href="{{url('my_dinein')}}"><i
+                <li class="dine_in_menu dineinrestaurant_tab "><a href="{{route('my_dinein')}}"><i
                                 class="fa fa-list-ul mr-2"></i>{{trans('lang.my_dine_in_requests')}}</a></li>
             @endif
-            <li><a href="{{url('profile')}}"><i class="fa fa-user mr-2"></i>{{trans('lang.user_profile')}}</a></li>
-            <li><a href="{{url('contact-us')}}"><i class="fa fa-phone mr-2"></i>{{trans('lang.contact_us')}}</a></li>
-            <li><a href="{{url('logout')}}"
+            <li><a href="{{route('profile')}}"><i class="fa fa-user mr-2"></i>{{trans('lang.user_profile')}}</a></li>
+            <li><a href="{{route('contact_us')}}"><i class="fa fa-phone mr-2"></i>{{trans('lang.contact_us')}}</a></li>
+            <li><a href="{{route('logout')}}"
                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i
                             class="fa fa-sign-out mr-2"></i>{{trans('lang.logout')}}</a></li>
             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
@@ -65,20 +82,20 @@
             </form>
             <li><p class="referral_code"></p></li>
         @else
-            <li><a href="{{url('contact-us')}}"><i class="fa fa-phone mr-2"></i>{{trans('lang.contact_us')}}</a></li>
+            <li><a href="{{route('contact_us')}}"><i class="fa fa-phone mr-2"></i>{{trans('lang.contact_us')}}</a></li>
             @if(@$_COOKIE['service_type'] == "Multivendor Delivery Service" ||  @$_COOKIE['service_type']=="Ecommerce Service" )
-                <li><a href="{{url('vendors')}}"><i class="fa fa-th-list mr-2"></i> {{trans('lang.all_store')}}</a></li>
+                <li><a href="{{route('vendors')}}"><i class="fa fa-th-list mr-2"></i> {{trans('lang.all_store')}}</a></li>
             @endif
             @if(@$_COOKIE['service_type'] == "On Demand Service")
-                <li><a href="{{url('ondemand-services')}}"><i
+                <li><a href="{{route('ondemand-services')}}"><i
                                 class="fa fa-th-list mr-2"></i> {{trans('lang.all_services')}}</a></li>
             @endif
             @if (@$_COOKIE['dine_in_active'] && @$_COOKIE['dine_in_active'] == 'true')
-                <li class="dine_in_menu"><a href="{{url('vendors')}}?dinein=1"><i
+                <li class="dine_in_menu"><a href="{{route('vendors')}}?dinein=1"><i
                                 class="fa fa-th-list mr-2"></i>{{trans('lang.dine_in_vendor')}}</a></li>
             @endif
-            <li><a href="{{url('login')}}"><i class="fa fa-sign-in mr-2"></i>{{trans('lang.login')}}</a></li>
-            <li><a href="{{url('signup')}}"><i class="fa fa-user-plus mr-2"></i>{{trans('lang.register')}}</a></li>
+            <li><a href="{{route('login')}}"><i class="fa fa-sign-in mr-2"></i>{{trans('lang.login')}}</a></li>
+            <li><a href="{{route('signup')}}"><i class="fa fa-user-plus mr-2"></i>{{trans('lang.register')}}</a></li>
         @endauth
         <li><p class="web_version"></p></li>
     </ul>
@@ -90,7 +107,7 @@
             </a>
         </li>
         <li class="ko-fi">
-            <a href="{{url('contact-us')}}">
+            <a href="{{route('contact_us')}}">
                 <p class="h5 m-0"><i class="feather-phone"></i></p>
                 {{trans('lang.help')}}
             </a>

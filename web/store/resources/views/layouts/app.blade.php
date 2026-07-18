@@ -13,8 +13,7 @@
         <!-- Fonts -->
         <link rel="dns-prefetch" href="//fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
-        <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/css/bootstrap-timepicker.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/css/bootstrap-timepicker.min.css">
 
         <link href="{{ asset('assets/plugins/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
         <?php if (str_replace('_', '-', app()->getLocale()) == 'ar' || @$_COOKIE['is_rtl'] == 'true') { ?>
@@ -29,17 +28,18 @@
         <link href="{{ asset('css/colors/blue.css') }}" rel="stylesheet">
         <link href="{{ asset('css/chosen.css') }}" rel="stylesheet">
         <link href="{{ asset('css/bootstrap-tagsinput.css') }}" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+        <link href="{{ asset('assets/plugins/select2/dist/css/select2.min.css') }}" rel="stylesheet">
 
+        <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
         <!-- Datatable css -->
 
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-        <link rel="stylesheet" type="text/css"
-            href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css">
         <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
         <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
-
+        <link href="{{ asset('css/toastr.min.css')}}" rel="stylesheet">
         <!-- @yield('style') -->
         <?php if (isset($_COOKIE['store_panel_color'])) { ?>
         <style type="text/css">
@@ -269,6 +269,21 @@
                 color: <?php echo $_COOKIE['store_panel_color'];
                 ?>;
             }
+            .review-rating-demo{background: <?php echo $_COOKIE['store_panel_color'];
+                ?>;}
+                .restaurant_payout_create-inner fieldset legend {
+                background: <?php echo $_COOKIE['store_panel_color'];
+                ?>;
+            }
+            .table tr td > span.badge {
+    display: inline-block;
+    padding: 10px 15px 10px 15px;
+    line-height: 1;
+    text-transform: capitalize;
+    border-radius: 50px;
+    text-align: center;
+    font-size: 13px;
+}
         </style>
         <?php } ?>
 
@@ -286,7 +301,7 @@
             <div id="main-wrapper">
                 <div id="data-table_processing" class="page-overlay" style="display:none;">
                     <div class="overlay-text">
-                        <img src="{{asset('images/spinner.gif')}}">
+                        <img src="{{ asset('images/spinner.gif') }}">
                     </div>
                 </div>
 
@@ -307,7 +322,6 @@
                 </aside>
             </div>
 
-
             <main class="py-4">
                 @yield('content')
             </main>
@@ -324,13 +338,11 @@
                             <h6><span id="auth_accept_name" class="order_message"></span></h6>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary"><a href="{{ url('orders') }}"
-                                    id="notification_url">Go</a></button>
+                            <button type="button" class="btn btn-primary"><a href="{{ route('orders') }}" id="notification_url">{{trans('lang.go')}}</a></button>
                         </div>
                     </div>
                 </div>
             </div>
-
 
             <div class="modal fade" id="notification_book_table_order" tabindex="-1" role="dialog" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered notification-main" role="document">
@@ -345,15 +357,13 @@
                             <h6><span id="auth_accept_name_book_table" class="dinein_order_msg"></span></h6>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary"><a href="{{ url('booktable') }}"
-                                    id="notification_book_table_url">Go</a>
+                            <button type="button" class="btn btn-primary"><a href="{{ route('booktable') }}" id="notification_book_table_url">{{trans('lang.go')}}</a>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal fade" id="notification_accepted_order" tabindex="-1" role="dialog"
-                aria-hidden="true">
+            <div class="modal fade" id="notification_accepted_order" tabindex="-1" role="dialog" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered notification-main" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -366,13 +376,83 @@
                             <h6><span id="np_accept_name" class="driver_accepted_msg"></span></h6>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary"><a href="{{ url('orders') }}"
-                                    id="notification_accepted_a">Go</a></button>
+                            <button type="button" class="btn btn-primary"><a href="{{ route('orders') }}" id="notification_accepted_a">{{trans('lang.go')}}</a></button>
                         </div>
                     </div>
                 </div>
             </div>
-
+            <div class="modal fade" id="advertisement_accepted_notification" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered notification-main" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title advertisement_accepted_sub" id="exampleModalLongTitle"></h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <h6><span id="advertisement_accepted_msg" class="advertisement_accepted_msg"></span></h6>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary"><a href="{{ route('advertisements') }}" id="advertisement_accepted_route">{{trans('lang.go')}}</a></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="advertisement_canceled_notification" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered notification-main" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title advertisement_cancelled_sub" id="exampleModalLongTitle"></h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <h6><span id="advertisement_cancelled_msg" class="advertisement_cancelled_msg"></span></h6>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary"><a href="{{ route('advertisements') }}" id="advertisement_canceled_route">{{trans('lang.go')}}</a></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="advertisement_paused_notification" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered notification-main" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title advertisement_paused_sub" id="exampleModalLongTitle"></h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <h6><span id="advertisement_paused_msg" class="advertisement_paused_msg"></span></h6>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary"><a href="{{ route('advertisements') }}" id="advertisement_paused_route">{{trans('lang.go')}}</a></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="advertisement_resumed_notification" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered notification-main" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title advertisement_resumed_sub" id="exampleModalLongTitle"></h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <h6><span id="advertisement_resumed_msg" class="advertisement_resumed_msg"></span></h6>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary"><a href="{{ route('advertisements') }}" id="advertisement_resumed_route">{{trans('lang.go')}}</a></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <script src="{{ asset('assets/plugins/jquery/jquery.min.js') }}"></script>
         <script src="{{ asset('assets/plugins/bootstrap/js/popper.min.js') }}"></script>
@@ -383,28 +463,29 @@
         <script src="{{ asset('assets/plugins/sticky-kit-master/dist/sticky-kit.min.js') }}"></script>
         <script src="{{ asset('assets/plugins/sparkline/jquery.sparkline.min.js') }}"></script>
         <script src="{{ asset('js/custom.min.js') }}"></script>
+        <script src="{{ asset('assets/plugins/select2/dist/js/select2.min.js') }}"></script>
+        <script src="{{ asset('js/toastr.min.js') }}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
         <!-- Datatable script -->
 
         <script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-        <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js">
-        </script>
-        <script type="text/javascript"
-            src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/js/bootstrap-timepicker.min.js"></script>
-        <script type="text/javascript" charset="utf8"
-            src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
-        <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js">
-        </script>
-        <script type="text/javascript" charset="utf8"
-            src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/js/bootstrap-timepicker.min.js"></script>
+        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
+        <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+        <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.24/jspdf.plugin.autotable.min.js"></script>
-        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js">
-        </script>
-        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js">
-        </script>
+        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
+        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
         <script type="text/javascript">
+            
             jQuery(window).scroll(function() {
                 var scroll = jQuery(window).scrollTop();
                 if (scroll <= 60) {
@@ -412,24 +493,38 @@
                 } else {
                     jQuery("body").addClass("sticky");
                 }
-            });
+            });           
+            const datatableLang = {
+                "decimal":        "",
+                "emptyTable":     "{{ trans('lang.no_record_found') }}",
+                "info":           "{{ trans('lang.datatable_info') }}", 
+                "infoEmpty":      "{{ trans('lang.datatable_info_empty') }}", 
+                "infoFiltered":   "{{ trans('lang.datatable_info_filtered') }}", 
+                "lengthMenu":     "{{ trans('lang.datatable_length_menu') }}",
+                "loadingRecords": "{{ trans('lang.loading') }}",
+                "processing":     "{{ trans('lang.processing') }}",
+                "search":         "{{ trans('lang.search') }}",
+                "zeroRecords":    "{{ trans('lang.no_record_found') }}",
+                "paginate": {
+                    "first":      "{{ trans('lang.first') }}",
+                    "last":       "{{ trans('lang.last') }}",
+                    "next":       "{{ trans('lang.next') }}",
+                    "previous":   "{{ trans('lang.previous') }}"
+                },
+                "aria": {
+                    "sortAscending":  ": {{ trans('lang.sort_asc') }}",
+                    "sortDescending": ": {{ trans('lang.sort_desc') }}"
+                }
+            };
         </script>
 
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-firestore.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-storage.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>
-        <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-database.js"></script>
-        <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
-        <script src="{{ asset('js/geofirestore.js') }}"></script>
         <script src="{{ asset('js/chosen.jquery.js') }}"></script>
         <script src="{{ asset('js/bootstrap-tagsinput.js') }}"></script>
-        <script src="{{ asset('js/crypto-js.js') }}"></script>
-        @include('partials.firebase-init')
 
         @yield('scripts')
 
         <script type="text/javascript">
+        
             var route1 = '{{ route('orders.edit', ':id') }}';
             var booktable = '{{ route('booktable.edit', ':id') }}';
 
@@ -440,22 +535,15 @@
 
             version.get().then(async function(snapshots) {
                 var version_data = snapshots.data();
-
                 if (version_data == undefined) {
                     database.collection('settings').doc('Version').set({});
                 }
                 try {
-
                     $('.web_version').html("V:" + version_data.web_version);
-
                 } catch (error) {
 
                 }
-
             });
-
-
-
 
             var orderPlacedSubject = '';
             var orderPlacedMsg = '';
@@ -472,7 +560,9 @@
 
             var storeOrderInTransitSubject = "";
             var storeOrderInTransitMsg = "";
-
+            var authRole = "{{ $authRole }}";
+            var empVendorId = "{{ $empVendorId }}";
+            
             database.collection('dynamic_notification').get().then(async function(snapshot) {
                 if (snapshot.docs.length > 0) {
                     snapshot.docs.map(async (listval) => {
@@ -509,13 +599,22 @@
                             storeOrderInTransitSubject = val.subject;
                             storeOrderInTransitMsg = val.message;
 
+                        } else if (val.type == "advertisement_approved") {
+                            advApprovedSub = val.subject;
+                            advApprovedMsg = val.message;
+                        } else if (val.type == "advertisement_cancelled") {
+                            advCancelledSub = val.subject;
+                            advCancelledMsg = val.message;
+                        } else if (val.type == "advertisement_paused") {
+                            advPausedSub = val.subject;
+                            advPausedMsg = val.message;
+                        } else if (val.type == "advertisement_resumed") {
+                            advResumedSub = val.subject;
+                            advResumedMsg = val.message;
                         }
-
-
                     });
                 }
             });
-
 
             var pageloadded = 0;
             database.collection('vendor_orders').where('vendor.author', "==", cuser_id).onSnapshot(function(doc) {
@@ -579,29 +678,224 @@
             });
 
             var pageloadded_book = 0;
-            database.collection('booked_table').where('vendor.author', "==", cuser_id).onSnapshot(function(doc) {
-                if (pageloadded_book) {
-                    doc.docChanges().forEach(function(change) {
-                        val = change.doc.data();
-                        if (change.type == "added") {
-                            if (val.status == "Order Placed") {
+            
+            let vendorIdForDineIn = '';          
 
-                                if (booktable) {
-                                    jQuery("#notification_book_table_url").attr("href", booktable.replace(':id',
-                                        val.id));
+            var pageLoadedAdvertisement = 0;           
+           
+            database.collection('users').where('id', '==', cuser_id).get().then(async function(snapshots) {
+                
+                var userData = snapshots.docs[0].data();
+
+                setCookie('isStoreDocumentVerify_'+userData.id, userData.isDocumentVerify, 365);
+                setCookie('isAutoVerify_'+userData.id, userData.isAutoVerify, 365);
+                setCookie('isvendorID_'+userData.id, userData.vendorID, 365);
+
+                var photoURL = userData.profilePictureURL 
+                    ? userData.profilePictureURL 
+                    : "{{ asset('images/users/user-2.png') }}";
+
+                document.querySelectorAll('.userimage').forEach(function(img) {
+                    img.src = photoURL;
+                    img.onerror = function() {
+                        this.onerror = null;
+                        this.src = "{{ asset('images/users/user-2.png') }}";
+                    };
+                });
+
+                if (userData.hasOwnProperty('vendorID') && userData.vendorID != '' && userData.vendorID != null) {
+                    vendorId = userData.vendorID;
+                    database.collection('advertisements').where('vendorId', "==", vendorId).onSnapshot(function(doc) {
+                        if (pageLoadedAdvertisement) {
+                            doc.docChanges().forEach(function(change) {
+                                val = change.doc.data();
+                                var recentlyModifiedAd = localStorage.getItem('storeModifiedAd');
+
+                                if (recentlyModifiedAd === val.id) {
+                                    localStorage.removeItem('storeModifiedAd');
+                                    return;
                                 }
-                                $('.dinein_order_subject').text(dineInPlacedSubject);
-                                $('.dinein_order_msg').text(dineInPlacedMsg);
-                                jQuery("#notification_book_table_order").modal('show');
-                            }
+                                if (change.type == "modified") {
+                                    var routeAdview = "{{ route('advertisements.view', ':id') }}";
+                                    routeAdview = routeAdview.replace(':id', val.id);
+                                    if (val.status == 'approved') {
+                                        if (val.status == 'approved' && val.isPaused) {
+                                            $('.advertisement_paused_sub').html(advPausedSub);
+                                            $('.advertisement_paused_msg').html(advPausedMsg);
+                                            $('#advertisement_paused_notification').modal('show');
+                                            $('#advertisement_paused_route').attr('href', routeAdview);
+                                        } else if (val.status == 'approved' && val.isPaused == null) {
+                                            $('.advertisement_accepted_msg').html(advApprovedMsg);
+                                            $('.advertisement_accepted_sub').html(advApprovedSub);
+                                            $('#advertisement_accepted_notification').modal('show');
+                                            $('#advertisement_accepted_route').attr('href', routeAdview);
+                                        } else {
+                                            $('.advertisement_resumed_sub').html(advResumedSub);
+                                            $('.advertisement_resumed_msg').html(advResumedMsg);
+                                            $('#advertisement_resumed_notification').modal('show');
+                                            $('#advertisement_resumed_route').attr('href', routeAdview);
+                                        }
+                                    } else if (val.status == 'canceled') {
+                                        $('.advertisement_cancelled_sub').html(advCancelledSub);
+                                        $('.advertisement_cancelled_msg').html(advCancelledMsg);
+                                        $('#advertisement_canceled_notification').modal('show');
+                                        $('#advertisement_canceled_route').attr('href', routeAdview);
+                                    }
+                                }
+                            })
+                        } else {
+                            pageLoadedAdvertisement = 1;
                         }
+                    })
+                }
+                
 
-                    });
-                } else {
-                    pageloadded_book = 1;
+                let vendorIdForOrders = '';
+
+                if (authRole === 'vendor') {
+                    vendorIdForOrders = cuser_id;           // Most common case
+                    
+                } 
+                else if (authRole === 'employee') {
+                    vendorIdForOrders = empVendorId;        // This is the vendor's ID for the employee
+                }
+
+                if (!vendorIdForOrders) {
+                    console.log("No vendor ID found for notifications");
+                    return;
+                }
+
+                let shouldListen = true;
+
+                if (authRole === 'employee') {
+                    const permResult = await getEmployeePermissionForTitle(cuser_id, 'Manage Order');
+                    
+                    if (permResult && permResult.isActive === true) {
+                        shouldListen = true;                        
+                    } else {
+                        shouldListen = false;                       
+                    }
+                }
+
+                if (shouldListen) {
+                    var pageloadded = 0;
+
+                    database.collection('vendor_orders')
+                        .where('vendor.id', '==', vendorIdForOrders)     
+                        .onSnapshot(function(doc) {
+
+                            if (pageloadded) {
+                                doc.docChanges().forEach(function(change) {
+                                    val = change.doc.data();
+
+                                    if (section_id == val.section_id) {
+
+                                        if (change.type == "added") {
+                                            if (val.status == "Order Placed") {
+
+                                                if (val.scheduleTime != undefined && val.scheduleTime != null && val.scheduleTime != '') {
+                                                    $('.order_subject').text(scheduleOrderPlacedSubject);
+                                                    $('.order_message').text(scheduleOrderPlacedMsg);
+                                                } else {
+                                                    $('.order_subject').text(orderPlacedSubject);
+                                                    $('.order_message').text(orderPlacedMsg);
+                                                }
+                                                if (route1) {
+                                                    jQuery("#notification_url").attr("href", route1.replace(':id', val.id));
+                                                }
+                                                jQuery("#notification_order").modal('show');
+                                            }
+                                        } 
+                                        else if (change.type == "modified") {
+
+                                            if (val.status == "Order Placed" && !val.hasOwnProperty('estimatedTimeToPrepare')) {
+
+                                                if (route1) {
+                                                    jQuery("#notification_url").attr("href", route1.replace(':id', val.id));
+                                                }
+                                                if (val.scheduleTime != undefined && val.scheduleTime != null && val.scheduleTime != '') {
+                                                    $('.order_subject').text(scheduleOrderPlacedSubject);
+                                                    $('.order_message').text(scheduleOrderPlacedMsg);
+                                                } else {
+                                                    $('.order_subject').text(orderPlacedSubject);
+                                                    $('.order_message').text(orderPlacedMsg);
+                                                }
+                                                jQuery("#notification_order").modal('show');
+
+                                            } else if (val.status == "Driver Accepted") {
+                                                $('.driver_accepted_subject').text(driverAcceptedSubject);
+                                                $('.driver_accepted_msg').text(driverAcceptedMsg);
+                                                if (route1) {
+                                                    jQuery("#notification_accepted_a").attr("href", route1.replace(':id', val.id));
+                                                }
+                                                jQuery("#notification_accepted_order").modal('show');
+                                            }
+                                        }
+                                    }
+                                });
+                            } else {
+                                pageloadded = 1;
+                            }
+                        });
+                }
+                //Dine in request notification
+                if (authRole === 'vendor') {
+                    vendorIdForDineIn = cuser_id;          
+                } 
+                if (authRole === 'employee') {
+                    let snapshot = await database.collection('vendors').doc(empVendorId).get();
+
+                    if (snapshot.exists) {
+                        let data = snapshot.data();
+                        vendorIdForDineIn = data.author;  
+                    } else {
+                        console.log('Vendor not found');
+                    }
+                            
+                }
+                if (vendorIdForDineIn) {
+                    let shouldListenDineIn = true;
+
+                    if (authRole === 'employee') {
+                        const permResult = await getEmployeePermissionForTitle(cuser_id, 'Dine in Request');
+                        
+                        if (permResult && permResult.isActive === true) {
+                            shouldListenDineIn = true;
+                        } else {
+                            shouldListenDineIn = false;
+                        }
+                    }
+
+                    if (shouldListenDineIn) {
+                        var pageloadded_book = 0;
+
+                        database.collection('booked_table')
+                            .where('vendor.author', '==', vendorIdForDineIn)     
+                            .onSnapshot(function(doc) {
+
+                                if (pageloadded_book) {
+                                    doc.docChanges().forEach(function(change) {
+                                        val = change.doc.data();
+
+                                        if (change.type == "added") {
+                                            if (val.status == "Order Placed") {
+
+                                                if (booktable) {
+                                                    jQuery("#notification_book_table_url").attr("href", booktable.replace(':id', val.id));
+                                                }
+                                                $('.dinein_order_subject').text(dineInPlacedSubject);
+                                                $('.dinein_order_msg').text(dineInPlacedMsg);
+                                                jQuery("#notification_book_table_order").modal('show');
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    pageloadded_book = 1;
+                                }
+                            });
+                    }
                 }
             });
-
 
             var langcount = 0;
             var languages_list = database.collection('settings').doc('languages');
@@ -644,6 +938,21 @@
                 });
             });
 
+            function getCookie(cname) {
+                let name = cname + "=";
+                let ca = document.cookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) == 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return "";
+            }
+    
             function setCookie(cname, cvalue, exdays) {
                 const d = new Date();
                 d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
@@ -715,7 +1024,6 @@
 
                     // Optionally delete the Firestore document after image deletion
                     await docRef.delete();
-                    console.log("Document and images deleted successfully.");
                 } catch (error) {
                     console.error("Error deleting document and images:", error);
                 }
@@ -821,7 +1129,7 @@
                     XLSX.utils.book_append_sheet(wb, ws, 'Data');
                     XLSX.writeFile(wb, `${fileName}.xlsx`);
                 } else if (format === 'pdf') {
-                    
+
                     const {
                         jsPDF
                     } = window.jspdf;
@@ -858,6 +1166,81 @@
                     console.error('Unsupported format');
                 }
             }
+            async function getEmployeePermissionForTitle(userId, permissionTitle) {
+                if (!userId || !permissionTitle) {
+                    return { isActive: false };
+                }
+
+                try {
+                    // 1. Get user
+                    const userSnap = await database.collection('users')
+                        .where('id', '==', userId)
+                        .limit(1)
+                        .get();
+
+                    if (userSnap.empty) {
+                        return { isActive: false };
+                    }
+
+                    const userData = userSnap.docs[0].data();
+
+                    if (!userData.employeePermissionId) {
+                        return { isActive: false };
+                    }
+
+                    // 2. Get role
+                    const roleSnap = await database.collection('vendor_employee_roles')
+                        .doc(userData.employeePermissionId)
+                        .get();
+
+                    if (!roleSnap.exists) {
+                        return { isActive: false };
+                    }
+
+                    const roleData = roleSnap.data();
+
+                    if (roleData.isEnable !== true) {
+                        return { isActive: false };
+                    }
+
+                    // 3. Find permission
+                    const perm = (roleData.permissions || []).find(p => p.title === permissionTitle);
+
+                    if (!perm) {
+                        return { isActive: false };
+                    }
+
+                    // Return the same field name you're already using
+                    return {
+                        isActive: !!perm.isActive
+                    };
+
+                } catch (err) {
+                    console.error("Error fetching employee permission:", err);
+                    return { isActive: false };
+                }
+            }
+            async function getCountryFromLatLng(lat, lng) {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+                const response = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                return data?.address?.country || '';
+            }
+
+            function formatCurrency(amount, currency = {}) {
+                const symbol = currency.symbol || '';
+                const decimals = currency.decimal_degits ?? 2;
+                const symbolAtRight = Boolean(currency.symbolAtRight);
+                const formatted = parseFloat(amount).toFixed(decimals);
+                return symbolAtRight
+                    ? formatted + ' ' + symbol
+                    : symbol + formatted;
+            }
+
         </script>
     </body>
 

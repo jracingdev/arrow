@@ -159,7 +159,6 @@
                         }
                     });
                 }
-                console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
                 var transaction = orderData.purchase_units[0].payments.captures[0];
             });
         }

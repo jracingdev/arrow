@@ -15,6 +15,8 @@ class ReportController extends Controller
     {
         if ($type == "sales") {
             return view('reports.sales-reports');
+        }else if ($type == "tax") {
+            return view('reports.tax-reports');
         }
     }
 }

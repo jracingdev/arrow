@@ -1,26 +1,23 @@
 // Dart Packages
 import 'dart:async';
 
+// Firebase Packages
+import 'package:firebase_database/firebase_database.dart';
 // Flutter Packages
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-// Firebase Packages
-import 'package:firebase_database/firebase_database.dart';
-
+// Functions
+import 'functions/separator_builder.dart';
 // Data Models
 import 'models/page_options.dart';
 import 'models/view_type.dart';
 import 'models/wrap_options.dart';
-
 // Widgets
 import 'widgets/defaults/bottom_loader.dart';
 import 'widgets/defaults/empty_screen.dart';
 import 'widgets/defaults/initial_loader.dart';
 import 'widgets/views/build_pagination.dart';
-
-// Functions
-import 'functions/separator_builder.dart';
 
 /// A [StreamBuilder] that automatically loads more data when the user scrolls
 /// to the bottom.
@@ -51,9 +48,7 @@ class RealtimeDBPagination extends StatefulWidget {
     this.limit = 10,
     this.viewType = ViewType.list,
     this.isLive = false,
-    this.gridDelegate = const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 2,
-    ),
+    this.gridDelegate = const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
     this.wrapOptions = const WrapOptions(),
     this.pageOptions = const PageOptions(),
     this.onEmpty = const EmptyScreen(),
@@ -195,12 +190,10 @@ class _RealtimeDBPaginationState extends State<RealtimeDBPagination> {
   StreamSubscription<DatabaseEvent>? _liveStreamSub;
 
   /// [ScrollController] to listen to scroll end and load more data.
-  late final ScrollController _controller =
-      widget.controller ?? ScrollController();
+  late final ScrollController _controller = widget.controller ?? ScrollController();
 
   /// [PageController] to listen to page changes and load more data.
-  late final PageController _pageController =
-      widget.pageController ?? PageController();
+  late final PageController _pageController = widget.pageController ?? PageController();
 
   /// Whether initial data is loading.
   bool _isInitialLoading = true;
@@ -229,9 +222,7 @@ class _RealtimeDBPaginationState extends State<RealtimeDBPagination> {
     // If currently 15 items are loaded, and limit is 5 then total 20 items
     // will be fetched including the ones already present.
     final docsLimit = _data.length + (getMore ? widget.limit : 0);
-    var docsQuery = widget.descending
-        ? widget.query.limitToLast(docsLimit)
-        : widget.query.limitToFirst(docsLimit);
+    var docsQuery = widget.descending ? widget.query.limitToLast(docsLimit) : widget.query.limitToFirst(docsLimit);
 
     if (_data.isNotEmpty) {
       if (widget.descending) {
@@ -240,21 +231,13 @@ class _RealtimeDBPaginationState extends State<RealtimeDBPagination> {
         // will be fetched where below mentioned value will be the largest and
         // last in the fetched array (But first in callback array as using
         // reversed in build method)
-        docsQuery = docsQuery.endAt(
-          Map<String, dynamic>.from(
-            _data.last.value! as Map<Object?, Object?>,
-          )[widget.orderBy],
-        );
+        docsQuery = docsQuery.endAt(Map<String, dynamic>.from(_data.last.value! as Map<Object?, Object?>)[widget.orderBy]);
       } else {
         // Sets starting point from where after data should be fetched.
         // If currently 15 items are loaded, and limit is 5 then total 20 items
         // will be fetched where below mentioned value will be the smallest and
         // first in array
-        docsQuery = docsQuery.startAt(
-          Map<String, dynamic>.from(
-            _data.first.value! as Map<Object?, Object?>,
-          )[widget.orderBy],
-        );
+        docsQuery = docsQuery.startAt(Map<String, dynamic>.from(_data.first.value! as Map<Object?, Object?>)[widget.orderBy]);
       }
     }
 
@@ -292,8 +275,7 @@ class _RealtimeDBPaginationState extends State<RealtimeDBPagination> {
       // scroll to the bottom and load more data.
       if (_isInitialLoading || _isFetching || _isEnded) return;
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (_controller.hasClients &&
-            _controller.position.maxScrollExtent <= 0) {
+        if (_controller.hasClients && _controller.position.maxScrollExtent <= 0) {
           _loadData();
         }
       });
@@ -307,47 +289,32 @@ class _RealtimeDBPaginationState extends State<RealtimeDBPagination> {
     // To cancel previous live listener when new one is set.
     final tempSub = _liveStreamSub;
 
-    var latestDocQuery = widget.descending
-        ? widget.query.limitToLast(1)
-        : widget.query.limitToFirst(1);
+    var latestDocQuery = widget.descending ? widget.query.limitToLast(1) : widget.query.limitToFirst(1);
 
     if (_data.isNotEmpty) {
       if (widget.descending) {
         // Sets query to fetch data after the last element in the array,
         // which is the largest value.
-        latestDocQuery = latestDocQuery.startAfter(
-          Map<String, dynamic>.from(
-            _data.last.value! as Map<Object?, Object?>,
-          )[widget.orderBy],
-        );
+        latestDocQuery = latestDocQuery.startAfter(Map<String, dynamic>.from(_data.last.value! as Map<Object?, Object?>)[widget.orderBy]);
       } else {
         // Sets query to fetch data before the first element in the array,
         // whch is the smallest value
-        latestDocQuery = latestDocQuery.endBefore(
-          Map<String, dynamic>.from(
-            _data.first.value! as Map<Object?, Object?>,
-          )[widget.orderBy],
-        );
+        latestDocQuery = latestDocQuery.endBefore(Map<String, dynamic>.from(_data.first.value! as Map<Object?, Object?>)[widget.orderBy]);
       }
     }
 
-    _liveStreamSub = latestDocQuery.onValue.listen(
-      (DatabaseEvent snapshot) async {
-        await tempSub?.cancel();
-        if (snapshot.snapshot.children.isEmpty) return;
+    _liveStreamSub = latestDocQuery.onValue.listen((DatabaseEvent snapshot) async {
+      await tempSub?.cancel();
+      if (snapshot.snapshot.children.isEmpty) return;
 
-        _data.insert(
-          widget.descending ? _data.length : 0,
-          snapshot.snapshot.children.first,
-        );
+      _data.insert(widget.descending ? _data.length : 0, snapshot.snapshot.children.first);
 
-        // To handle newly added data after this curently loaded data.
-        await _setLiveListener();
+      // To handle newly added data after this curently loaded data.
+      await _setLiveListener();
 
-        // Set updates listener for the newly added data.
-        _loadData(getMore: false);
-      },
-    );
+      // Set updates listener for the newly added data.
+      _loadData(getMore: false);
+    });
   }
 
   /// To handle scroll end event and load more data.
@@ -384,27 +351,27 @@ class _RealtimeDBPaginationState extends State<RealtimeDBPagination> {
     return _isInitialLoading
         ? widget.initialLoader
         : _data.isEmpty
-            ? widget.onEmpty
-            : BuildPagination(
-                items: widget.descending ? _data.reversed.toList() : _data,
-                itemBuilder: widget.itemBuilder,
-                separatorBuilder: widget.separatorBuilder ?? separatorBuilder,
-                isLoading: _isFetching,
-                viewType: widget.viewType,
-                bottomLoader: widget.bottomLoader,
-                gridDelegate: widget.gridDelegate,
-                wrapOptions: widget.wrapOptions,
-                pageOptions: widget.pageOptions,
-                scrollDirection: widget.scrollDirection,
-                reverse: widget.reverse,
-                controller: _controller,
-                pageController: _pageController,
-                shrinkWrap: widget.shrinkWrap,
-                physics: widget.physics,
-                padding: widget.padding,
-                onPageChanged: (index) {
-                  if (index >= _data.length - 1) _loadData();
-                },
-              );
+        ? widget.onEmpty
+        : BuildPagination(
+            items: widget.descending ? _data.reversed.toList() : _data,
+            itemBuilder: widget.itemBuilder,
+            separatorBuilder: widget.separatorBuilder ?? separatorBuilder,
+            isLoading: _isFetching,
+            viewType: widget.viewType,
+            bottomLoader: widget.bottomLoader,
+            gridDelegate: widget.gridDelegate,
+            wrapOptions: widget.wrapOptions,
+            pageOptions: widget.pageOptions,
+            scrollDirection: widget.scrollDirection,
+            reverse: widget.reverse,
+            controller: _controller,
+            pageController: _pageController,
+            shrinkWrap: widget.shrinkWrap,
+            physics: widget.physics,
+            padding: widget.padding,
+            onPageChanged: (index) {
+              if (index >= _data.length - 1) _loadData();
+            },
+          );
   }
 }

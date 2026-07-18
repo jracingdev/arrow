@@ -205,15 +205,22 @@
                                     <div class="p-3 border-bottom">
                                         <div class="d-flex align-items-center mb-2">
                                             <h6 class="font-weight-bold mb-1">{{ trans('lang.order_discount') }}</h6>
-                                            <h6 class="font-weight-bold ml-auto mb-1" id="order-discount"></h6>
+                                            <h6 class="font-weight-bold ml-auto mb-1 text-danger" id="order-discount"></h6>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 border-bottom">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h6 class="font-weight-bold mb-1">{{ trans('lang.platform_charge') }}</h6>
+                                            <h6 class="font-weight-bold ml-auto mb-1" id="platform-fee"></h6>
                                         </div>
                                     </div>
                                     <div class="p-3 border-bottom order_tax_div" style="display:none;">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <h6 class="font-weight-bold mb-1">{{ trans('lang.order_tax') }}</h6>
+                                        <div id="order-tax">
                                         </div>
                                         <hr>
-                                        <div id="order-tax">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h6 class="font-weight-bold mb-1">{{ trans('lang.order_total_tax') }}</h6>
+                                            <h6 class="font-weight-bold mb-1 ml-auto" id="total_tax_amount"></h6>
                                         </div>
                                     </div>
                                     <div class="p-3 border-bottom used_coupon_code_div" style="display:none">
@@ -279,13 +286,18 @@
 @include('layouts.footer')
 @include('layouts.nav')
 <script type="text/javascript">
+    
     var orderId = "<?php echo $_GET['id']; ?>";
     var append_categories = '';
     let timerInterval;
     let startTime;
     var bookingRef = database.collection('provider_orders').where('id', "==", orderId);
+    
     var serviceSubTotal = '';
     var taxSetting = '';
+    var platformTax = '';
+    var platformCharge = '';
+    
     var providerId = '';
     $(document).ready(async function() {
         $(".dataTables_processing").show();
@@ -301,9 +313,10 @@
     var currentCurrency = '';
     var currencyAtRight = false;
     var decimal_degits = 0;
+    var currencyData = '';
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     refCurrency.get().then(async function(snapshots) {
-        var currencyData = snapshots.docs[0].data();
+        currencyData = snapshots.docs[0].data();
         currentCurrency = currencyData.symbol;
         currencyAtRight = currencyData.symbolAtRight;
         if (currencyData.decimal_degits) {
@@ -402,7 +415,7 @@
                 order_items += '</tr>';
                 booking_subtotal = booking_subtotal + parseFloat(price) * parseFloat(orderDetails.quantity);
                 serviceSubTotal = booking_subtotal; //do not remove service subtotal.use to add in cart
-                taxSetting = orderDetails.taxSetting; //do noe remove service tax. use to add in cart
+                taxSetting = orderDetails.taxSetting; //do not remove service tax. use to add in cart
                 if (currencyAtRight) {
                     servicePrice = parseFloat(price).toFixed(decimal_degits) + "" + currentCurrency;
                     products_price = booking_subtotal.toFixed(decimal_degits) + "" + currentCurrency;
@@ -421,9 +434,6 @@
                 var priceUnit = '';
                 if (orderDetails.provider.priceUnit == 'Hourly') {
                     priceUnit = ' / {{ trans('lang.hour') }}';
-                    if (storedEndTime == '') {
-                        $('.order-details-div').addClass('d-none');
-                    }
                 }
                 order_items += '<td class="product_price">' + servicePrice + priceUnit + '</td>';
                 order_items += '<td class="total_product_price text-right">' + products_price + '</td>';
@@ -434,46 +444,56 @@
                     order_discount = 0;
                 }
                 booking_subtotal = parseFloat(booking_subtotal) - parseFloat(order_discount);
-                var tax = 0;
-                var taxlabel = '';
-                var taxlabeltype = '';
-                var total_tax_amount = 0;
-                if (orderDetails.hasOwnProperty('taxSetting')) {
-                    for (var i = 0; i < orderDetails.taxSetting.length; i++) {
-                        var data = orderDetails.taxSetting[i];
-                        if (data.type && data.tax) {
-                            if (data.type == "percentage") {
-                                tax = (data.tax * booking_subtotal) / 100;
-                                taxlabeltype = "%";
-                                var taxvalue = data.tax;
-                            } else {
-                                tax = data.tax;
-                                taxlabeltype = "";
-                                if (currencyAtRight) {
-                                    var taxvalue = parseFloat(data.tax).toFixed(decimal_degits) + "" + currentCurrency;
-                                } else {
-                                    var taxvalue = currentCurrency + "" + parseFloat(data.tax).toFixed(decimal_degits);
-                                }
-                            }
-                            taxlabel = data.title;
+                
+                platformTax = orderDetails.platformTax || [];
+                platformCharge = parseFloat(orderDetails.platformFee || 0);
+                let total_tax_amount = 0;
+                let orderCombinedTax = 0;
+                (orderDetails.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * booking_subtotal;
+                        } else {
+                            taxAmount = tax.tax;
                         }
-                        total_tax_amount += parseFloat(tax);
-                        if (!isNaN(tax) && tax != 0) {
-                            $(".order_tax_div").show();
-                            if (currencyAtRight) {
-                                $("#order-tax").append("<div class='d-flex align-items-center mb-2'><h6 class='font-weight-bold mb-1'>" + taxlabel + " (" + taxvalue + taxlabeltype + ")</h6><h6 class='font-weight-bold mb-1 ml-auto'> " + parseFloat(tax).toFixed(decimal_degits) + '' + currentCurrency + "</h6></div>");
-                            } else {
-                                $("#order-tax").append('<div class="d-flex align-items-center mb-2"><h6 class="font-weight-bold  mb-1">' + taxlabel + ' (' + taxvalue + taxlabeltype + ')</h6><h6 class="font-weight-bold mb-1 ml-auto"> ' + currentCurrency + '' + parseFloat(tax).toFixed(decimal_degits) + '</h6></div>');
-                            }
-                        }
+                        total_tax_amount += parseFloat(taxAmount);
+                        orderCombinedTax += parseFloat(taxAmount);
                     }
+                });
+                if(orderCombinedTax > 0){
+                    taxBreakdownGrouped.order[''] = orderCombinedTax;
                 }
+                
+                // Platform taxes
+                let extraCharges = [
+                    {key: 'platform', amount: platformCharge, taxes: orderDetails.platformTax || []},
+                ];
+
+                extraCharges.forEach(scope => {
+                    scope.taxes?.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * scope.amount;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                            taxBreakdownGrouped[scope.key][tax.title] = (taxBreakdownGrouped[scope.key][tax.title] || 0) + parseFloat(taxAmount);
+                        }
+                    });
+                });
+
                 var order_total = 0;
-                order_total = parseFloat(booking_subtotal) + parseFloat(total_tax_amount);
+                order_total = parseFloat(booking_subtotal) + platformCharge + parseFloat(total_tax_amount);
+                
                 order_total_val = "";
                 booking_subtotal_val = products_price;
                 order_discount_val = "";
-                var extraCharge = "";
+
+                var extraCharge_val = 0;
+                var extraCharge = 0;
                 if (orderDetails.extraCharges != "" && orderDetails.extraCharges != null) {
                     if (orderDetails.extraPaymentStatus == false) {
                         if ((orderDetails.provider.priceUnit == 'Hourly' && orderDetails.paymentStatus == true) || orderDetails.provider.priceUnit != 'Hourly') {
@@ -496,24 +516,35 @@
                 if (currencyAtRight) {
                     order_total_val = order_total.toFixed(decimal_degits) + "" + currentCurrency;
                     order_discount_val = parseFloat(order_discount).toFixed(decimal_degits) + "" + currentCurrency;
-                    extraCharge = parseFloat(extraCharge).toFixed(decimal_degits) + "" + currentCurrency;
+                    extraCharge_val = parseFloat(extraCharge).toFixed(decimal_degits) + "" + currentCurrency;
                 } else {
                     order_total_val = currentCurrency + "" + order_total.toFixed(decimal_degits);
                     order_discount_val = currentCurrency + "" + parseFloat(order_discount).toFixed(decimal_degits);
-                    extraCharge = currentCurrency + "" + parseFloat(extraCharge).toFixed(decimal_degits);
+                    extraCharge_val = currentCurrency + "" + parseFloat(extraCharge).toFixed(decimal_degits);
                 }
-                $('#extra_charges').html(extraCharge);
+                $('#extra_charges').html(extraCharge_val);
                 $("#booking-id").html(order_number);
                 $("#booking-status").html('<span class="py-2 px-3 order_ongoing">' + order_status + '<span>');
                 $('#service-name').html(orderDetails.provider.title);
                 $("#order-items").html('<table class="order-list">' + order_items + '</table>');
                 $("#order-subtotal").html(booking_subtotal_val);
                 $("#order-discount").html("-" + order_discount_val);
+                $("#platform-fee").html(formatCurrency(platformCharge,currencyData));
                 if (orderDetails.hasOwnProperty('couponCode') && orderDetails.couponCode != '') {
                     $('.used_coupon_code_div').show();
                     $("#used_coupon_code").html(orderDetails.couponCode);
                 }
                 $("#order-total").append(order_total_val);
+
+                var taxHtml = '';
+                if(total_tax_amount > 0){
+                    taxHtml += renderTaxSection('order', 'Tax on Order Total');
+                    taxHtml += renderTaxSection('platform', 'Tax on Platform Fee');
+                    $(".order_tax_div").show();
+                    $("#total_tax_amount").html(formatCurrency(total_tax_amount,currencyData));
+                    $("#order-tax").html(taxHtml);
+                }
+
                 providerId = orderDetails.provider.author;
                 var providerData = await getProviderDetails(orderDetails.provider.author);
                 if (providerData != '') {
@@ -656,8 +687,12 @@
                 orderId: orderId,
                 decimal_degits: decimal_degits,
                 subTotal: serviceSubTotal,
+                taxScope: 'order',
                 taxSetting: taxSetting,
-                providerId: providerId
+                providerId: providerId,
+                platformCharge: platformCharge,
+                platformTax: platformTax,
+                currencyData: currencyData,
             },
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -686,5 +721,19 @@
 
     function padZero(num) {
         return num < 10 ? '0' + num : num;
+    }
+
+    function renderTaxSection(section, labelSuffix) {
+        if (!taxBreakdownGrouped[section]) return;
+        var html = '';
+        for (let title in taxBreakdownGrouped[section]) {
+            let taxlabel = title;
+            let taxAmount = parseFloat(taxBreakdownGrouped[section][title]);
+            html += "<div class='d-flex align-items-center mb-2'>" +
+                    "<h6 class='font-weight-bold  mb-1'>" + taxlabel + " " + labelSuffix + "</h6>" +
+                    "<h6 class='font-weight-bold mb-1 ml-auto'>" + formatCurrency(taxAmount, currencyData) + "</h6>" +
+                "</div>";
+        }
+        return html;
     }
 </script>

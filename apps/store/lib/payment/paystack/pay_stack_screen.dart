@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:emartstore/payment/paystack/paystack_url_genrater.dart';
-import 'package:emartstore/theme/app_them_data.dart';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:vendor/payment/paystack/paystack_url_genrater.dart';
+import 'package:vendor/themes/app_them_data.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class PayStackScreen extends StatefulWidget {
@@ -12,13 +13,7 @@ class PayStackScreen extends StatefulWidget {
   final String secretKey;
   final String callBackUrl;
 
-  const PayStackScreen(
-      {super.key,
-      required this.initialURl,
-      required this.reference,
-      required this.amount,
-      required this.secretKey,
-      required this.callBackUrl});
+  const PayStackScreen({super.key, required this.initialURl, required this.reference, required this.amount, required this.secretKey, required this.callBackUrl});
 
   @override
   State<PayStackScreen> createState() => _PayStackScreenState();
@@ -26,6 +21,7 @@ class PayStackScreen extends StatefulWidget {
 
 class _PayStackScreenState extends State<PayStackScreen> {
   WebViewController controller = WebViewController();
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -33,7 +29,7 @@ class _PayStackScreenState extends State<PayStackScreen> {
     super.initState();
   }
 
-  initController() {
+  void initController() {
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
@@ -43,32 +39,28 @@ class _PayStackScreenState extends State<PayStackScreen> {
             // Update loading bar.
           },
           onPageStarted: (String url) {},
-          onPageFinished: (String url) {},
+          onPageFinished: (String url) {
+            setState(() => isLoading = false);
+          },
           onWebResourceError: (WebResourceError error) {},
           onNavigationRequest: (NavigationRequest navigation) async {
-            if (navigation.url.contains('success')) {
-              final isDone = await PayStackURLGen.verifyTransaction(
-                  secretKey: widget.secretKey,
-                  reference: widget.reference,
-                  amount: widget.amount);
-              if (isDone) Navigator.of(context).pop(true);
-            } else if (navigation.url.contains('failed')) {
-              Navigator.of(context).pop(false);
+            debugPrint("--->2${navigation.url}");
+            debugPrint(
+              "--->2"
+              "${widget.callBackUrl}?trxref=${widget.reference}&reference=${widget.reference}",
+            );
+            if (navigation.url == 'https://foodieweb.siswebapp.com/success?trxref=${widget.reference}&reference=${widget.reference}' ||
+                navigation.url == '${widget.callBackUrl}?trxref=${widget.reference}&reference=${widget.reference}') {
+              final isDone = await PayStackURLGen.verifyTransaction(secretKey: widget.secretKey, reference: widget.reference, amount: widget.amount);
+              Get.back(result: isDone);
             }
-            // debugPrint("--->2${navigation.url}");
-            // debugPrint("--->2" "${widget.callBackUrl}?trxref=${widget.reference}&reference=${widget.reference}");
-            // if (navigation.url == 'https://foodieweb.siswebapp.com/success?trxref=${widget.reference}&reference=${widget.reference}' ||
-            //     navigation.url == '${widget.callBackUrl}?trxref=${widget.reference}&reference=${widget.reference}') {
-            //   final isDone = await PayStackURLGen.verifyTransaction(secretKey: widget.secretKey, reference: widget.reference, amount: widget.amount);
-            //   Navigator.pop(context, isDone);
-            // }
-            // if ((navigation.url == '${widget.callBackUrl}?trxref=${widget.reference}&reference=${widget.reference}') ||
-            //     (navigation.url == "https://hello.pstk.xyz/callback") ||
-            //     (navigation.url == 'https://standard.paystack.co/close') ||
-            //     (navigation.url == 'https://talazo.app/login')) {
-            //   final isDone = await PayStackURLGen.verifyTransaction(secretKey: widget.secretKey, reference: widget.reference, amount: widget.amount);
-            //   Navigator.pop(context, isDone);
-            // }
+            if ((navigation.url == '${widget.callBackUrl}?trxref=${widget.reference}&reference=${widget.reference}') ||
+                (navigation.url == "https://hello.pstk.xyz/callback") ||
+                (navigation.url == 'https://standard.paystack.co/close') ||
+                (navigation.url == 'https://talazo.app/login')) {
+              final isDone = await PayStackURLGen.verifyTransaction(secretKey: widget.secretKey, reference: widget.reference, amount: widget.amount);
+              Get.back(result: isDone);
+            }
             return NavigationDecision.navigate;
           },
         ),
@@ -85,18 +77,22 @@ class _PayStackScreenState extends State<PayStackScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-            backgroundColor: AppThemeData.grey50,
-            title: Text("Payment".tr()),
-            centerTitle: false,
-            leading: GestureDetector(
-              onTap: () {
-                _showMyDialog();
-              },
-              child: const Icon(
-                Icons.arrow_back,
-              ),
-            )),
-        body: WebViewWidget(controller: controller),
+          backgroundColor: AppThemeData.grey50,
+          title: Text("Payment".tr),
+          centerTitle: false,
+          leading: GestureDetector(
+            onTap: () {
+              _showMyDialog();
+            },
+            child: const Icon(Icons.arrow_back),
+          ),
+        ),
+        body: Stack(
+          children: [
+            WebViewWidget(controller: controller),
+            Visibility(visible: isLoading, child: const Center(child: CircularProgressIndicator())),
+          ],
+        ),
       ),
     );
   }
@@ -108,25 +104,17 @@ class _PayStackScreenState extends State<PayStackScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Cancel Payment'),
-          content: const SingleChildScrollView(
-            child: Text("cancelPayment?"),
-          ),
+          content: const SingleChildScrollView(child: Text("cancelPayment?")),
           actions: <Widget>[
             TextButton(
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.red),
-              ),
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop(false);
               },
             ),
             TextButton(
-              child: const Text(
-                'Continue',
-                style: TextStyle(color: Colors.green),
-              ),
+              child: const Text('Continue', style: TextStyle(color: Colors.green)),
               onPressed: () {
                 Navigator.of(context).pop();
               },

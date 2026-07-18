@@ -5,11 +5,15 @@
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
+            @if($id != '')
+            <h3 class="text-themecolor">{{trans('lang.provider_Detail')}} - <span id="providerName"></span></h3>
+            @else
             <h3 class="text-themecolor">{{trans('lang.ondemand_plural')}} - {{trans('lang.coupon_plural')}}</h3>
+            @endif
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.coupon_plural')}}</li>
             </ol>
         </div>
@@ -25,25 +29,25 @@
 
                             <div class="menu-tab tabDiv">
                                 <ul>
-                                    <li ><a href="{{route('providers.view', $id)}}">{{trans('lang.tab_basic')}}</a>
+                                    <li ><a href="{{route('providers.view', $id)}}"><img src="{{ asset('images/provider.png') }}"> {{trans('lang.tab_basic')}}</a>
                                     </li>
-                                    <li><a href="{{route('ondemand.services.index', $id)}}">{{trans('lang.services')}}</a></li>
+                                    <li><a href="{{route('ondemand.services.index', $id)}}"><img src="{{ asset('images/service.png') }}"> {{trans('lang.services')}}</a></li>
                                     <li>
-                                    <li><a href="{{route('ondemand.workers.index', $id)}}">{{trans('lang.workers')}}</a></li>
+                                    <li><a href="{{route('ondemand.workers.index', $id)}}"><img src="{{ asset('images/worker.png') }}"> {{trans('lang.workers')}}</a></li>
                                     <li>
-                                    <li><a href="{{route('ondemand.bookings.index',$id)}}">{{trans('lang.booking_plural')}}</a></li>
+                                    <li><a href="{{route('ondemand.bookings.index',$id)}}"><img src="{{ asset('images/booking.png') }}"> {{trans('lang.booking_plural')}}</a></li>
                                     <li>
-                                    <li class="active"><a href="{{route('ondemand.coupons', $id)}}">{{trans('lang.coupon_plural')}}</a></li>
+                                    <li class="active"><a href="{{route('ondemand.coupons', $id)}}"><img src="{{ asset('images/coupon.png') }}"> {{trans('lang.coupon_plural')}}</a></li>
 
                                     <li>
-                                        <a href="{{route('providerPayouts.payout', $id)}}">{{trans('lang.tab_payouts')}}</a>
+                                        <a href="{{route('providerPayouts.payout', $id)}}"><img src="{{ asset('images/payment.png') }}"> {{trans('lang.tab_payouts')}}</a>
                                     </li>
                                     <li>
-                                        <a href="{{route('payoutRequests.providers', $id)}}">{{trans('lang.tab_payout_request')}}</a>
+                                        <a href="{{route('payoutRequests.providers', $id)}}"><img src="{{ asset('images/payment.png') }}"> {{trans('lang.tab_payout_request')}}</a>
                                     </li>
                                     <li>
                                         <a href="{{route('users.walletstransaction',$id)}}"
-                                            class="wallet_transaction">{{trans('lang.wallet_transaction')}}</a>
+                                            class="wallet_transaction"><img src="{{ asset('images/wallet.png') }}"> {{trans('lang.wallet_transaction')}}</a>
                                     </li>
                                     <?php 
                     
@@ -51,7 +55,7 @@
                                         $subscription =  str_replace(":id", "providerID=" . $id, $subscription);
                                     ?>
                                     <li> 
-                                        <a href="{{ $subscription }}">{{trans('lang.subscription_history')}}</a>
+                                        <a href="{{ $subscription }}"><img src="{{ asset('images/subscription.png') }}">  {{trans('lang.subscription_history')}}</a>
                                     </li>
                                 </ul>
                             </div>
@@ -94,7 +98,7 @@
                             <table id="couponTable" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">
                                 <thead>
                                 <tr>
-                                <?php if (in_array('ondemand.coupons.delete', json_decode(@session('user_permissions')))) { ?>
+                                <?php if (in_array('ondemand.coupons.delete', json_decode(@session('user_permissions'),true))) { ?>
 
                                     <th class="delete-all"><input type="checkbox" id="is_active"><label
                                                 class="col-3 control-label" for="is_active"
@@ -104,8 +108,9 @@
                                         <?php }?>
                                     <th>{{trans('lang.coupon_code')}}</th>
                                     <th>{{trans('lang.coupon_discount')}}</th>
-                                    <th>{{trans('lang.section')}}</th>
+                                    @unless($id != '')
                                     <th>{{trans('lang.provider')}}</th>
+                                    @endunless
                                     <th>{{trans('lang.coupon_privacy')}}</th>
                                     <th>{{trans('lang.coupon_expires_at')}}</th>
                                     <th>{{trans('lang.coupon_enabled')}}</th>
@@ -131,9 +136,11 @@
 
 <script type="text/javascript">
 
+    var section_id = getCookie('section_id') || '';
     var user_permissions = '<?php echo @session('user_permissions') ?>';
-    user_permissions = JSON.parse(user_permissions);
+    user_permissions = Object.values(JSON.parse(user_permissions));
     var checkDeletePermission = false;
+
     if ($.inArray('ondemand.coupons.delete', user_permissions) >= 0) {
             checkDeletePermission = true;
     }
@@ -148,6 +155,11 @@
         $('.tabDiv').hide();
         var ref = database.collection('providers_coupons');
     }
+
+    if(section_id){
+        ref = ref.where('sectionId', '==', section_id);
+    }
+
     var currentCurrency = '';
     var currencyAtRight = false;
     var decimal_degits = 0;
@@ -191,7 +203,7 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                var orderableColumns = (checkDeletePermission) ? ['', 'code', 'discount', 'section', 'providerName', 'privacy', 'expiresAt', '', ''] : ['code', 'discount', 'section', 'providerName', 'privacy', 'expiresAt', '', '']; // Ensure this matches the actual column names
+                var orderableColumns = (checkDeletePermission) ? ['', 'code', 'discount', 'providerName', 'privacy', 'expiresAt', '', ''] : ['code', 'discount',  'providerName', 'privacy', 'expiresAt', '', '']; // Ensure this matches the actual column names
                 const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
@@ -213,7 +225,7 @@
                     let records = [];
                     let filteredRecords = [];
                     var sectionNames = {};
-                    const sectionDocs = await database.collection('sections').get();
+                    const sectionDocs = await database.collection('sections').where('isActive', '==', true).orderBy('order').get();
                     sectionDocs.forEach(doc => {
                         sectionNames[doc.id] = doc.data().name;
                     });
@@ -248,10 +260,10 @@
                                 } catch (err) {
                                 }
                             }
-                            var expireAt = date + ' ' + time;
+                            var expireAt = date + '<br> ' + time;
                             if (
                                 (childData.code && childData.code.toLowerCase().toString().includes(searchValue)) ||
-                                (childData.section && childData.section.toLowerCase().toString().includes(searchValue)) ||
+                               
                                 (expireAt && expireAt.toString().toLowerCase().indexOf(searchValue) > -1) ||
                                 (childData.discount && childData.discount.toString().toLowerCase().includes(searchValue)) ||
                                 (childData.providerName && childData.providerName.toString().toLowerCase().includes(searchValue)) ||
@@ -298,7 +310,9 @@
                         var getData = await buildHTML(childData);
                         records.push(getData);
                     }));
-
+                     $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
                     $('#data-table_processing').hide(); // Hide loader
                     callback({
                         draw: data.draw,
@@ -317,22 +331,35 @@
                     });
                 });
             },
-            order: (checkDeletePermission) ? [[6, 'desc']] : [[5, 'desc']],
-            columnDefs: [
-                {
-                    targets: (checkDeletePermission) ? 6 : 5,
-                    type: 'date',
-                    render: function (data) {
-                        return data;
-                    }
-                },
-                { orderable: false, targets: (checkDeletePermission) ? [0, 5, 7, 8] : [4, 6, 7] },
-            ],
-            "language": {
-                "zeroRecords": "{{trans("lang.no_record_found")}}",
-                "emptyTable": "{{trans("lang.no_record_found")}}",
-                "processing": "" // Remove default loader
-            },
+           
+             order: (function() {
+        const show = (id === '');
+        const titleColIndex = checkDeletePermission 
+            ? (show ? 5 : 4)  // Checkbox exists → Title is col 2 or 1
+            : (show ? 4 : 3);  // No checkbox → Title is col 1 or 0
+        return [[titleColIndex, 'asc']];
+    })(),
+
+    columnDefs: (function() {
+        const show = (id === '');
+        let targets = [];
+
+        if (checkDeletePermission) {
+            targets.push(0); // Checkbox always non-sortable
+        }
+
+        const publishCol = checkDeletePermission 
+            ? (show ? 5 : 4)   // Publish column index
+            : (show ? 4 : 3);
+
+        const actionsCol = publishCol + 1;
+
+        targets.push(publishCol);  // Publish toggle
+        targets.push(actionsCol);  // Actions
+
+        return [{ orderable: false, targets: targets }];
+    })(),
+           "language": datatableLang,
 
         });
         function debounce(func, wait) {
@@ -392,8 +419,8 @@
         html.push('<a  data-url="' + route1 + '" href="'+route1+'" class="redirecttopage">' + val.code + '</a>');
         html.push(discount_price);
 
-        html.push(val.section);
-
+       $("#providerName").text(val.providerName);
+        @if($id == '')
         if (val.hasOwnProperty("providerId")) {
             var providerView = '{{route("providers.view",":id")}}';
             providerView = providerView.replace(':id', val.providerId);
@@ -405,6 +432,7 @@
         } else {
             html.push('<td></td>');
         }
+        @endif
 
         if (val.hasOwnProperty('isPublic') && val.isPublic) {
             html.push('<td class="success"><span class="badge badge-success py-2 px-3">{{trans("lang.public")}}</sapn></td>');
@@ -420,7 +448,7 @@
             } catch (err) {
 
             }
-            html.push('<td class="dt-time">' + date + ' ' + time + '</td>');
+            html.push('<td class="dt-time">' + date + '<br> ' + time + '</td>');
         } else {
             html.push('<td></td>');
         }
@@ -430,9 +458,9 @@
             html.push('<label class="switch"><input type="checkbox" id="' + val.id + '" name="isActive"><span class="slider round"></span></label>');
         }
         var actionHtml = '';
-        actionHtml += '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
+        actionHtml += '<span class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" title="{{trans("lang.edit")}}"><i class="mdi mdi-lead-pencil"></i></a>';
         if(checkDeletePermission){
-            actionHtml += '<a id="' + val.id + '" name="coupon_delete_btn" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
+            actionHtml += '<a id="' + val.id + '" name="coupon_delete_btn" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" title="{{trans("lang.delete")}}"><i class="mdi mdi-delete"></i></a>';
         }
         actionHtml += '</span>';
 
@@ -476,7 +504,7 @@
         jQuery("#data-table_processing").show();
         window.location = "{{! url()->current() }}";
     });
-async function getProviderNameForFilter(providerId){
+    async function getProviderNameForFilter(providerId){
         await database.collection('users').where('id', '==', providerId).get().then(async function (snapshots) {
             var providerData = snapshots.docs[0].data();
             providerName = providerData.firstName+' '+providerData.lastName;

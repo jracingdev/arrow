@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:emartstore/widget/geoflutterfire/src/models/distance_doc_snapshot.dart';
-import 'package:emartstore/widget/geoflutterfire/src/models/point.dart';
+import 'package:vendor/widget/geoflutterfire/src/models/distance_doc_snapshot.dart';
+import 'package:vendor/widget/geoflutterfire/src/models/point.dart';
+
 import 'base.dart';
 
 class GeoFireCollectionWithConverterRef<T> extends BaseGeoFireCollectionRef<T> {
@@ -15,13 +16,7 @@ class GeoFireCollectionWithConverterRef<T> extends BaseGeoFireCollectionRef<T> {
     required GeoPoint Function(T) geopointFrom,
     bool? strictMode,
   }) {
-    return protectedWithin(
-      center: center,
-      radius: radius,
-      field: field,
-      geopointFrom: geopointFrom,
-      strictMode: strictMode,
-    );
+    return protectedWithin(center: center, radius: radius, field: field, geopointFrom: geopointFrom, strictMode: strictMode);
   }
 
   Stream<List<DistanceDocSnapshot<T>>> withinWithDistance({
@@ -31,12 +26,6 @@ class GeoFireCollectionWithConverterRef<T> extends BaseGeoFireCollectionRef<T> {
     required GeoPoint Function(T) geopointFrom,
     bool? strictMode,
   }) {
-    return protectedWithinWithDistance(
-      center: center,
-      radius: radius,
-      field: field,
-      geopointFrom: geopointFrom,
-      strictMode: strictMode,
-    );
+    return protectedWithinWithDistance(center: center, radius: radius, field: field, geopointFrom: geopointFrom, strictMode: strictMode);
   }
 }

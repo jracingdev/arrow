@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.gift_card_plural')}}</li>
             </ol>
         </div>
@@ -52,7 +52,7 @@
                                 <thead>
                                     <tr>
                                       
-                                    <?php if (in_array('gift-card.delete', json_decode(@session('user_permissions')))) { ?>
+                                    <?php if (in_array('gift-card.delete', json_decode(@session('user_permissions'),true))) { ?>
                       
                                     <th class="delete-all"><input type="checkbox" id="is_active"><label
                                             class="col-3 control-label" for="is_active">
@@ -84,9 +84,7 @@
 
 <script type="text/javascript">
     var user_permissions = '<?php echo @session('user_permissions') ?>';
-
-    user_permissions = JSON.parse(user_permissions);
-
+    user_permissions = Object.values(JSON.parse(user_permissions));
     var checkDeletePermission = false;
 
     if ($.inArray('gift-card.delete', user_permissions) >= 0) {
@@ -119,6 +117,9 @@
             var html = '';
 
             html = await buildHTML(snapshots);
+             $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
 
             if (html != '') {
                 append_list.innerHTML = html;
@@ -130,10 +131,7 @@
                         { orderable: false, targets: (checkDeletePermission==true) ? [0,3,4] : [0,2,3] },
 
                     ],
-                    "language": {
-                        "zeroRecords": "{{trans("lang.no_record_found")}}",
-                        "emptyTable": "{{trans("lang.no_record_found")}}"
-                    },
+                    "language": datatableLang,
                     responsive: true
                 });
                 table.on('search.dt', function() {
@@ -192,9 +190,9 @@
         } else {
             html = html + '<td><label class="switch"><input type="checkbox" id="' + val.id + '" name="isActive"><span class="slider round"></span></label></td>';
         }
-        html = html + '<td><span class="action-btn"><a href="' + route1 + '" class="link-td"><i class="mdi mdi-lead-pencil"></i></a>';
+        html = html + '<td><span class="action-btn"><a href="' + route1 + '" class="link-td" data-toggle="tooltip" title="{{trans("lang.edit")}}"><i class="mdi mdi-lead-pencil"></i></a>';
         if(checkDeletePermission){
-        html=html+'<a id="' + val.id + '" name="giftcard-delete" href="javascript:void(0)" class="delete-btn"><i class="mdi mdi-delete"></i></a></span>';
+        html=html+'<a id="' + val.id + '" name="giftcard-delete" href="javascript:void(0)" class="delete-btn" data-toggle="tooltip" title="{{trans("lang.delete")}}"><i class="mdi mdi-delete"></i></a></span>';
         }
         html=html+'</td>';
 

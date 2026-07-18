@@ -16,7 +16,7 @@
                                     <tbody>
                                         <tr>
                                         <td style="display:flex">
-                                            {{ trans('lang.pay_total_amount') }} : {{$amount}} <div id="currency"></div>
+                                            {{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}
                                         </td>
                                             <td class="text-right payment-button">
                                                 <form method="POST" action="https://checkout.flutterwave.com/v3/hosted/pay">
@@ -32,7 +32,7 @@
                                                     <input type="hidden" name="meta[token]" value="<?php echo $token; ?>"/>
                                                     <input type="hidden" name="redirect_url"
                                                         value="<?php echo route('wallet-success'); ?>"/>
-                                                    <button type="submit" id="start-payment-button">
+                                                    <button type="submit" id="start-payment-button" class="btn btn-primary">
                                                         {{trans('lang.pay_now')}}
                                                     </button>
                                                 </form>

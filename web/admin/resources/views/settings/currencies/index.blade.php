@@ -121,7 +121,7 @@
 
 
 
-    user_permissions = JSON.parse(user_permissions);
+    user_permissions = Object.values(JSON.parse(user_permissions));
 
 
 
@@ -163,7 +163,9 @@
             }
 
             html = await buildHTML(snapshots);
-
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
             jQuery("#data-table_processing").hide();
 
             if (html != '') {
@@ -214,13 +216,7 @@
 
                 order: [0, "asc"],
 
-                "language": {
-
-                    "zeroRecords": "{{trans('lang.no_record_found')}}",
-
-                    "emptyTable": "{{trans('lang.no_record_found')}}"
-
-                },
+                "language": datatableLang,
 
                 responsive: true,
 
@@ -297,11 +293,11 @@
 
         if (val.symbolAtRight) {
 
-            html = html + '<td><span class="badge badge-success">Yes</span></td>';
+            html = html + '<td><span class="badge badge-success">{{trans("lang.yes")}}</span></td>';
 
         } else {
 
-            html = html + '<td><span class="badge badge-danger">No</span></td>';
+            html = html + '<td><span class="badge badge-danger">{{trans("lang.no")}}</span></td>';
 
         }
 
@@ -319,13 +315,13 @@
 
 
 
-        html = html + '<td><span class="action-btn"><a href="' + route1 + '" class="do_not_edit"><i class="mdi mdi-lead-pencil"></i></a>';
+        html = html + '<td><span class="action-btn"><a href="' + route1 + '" class="do_not_edit" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';
 
         if (checkDeletePermission) {
 
        
 
-        html=html+'<a id="' + val.id + '" name="currency-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a></span></td>';
+        html=html+'<a id="' + val.id + '" name="currency-delete" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a></span></td>';
 
     }
 

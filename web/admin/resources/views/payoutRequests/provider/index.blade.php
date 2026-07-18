@@ -13,7 +13,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.payout_request')}}</li>
             </ol>
         </div>
@@ -21,20 +21,7 @@
         </div>
     </div>
     <div class="container-fluid">
-       <div class="admin-top-section"> 
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex top-title-section pb-4 justify-content-between">
-                    <div class="d-flex top-title-left align-self-center">
-                        <span class="icon mr-3"><img src="{{ asset('images/payment.png') }}"></span>
-                        <h3 class="mb-0">{{trans('lang.provider_payout_request')}}</h3>
-                        <span class="counter ml-3 total_count"></span>
-                    </div>
-                 
-                </div>
-            </div>
-        </div> 
-       </div>
+       
        <div class="table-list">
        <div class="row">
            <div class="col-12">
@@ -47,33 +34,33 @@
 
                     <ul>
 
-                        <li ><a href="{{route('providers.view', $id)}}">{{trans('lang.tab_basic')}}</a>
+                        <li ><a href="{{route('providers.view', $id)}}"><img src="{{ asset('images/provider.png') }}"> {{trans('lang.tab_basic')}}</a>
 
                         </li>
 
-                        <li><a href="{{route('ondemand.services.index', $id)}}">{{trans('lang.services')}}</a></li>
+                        <li><a href="{{route('ondemand.services.index', $id)}}"><img src="{{ asset('images/service.png') }}"> {{trans('lang.services')}}</a></li>
 
                         <li>
 
-                        <li><a href="{{route('ondemand.workers.index', $id)}}">{{trans('lang.workers')}}</a></li>
+                        <li><a href="{{route('ondemand.workers.index', $id)}}"><img src="{{ asset('images/worker.png') }}"> {{trans('lang.workers')}}</a></li>
 
                         <li>
 
-                        <li><a href="{{route('ondemand.bookings.index',$id)}}">{{trans('lang.booking_plural')}}</a></li>
+                        <li><a href="{{route('ondemand.bookings.index',$id)}}"><img src="{{ asset('images/booking.png') }}"> {{trans('lang.booking_plural')}}</a></li>
 
                         <li>
 
-                        <li><a href="{{route('ondemand.coupons', $id)}}">{{trans('lang.coupon_plural')}}</a></li>
+                        <li><a href="{{route('ondemand.coupons', $id)}}"><img src="{{ asset('images/coupon.png') }}"> {{trans('lang.coupon_plural')}}</a></li>
 
                         <li>
 
-                            <a href="{{route('providerPayouts.payout', $id)}}">{{trans('lang.tab_payouts')}}</a>
+                            <a href="{{route('providerPayouts.payout', $id)}}"><img src="{{ asset('images/payment.png') }}"> {{trans('lang.tab_payouts')}}</a>
 
                         </li>
 
                         <li class="active">
 
-                            <a href="{{route('payoutRequests.providers', $id)}}">{{trans('lang.tab_payout_request')}}</a>
+                            <a href="{{route('payoutRequests.providers', $id)}}"><img src="{{ asset('images/payment.png') }}"> {{trans('lang.tab_payout_request')}}</a>
 
                         </li>
 
@@ -81,7 +68,7 @@
 
                             <a href="{{route('users.walletstransaction',$id)}}"
 
-                                class="wallet_transaction">{{trans('lang.wallet_transaction')}}</a>
+                                class="wallet_transaction"><img src="{{ asset('images/wallet.png') }}"> {{trans('lang.wallet_transaction')}}</a>
 
                         </li> 
                         <?php 
@@ -90,7 +77,7 @@
                             $subscription =  str_replace(":id", "providerID=" . $id, $subscription);
                             ?>
                         <li> 
-                            <a href="{{ $subscription }}">{{trans('lang.subscription_history')}}</a>
+                            <a href="{{ $subscription }}"><img src="{{ asset('images/subscription.png') }}"> {{trans('lang.subscription_history')}}</a>
                         </li>
 
                     </ul>
@@ -101,11 +88,17 @@
 
           @endif
                <div class="card border">
-                 <div class="card-header d-flex justify-content-between align-items-center border-0">
-                   <div class="card-header-title">
-                    <h3 class="text-dark-2 mb-2 h4">{{trans('lang.provider_payout_request')}}</h3>
-                    <p class="mb-0 text-dark-2">{{trans('lang.provider_payouts_table_text')}}</p>
-                   </div>    
+                 <div class="card-header d-flex justify-content-between align-items-center border-0 top-title-section">
+                   
+                  <div class=" top-title-left align-self-center">
+                        
+                       <div class="d-flex align-items-center">
+                        <span class="icon mr-3"><img src="{{ asset('images/payment.png') }}"></span>
+                        <h3 class="mb-0">{{trans('lang.provider_payout_request')}}</h3>
+                        <span class="counter ml-3 total_count"></span>
+                       </div>
+                        <p class="mb-0 text-dark-2">{{trans('lang.provider_payouts_table_text')}}</p>
+                    </div> 
                     
                 </div>     
               
@@ -113,41 +106,7 @@
 
                  <div class="card-body">
                         <div class="table-responsive m-t-10">
-                        <ul class="nav nav-tabs align-items-end card-header-tabs w-100">
-
-                            @if($id == '')
-
-                            
-                            <li class="nav-item">
-
-                                <a class="nav-link" href="{!! url('payoutRequests/vendor') !!}"><i
-
-                                            class="mdi mdi-format-list-bulleted mr-2"></i>{{trans('lang.vendors_payout_request')}}</a>
-
-                            </li>
-
-                            <li class="nav-item">
-
-                                <a class="nav-link" href="{!! url('payoutRequests/drivers') !!}"><i
-
-                                            class="mdi mdi-format-list-bulleted mr-2"></i>{{trans('lang.drivers_payout_request')}}</a>
-
-                            </li>
-
-                            @endif
-
-                            
-                            <li class="nav-item">
-
-                                <a class="nav-link active" href="{!! url('payoutRequests/providers') !!}"><i
-
-                                            class="mdi mdi-format-list-bulleted mr-2"></i>{{trans('lang.providers_payout_request')}}</a>
-
-                            </li>
-
-
-
-                        </ul>
+                        
                          <table id="example24"
                                 class="display nowrap table table-hover table-striped table-bordered table table-striped"
                                 cellspacing="0" width="100%">
@@ -461,7 +420,6 @@
 
     var database = firebase.firestore();
 
-  
 
 
 
@@ -705,7 +663,7 @@
 
                 
 
-                var paidDate = date + ' ' + time;
+                var paidDate = date + '<br> ' + time;
 
 
 
@@ -825,10 +783,14 @@
 
             }));
 
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
 
 
-
-
+            $(function () {
+                $('[data-bs-toggle="tooltip"]').tooltip();
+            });
             $('#data-table_processing').hide(); // Hide loader
 
             callback({
@@ -883,39 +845,32 @@
     <?php } ?>
 
 
-        "language": {
+        "language": datatableLang,
 
-            "zeroRecords": "{{trans("lang.no_record_found")}}",
-
-            "emptyTable": "{{trans("lang.no_record_found")}}",
-
-            "processing": "" // Remove default loader
-
-        },
         dom: 'lfrtipB',
             buttons: [
                     {
                         extend: 'collection',
-                        text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                        text: '<i class="mdi mdi-cloud-download"></i> {{ trans('lang.export_as') }}',
                         className: 'btn btn-info',
                         buttons: [
                             {
                                 extend: 'excelHtml5',
-                                text: 'Export Excel',
+                                text: '{{ trans('lang.export_excel') }}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'excel',fieldConfig);
                                 }
                             },
                             {
                                 extend: 'pdfHtml5',
-                                text: 'Export PDF',
+                                text: '{{ trans('lang.export_pdf') }}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'pdf',fieldConfig);
                                 }
                             },   
                             {
                                 extend: 'csvHtml5',
-                                text: 'Export CSV',
+                                text: '{{ trans('lang.export_csv') }}',
                                 action: function (e, dt, button, config) {
                                     exportData(dt, 'csv',fieldConfig);
                                 }
@@ -925,7 +880,7 @@
             ],
             initComplete: function() {
                 $(".dataTables_filter").append($(".dt-buttons").detach());
-                $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+                $('.dataTables_filter input').attr('placeholder', '{{trans("lang.search_here")}}').attr('autocomplete','new-password').val('');
                 $('.dataTables_filter label').contents().filter(function() {
                     return this.nodeType === 3; 
                 }).remove();
@@ -1031,9 +986,9 @@
 
         var time = val.paidDate.toDate().toLocaleTimeString('en-US');
 
-        html.push('<td>' + val.note + '</td>');
+        html.push('<td>' + (val.note ? val.note : '-') + '</td>');
 
-        html.push('<td>' + date + ' ' + time + '</td>');
+        html.push('<td>' + date + '<br> ' + time + '</td>');
 
 
 
@@ -1079,7 +1034,7 @@
 
             if (val.paymentStatus != "Reject" && val.paymentStatus != "Success") {
 
-                actionHtml = actionHtml + '<a id="' + val.id + '" name="vendor_view" data-auth="' + val.vendorID + '" data-amount = "' + amount + '" href="javascript:void(0)" data-toggle="modal" data-target="#bankdetailsModal" class="btn btn-info mb-2">Manual Pay</a>';
+                actionHtml = actionHtml + '<a id="' + val.id + '" name="vendor_view" data-auth="' + val.vendorID + '" data-amount = "' + amount + '" href="javascript:void(0)" data-toggle="modal" data-target="#bankdetailsModal" class="btn  mb-2" data-bs-toggle="tooltip" data-bs-original-title="Manual Pay"><i class="mdi mdi-bank " style="color: #ff683a;"></i></a>';
 
             }
 
@@ -1087,9 +1042,9 @@
 
             if (val.withdrawMethod && val.withdrawMethod != "bank" && val.paymentStatus != "Reject" && val.paymentStatus != "Success") {
 
-                actionHtml = actionHtml + '<br>';
+               
 
-                actionHtml = actionHtml + '<a id="' + val.id + '" name="vendor_pay"  data-auth="' + val.vendorID + '" data-amount="' + price + '" data-method="'+val.withdrawMethod+'" href="javascript:void(0)" class="btn btn-success mb-2 direct-click-btn">Pay Online</a>';
+                actionHtml = actionHtml + '<a id="' + val.id + '" name="vendor_pay"  data-auth="' + val.vendorID + '" data-amount="' + price + '" data-method="'+val.withdrawMethod+'" href="javascript:void(0)" class="btn  mb-2 direct-click-btn" data-bs-toggle="tooltip" data-bs-original-title="Pay Online"><i class="mdi mdi-credit-card " style="color: green;"></i></a>';
 
             }
 
@@ -1097,9 +1052,9 @@
 
             if (val.paymentStatus != "Reject" && val.paymentStatus != "Success") {
 
-                actionHtml = actionHtml + '<br>';
+              
 
-                actionHtml = actionHtml + '<a id="' + val.id + '" name="vendor_reject_request" data-toggle="modal" data-target="#cancelRequestModal" data-auth="' + val.vendorID + '" data-amount = "' + amount + '" data-price="' + price + '" href="javascript:void(0)" class="btn btn-primary mb-2">Cancel Request</a>';
+                actionHtml = actionHtml + '<a id="' + val.id + '" name="vendor_reject_request" data-toggle="modal" data-target="#cancelRequestModal" data-auth="' + val.vendorID + '" data-amount = "' + amount + '" data-price="' + price + '" href="javascript:void(0)" data-bs-toggle="tooltip" class="btn  mb-2" data-bs-original-title="Cancel Request"><i class="mdi mdi-close-circle " style="color: black;"></i></a>';
 
             }
 
@@ -1107,15 +1062,13 @@
 
             if (val.paymentStatus == "In Process") {
 
-                actionHtml = actionHtml + '<br>';
-
+                
                 actionHtml = actionHtml + '<a id="' + val.id + '" name="vendor_check_status" data-auth="' + val.vendorID + '" data-amount="' + price + '" data-method="'+val.withdrawMethod+'" href="javascript:void(0)" class="btn btn-dark mb-2">Check Payment Status</a>';
 
             }
-
         actionHtml = actionHtml + '</span>';
 
-        actionHtml = actionHtml + '<span class="action-btn"><a id="' + val.recid + '" class="delete-btn" name="provider_payouts-delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a></span>';
+        actionHtml = actionHtml + '<span class="action-btn"><a id="' + val.recid + '" class="delete-btn" name="provider_payouts-delete" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a></span>';
 
         html.push(actionHtml);
 
@@ -1621,7 +1574,7 @@
 
             } else {
 
-                alert('Provider not found.');
+                alert('{{trans("lang.provider_not_found")}}');
 
             }
 

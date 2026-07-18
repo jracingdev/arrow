@@ -1,20 +1,15 @@
 import 'dart:convert';
-import 'package:emartstore/model/User.dart';
-import 'package:emartstore/model/payment_model/pay_fast_model.dart';
-import 'package:emartstore/payment/paystack/pay_stack_url_model.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:vendor/models/payment_model/pay_fast_model.dart';
+import 'package:vendor/models/user_model.dart';
+import 'package:vendor/payment/paystack/pay_stack_url_model.dart';
 
 class PayStackURLGen {
-  static Future payStackURLGen({required String amount, required String secretKey, required String currency, required User userModel}) async {
+  static Future payStackURLGen({required String amount, required String secretKey, required String currency, required UserModel userModel}) async {
     const url = "https://api.paystack.co/transaction/initialize";
-    final response = await http.post(Uri.parse(url), body: {
-      "email": userModel.email,
-      "amount": amount,
-      // "currency": currency,
-    }, headers: {
-      "Authorization": "Bearer $secretKey",
-    });
+    final response = await http.post(Uri.parse(url), body: {"email": userModel.email, "amount": amount, "currency": currency}, headers: {"Authorization": "Bearer $secretKey"});
     debugPrint(response.body);
     final data = jsonDecode(response.body);
     if (!data["status"]) {
@@ -23,19 +18,13 @@ class PayStackURLGen {
     return PayStackUrlModel.fromJson(data);
   }
 
-  static Future<bool> verifyTransaction({
-    required String reference,
-    required String secretKey,
-    required String amount,
-  }) async {
+  static Future<bool> verifyTransaction({required String reference, required String secretKey, required String amount}) async {
     debugPrint("we Enter payment Settle");
     debugPrint(reference);
 
     final url = "https://api.paystack.co/transaction/verify/$reference";
 
-    var response = await http.get(Uri.parse(url), headers: {
-      "Authorization": "Bearer $secretKey",
-    });
+    var response = await http.get(Uri.parse(url), headers: {"Authorization": "Bearer $secretKey"});
 
     debugPrint(response.body);
     final data = jsonDecode(response.body);
@@ -48,7 +37,7 @@ class PayStackURLGen {
     //PayPalClientSettleModel.fromJson(data);
   }
 
-  static Future<String> getPayHTML({required String amount, required PayFastModel payFastSettingData, required User userModel}) async {
+  static Future<String> getPayHTML({required String amount, required PayFastModel payFastSettingData, required UserModel userModel}) async {
     String newUrl = 'https://${payFastSettingData.isSandbox == false ? "www" : "sandbox"}.payfast.co.za/eng/process';
     Map body = {
       'merchant_id': payFastSettingData.merchantId,
@@ -63,10 +52,7 @@ class PayStackURLGen {
       'email_address': userModel.email,
     };
 
-    final response = await http.post(
-      Uri.parse(newUrl),
-      body: body,
-    );
+    final response = await http.post(Uri.parse(newUrl), body: body);
 
     debugPrint(response.body);
     return response.body;

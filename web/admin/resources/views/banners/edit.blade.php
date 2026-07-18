@@ -17,7 +17,7 @@
 
             <ol class="breadcrumb">
 
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
                 <li class="breadcrumb-item"><a href="{!! route('banners') !!}">{{trans('lang.menu_items')}}</a>
                 </li>
@@ -216,7 +216,7 @@
 
     var ref = database.collection('banner_items').where("id", "==", id);
 
-    var ref_sections = database.collection('sections');
+    var ref_sections = database.collection('sections').orderBy('order');
     var sections_list = [];
     var placeholderImage = '';
     var placeholder = database.collection('settings').doc('placeHolderImage');
@@ -387,7 +387,14 @@
                 }
             }
 
-            if ($("#section_id").val() && ($("#section_id").find(':selected').data('service-type') == "ecommerce-service" || $("#section_id").find(':selected').data('service-type') == "delivery-service")) {
+            if (
+                $("#section_id").val() && 
+                (
+                    $("#section_id").find(':selected').data('service-type') == "ecommerce-service" || 
+                    $("#section_id").find(':selected').data('service-type') == "delivery-service" || 
+                    $("#section_id").find(':selected').data('service-type') == "ondemand-service"
+                )
+            ) {
                 $("#position").val(menuItems.position);
                 $("#banner_position").show();
             } else {
@@ -436,6 +443,10 @@
             $('#product_div').hide();
             $('#external_link_div').hide();
             $("#redirect_type_div").hide();
+        }
+
+        if(service_type == "ondemand-service"){
+            $("#banner_position").show();
         }
     });
 
@@ -631,7 +642,7 @@
         if (redirect_type == "store") {
 
             $('#storeId').html("");
-            $('#storeId').append($("<option value=''>Select Store</option>"));
+            $('#storeId').append($("<option value=''>{{trans('lang.select_vendor')}}</option>"));
                 
             var ref_vendors = database.collection('vendors').where('section_id', '==', sectionId);
 
@@ -654,7 +665,7 @@
         } else if (redirect_type == "product") {
 
             $('#productId').html("");
-            $('#productId').append($("<option value=''>Select Product</option>"));
+            $('#productId').append($("<option value=''>{{trans('lang.select_product')}}</option>"));
             var ref_vendor_products = database.collection('vendor_products').where('section_id', '==', sectionId);
 
             ref_vendor_products.get().then(async function (snapshots) {

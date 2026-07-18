@@ -1,6 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
+    <?php
+    $countries = file_get_contents(public_path('countriesdata.json'));
+    $countries = json_decode($countries);
+    $countries = (array) $countries;
+    $newcountries = [];
+    $newcountriesjs = [];
+    foreach ($countries as $keycountry => $valuecountry) {
+        $newcountries[$valuecountry->phoneCode] = $valuecountry;
+        $newcountriesjs[$valuecountry->phoneCode] = $valuecountry->code;
+    }
+    ?>
     <div class="page-wrapper">
 
         <div class="row page-titles non-printable">
@@ -10,7 +21,7 @@
             </div>
             <div class="col-md-7 align-self-center">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
 
                     <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
                     <li class="breadcrumb-item"><a href="{{ route('vendors.orders', $_GET['eid']) }}">{{ trans('lang.order_plural') }}</a>
@@ -37,7 +48,7 @@
         </div>
         <?php } ?>
         <div class="card-body">
-            <?php if(in_array('orders.print', json_decode(@session('user_permissions')))){ ?>
+            <?php if(in_array('orders.print', json_decode(@session('user_permissions'),true))){ ?>
             <?php if (isset($_GET['id']) && $_GET['id'] != '') { ?>
             <div class="text-right print-btn"><a href="{{ route('vendors.orderprint', $id) }}">
                     <button type="button" class="fa fa-print"></button>
@@ -123,6 +134,9 @@
                                                                 <option value="In Transit" id="in_transit">{{ trans('lang.in_transit') }}
                                                                 </option>
                                                                 <option value="Order Completed" id="order_completed">{{ trans('lang.order_completed') }}
+                                                                </option>
+                                                                <option value="Order Cancelled" id="order_canceled">
+                                                                    {{ trans('lang.order_canceled') }}
                                                                 </option>
                                                             </select>
                                                         </div>
@@ -401,7 +415,131 @@
         </div>
 
     </div>
+    <div class="modal fade" id="assignDriverModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered location_modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title locationModalTitle">{{ trans('lang.assign_order') }}</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="">
+                        <div class="form-row">
+                            <div class="form-group row">
+                                <div class="form-group row width-100">
+                                    <div class="col-12">
+                                        <a href="javascript:void(0)" data-toggle="modal" data-target="#addDeliverymanModal" class="add-deliveryman btn btn-success"><i class="fa fa-plus"></i>{{ trans('lang.add_delivery_man') }}</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="form-group row width-100" id="driver_list_div">
+                                    <div class="col-12">
+                                        <div class="select2-container-full">
+                                            <label>{{ trans('lang.select_deliveryman') }}</label>
+                                            <select name="deliveryman" class="form-control" id="deliveryman_list">
+                                            </select>
+                                        </div>
+                                        <div id="select_deliveryman" style="color:red"></div>
+                                    </div>
+                                </div>
+                            </div>
 
+                        </div>
+
+                    </form>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="order-assign-btn">{{ trans('lang.assign') }}</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">{{ trans('lang.close') }}</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="addDeliverymanModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered location_modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title locationModalTitle">{{ trans('lang.deliveryman_details') }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="">
+                        <div class="form-row">
+                            <div class="error_top"></div>
+                            <div class="form-group row width-100">
+                                <label class="col-3 control-label">{{ trans('lang.first_name') }}</label>
+                                <div class="col-12">
+                                    <input type="text" class="form-control user_first_name" required>
+                                    <div id="firstname_err" class="text-danger err"></div>
+                                </div>
+                            </div>
+                            <div class="form-group row width-100">
+                                <label class="col-3 control-label">{{ trans('lang.last_name') }}</label>
+                                <div class="col-12">
+                                    <input type="text" class="form-control user_last_name">
+
+                                </div>
+                            </div>
+                            <div class="form-group row width-100">
+                                <label class="col-3 control-label">{{ trans('lang.email') }}</label>
+                                <div class="col-12">
+                                    <input type="email" class="form-control user_email" required>
+                                    <div id="email_err" class="text-danger err"></div>
+                                </div>
+                            </div>
+                            <div class="form-group row width-100">
+                                <label class="col-3 control-label">{{ trans('lang.password') }}</label>
+                                <div class="col-12">
+                                    <input type="password" class="form-control password" required>
+                                    <div id="password_err" class="text-danger err"></div>
+                                </div>
+                            </div>
+                            <div class="form-group form-material">
+                                <label class="col-3 control-label">{{ trans('lang.user_phone') }}</label>
+                                <div class="col-12">
+                                    <div class="phone-box position-relative" id="phone-box">
+                                        <select name="country" id="country_selector">
+                                            <?php foreach ($newcountries as $keycy => $valuecy) { ?>
+                                            <?php $selected = ''; ?>
+                                            <option <?php echo $selected; ?> code="<?php echo $valuecy->code; ?>" value="<?php echo $keycy; ?>">
+                                                +<?php echo $valuecy->phoneCode; ?> {{ $valuecy->countryName }}</option>
+                                            <?php } ?>
+                                        </select>
+                                        <input class="form-control user_phone" placeholder="Phone" id="phone" type="phone" name="phone" value="{{ old('phone') }}" required autocomplete="phone" autofocus>
+                                        <div id="mobilenumber_err" class="text-danger err"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row width-100">
+                                <label class="col-3 control-label">{{ trans('lang.zone') }}<span class="required-field"></span></label>
+                                <div class="col-12">
+                                    <select id='zone' class="form-control">
+                                        <option value="">{{ trans('lang.select_zone') }}</option>
+                                    </select>
+                                    <div id="zone_err" class="text-danger err"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="add-deliveryman-btn">{{ trans('submit') }}</a>
+                        </button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" aria-label="Close">{{ trans('close') }}</a>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('style')
@@ -411,15 +549,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/printThis/1.15.0/printThis.js"></script>
 
     <script type="text/javascript">
+        
         var adminCommission = 0;
-        var id_rendom = "<?php echo uniqid(); ?>";
-
+        var adminCommissionValue = 0;
         var id = "<?php echo $id; ?>";
         var oid = "<?php echo $oid; ?>";
         var driverId = '';
         var fcmToken = '';
         var old_order_status = '';
         var fcmTokenVendor = '';
+        var fcmTokenDriver = '';
         var customername = '';
         var payment_shared = false;
         var deliveryChargeVal = 0;
@@ -437,7 +576,7 @@
         var subscriptionTotalOrders = -1;
         var subscriptionModel = false;
         var commissionBusinessModel = '';
-        var commissionModel = false ;
+        var commissionModel = false;
         var paymentMethod = '';
 
         var database = firebase.firestore();
@@ -465,30 +604,38 @@
         var currencyAtRight = false;
         var refCurrency = database.collection('currencies').where('isActive', '==', true);
         var orderPreviousStatus = '';
+        var orderCustomerId = '';
         var orderTakeAwayOption = false;
         var manfcmTokenVendor = '';
         var manname = '';
         var decimal_degits = 0;
         var service_type = '';
         var delivery_enable = false;
-        var total_tax_amount=0;
+
+        var basePrice = 0;
+        var orderBasePrice = 0;
+        var orderTaxAmount = 0;
+        var total_tax_amount = 0;
+        var orderTaxAmountVendor = 0;
+        var orderRefundPrice = 0;
+        var orderTaxAmountCustomer = 0;
+        var packagingChargeEnable = false;
         var reviewAttributes = {};
+
+        var currencyData = '';
         refCurrency.get().then(async function(snapshots) {
-            var currencyData = snapshots.docs[0].data();
+            currencyData = snapshots.docs[0].data();
             currentCurrency = currencyData.symbol;
             currencyAtRight = currencyData.symbolAtRight;
-
             if (currencyData.decimal_degits) {
                 decimal_degits = currencyData.decimal_degits;
             }
         });
 
         var user_permissions = '<?php echo @session('user_permissions'); ?>';
-
-        user_permissions = JSON.parse(user_permissions);
+        user_permissions = Object.values(JSON.parse(user_permissions));
 
         var checkPrintPermission = false;
-
         if ($.inArray('orders.print', user_permissions) >= 0) {
             checkPrintPermission = true;
         }
@@ -523,6 +670,49 @@
         var scheduleOrderMessage = '';
         var storeOrderInTransitSubject = "";
         var storeOrderInTransitMsg = "";
+        var selfDeliveryOrderAssignSubject = '';
+        var selfDeliveryOrderAssignMsg = '';
+        var selfDeliveryDriverCancelledSub = '';
+        var selfDeliveryDriverCancelledMsg = '';
+        var selfDeliveryCustomerCancelledSub = '';
+        var selfDeliveryCustomerCancelledMsg = '';
+        var isSelfDeliveryGlobally = false;
+        var isSelfDeliveryByVendor = false;
+        var singleOrderReceive = false;
+        var refDriverNearBy = database.collection('settings').doc("DriverNearBy");
+        refDriverNearBy.get().then(async function(snapshot) {
+            var data = snapshot.data();
+            if (data.singleOrderReceive) {
+                singleOrderReceive = true;
+            }
+        })
+        
+        var scheduleOrderAcceptData = {};
+        var scheduleOrderNotificationRef = database.collection('settings').doc("scheduleOrderNotification");
+        scheduleOrderNotificationRef.get().then(async function(snapshot) {
+            var data = snapshot.data();
+            scheduleOrderAcceptData.notifyTime = data.notifyTime;
+            scheduleOrderAcceptData.timeUnit = data.timeUnit;
+        })
+        
+        var refGlobal = database.collection('settings').doc("globalSettings");
+        refGlobal.get().then(async function(
+            settingSnapshots) {
+            if (settingSnapshots.data()) {
+                var settingData = settingSnapshots.data();
+                if (settingData.isSelfDelivery) {
+                    isSelfDeliveryGlobally = true;
+                }
+            }
+        })
+
+        let taxBreakdownGrouped = {
+            item: {},
+            order: {},
+            delivery: {},
+            packaging: {},
+            platform: {}
+        };
 
         database.collection('dynamic_notification').get().then(async function(snapshot) {
             if (snapshot.docs.length > 0) {
@@ -558,6 +748,15 @@
                     } else if (val.type == "schedule_order") {
                         scheduleOrderSubject = val.subject;
                         scheduleOrderMessage = val.message;
+                    } else if (val.type == "assign_order") {
+                        selfDeliveryOrderAssignSubject = val.subject;
+                        selfDeliveryOrderAssignMsg = val.message;
+                    } else if (val.type == "driver_cancelled") {
+                        selfDeliveryDriverCancelledSub = val.subject;
+                        selfDeliveryDriverCancelledMsg = val.message;
+                    } else if (val.type == "restaurant_cancelled") {
+                        selfDeliveryCustomerCancelledSub = val.subject;
+                        selfDeliveryCustomerCancelledMsg = val.message;
                     }
                 });
             }
@@ -581,10 +780,6 @@
 
             });
 
-            var alovelaceDocumentRef = database.collection('vendor_orders').doc();
-            if (alovelaceDocumentRef.id) {
-                id_rendom = alovelaceDocumentRef.id;
-            }
             $(document.body).on('click', '.redirecttopage', function() {
                 var url = $(this).attr('data-url');
                 window.location.href = url;
@@ -601,7 +796,7 @@
                     alert('{{ trans('lang.courier_tracking_id_error') }}');
                     return false;
                 }
-                status = "In Transit";
+                status = "Order Shipped";
                 callWalletTransaction(status);
 
             });
@@ -610,9 +805,20 @@
 
             ref.get().then(async function(snapshots) {
                 vendorOrder = snapshots.docs[0].data();
+                await getDeliverymanList(vendorOrder.vendorID);
                 getUserReview(vendorOrder);
                 var order = snapshots.docs[0].data();
-
+                packagingChargeEnable = order.packagingChargeEnable;
+                orderCustomerId = order.authorID;
+                database.collection('zone').where('publish', '==', true)/* .where('sectionId', '==', order.vendor.section_id) */.orderBy('name', 'asc').get().then(async function(snapshots) {
+                    snapshots.docs.forEach((listval) => {
+                        var data = listval.data();
+                        $('#zone').append($("<option></option>")
+                            .attr("value", data.id)
+                            .text(data.name));
+                    })
+                });
+                
                 if (order.vendor.section_id != undefined && order.vendor.section_id != '') {
                     await database.collection('sections').doc(order.vendor.section_id).get().then(async function(snapshot) {
                         service_type = snapshot.data().serviceTypeFlag;
@@ -640,8 +846,7 @@
                 if (order.author.hasOwnProperty('lastName')) {
                     lastName = order.author.lastName;
                 }
-
-                if (order.address.name) {
+                if (order.address && order.address.name) {
                     $("#billing_name").text(order.address.name);
                 } else {
                     $("#billing_name").text(order.author.firstName + ' ' + order.author.lastName);
@@ -653,13 +858,13 @@
                     $("#trackng_number").text(id);
 
                 }
-                if (order.address.hasOwnProperty('address')) {
+                if (order.address && order.address.hasOwnProperty('address')) {
                     $("#billing_line1").text(order.address.address);
                 }
-                if (order.address.hasOwnProperty('locality')) {
+                if (order.address && order.address.hasOwnProperty('locality')) {
                     billingAddressstring = billingAddressstring + order.address.locality;
                 }
-                if (order.address.hasOwnProperty('landmark') && order.address.landmark != null) {
+                if (order.address && order.address.hasOwnProperty('landmark') && order.address.landmark != null) {
                     billingAddressstring = billingAddressstring + " " + order.address.landmark;
                 }
                 if (order.takeAway == true) {
@@ -675,10 +880,10 @@
                     } else {
                         $("#billing_phone").text(EditPhoneNumber(order.author.phoneNumber));
                     }
-                    
+
                 }
 
-                if (order.address.hasOwnProperty('country')) {
+                if (order.address && order.address.hasOwnProperty('country')) {
 
                     $("#billing_country").text(order.address.country);
 
@@ -787,20 +992,24 @@
                     $('#order_type').text('{{ trans('lang.order_takeaway') }}');
                     $('.payment_method').hide();
                     orderTakeAwayOption = true;
-
                 } else {
                     $('#order_type').text('{{ trans('lang.order_delivery') }}');
                     $('.payment_method').show();
-
                 }
+
                 if (service_type != undefined && service_type != '' && service_type == "ecommerce-service") {
                     $('#order_placed').hide();
-                    $('#order_accepted').hide();
-                    $('#order_rejected').hide();
+                    $('#order_accepted').show();
+                    $('#order_rejected').show();
                     $('#driver_pending').hide();
                     $('#driver_rejected').hide();
                     $('#order_shipped').hide();
-                    $('#order_completed').show();
+                    $('#in_transit').hide();
+                    if (order.status == 'Order Shipped') {
+                        $('#order_completed').show();
+                    }else{
+                        $('#order_completed').hide();
+                    }
                     $('#ccname_div').show();
                     $('#ccid_div').show();
                 } else {
@@ -907,11 +1116,23 @@
                 if (order.hasOwnProperty('payment_method')) {
                     orderPaymentMethod = order.payment_method;
                 }
-
+                
                 $("#order_status option[value='" + order.status + "']").attr("selected", "selected");
-                if (order.status == "Order Rejected" || order.status == "Driver Rejected") {
+
+                if (order.status == 'Order Placed') {
+                    $('#order_canceled').hide();
+                }
+                
+                if (order.status == "Order Rejected" || order.status == "Driver Rejected" || order.status == "Order Cancelled" || order.status == "Order Completed") {
                     $("#order_status").prop("disabled", true);
                 }
+                
+                if (order.status != 'Order Placed') {
+
+                    $('#order_accepted').hide();
+                    $('#order_rejected').hide();
+                }
+
 
                 if (service_type != undefined && service_type != '' && service_type == "delivery-service") {
                     if (order.status == "Order Accepted" || order.status == "Driver Pending") {
@@ -924,9 +1145,12 @@
                 if (order.vendorID) {
                     var vendor = database.collection('vendors').where("id", "==", order.vendorID);
 
-                    vendor.get().then(async function(snapshotsnew) {
+                    await vendor.get().then(async function(snapshotsnew) {
                         if (snapshotsnew.docs.length > 0) {
                             var vendordata = snapshotsnew.docs[0].data();
+                            if (vendordata.hasOwnProperty('isSelfDelivery') && vendordata.isSelfDelivery) {
+                                isSelfDeliveryByVendor = true;
+                            }
                             if (subscriptionModel || commissionModel) {
                                 if (vendordata.hasOwnProperty('subscriptionTotalOrders') &&
                                     vendordata.subscriptionTotalOrders != null && vendordata
@@ -936,7 +1160,7 @@
                                 }
                             }
                             if (vendordata.id) {
-                                var route_view = '{{ route('vendors.view', ':id') }}';
+                                var route_view = '{{ route('stores.view', ':id') }}';
                                 route_view = route_view.replace(':id', vendordata.id);
 
                                 $('#resturant-view').attr('data-url', route_view);
@@ -994,7 +1218,16 @@
 
                 }
 
+                if (isSelfDeliveryByVendor && isSelfDeliveryGlobally && order.status == 'Order Placed' && !order.takeAway) {
 
+                    var newOption = $('<option>', {
+                        value: 'Order Accepted',
+                        text: "{{ trans('lang.assign_delivery_man') }}"
+                    });
+                    $('#order_status option[value="Order Rejected"]').before(newOption);
+                    $('#order_accepted').hide();
+
+                }
                 jQuery("#data-table_processing").hide();
 
                 ref_review_attributes.get().then(async function(snapshots) {
@@ -1013,6 +1246,46 @@
 
 
             })
+            async function getDeliverymanList(vendorID) {
+                database.collection('users').where('role', '==', 'driver').where('vendorID', '==', vendorID).where('isActive', '==', true).get().then(async function(snapshot) {
+                    if (snapshot.docs.length > 0) {
+                        snapshot.docs.forEach((listval) => {
+                            var data = listval.data();
+                            if (singleOrderReceive) {
+                                let option = $("<option></option>")
+                                    .attr("value", data.id)
+                                    .attr("fcm", data.fcmToken);
+                                if (data.hasOwnProperty('inProgressOrderID') &&
+                                    data.inProgressOrderID !== null &&
+                                    data.inProgressOrderID !== '' &&
+                                    data.inProgressOrderID.length > 0) {
+                                    option.prop("disabled", true)
+                                        .text(data.firstName + ' ' + data.lastName + ' (Occupied)');
+                                } else {
+                                    option.text(data.firstName + ' ' + data.lastName);
+                                }
+                                $('#deliveryman_list').append(option);
+                            } else {
+                                $('#deliveryman_list').append($("<option></option>")
+                                    .attr("value", data.id)
+                                    .attr("fcm", data.fcmToken)
+                                    .text(data.firstName + ' ' + data.lastName));
+                            }
+                        });
+                        $('#deliveryman_list').select2();
+                    }
+                })
+            }
+            $('#deliveryman_list').on('select2:open', function() {
+                setTimeout(function() {
+                    $('.select2-results__option').each(function() {
+                        let $this = $(this);
+                        if ($this.text().includes('(Occupied)')) {
+                            $this.addClass('occupied-option'); // Add custom class
+                        }
+                    });
+                }, 0);
+            });
 
             function getTwentyFourFormat(h, timeslot) {
                 if (h < 10 && timeslot == "PM") {
@@ -1022,24 +1295,71 @@
                 }
                 return h;
             }
-
-            $('#add-prepare-time-btn').click(function() {
+            $('#order-assign-btn').click(function() {
+                var deliveryman = $('#deliveryman_list').val();
+                if (deliveryman == '' || deliveryman == null) {
+                    $('#select_deliveryman').html('{{ trans('lang.select_deliveryman') }}');
+                    return false;
+                }
+                $('#assignDriverModal').hide();
+                $('#addPreparationTimeModal').modal('show');
+            });
+            $('#add-prepare-time-btn').click(async function() {
                 var preparationTime = $('#prepare_time').val();
                 if (preparationTime == '') {
                     $('#add_prepare_time_error').text('{{ trans('lang.add_prepare_time_error') }}');
                     return false;
                 }
+                if (isSelfDeliveryByVendor && isSelfDeliveryGlobally && !orderTakeAwayOption) {
+                    var deliveryman = $('#deliveryman_list').val();
+                    var orderRequestData = [];
+                    var inProgressOrderID = [];
+                    var driverData = '';
+                    await database.collection('users').where('id', '==', deliveryman).get().then(async function(snapshot) {
+                        if (snapshot.docs.length > 0) {
+                            driverData = snapshot.docs[0].data();
+                            fcmTokenDriver = driverData.fcmToken;
+                            if (driverData.hasOwnProperty('orderRequestData') && driverData.orderRequestData != null && driverData.orderRequestData != '') {
+                                orderRequestData = driverData.orderRequestData;
 
-                database.collection('vendor_orders').doc(id).update({
-                    'estimatedTimeToPrepare': preparationTime
-                }).then(async function(result) {
-                    status = "Order Accepted";
+                            }
+                            if (driverData.hasOwnProperty('inProgressOrderID') && driverData.inProgressOrderID != null && driverData.inProgressOrderID != '') {
+                                inProgressOrderID = driverData.inProgressOrderID
+                            }
+
+                        }
+                        orderRequestData.push(id);
+                        inProgressOrderID.push(id);
+                    })
+
+                    await database.collection('users').doc(deliveryman).update({
+                        'orderRequestData': orderRequestData,
+                        'inProgressOrderID': inProgressOrderID
+                    });
+
+                    var updatedData = {
+                        'status': "In Transit",
+                        'estimatedTimeToPrepare': preparationTime,
+                        'driverID': deliveryman,
+                        'driver': driverData
+                    }
+                } else {
+                    var updatedData = {
+                        'status': "Order Accepted",
+                        'estimatedTimeToPrepare': preparationTime
+                    }
+                }
+
+                database.collection('vendor_orders').doc(id).update(updatedData).then(async function(result) {
+                    status = updatedData.status;
                     callWalletTransaction(status);
                 });
             });
 
-            /* async function callWalletTransaction(status) {
+            async function callWalletTransaction(status) {
+
                 var orderStatus = status;
+
                 var date = firebase.firestore.FieldValue.serverTimestamp();
                 var courierCompanyName = $("#courierCompanyName").val();
                 var courierTrackingId = $("#courierTrackingId").val();
@@ -1048,11 +1368,11 @@
                     'status': status,
                     'courierCompanyName': courierCompanyName,
                     'courierTrackingId': courierTrackingId
+                }).then(async function(result) {
 
-                }).then(async function (result) {
                     var wId = database.collection('temp').doc().id;
                     database.collection('wallet').doc(wId).set({
-                        'amount': parseFloat(total_price),
+                        'amount': parseFloat(orderBasePrice),
                         'date': date,
                         'id': wId,
                         'isTopUp': true,
@@ -1060,217 +1380,79 @@
                         'payment_method': 'Wallet',
                         'payment_status': 'success',
                         'transactionUser': 'vendor',
+                        'note': 'Order amount credited',
                         'user_id': vendorAuthor
-                    }).then(async function (result) {
-                        if (adminCommission != 0 || adminCommission != '') {
+                    }).then(async function(result) {
+                        var vendorAmount = orderBasePrice;
+                        if (total_tax_amount != 0 || total_tax_amount != '') {
                             var wId = database.collection('temp').doc().id;
                             database.collection('wallet').doc(wId).set({
-                                'amount': parseFloat(adminCommission),
+                                'amount': parseFloat(orderTaxAmountVendor),
                                 'date': date,
                                 'id': wId,
-                                'isTopUp': false,
+                                'isTopUp': true,
                                 'order_id': "<?php echo $id; ?>",
-                                'payment_method': 'Wallet',
+                                'payment_method': 'tax',
                                 'payment_status': 'success',
                                 'transactionUser': 'vendor',
-                                'user_id': vendorAuthor
-                            }).then(async function (result) {
-                            })
+                                'user_id': vendorAuthor,
+                                'note': 'Order tax credited'
+                            }).then(async function(result) {})
                         }
 
-                        vendorAmount = total_price - adminCommission;
-
-                        database.collection('users').where('id', '==', vendorAuthor).get().then(async function (snapshotsnew) {
-                            var vendordata = snapshotsnew.docs[0].data();                          
+                        database.collection('users').where('id', '==', vendorAuthor).get().then(async function(snapshotsnew) {
+                            var vendordata = snapshotsnew.docs[0].data();
                             if (vendordata) {
-                                if (isNaN(vendordata.wallet_amount) || vendordata.wallet_amount == undefined) {
+                                if (parseInt(subscriptionTotalOrders) != -1) {
+                                    subscriptionTotalOrders = parseInt(subscriptionTotalOrders) - 1;
+                                    await database.collection('vendors').doc(vendordata.vendorID).update({
+                                        'subscriptionTotalOrders': subscriptionTotalOrders.toString()
+                                    })
+                                }
+                                if (isNaN(vendordata.wallet_amount) ||
+                                    vendordata.wallet_amount == undefined) {
                                     vendorWallet = 0;
                                 } else {
                                     vendorWallet = parseFloat(vendordata.wallet_amount);
                                 }
-                                newVendorWallet = vendorWallet + vendorAmount;
+
+                                newVendorWallet = vendorWallet + vendorAmount + parseFloat(total_tax_amount);
                                 database.collection('users').doc(vendorAuthor).update({
                                     'wallet_amount': parseFloat(newVendorWallet)
-                                }).then(async function (result) {
+                                }).then(async function(result) {
                                     callAjax(orderStatus);
                                 })
                             } else {
                                 callAjax(orderStatus);
                             }
-
                         });
-
-
                     });
-
-                });
-
-
-            } */
-
-            async function callWalletTransaction(status) {
-                var orderStatus = status;
-
-                var date = firebase.firestore.FieldValue.serverTimestamp();
-
-                var courierCompanyName = $("#courierCompanyName").val();
-
-                var courierTrackingId = $("#courierTrackingId").val();
-
-
-                database.collection('vendor_orders').doc(id).update({
-
-                    'status': status,
-
-                    'courierCompanyName': courierCompanyName,
-
-                    'courierTrackingId': courierTrackingId
-
-
-
-                }).then(async function(result) {
-
-
-
-                    var wId = database.collection('temp').doc().id;
-
-                    database.collection('wallet').doc(wId).set({
-
-                        'amount': parseFloat(basePrice),
-
-                        'date': date,
-
-                        'id': wId,
-
-                        'isTopUp': true,
-
-                        'order_id': "<?php echo $id; ?>",
-
-                        'payment_method': 'Wallet',
-
-                        'payment_status': 'success',
-
-                        'transactionUser': 'vendor',
-
-                        'user_id': vendorAuthor
-
-                    }).then(async function(result) {
-
-                        var vendorAmount = basePrice;
-
-                        if (total_tax_amount != 0 || total_tax_amount != '') {
-
-                            var wId = database.collection('temp').doc().id;
-
-                            database.collection('wallet').doc(wId).set({
-
-                                'amount': parseFloat(total_tax_amount),
-
-                                'date': date,
-
-                                'id': wId,
-
-                                'isTopUp': true,
-
-                                'order_id': "<?php echo $id; ?>",
-
-                                'payment_method': 'tax',
-
-                                'payment_status': 'success',
-
-                                'transactionUser': 'vendor',
-
-                                'user_id': vendorAuthor,
-
-                                'note': 'Order Tax credited'
-
-                            }).then(async function(result) {})
-
-                        }
-
-
-
-                        database.collection('users').where('id', '==', vendorAuthor)
-
-                            .get().then(async function(snapshotsnew) {
-
-                                var vendordata = snapshotsnew.docs[0].data();
-
-                                if (vendordata) {
-
-                                    if (parseInt(subscriptionTotalOrders) != -1) {
-
-                                        subscriptionTotalOrders = parseInt(subscriptionTotalOrders) - 1;
-
-                                        await database.collection('vendors').doc(vendordata.vendorID).update({
-
-                                            'subscriptionTotalOrders': subscriptionTotalOrders.toString()
-
-                                        })
-
-                                    }
-
-                                    if (isNaN(vendordata.wallet_amount) ||
-
-                                        vendordata.wallet_amount == undefined) {
-
-                                        vendorWallet = 0;
-
-                                    } else {
-
-                                        vendorWallet = parseFloat(vendordata
-
-                                            .wallet_amount);
-
-                                    }
-
-                                    newVendorWallet = vendorWallet + vendorAmount + parseFloat(total_tax_amount);
-
-                                    database.collection('users').doc(
-
-                                        vendorAuthor).update({
-
-                                        'wallet_amount': parseFloat(
-
-                                            newVendorWallet)
-
-                                    }).then(async function(result) {
-
-                                        callAjax(orderStatus);
-
-                                    })
-
-                                } else {
-
-                                    callAjax(orderStatus);
-
-                                }
-
-
-
-                            });
-
-
-
-
-
-                    });
-
-
-
                 });
             }
 
             async function callAjax(orderStatus) {
+                if (isSelfDeliveryByVendor && isSelfDeliveryGlobally) {
+                    await $.ajax({
+                        type: 'POST',
+                        url: "<?php echo route('order-status-notification'); ?>",
+                        data: {
+                            _token: '<?php echo csrf_token(); ?>',
+                            'fcm': fcmTokenDriver,
+                            'vendorname': manname,
+                            'orderStatus': 'Order Accepted',
+                            'subject': selfDeliveryOrderAssignSubject,
+                            'message': selfDeliveryOrderAssignMsg
+                        },
 
+                    });
+
+                }
                 var subject = storeAcceptedSubject;
                 var message = storeAcceptedMessage;
-
                 if (orderStatus == "In Transit") {
                     subject = storeOrderInTransitSubject;
                     message = storeOrderInTransitMsg;
                 }
-
                 await $.ajax({
                     type: 'POST',
                     url: "<?php echo route('order-status-notification'); ?>",
@@ -1283,10 +1465,7 @@
                         'message': message
                     },
                     success: function(data) {
-
                         window.location.href = '{{ route('orders') }}';
-
-
                     }
                 });
             }
@@ -1318,53 +1497,45 @@
                             id = order.id;
                             var scheduleTime = '';
                             if (order.hasOwnProperty('scheduleTime') && order.scheduleTime != null && order.scheduleTime != '') {
-                                scheduleTime = order.scheduleTime;
-                                var scheduleDate = scheduleTime.toDate().toDateString();
-                                var OrderTime = order.scheduleTime.toDate().toLocaleTimeString('en-US');
-                                var scheduleDate = new Date(scheduleDate);
-                                var dd = String(scheduleDate.getDate()).padStart(2, '0');
-                                var mm = String(scheduleDate.getMonth() + 1).padStart(2, '0'); //January is 0!
-                                var yyyy = scheduleDate.getFullYear();
-                                var scheduleDate = yyyy + '-' + mm + '-' + dd;
-
-                                today = new Date();
-                                var dd = String(today.getDate()).padStart(2, '0');
-                                var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-                                var yyyy = today.getFullYear();
-                                var todayDate = yyyy + '-' + mm + '-' + dd;
-                                var currentTime = today.toLocaleTimeString('en-US');
-
-                                var [h, m, s] = currentTime.split(":");
-                                var timeslot = s.split(" ")[1];
-                                h = getTwentyFourFormat(h, timeslot);
-                                var currentTime = (h + ":" + m + ":" + s);
-
-                                var [h, m, s] = OrderTime.split(":");
-                                var timeslot = s.split(" ")[1];
-                                h = getTwentyFourFormat(h, timeslot);
-                                var orderTime = (h + ":" + m + ":" + s);
-
-                                if (todayDate > scheduleDate) {
-
-                                    $('#addPreparationTimeModal').modal('show');
-
-                                } else if (todayDate == scheduleDate) {
-                                    if (currentTime >= orderTime) {
-                                        $('#addPreparationTimeModal').modal('show');
-                                    } else {
-                                        alert("{{ trans('lang.accept_before_time_error') }}");
-                                        return false;
-                                    }
+                                const scheduleTime = order.scheduleTime.toDate();
+                                const now = new Date();
+                                var notifyTime = scheduleOrderAcceptData.notifyTime;
+                                var timeUnit = scheduleOrderAcceptData.timeUnit;
+                                let notifyBeforeMs = 0;
+                                if (timeUnit === 'minute') {
+                                    notifyBeforeMs = notifyTime * 60 * 1000;
+                                } else if (timeUnit === 'hour') {
+                                    notifyBeforeMs = notifyTime * 60 * 60 * 1000;
                                 } else {
-                                    alert("{{ trans('lang.accept_before_date_error') }}");
+                                    notifyBeforeMs = notifyTime * 24 * 60 * 60 * 1000;
+                                }
+                                const windowStart = new Date(scheduleTime.getTime() - notifyBeforeMs);
+                                const windowEnd = scheduleTime;
+                                var endDate = order.scheduleTime.toDate().toDateString() + ' ' + order.scheduleTime.toDate().toLocaleTimeString('en-US');
+                                var startDate = windowStart.toDateString() + ' ' + windowStart.toLocaleTimeString('en-US');
+                                if (now >= windowStart && now <= windowEnd) {
+                                    if (isSelfDeliveryGlobally && isSelfDeliveryByVendor && !orderTakeAwayOption) {
+                                        $('#assignDriverModal').modal('show');
+                                    } else {
+                                        $('#addPreparationTimeModal').modal('show');
+                                    }
+                                } else if (now < windowStart) {
+
+                                    alert("{{ trans('lang.you_can_accept_order_between') }}" + startDate + ' - ' + endDate); // too early
+                                    return false;
+                                } else {
+                                    alert("{{ trans('lang.you_can_accept_order_between') }}" + startDate + ' - ' + endDate); // too late
                                     return false;
                                 }
-
 
                             } else {
 
                                 if (service_type != undefined && service_type != '' && service_type == "delivery-service" && delivery_enable) {
-                                    $('#addPreparationTimeModal').modal('show');
+                                    if (isSelfDeliveryGlobally && isSelfDeliveryByVendor && !orderTakeAwayOption) {
+                                        $('#assignDriverModal').modal('show');
+                                    } else {
+                                        $('#addPreparationTimeModal').modal('show');
+                                    }
                                 } else {
                                     if (service_type == "ecommerce-service") {
                                         $("#orderTrakingModal").modal('show');
@@ -1377,6 +1548,10 @@
 
                         })
 
+                    } else if (orderStatus == 'Order Cancelled' || orderStatus == 'Order Rejected') {
+
+                        await getRefund(orderStatus);
+                    
                     } else {
                         database.collection('vendor_orders').doc(id).update({
                             'status': orderStatus,
@@ -1469,15 +1644,16 @@
                                                 });
 
                                                 //add refferal history
-                                                var id_random = "<?php echo uniqid(); ?>";
+                                                var id_random = database.collection('temp').doc().id;
                                                 database.collection('wallet').doc(id_random).set({
                                                     'amount': referralAmount,
-                                                    'date': new Date(),
+                                                    'date': firebase.firestore.FieldValue.serverTimestamp(),
                                                     'id': id_random,
                                                     'driverId': vendorId,
                                                     'isTopUp': true,
-                                                    'order_id': '',
-                                                    'payment_method': 'Referral Amount',
+                                                    'order_id': oid,
+                                                    'note': 'Referral Amount',
+                                                    'payment_method': 'Wallet',
                                                     'payment_status': 'success',
                                                     'transactionUser': 'driver',
                                                     'user_id': referralBy,
@@ -1502,20 +1678,20 @@
 
                                         if (orderPreviousStatus != 'Order Rejected' && orderPreviousStatus != 'Driver Rejected' && orderPaymentMethod != 'cod' && orderTakeAwayOption == false) {
                                             if (orderStatus == 'Order Rejected' || orderStatus == 'Driver Rejected') {
-                                                var walletId = "<?php echo uniqid(); ?>";
-                                                var canceldateNew = new Date();
-                                                var orderCancelDate = new Date(canceldateNew.setHours(23, 59, 59, 999));
+                                                var walletId = database.collection('temp').doc().id;
                                                 database.collection('wallet').doc(walletId).set({
                                                     'amount': parseFloat(orderPaytableAmount),
-                                                    'date': canceldateNew,
+                                                    'date': firebase.firestore.FieldValue.serverTimestamp(),
                                                     'id': walletId,
+                                                    'note': 'Cancelled Order Payment',
+                                                    'order_id': oid,
+                                                    'payment_method': 'Wallet',
                                                     'payment_status': 'success',
+                                                    'transactionUser': 'user',
                                                     'user_id': orderCustomerId,
-                                                    'payment_method': 'Cancelled Order Payment'
                                                 }).then(function(result) {
                                                     database.collection('users').where("id", "==", orderCustomerId).get().then(async function(userSnapshots) {
                                                         if (userSnapshots.docs.length > 0) {
-
                                                             data = userSnapshots.docs[0].data();
                                                             var wallet_amount = 0;
                                                             if (data.wallet_amount != undefined && data.wallet_amount != '' && data.wallet_amount != null && !isNaN(data.wallet_amount)) {
@@ -1545,16 +1721,16 @@
                                                 })
                                             } else {
                                                 <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
-                                                window.location.href = "{{ route('vendors.orders', $_GET['eid']) }}";
+                                                    window.location.href = "{{ route('vendors.orders', $_GET['eid']) }}";
                                                 <?php } else { ?>
-                                                window.location.href = '{{ route('orders') }}';
+                                                    window.location.href = '{{ route('orders') }}';
                                                 <?php } ?>
                                             }
                                         } else {
                                             <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
-                                            window.location.href = "{{ route('vendors.orders', $_GET['eid']) }}";
+                                                window.location.href = "{{ route('vendors.orders', $_GET['eid']) }}";
                                             <?php } else { ?>
-                                            window.location.href = '{{ route('orders') }}';
+                                                window.location.href = '{{ route('orders') }}';
                                             <?php } ?>
                                         }
 
@@ -1580,16 +1756,17 @@
 
                                             if (orderStatus == 'Order Rejected' || orderStatus == 'Driver Rejected') {
 
-                                                var walletId = "<?php echo uniqid(); ?>";
-                                                var canceldateNew = new Date();
-                                                var orderCancelDate = new Date(canceldateNew.setHours(23, 59, 59, 999));
+                                                var walletId = database.collection('temp').doc().id;
                                                 database.collection('wallet').doc(walletId).set({
                                                     'amount': parseFloat(orderPaytableAmount),
-                                                    'date': new Date(),
+                                                    'date': firebase.firestore.FieldValue.serverTimestamp(),
                                                     'id': walletId,
+                                                    'note': 'Cancelled Order Payment',
+                                                    'order_id': oid,
+                                                    'payment_method': 'Wallet',
                                                     'payment_status': 'success',
+                                                    'transactionUser': 'user',
                                                     'user_id': orderCustomerId,
-                                                    'payment_method': 'Cancelled Order Payment'
                                                 }).then(function(result) {
                                                     database.collection('users').where("id", "==", orderCustomerId).get().then(async function(userSnapshots) {
                                                         if (userSnapshots.docs.length > 0) {
@@ -1624,17 +1801,17 @@
                                             } else {
 
                                                 <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
-                                                window.location.href = "{{ route('vendors.orders', $_GET['eid']) }}";
+                                                    window.location.href = "{{ route('vendors.orders', $_GET['eid']) }}";
                                                 <?php } else { ?>
-                                                window.location.href = '{{ route('orders') }}';
+                                                    window.location.href = '{{ route('orders') }}';
                                                 <?php } ?>
                                             }
                                         } else {
 
                                             <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
-                                            window.location.href = "{{ route('vendors.orders', $_GET['eid']) }}";
+                                                window.location.href = "{{ route('vendors.orders', $_GET['eid']) }}";
                                             <?php } else { ?>
-                                            window.location.href = '{{ route('orders') }}';
+                                                window.location.href = '{{ route('orders') }}';
                                             <?php } ?>
                                         }
 
@@ -1651,7 +1828,6 @@
             })
 
         })
-
 
         function buildHTMLProductsList(snapshotsProducts) {
             var html = '';
@@ -1719,8 +1895,14 @@
                     html = html + '<div class="type"><span>{{ trans('lang.type') }} :</span><span class="ext-size">' + product.size + '</span></div>';
                 }
 
-                price_item = parseFloat(val.price).toFixed(decimal_degits);
-
+                var final_price = '';
+                if (val.discountPrice != 0 && val.discountPrice != "" && val.discountPrice != null && !isNaN(val.discountPrice)) {
+                    final_price = parseFloat(val.discountPrice);
+                } else {
+                    final_price = parseFloat(val.price);
+                }
+                price_item = parseFloat(final_price).toFixed(decimal_degits);
+                
                 totalProductPrice = parseFloat(price_item) * parseInt(val.quantity);
                 var extras_price = 0;
                 if (product.extras != undefined && product.extras != '' && product.extras.length > 0) {
@@ -1760,7 +1942,13 @@
         }
 
         function getProductInfo(product) {
-            database.collection('vendor_products').doc(product.id).get().then(async function(snapshots) {
+            let productId;
+            if (product.id.includes('~')) {
+                productId = product.id.split('~')[0];
+            } else {
+                productId = product.id;
+            }
+            database.collection('vendor_products').doc(productId).get().then(async function(snapshots) {
                 if (snapshots.exists) {
                     var productData = snapshots.data();
                     if (product.variant_info && product.variant_info.variant_id) {
@@ -1806,216 +1994,206 @@
 
         function buildHTMLProductstotal(snapshotsProducts) {
             var html = '';
-            var alldata = [];
-            var number = [];
-
-            adminCommissionValue = snapshotsProducts.adminCommission;
+            
+            let adminCommissionValue = snapshotsProducts.adminCommission;
             var adminCommissionType = snapshotsProducts.adminCommissionType;
-            var discount = snapshotsProducts.discount;
             var couponCode = snapshotsProducts.couponCode;
-            var extras = snapshotsProducts.extras;
-            var extras_price = snapshotsProducts.extras_price;
-            var rejectedByDrivers = snapshotsProducts.rejectedByDrivers;
             var takeAway = snapshotsProducts.takeAway;
-            tip_amount = snapshotsProducts.tip_amount;
             var notes = snapshotsProducts.notes;
-            var tax_amount = snapshotsProducts.vendor.tax_amount;
-            var status = snapshotsProducts.status;
-            var products = snapshotsProducts.products;
-            var deliveryCharge = snapshotsProducts.deliveryCharge;
+            var specialDiscount = snapshotsProducts.specialDiscount;
+            
+            let order_subtotal = 0;
+            let total_discount = 0;
+            let tip_amount = parseFloat(snapshotsProducts.tip_amount || 0);
+            let deliveryCharge = parseFloat(snapshotsProducts.deliveryCharge || 0);
+            let platformFee = parseFloat(snapshotsProducts.platformFee || 0);
+            let packagingCharge = parseFloat(snapshotsProducts.vendor.packagingCharge || 0);
 
-            var intRegex = /^\d+$/;
-            var floatRegex = /^((\d+(\.\d *)?)|((\d*\.)?\d+))$/;
+            //  Calculate subtotal and product extras
+            for (let i = 0; i < snapshotsProducts.products.length; i++) {
+                let product = snapshotsProducts.products[i];
+                let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+                order_subtotal += itemGross;
+            }
+            
 
-            if (products) {
+            // Total discounts
+            let order_discount = parseFloat(snapshotsProducts.discount || 0);
+            let special_discount = parseFloat(snapshotsProducts.specialDiscount?.special_discount || 0);
+                total_discount = order_discount + special_discount;
 
-                products.forEach((product) => {
-
-                    var val = product;
-
+            // Calculate item-level taxes (if product-level)
+            if (snapshotsProducts.taxScope === "product") {
+                let itemSubtotal = order_subtotal;
+                let itemCombinedTax = 0;
+                snapshotsProducts.products.forEach(product => {
+                    let basePrice = (product.discountPrice && parseFloat(product.discountPrice) > 0) ? parseFloat(product.discountPrice) : parseFloat(product.price);
+                    let itemGross = (basePrice + parseFloat(product.extras_price || 0)) * parseInt(product.quantity);
+                    let itemDiscount = (itemSubtotal > 0) ? (itemGross / itemSubtotal) * total_discount : 0;
+                    let itemTaxable = Math.max(0, itemGross - itemDiscount);
+                    let itemTaxes = product.taxSetting || [];
+                    itemTaxes.forEach(tax => {
+                        if (tax.enable) {
+                            let taxAmount = 0;
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * itemTaxable;
+                            } else {
+                                taxAmount = tax.tax * product.quantity;
+                            }
+                            total_tax_amount += parseFloat(taxAmount);
+                            itemCombinedTax += parseFloat(taxAmount);
+                        }
+                    });
                 });
+                taxBreakdownGrouped.item[''] = itemCombinedTax;
+            } 
+
+            // Order-level taxes (if order-level)
+            if (snapshotsProducts.taxScope === "order") {
+                let orderTaxable = Math.max(0, order_subtotal - total_discount);
+                let orderCombinedTax = 0;
+                (snapshotsProducts.taxSetting || []).forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if (tax.type === "percentage") {
+                            taxAmount = (tax.tax / 100) * orderTaxable;
+                        } else {
+                            taxAmount = tax.tax;
+                        }
+                        total_tax_amount += parseFloat(taxAmount);
+                        orderCombinedTax += parseFloat(taxAmount);
+                    }
+                });
+                taxBreakdownGrouped.order[''] = orderCombinedTax;
             }
-            if (currencyAtRight) {
-                var sub_total = parseFloat(total_price).toFixed(decimal_degits) + "" + currentCurrency;
-            } else {
-                var sub_total = currentCurrency + "" + parseFloat(total_price).toFixed(decimal_degits);
-            }
+
+            orderTaxAmount = total_tax_amount
+            orderTaxAmountVendor = total_tax_amount;
+            orderTaxAmountCustomer = total_tax_amount;
+            // Delivery, packaging, platform taxes
+            let extraCharges = [
+                {key: 'delivery', amount: deliveryCharge, taxes: snapshotsProducts.driverDeliveryTax || []},
+                {key: 'packaging', amount: packagingCharge, taxes: snapshotsProducts.packagingTax || []},
+                {key: 'platform', amount: platformFee, taxes: snapshotsProducts.platformTax || []},
+            ];
+
+            extraCharges.forEach(scope => {
+                if (scope.key === "packaging" && !packagingChargeEnable) {
+                    return;
+                }
+                scope.taxes?.forEach(tax => {
+                    if (tax.enable) {
+                        let taxAmount = 0;
+                        if(scope.amount > 0){
+                            if (tax.type === "percentage") {
+                                taxAmount = (tax.tax / 100) * scope.amount;
+                            } else {
+                                taxAmount = tax.tax;
+                            }
+                        }
+                        total_tax_amount += parseFloat(taxAmount);
+                        if(scope.key == "packaging"){
+                            orderTaxAmount += parseFloat(taxAmount);
+                            orderTaxAmountVendor += parseFloat(taxAmount);
+                        }
+                        orderTaxAmountCustomer += parseFloat(taxAmount);
+                        taxBreakdownGrouped[scope.key][tax.title] = (taxBreakdownGrouped[scope.key][tax.title] || 0) + parseFloat(taxAmount);
+                    }
+                });
+            });
+
+            // Final total
+            let order_total = (order_subtotal - total_discount) + deliveryCharge + tip_amount + (packagingChargeEnable ? packagingCharge : 0) + platformFee + total_tax_amount;
+            let order_total_val = formatCurrency(order_total, currencyData);
 
             html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.sub_total') }}</span></td></tr>';
+            html = html +
+                '<tr class="final-rate"><td class="label">{{ trans('lang.sub_total') }}</td><td class="sub_total" style="color:green">(' +
+                formatCurrency(order_subtotal, currencyData) + ')</td></tr>';
 
-            html = html + '<tr class="final-rate"><td class="label">{{ trans('lang.sub_total') }}</td><td class="sub_total" style="color:green">(' + sub_total + ')</td></tr>';
-            var priceWithCommision = total_price;
+            html = html +
+                '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.discount') }}</span></td></tr>';
+            couponCode_html = '';
+            if (couponCode) {
+                couponCode_html = '</br><small>{{ trans('lang.coupon_codes') }} :' + couponCode + '</small>';
+            }
+            html = html + '<tr><td class="label">{{ trans('lang.discount') }}' + couponCode_html +
+                '</td><td class="discount text-danger">(-' + formatCurrency(order_discount, currencyData) + ')</td></tr>';
 
-            if (intRegex.test(discount) || floatRegex.test(discount)) {
-                html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.discount') }}</span></td></tr>';
-
-                discount = parseFloat(discount).toFixed(decimal_degits);
-                total_price -= parseFloat(discount);
-
-                if (currencyAtRight) {
-                    discount_val = parseFloat(discount).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    discount_val = currentCurrency + "" + parseFloat(discount).toFixed(decimal_degits);
+            if (specialDiscount != undefined) {
+                special_html = '';
+                if (specialDiscount.specialType == "percentage") {
+                    special_html = '</br><small>(' + specialDiscount.special_discount_label + '%)</small>';
                 }
-
-                couponCode_html = '';
-                if (couponCode) {
-                    couponCode_html = '</br><small>{{ trans('lang.coupon_codes') }} :' + couponCode + '</small>';
-                }
-                html = html + '<tr><td class="label">{{ trans('lang.discount') }}' + couponCode_html + '</td><td class="discount" style="color:red">(-' + discount_val + ')</td></tr>';
+                html = html + '<tr><td class="label">{{ trans('lang.special_offer') }} {{ trans('lang.discount') }}' +
+                    special_html + '</td><td class="special_discount text-danger">(-' + formatCurrency(special_discount, currencyData) +
+                    ')</td></tr>';
             }
 
-            var specialDiscount_ = 0;
-            specialDiscountlabel = '';
-            specialDiscounttype = '';
-            try {
-                if (snapshotsProducts.hasOwnProperty('specialDiscount')) {
-                    if (snapshotsProducts.specialDiscount.specialType && snapshotsProducts.specialDiscount.special_discount) {
-                        if (snapshotsProducts.specialDiscount.specialType == "percent") {
-                            specialDiscount_ = snapshotsProducts.specialDiscount.special_discount;
-                            specialDiscounttype = "%";
-                        } else {
-                            specialDiscount_ = snapshotsProducts.specialDiscount.special_discount;
-                            specialDiscounttype = "fix";
-                        }
-                        specialDiscountlabel = snapshotsProducts.specialDiscount.special_discount_label;
-                    }
-                }
-            } catch (error) {
-
-            }
-            if (!isNaN(specialDiscount_) && specialDiscount_ != 0) {
-                if (currencyAtRight) {
-                    html = html + '<tr><td class="label">{{ trans('lang.special_offer') }}</td><td class="deliveryCharge" style="color:red">(-' + specialDiscount_ + '' + currentCurrency + ')(' + snapshotsProducts.specialDiscount.special_discount + ' ' + specialDiscounttype + ')</td></tr>';
-                } else {
-                    html = html + '<tr><td class="label">{{ trans('lang.special_offer') }}</td><td class="deliveryCharge" style="color:red">(-' + currentCurrency + specialDiscount_ + ')(' + snapshotsProducts.specialDiscount.special_discount + ' ' + specialDiscounttype + ')</td></tr>';
-                }
-
-                total_price = total_price - specialDiscount_;
-            }
-            var total_item_price = total_price;
-
-            var tax = 0;
-            taxlabel = '';
-            taxlabeltype = '';
-
-            if (snapshotsProducts.hasOwnProperty('taxSetting') && snapshotsProducts.taxSetting.length > 0) {
-                html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.tax_calculation') }}</span></td></tr>';
-
-
-                for (var i = 0; i < snapshotsProducts.taxSetting.length; i++) {
-                    var data = snapshotsProducts.taxSetting[i];
-
-                    if (data.type && data.tax) {
-                        if (data.type == "percentage") {
-                            tax = (data.tax * total_price) / 100;
-                            taxlabeltype = "%";
-                            var taxvalue = data.tax;
-
-                        } else {
-                            tax = data.tax;
-                            taxlabeltype = "";
-                            if (currencyAtRight) {
-                                var taxvalue = parseFloat(data.tax).toFixed(decimal_degits) + "" + currentCurrency;
-                            } else {
-                                var taxvalue = currentCurrency + "" + parseFloat(data.tax).toFixed(decimal_degits);
-
-                            }
-
-                        }
-                        taxlabel = data.title;
-                    }
-                    total_tax_amount += parseFloat(tax);
-                    if (!isNaN(tax) && tax != 0) {
-                        if (currencyAtRight) {
-                            html = html + '<tr><td class="label">' + taxlabel + " (" + taxvalue + taxlabeltype + ')</td><td class="tax_amount" id="greenColor" style="color:green">+' + parseFloat(tax).toFixed(decimal_degits) + '' + currentCurrency + '</td></tr>';
-                        } else {
-                            html = html + '<tr><td class="label">' + taxlabel + " (" + taxvalue + taxlabeltype + ')</td><td class="tax_amount" id="greenColor" style="color:green">+' + currentCurrency + parseFloat(tax).toFixed(decimal_degits) + '</td></tr>';
-                        }
-
-
-                    }
-                }
-                total_price = parseFloat(total_price) + parseFloat(total_tax_amount);
-            }
-
-            var totalAmount = total_price;
-
-            if (intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge)) {
-                html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.delivery_charge') }}</span></td></tr>';
-
-                deliveryCharge = parseFloat(deliveryCharge).toFixed(decimal_degits);
-                totalAmount += parseFloat(deliveryCharge);
-
-                if (currencyAtRight) {
-                    deliveryCharge_val = parseFloat(deliveryCharge).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    deliveryCharge_val = currentCurrency + "" + parseFloat(deliveryCharge).toFixed(decimal_degits);
-                }
-                if (takeAway == '' || takeAway == false) {
-                    deliveryChargeVal = deliveryCharge;
-                    html = html + '<tr><td class="label">{{ trans('lang.deliveryCharge') }}</td><td class="deliveryCharge" style="color:green">+' + deliveryCharge_val + '</td></tr>';
-                }
-            }
-
-            if (intRegex.test(tip_amount) || floatRegex.test(tip_amount)) {
+            if (takeAway == '' || takeAway == false) {
+                html = html +
+                    '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.delivery_charge') }}</span></td></tr>';
+                 html = html +
+                        '<tr><td class="label">{{ trans('lang.delivery_charge') }}</td><td class="deliveryCharge " id="greenColor">+' +
+                        formatCurrency(deliveryCharge, currencyData) + '</td></tr>';
+                        
                 html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.tip') }}</span></td></tr>';
-
-                tip_amount = parseFloat(tip_amount).toFixed(decimal_degits);
-                totalAmount += parseFloat(tip_amount);
-
-                if (currencyAtRight) {
-                    tip_amount_val = parseFloat(tip_amount).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    tip_amount_val = currentCurrency + "" + parseFloat(tip_amount).toFixed(decimal_degits);
-                }
-                if (takeAway == '' || takeAway == false) {
-                    html = html + '<tr><td class="label">{{ trans('lang.tip_amount') }}</td><td class="tip_amount_val" style="color:green">+' + tip_amount_val + '</td></tr>';
-                }
+                html = html +'<tr><td class="label">{{ trans('lang.tip_amount') }}</td><td class="tip_amount_val " id="greenColor">+' +
+                        formatCurrency(tip_amount, currencyData) + '</td></tr>';
             }
+            if(packagingChargeEnable) {
+                html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.packaging_charge') }}</span></td></tr>';
+                html = html +'<tr><td class="label">{{ trans('lang.packaging_charge') }}</td><td class="packaging_charge " id="greenColor">+' +
+                        formatCurrency(packagingCharge, currencyData) + '</td></tr>';
+            }
+
+            html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.platform_charge') }}</span></td></tr>';
+            html = html +'<tr><td class="label">{{ trans('lang.platform_charge') }}</td><td class="platform_charge " id="greenColor">+' +
+                    formatCurrency(platformFee, currencyData) + '</td></tr>';
+
+            html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.tax_calculation') }}</span></td></tr>';
+            html = html + renderTaxSection('item', 'Tax on Item Total');
+            html = html + renderTaxSection('order', 'Tax on Order Total');
+            html = html + renderTaxSection('delivery', 'Tax on Delivery Fee');
+            if(packagingChargeEnable) {
+                html = html + renderTaxSection('packaging', 'Tax on Packaging Fee');
+            }
+            html = html + renderTaxSection('platform', 'Tax on Platform Fee');
+            html = html +'<tr><td class="label"><strong>{{ trans('lang.total_tax') }}</strong></td><td class="total_tax " id="greenColor"><strong>+' +
+            formatCurrency(total_tax_amount, currencyData) + '</strong></td></tr>';
+            
             html += '<tr><td class="seprater" colspan="2"><hr></td></tr>';
+            
+            html = html +
+                '<tr class="grand-total"><td class="label">{{ trans('lang.total_amount') }}</td><td class="total_price_val " id="greenColor">' +
+                order_total_val + '</td></tr>';
 
-            orderPaytableAmount = totalAmount;
+            var priceWithCommision = total_price;
+            var adminCommHtml = "";
+            if (adminCommissionType == "percentage") {
+                basePrice = (priceWithCommision / (1 + (parseFloat(adminCommissionValue) / 100)));
+                adminCommission = parseFloat(priceWithCommision - basePrice);
+                adminCommHtml = "(" + adminCommissionValue + "%)";
+            } else {
+                basePrice = priceWithCommision - adminCommissionValue;
+                adminCommission = parseFloat(priceWithCommision - basePrice);
+            }
 
+            orderBasePrice = (basePrice - total_discount ) + (packagingChargeEnable ? packagingCharge : 0);
+            orderRefundPrice = order_subtotal + deliveryCharge + tip_amount + (packagingChargeEnable ? packagingCharge : 0) + platformFee + orderTaxAmountCustomer;
 
             if (currencyAtRight) {
-                total_price_val = parseFloat(totalAmount).toFixed(decimal_degits) + "" + currentCurrency;
+                adminCommission_val = parseFloat(adminCommission).toFixed(decimal_degits) + "" + currentCurrency;
             } else {
-                total_price_val = currentCurrency + "" + parseFloat(totalAmount).toFixed(decimal_degits);
+                adminCommission_val = currentCurrency + "" + parseFloat(adminCommission).toFixed(decimal_degits);
             }
-
-            html = html + '<tr class="grand-total"><td class="label">{{ trans('lang.total_amount') }}</td><td class="total_price_val">' + total_price_val + '</td></tr>';
-
-            if (intRegex.test(adminCommissionValue) || floatRegex.test(adminCommissionValue)) {
-                var adminCommHtml = "";
-
-                if (adminCommissionType == "percentage") {
-                    basePrice = (priceWithCommision / (1 + (parseFloat(adminCommissionValue) / 100)));
-                    adminCommission_val = parseFloat(priceWithCommision - basePrice);
-
-                    adminCommHtml = "(" + adminCommissionValue + "%)";
-
-                } else {
-                    basePrice = priceWithCommision - adminCommissionValue;
-                    adminCommission_val = parseFloat(priceWithCommision - basePrice);
-                }
-
-                if (currencyAtRight) {
-                    adminCommission = parseFloat(adminCommission_val).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    adminCommission = currentCurrency + "" + parseFloat(adminCommission_val).toFixed(decimal_degits);
-                }
-
-                html = html + '<tr><td class="label"><small>{{ trans('lang.admin_commission') }} ' + adminCommHtml + '</small> </td><td style="color:red"><small>( ' + adminCommission + ' )</small></td></tr>';
-
-            }
-
+            html = html + '<tr><td class="label"><small>{{ trans('lang.admin_commission') }} ' + adminCommHtml +
+                '</small> </td><td style="color:red"><small>( ' + adminCommission_val + ' )</small></td></tr>';
             if (notes) {
-
-
-                html = html + '<tr><td class="label">{{ trans('lang.notes') }}</td><td class="adminCommission_val">' + notes + '</td></tr>';
+                html = html + '<tr><td class="label">{{ trans('lang.notes') }}</td><td class="adminCommission_val">' +
+                    notes + '</td></tr>';
             }
-
 
             return html;
         }
@@ -2053,7 +2231,7 @@
                 if (userreviewsnapshot.docs.length > 0) {
                     jQuery("#customers_rating_and_review").append(reviewHTML);
                 } else {
-                    jQuery("#customers_rating_and_review").html('<h4>No Reviews Found</h4>');
+                    jQuery("#customers_rating_and_review").html('<h4>{{ trans('lang.no_reviews_found') }}</h4>');
                 }
             });
         }
@@ -2168,6 +2346,241 @@
             window.print();
 
         }
+        $('#addDeliverymanModal').on('shown.bs.modal', function() {
+            $('#assignDriverModal').hide();
+        })
+
+        $('#add-deliveryman-btn').on('click', function() {
+            var userFirstName = $(".user_first_name").val();
+            var userLastName = $(".user_last_name").val();
+            var email = $(".user_email").val();
+            var password = $(".password").val();
+            var countryCode = '+' + jQuery("#country_selector").val();
+            var userPhone = $(".user_phone").val();
+            var isActive = true;
+            var zoneId = $('#zone option:selected').val();
+            if (userFirstName == '') {
+                $("#firstname_err").append("{{ trans('lang.user_first_name_help') }}");
+            } else if (email == '') {
+                $("#email_err").append("{{ trans('lang.user_email_help') }}");
+            } else if (password == '') {
+                $("#password_err").append("{{ trans('lang.user_password_help') }}");
+            } else if (userPhone == '') {
+                $("#mobilenumber_err").append("{{ trans('lang.user_phone_help') }}");
+            } else if (zoneId == '') {
+                $("#zone_err").append("{{ trans('lang.select_zone_help') }}");
+            } else {
+                var id = database.collection('tmp').doc().id;
+                firebase.auth().createUserWithEmailAndPassword(email, password).then(async function(firebaseUser) {
+                    user_id = firebaseUser.user.uid;
+                    database.collection('users').doc(user_id).set({
+                        'firstName': userFirstName,
+                        'lastName': userLastName,
+                        'email': email,
+                        'countryCode': countryCode,
+                        'phoneNumber': userPhone,
+                        'role': 'driver',
+                        'id': user_id,
+                        'createdAt': firebase.firestore.FieldValue.serverTimestamp(),
+                        'provider': "email",
+                        'appIdentifier': "web",
+                        'vendorID': vendorId,
+                        'active': isActive,
+                        'isDocumentVerify': true,
+                        'zoneId': zoneId,
+                        'isActive': true,
+
+                    }).then(function(result) {
+                        window.location.reload();
+                    });
+                }).catch(err => {
+                    jQuery("#data-table_processing").hide();
+                    $(".error_top").append("<p>" + err + "</p>");
+                });
+            }
+        })
+
+        async function getRefund(orderStatus) {
+
+            $('#data-table_processing').show();
+            ref.get().then(async function(snapshot) {
+
+                orderData = snapshot.docs[0].data();
+                try {
+
+                    const vendorId = orderData.vendor?.author;
+                    const customerId = orderData.author?.id;
+
+                    let vendorAmount = 0,
+                        deliveryCharge = 0,
+                        tipAmount = 0,
+                        customerAmount = 0;
+
+                    let vendorFcm = '',
+                        customerFcm = '',
+                        driverFcm = '';
+
+                    let vendorBaseAmount = orderBasePrice;
+                    let vendorTaxAmount = orderTaxAmountVendor;
+
+                    if (vendorBaseAmount && orderStatus == "Order Cancelled") {
+                        const vendorDoc = await database.collection('users').doc(vendorId).get();
+                        if (vendorDoc.exists) {
+                            const vendorData = vendorDoc.data();
+                            vendorFcm = vendorData.fcmToken || '';
+                            const vendorWallet = parseFloat(vendorData.wallet_amount || 0);
+                            await vendorDoc.ref.update({
+                                wallet_amount: vendorWallet - (vendorBaseAmount + vendorTaxAmount)
+                            });
+                        }
+
+                        const walletId = database.collection("tmp").doc().id;
+                        await database.collection('wallet').doc(walletId).set({
+                            amount: vendorBaseAmount,
+                            date: firebase.firestore.FieldValue.serverTimestamp(),
+                            id: walletId,
+                            isTopUp: false,
+                            order_id: orderData.id,
+                            payment_method: "Wallet",
+                            payment_status: 'success',
+                            user_id: vendorId,
+                            transactionUser: 'vendor',
+                            note: 'Order amount refunded to customer'
+                        });
+                        const walletTaxId = database.collection("tmp").doc().id;
+                        await database.collection('wallet').doc(walletTaxId).set({
+                            amount: vendorTaxAmount,
+                            date: firebase.firestore.FieldValue.serverTimestamp(),
+                            id: walletTaxId,
+                            isTopUp: false,
+                            order_id: orderData.id,
+                            payment_method: "tax",
+                            payment_status: 'success',
+                            user_id: vendorId,
+                            transactionUser: 'vendor',
+                            note: 'Order tax refunded to customer'
+                        });
+                    }
+
+                    if (orderData.payment_method !== 'cod') {
+                        let customerAmount = orderRefundPrice;
+                        const customerDoc = await database.collection('users').doc(customerId).get();
+                        if (customerDoc.exists) {
+                            const customerData = customerDoc.data();
+                            customerFcm = customerData.fcmToken || '';
+                            const customerWallet = parseFloat(customerData.wallet_amount || 0);
+                            await customerDoc.ref.update({
+                                wallet_amount: customerWallet + customerAmount
+                            });
+                        }
+
+                        const walletId = database.collection("tmp").doc().id;
+                        await database.collection('wallet').doc(walletId).set({
+                            amount: customerAmount,
+                            date: firebase.firestore.FieldValue.serverTimestamp(),
+                            id: walletId,
+                            isTopUp: true,
+                            order_id: orderData.id,
+                            payment_method: "Wallet",
+                            payment_status: 'success',
+                            user_id: customerId,
+                            transactionUser: 'customer',
+                            note: 'Order amount refunded'
+                        });
+
+                    } else {
+                        const customerDoc = await database.collection('users').doc(customerId).get();
+                        if (customerDoc.exists) {
+                            customerFcm = customerDoc.data().fcmToken || '';
+                        }
+                    }
+                    
+                    if (orderData.hasOwnProperty('driverID') && orderData.driverID != null && orderData.driverID != '') {
+                        await database.collection('users').doc(orderData.driverID).get().then(async function(snapshot) {
+                            let newOrderRequestData = [];
+                            let inProgressOrderID = [];
+                            if (snapshot.exists) {
+                                var driverData = snapshot.data();
+                                driverFcm = driverData.fcmToken;
+                                if (driverData.orderRequestData !== undefined) {
+                                    newOrderRequestData = driverData.orderRequestData.filter(function(oid) {
+                                        return oid !== id;
+                                    });
+                                }
+                                if (driverData.inProgressOrderID !== undefined) {
+                                    inProgressOrderID = driverData.inProgressOrderID.filter(function(oid) {
+                                        return oid !== id;
+                                    });
+                                }
+                                await database.collection('users').doc(driverData.id).update({
+                                    'inProgressOrderID': inProgressOrderID,
+                                    'orderRequestData': newOrderRequestData
+                                })
+                            }
+
+                        })
+                        await database.collection('vendor_orders').doc(orderData.id).update({
+                            'status': 'Order Cancelled',
+                            'driverID': null,
+                            'driver': null
+                        });
+                    } else {
+                        await database.collection('vendor_orders').doc(orderData.id).update({
+                            'status': 'Order Cancelled'
+                        });
+                    }
+
+                    await $.ajax({
+                        type: 'POST',
+                        url: "<?php echo route('order-status-notification'); ?>",
+                        data: {
+                            _token: '<?php echo csrf_token(); ?>',
+                            'fcm': customerFcm,
+                            'vendorname': manname,
+                            'orderStatus': 'Order Cancelled',
+                            'subject': selfDeliveryCustomerCancelledSub,
+                            'message': selfDeliveryCustomerCancelledMsg
+                        },
+                        success: function(data) {
+
+                        }
+                    });
+                    await $.ajax({
+                        type: 'POST',
+                        url: "<?php echo route('order-status-notification'); ?>",
+                        data: {
+                            _token: '<?php echo csrf_token(); ?>',
+                            'fcm': driverFcm,
+                            'vendorname': manname,
+                            'orderStatus': 'Order Cancelled',
+                            'subject': selfDeliveryDriverCancelledSub,
+                            'message': selfDeliveryDriverCancelledMsg
+                        },
+                        success: function(data) {
+
+                        }
+                    });
+                    
+                    window.location.href = '{{ route('orders') }}';
+                } catch (error) {
+                    console.error("Error in getRefund:", error);
+                }
+
+            })
+            $('#data-table_processing').hide();
+        }
+
+        function renderTaxSection(section, labelSuffix) {
+            let html = '';
+            if (!taxBreakdownGrouped[section]) return '';
+            for (let title in taxBreakdownGrouped[section]) {
+                let taxlabel = title;
+                let taxAmount = parseFloat(taxBreakdownGrouped[section][title]);
+                html = html + '<tr><td class="label">' + taxlabel + " " + labelSuffix + '</td><td class="tax_amount" id="greenColor">+' + formatCurrency(taxAmount, currencyData) + '</td></tr>';
+            }
+            return html;
+        }
+
     </script>
 
 @endsection

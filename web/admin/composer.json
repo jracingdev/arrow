@@ -16,6 +16,8 @@
     "laravel/sanctum": "^3.3",
     "laravel/tinker": "^2.8",
     "laravel/ui": "^4.2.2",
+    "nwidart/laravel-modules": "^10.0",
+    "openai-php/laravel": "^0.11.0",
     "paypal/paypal-payouts-sdk": "^1.0",
     "paytm/paytmchecksum": "^1.1",
     "razorpay/razorpay": "2.*",
@@ -32,6 +34,7 @@
   "autoload": {
     "psr-4": {
       "App\\": "app/",
+      "Modules\\": "Modules/",
       "Database\\Factories\\": "database/factories/",
       "Database\\Seeders\\": "database/seeders/"
     }
@@ -64,7 +67,10 @@
   "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
   },
   "minimum-stability": "dev",
   "prefer-stable": true

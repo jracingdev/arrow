@@ -1,11 +1,14 @@
 @include('layouts.app')
 @include('layouts.header')
 @php
-    $cityToCountry= file_get_contents(public_path('tz-cities-to-countries.json'));
-    $cityToCountry=json_decode($cityToCountry,true);
-    $countriesJs=array();
-    foreach($cityToCountry as $key=>$value){
-    $countriesJs[$key]=$value;
+    $countries = file_get_contents(public_path('countriesdata.json'));
+    $countries = json_decode($countries);
+    $countries = (array)$countries;
+    $newcountries = array();
+    $newcountriesjs = array();
+    foreach ($countries as $keycountry => $valuecountry) {
+        $newcountries[$valuecountry->phoneCode] = $valuecountry;
+        $newcountriesjs[$valuecountry->phoneCode] = $valuecountry->code;
     }
 @endphp
 <div class="siddhi-home-page">
@@ -63,11 +66,19 @@
                                                required="" placeholder=" ">
                                         <span for="exampleFormControlInput2">{{trans('lang.sender_name')}}</span>
                                     </div>
-                                    <div class="inputField col-md-6">
-                                        <input type="text" class="form-control senderPhone" required=""
-                                               placeholder=" ">
-                                        <span for="exampleFormControlInput3">{{trans('lang.phone_number')}}</span>
+
+                                    <div class="inputField col-md-6 phone-box">
+                                        <div class="col-xs-12">
+                                            <select class="form-control country_selector" name="senderPhoneCountry" id="senderPhoneCountry">
+                                                <?php foreach ($newcountries as $keycy => $valuecy) { ?>
+                                                    <option code="<?php echo $valuecy->code; ?>" value="<?php echo $keycy; ?>">+<?php echo $valuecy->phoneCode; ?> <?php echo $valuecy->countryName; ?></option>
+                                                <?php } ?>
+                                            </select>
+                                            <input type="text" class="form-control senderPhone" required="" placeholder=" ">
+                                            <span for="exampleFormControlInput3">{{trans('lang.phone_number')}}</span>
+                                        </div>
                                     </div>
+                                    
                                     <div class="inputField col-md-6">
                                         <label for="exampleFormControlTextarea1"></label>
                                         <br><br>
@@ -77,7 +88,7 @@
                                         </select>
                                     </div>
                                     <div class="inputField col-md-6">
-                                        <input type="text" class="form-control senderNote" required=""
+                                        <input type="text" class="form-control senderNote" 
                                                placeholder=" ">
                                         <span for="exampleFormControlTextarea1">{{trans('lang.note')}}</span>
                                     </div>
@@ -98,10 +109,21 @@
                                                required="" placeholder=" ">
                                         <span for="exampleFormControlInput2">{{trans('lang.sender_name')}}</span>
                                     </div>
-                                    <div class="inputField col-md-6">
-                                        <input type="text" class="form-control receiverPhone" required=""
-                                               placeholder="">
-                                        <span for="exampleFormControlInput3">{{trans('lang.phone_number')}}</span>
+                                    <div class="inputField col-md-6 phone-box">
+                                        <div class="col-xs-12">
+                                            <select class="form-control country_selector" name="receiverPhoneCountry" id="receiverPhoneCountry">
+                                                <?php foreach ($newcountries as $keycy => $valuecy) { ?>
+                                                    <option code="<?php echo $valuecy->code; ?>" value="<?php echo $keycy; ?>">+<?php echo $valuecy->phoneCode; ?> <?php echo $valuecy->countryName; ?></option>
+                                                <?php } ?>
+                                            </select>
+                                            <input type="text" class="form-control receiverPhone" required="" placeholder="">
+                                            <span for="exampleFormControlInput3">{{trans('lang.phone_number')}}</span>
+                                        </div>
+                                    </div>
+                                     <div class="inputField col-md-6">
+                                        <input type="text" class="form-control receiverNote" 
+                                               placeholder=" ">
+                                        <span for="exampleFormControlTextarea1">{{trans('lang.note')}}</span>
                                     </div>
                                 </div>
                             </div>
@@ -146,10 +168,16 @@
                                                required="" placeholder=" ">
                                         <span for="exampleFormControlInput2">{{trans('lang.sender_name')}}</span>
                                     </div>
-                                    <div class="inputField col-md-6">
-                                        <input type="text" class="form-control senderPhone" required=""
-                                               placeholder=" ">
-                                        <span for="exampleFormControlInput3">{{trans('lang.phone_number')}}</span>
+                                    <div class="inputField col-md-6 phone-box">
+                                        <div class="col-xs-12">
+                                            <select class="form-control country_selector" name="senderPhoneCountry" id="senderPhoneCountry">
+                                                <?php foreach ($newcountries as $keycy => $valuecy) { ?>
+                                                    <option code="<?php echo $valuecy->code; ?>" value="<?php echo $keycy; ?>">+<?php echo $valuecy->phoneCode; ?> <?php echo $valuecy->countryName; ?></option>
+                                                <?php } ?>
+                                            </select>
+                                            <input type="text" class="form-control senderPhone" required="" placeholder=" ">
+                                            <span for="exampleFormControlInput3">{{trans('lang.phone_number')}}</span>
+                                        </div>
                                     </div>
                                     <div class="inputField col-md-6">
                                         <label for="exampleFormControlTextarea1"></label>
@@ -165,7 +193,7 @@
                                         <span for="exampleFormControlTextarea1">{{trans('lang.when_pickup_address')}}</span>
                                     </div>
                                     <div class="inputField col-md-6">
-                                        <input type="text" class="form-control senderNote" required=""
+                                        <input type="text" class="form-control senderNote" 
                                                placeholder=" ">
                                         <span for="exampleFormControlTextarea1">{{trans('lang.note')}}</span>
                                     </div>
@@ -187,15 +215,21 @@
                                                required="" placeholder=" ">
                                         <span for="exampleFormControlInput2">{{trans('lang.sender_name')}}</span>
                                     </div>
-                                    <div class="inputField col-md-6">
-                                        <input type="text" class="form-control receiverPhone" required=""
-                                               placeholder=" ">
-                                        <span for="exampleFormControlInput3">{{trans('lang.phone_number')}}</span>
+                                    <div class="inputField col-md-6 phone-box">
+                                        <div class="col-xs-12">
+                                            <select class="form-control country_selector" name="receiverPhoneCountry" id="receiverPhoneCountry">
+                                                <?php foreach ($newcountries as $keycy => $valuecy) { ?>
+                                                    <option code="<?php echo $valuecy->code; ?>" value="<?php echo $keycy; ?>">+<?php echo $valuecy->phoneCode; ?> <?php echo $valuecy->countryName; ?></option>
+                                                <?php } ?>
+                                            </select>
+                                            <input type="text" class="form-control receiverPhone" required="" placeholder=" ">
+                                            <span for="exampleFormControlInput3">{{trans('lang.phone_number')}}</span>
+                                        </div>
                                     </div>
                                     <div class="inputField col-md-6">
-                                        <input type="datetime-local" class="form-control rceiverArrive" required=""
-                                               placeholder="Select date & time">
-                                        <span for="exampleFormControlTextarea1">{{trans('lang.when_arrive_address')}}</span>
+                                        <input type="text" class="form-control receiverNote" 
+                                               placeholder=" ">
+                                        <span for="exampleFormControlTextarea1">{{trans('lang.note')}}</span>
                                     </div>
                                 </div>
                             </div>
@@ -227,27 +261,32 @@
     </div>
 </div>
 @include('layouts.footer')
+
 <script src="{{ asset('js/geofirestore.js') }}"></script>
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
 <script type="text/javascript" src="{{asset('vendor/slick/slick.min.js')}}"></script>
+
 <script type="text/javascript">
+
     var section_id = "<?php echo @$_COOKIE['section_id'] ?>";
     var parcelType = '';
+    
     var parcelcatref = database.collection('parcel_categories').where('id', '==', '<?php echo $id; ?>');
     parcelcatref.get().then(async function (snapshots) {
-        var currencyData = snapshots.docs[0].data();
-        parcelType = currencyData.title;
+        var categoryData = snapshots.docs[0].data();
+        parcelType = categoryData.title;
         $('#parcelType').val(parcelType);
     });
-    var tax_amount = "";
-    var tax_lable = "";
-    var tax_type = "";
+    
     var parcelWeightRef = database.collection('parcel_weight');
     var parcelImages = [];
     var parcelImagesCount = 0;
+    
+    var currencyData = '';
     var currentCurrency = '';
     var currencyAtRight = false;
     var decimal_degits = 0;
+
     var refCurrency = database.collection('currencies').where('isActive', '==', true);
     refCurrency.get().then(async function (snapshots) {
         currencyData = snapshots.docs[0].data();
@@ -257,6 +296,7 @@
             decimal_degits = currencyData.decimal_degits;
         }
     });
+    
     parcelWeightRef.get().then(async function (parcelWeightSnapshots) {
         parcelWeightSnapshots.docs.forEach((listval) => {
             var data = listval.data();
@@ -266,38 +306,34 @@
                 .attr("delivery_charge", data.delivery_charge));
         });
     });
-    var cityToCountry = '<?php echo json_encode($countriesJs); ?>';
-    cityToCountry = JSON.parse(cityToCountry);
-    var userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    var userCity = userTimeZone.split('/')[1];
-    var userCountry = cityToCountry[userCity];
-    var taxSetting = [];
-    var reftaxSetting = database.collection('tax').where('country', '==', userCountry).where('enable', '==', true).where('sectionId', '==', section_id);
-    reftaxSetting.get().then(async function (snapshots) {
-        if (snapshots.docs.length > 0) {
-            snapshots.docs.forEach((val) => {
-                val = val.data();
-                var obj = '';
-                obj = {
-                    'country': val.country,
-                    'enable': val.enable,
-                    'id': val.id,
-                    'tax': val.tax,
-                    'title': val.title,
-                    'type': val.type,
-                };
-                taxSetting.push(obj);
-            })
-        }
+    
+    var taxScope = 'order';
+    let userCountry = getCookie('userCountryName');
+    const scopes = ['order', 'platform'];
+    const taxesByScope = {};
+    database.collection('tax').where('country', '==', userCountry).where('enable', '==', true).where('scope', 'in', scopes).where('sectionId', '==', section_id).get().then(snapshot => {
+        snapshot.forEach(doc => {
+            const tax = doc.data();
+            (taxesByScope[tax.scope] ??= []).push(tax);
+        });
     });
+    
+    var platformCharge = '0';
+    let platformFeeSettings = JSON.parse(localStorage.getItem('platformFeeSettings'));
+    if (platformFeeSettings && platformFeeSettings.enable) {
+        platformCharge = platformFeeSettings.fee;
+    }
+    
     var address_name = getCookie('address_name');
     let sender_address_lng = getCookie('address_lng');
     let sender_address_lat = getCookie('address_lat');
     let receiver_address_lng = "";
     let receiver_address_lat = "";
+    
     if (address_name != undefined) {
         $('.active').find('.senderAddress').val(address_name);
     }
+    
     let activeTabId = $('.active').attr('href');
     $(document).on('click', '.nav-item', function () {
         activeTabId = $(this).attr('href');
@@ -305,8 +341,10 @@
     });
 
     async function getSenderAddress(callback) {
+
         var senderAddress = $(activeTabId).find('.senderAddress').val();
         if(mapType == 'google'){
+            
             var geocoder = new google.maps.Geocoder();
             geocoder.geocode({'address': senderAddress}, function (results, status) {
                 if (status == google.maps.GeocoderStatus.OK) {
@@ -315,33 +353,31 @@
                     callback(true);
                 }
             });
-        }else{            
-            var nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(senderAddress);
+        }else{       
+        
+            var nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=' + encodeURIComponent(senderAddress);
 
-            // Make a request to Nominatim to geocode the address
-            fetch(nominatimUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        // Retrieve the latitude and longitude from the first result
-                        var sender_address_lat = parseFloat(data[0].lat);
-                        var sender_address_lng = parseFloat(data[0].lon);
-                        
-                        // Call your callback function if needed
-                        callback(true);
-                        
-                    } else {
-                        console.error("Address not found!");
-                    }
-                })
-                .catch(error => {
-                    console.error("Geocoding failed:", error);
-                });
-
+           fetch(nominatimUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                // pick best match with address type
+                let best = data.find(item => 
+                    item.type === 'house' || item.type === 'road' || item.type === 'neighbourhood'
+                ) || data[0];
+                
+                sender_address_lat = parseFloat(best.lat);
+                sender_address_lng = parseFloat(best.lon);
+                callback(true);
+                }
+            })
+            .catch(error => {
+                console.error("Geocoding failed:", error);
+            });
         }
     }
 
-    function getReceiverAddress(callback) {
+    async function getReceiverAddress(callback) {
         var receiverAddress = $(activeTabId).find('.receiverAddress').val();
         if(mapType == 'google'){
             var geocoder = new google.maps.Geocoder();
@@ -353,57 +389,70 @@
                 }
             });
         }else{
-            var nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(receiverAddress);
-
-            // Make a request to Nominatim to geocode the address
-            fetch(nominatimUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        // Retrieve the latitude and longitude from the first result
-                        receiver_address_lat = parseFloat(data[0].lat);
-                        receiver_address_lng = parseFloat(data[0].lon);
-                        
-                        // Call your callback function if needed
-                        callback(true);
-                        
-                    } else {
-                        console.error("Address not found!");
-                    }
-                })
-                .catch(error => {
-                    console.error("Geocoding failed:", error);
-                });
-
-
+        var nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=' + encodeURIComponent(receiverAddress);
+           fetch(nominatimUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                // pick best match with address type
+                let best = data.find(item => 
+                    item.type === 'house' || item.type === 'road' || item.type === 'neighbourhood'
+                ) || data[0];
+                
+                receiver_address_lat = parseFloat(best.lat);
+                receiver_address_lng = parseFloat(best.lon);
+                callback(true);
+                }
+            })
+            .catch(error => {
+                console.error("Geocoding failed:", error);
+            });
         }
     }
 
-    $(document).on('click', '.parcel_btn', function () {
+    $(document).on('click', '.parcel_btn', async function () {
+
         var senderAddress = $(activeTabId).find('.senderAddress').val();
         var senderName = $(activeTabId).find('.senderName').val();
+        var senderPhoneCountry = $(activeTabId).find('#senderPhoneCountry').val();
         var senderPhone = $(activeTabId).find('.senderPhone').val();
         var senderParcelWeight = $(activeTabId).find('.senderParcelWeight option:selected').val();
         var senderParcelWeightName = $(activeTabId).find('.senderParcelWeight option:selected').text();
         var delivery_charge = $(activeTabId).find('.senderParcelWeight option:selected').attr('delivery_charge');
         var senderNote = $(activeTabId).find('.senderNote').val();
+        var receiverNote = $(activeTabId).find('.receiverNote').val();
         let senderPickupDateTime = "";
         let receiverPickupDateTime = "";
         var receiverAddress = $(activeTabId).find('.receiverAddress').val();
         var receiverName = $(activeTabId).find('.receiverName').val();
+        var receiverPhoneCountry = $(activeTabId).find('#receiverPhoneCountry').val();
         var receiverPhone = $(activeTabId).find('.receiverPhone').val();
         var parcelType = $("#parcelType").val();
         var parcelCategoryId = '<?php echo $id; ?>';
         var isSchedule = false;
-        getSenderAddress(function (response) {
-            getReceiverAddress(function (response) {
+      
+        getSenderAddress(async function (response) {
+            getReceiverAddress(async function (response) {
+
+                let sender_zone_id = await getUserZoneId(sender_address_lat, sender_address_lng);
+                if (!sender_zone_id) {
+                    $(".error_top").show().html("<p>{{ trans('lang.sender_zone_error') }}</p>");
+                    window.scrollTo(0, 0);
+                    return false;
+                }
+                let receiver_zone_id = await getUserZoneId(receiver_address_lat, receiver_address_lng);
+
+                if (!receiver_zone_id) {
+                    $(".error_top").show().html("<p>{{ trans('lang.receiver_zone_error') }}</p>");
+                    window.scrollTo(0, 0);
+                    return false;
+                }
+                
                 if (activeTabId == "#schedule") {
                     isSchedule = true;
                     senderPickupDateTime = new Date($(activeTabId).find('.senderArrive').val());
-                    receiverPickupDateTime = new Date($(activeTabId).find('.rceiverArrive').val());
                 }
-                var discount = 0;               
-
+                
                 if (senderAddress == "") {
                     $(".error_top").show();
                     $(".error_top").html("");
@@ -427,20 +476,10 @@
                     $(".error_top").html("");
                     $(".error_top").append("<p>{{trans('lang.sender_parcel_weight_error')}}</p>");
                     window.scrollTo(0, 0);
-                } else if (senderNote == "") {
-                    $(".error_top").show();
-                    $(".error_top").html("");
-                    $(".error_top").append("<p>{{trans('lang.sender_note_error')}}</p>");
-                    window.scrollTo(0, 0);
                 } else if (activeTabId == "#schedule" && senderPickupDateTime == "") {
                     $(".error_top").show();
                     $(".error_top").html("");
                     $(".error_top").append("<p>{{trans('lang.when_pickup_address_error')}}</p>");
-                    window.scrollTo(0, 0);
-                } else if (activeTabId == "#schedule" && receiverPickupDateTime == "") {
-                    $(".error_top").show();
-                    $(".error_top").html("");
-                    $(".error_top").append("<p>{{trans('lang.when_arrive_address_error')}}</p>");
                     window.scrollTo(0, 0);
                 } else if (receiverAddress == "") {
                     $(".error_top").show();
@@ -461,38 +500,49 @@
                     $(".error_top").show().html("<p>{{trans('lang.phone_contains_numbers_only')}}</p>");
                     window.scrollTo(0, 0);
                 } else {
+
+                    const payload = {
+                            _token: '<?php echo csrf_token(); ?>',
+                            section_id,
+                            parcelCategoryId,
+                            parcelType,
+                            isSchedule,
+                            senderAddress,
+                            senderName,
+                            senderPhone: '(+'+senderPhoneCountry+') '+senderPhone,
+                            senderParcelWeight,
+                            senderParcelWeightName,
+                            senderNote,
+                            receiverNote,
+                            senderPickupDateTime,
+                            receiverPickupDateTime,
+                            receiverAddress,
+                            receiverName,
+                            receiverPhone: '(+'+receiverPhoneCountry+') '+receiverPhone,
+                            sender_address_lng,
+                            sender_address_lat,
+                            receiver_address_lng,
+                            receiver_address_lat,
+                            delivery_charge,
+                            discount: 0,
+                            parcelImages: JSON.stringify(parcelImages),
+                            decimal_degits: decimal_degits,
+                            senderZoneId: sender_zone_id,
+                            receiverZoneId: receiver_zone_id,
+                            mapType: mapType,
+                            taxScope,
+                            taxesByScope,
+                            platformCharge,
+                            currencyData,
+                    };
+
                     $.ajax({
                         type: 'POST',
                         url: "<?php echo route('parcel_cart'); ?>",
-                        data: {
-                            _token: '<?php echo csrf_token(); ?>',
-                            section_id: section_id,
-                            parcelCategoryId: parcelCategoryId,
-                            parcelType: parcelType,
-                            isSchedule: isSchedule,
-                            senderAddress: senderAddress,
-                            senderName: senderName,
-                            senderPhone: senderPhone,
-                            senderParcelWeight: senderParcelWeight,
-                            senderParcelWeightName: senderParcelWeightName,
-                            senderNote: senderNote,
-                            senderPickupDateTime: senderPickupDateTime,
-                            receiverPickupDateTime: receiverPickupDateTime,
-                            receiverAddress: receiverAddress,
-                            receiverName: receiverName,
-                            receiverPhone: receiverPhone,
-                            sender_address_lng: sender_address_lng,
-                            sender_address_lat: sender_address_lat,
-                            receiver_address_lng: receiver_address_lng,
-                            receiver_address_lat: receiver_address_lat,
-                            delivery_charge: delivery_charge,
-                            discount: discount,
-                            parcelImages: JSON.stringify(parcelImages),
-                            decimal_degits: decimal_degits,
-                            taxValue: taxSetting,
-                        },
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify(payload),
                         success: function (data) {
-                            data = JSON.parse(data);
                             var url = "{{ route('parcel_checkout')}}";
                             window.location.href = url;
                         }
@@ -547,5 +597,72 @@
             parcelImages.splice(index, 1);
         }
     });
+
+    var newcountriesjs = '<?php echo json_encode($newcountriesjs); ?>';
+    var newcountriesjs = JSON.parse(newcountriesjs);
+    
+    function formatState(state) {
+        if (!state.id) {
+            return state.text;
+        }
+        var baseUrl = "<?php echo URL::to('/'); ?>/flags/120/";
+        var $state = $(
+            '<span><img src="' + baseUrl + '/' + newcountriesjs[state.element.value].toLowerCase() + '.png" class="img-flag" /> ' + state.text + '</span>'
+        );
+        return $state;
+    }
+
+    function formatState2(state) {
+        if (!state.id) {
+            return state.text;
+        }
+        var baseUrl = "<?php echo URL::to('/'); ?>/flags/120/"
+        var $state = $(
+            '<span><img class="img-flag" /> <span></span></span>'
+        );
+        $state.find("span").text(state.text);
+        $state.find("img").attr("src", baseUrl + "/" + newcountriesjs[state.element.value].toLowerCase() + ".png");
+        return $state;
+    }
+
+    jQuery(".country_selector").select2({
+        templateResult: formatState,
+        templateSelection: formatState2,
+        placeholder: "Select Country",
+        allowClear: true
+    });
+    // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
+    var globalSettingsRef = database.collection('settings').doc('globalSettings');
+    
+    globalSettingsRef.get().then(async function (snapshot) {
+        var globalSettings = snapshot.data();
+       
+        if (globalSettings && globalSettings.defaultCountryCode) {
+            var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
+
+            // Find the option with matching phoneCode
+            var $option = $(".country_selector option").filter(function() {
+                return $(this).val() === defaultPhoneCode;
+            });
+
+            if ($option.length > 0) {
+                $(".country_selector").val(defaultPhoneCode).trigger('change');
+            } else {
+                console.warn("Default country code not found in list:", defaultPhoneCode);
+            }
+        }
+    }).catch(function (error) {
+        console.error("Error fetching global settings: ", error);
+    });
+    // --- END OF DEFAULT COUNTRY LOGIC ---
+
+    $(document).ready(function(){
+        let now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        let minDateTime = now.toISOString().slice(0,16);
+        $(".senderArrive").attr("min", minDateTime);
+    });
+
 </script>
+
 @include('layouts.nav')

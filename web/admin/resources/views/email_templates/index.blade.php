@@ -8,7 +8,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.email_templates_table')}}</li>
             </ol>
         </div>
@@ -92,6 +92,9 @@
                     $('.total_count').text(0); 
                 }
                 html = await buildHTML(snapshots);
+                 $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
                 jQuery("#data-table_processing").hide();
                 if (html != '') {
                     append_list.innerHTML = html;
@@ -104,10 +107,7 @@
                         {orderable: false, targets: [2]},
                     ],
                     order: [0,"asc"],
-                    "language": {
-                        "zeroRecords": "{{trans("lang.no_record_found")}}",
-                        "emptyTable": "{{trans("lang.no_record_found")}}"
-                    },
+                    "language": datatableLang,
                     responsive: true
                 });
                 table.on('search.dt', function() {
@@ -188,7 +188,7 @@
                 html = html + '<td>' + data.subject + '</td>';
 
                 html = html + '<td><span class="action-btn">' +
-                    '<a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a></span></td>';
+                    '<a href="' + route1 + '" data-toggle="tooltip" title="{{trans("lang.edit")}}"><i class="mdi mdi-lead-pencil"></i></a></span></td>';
 
                 html = html + '</tr>';
                 count = count + 1;

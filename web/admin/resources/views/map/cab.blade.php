@@ -16,7 +16,7 @@
 
         <div class="col-md-5 align-self-center">
 
-            <h3 class="text-themecolor">{{trans('lang.live_tracking_cab')}}</h3>
+            <h3 class="text-themecolor">{{trans('lang.live_tracking_of')}} <span class="section_name"></span></h3>
 
         </div>
 
@@ -28,7 +28,7 @@
 
                 <li class="breadcrumb-item">
 
-                    <a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a>
+                    <a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a>
 
                 </li>
 
@@ -78,7 +78,7 @@
 
                             <div class="form-group" id="search-box">
 
-                                <input type="text" name="search" id="search" class="form-control" style="width:90%" placeholder="Search Driver">
+                                <input type="text" name="search" id="search" class="form-control" style="width:90%" placeholder="{{trans('lang.search_driver')}}">
 
                             </div>
 
@@ -110,7 +110,7 @@
 
                         <div id="legend">
 
-                            <h3>Legend</h3>
+                            <h3>{{trans('lang.legend')}}</h3>
 
                         </div>
 
@@ -206,7 +206,7 @@
 
         var mapType = 'ONLINE';
 
-
+        var section_id = getCookie('section_id');
 
         $(document).ready(function () {
 
@@ -215,6 +215,21 @@
 
 
             var database = firebase.firestore();
+             database.collection('sections').where('id','==',section_id).get().then(async function (snapshots) {
+
+                if (snapshots.docs.length > 0) {
+
+                    snapshots.docs.forEach((doc) => {
+
+                        var data = doc.data();
+
+                        $('.section_name').text(data.name);
+
+                    });
+
+                }
+
+            });
 
             database.collection('settings').doc('DriverNearBy').get().then(async function (snapshots) {
 
@@ -232,7 +247,7 @@
 
             var orders_drivers = [];
 
-            database.collection('rides').where('status', '==', 'In Transit').get().then(async function (snapshots) {
+            database.collection('rides').where('sectionId','==', section_id).where('status', '==', 'In Transit').get().then(async function (snapshots) {
 
                 if (snapshots.docs.length > 0) {
 
@@ -260,7 +275,7 @@
 
             var drivers = [];
 
-            database.collection('users').where('role', '==', 'driver').where('serviceType', '==', 'cab-service').where('location', '!=', null).get().then(async function (snapshots) {
+            database.collection('users').where('role', '==', 'driver').where('sectionId','==',section_id)/* .where('serviceType', '==', 'cab-service') */.where('location', '!=', null).get().then(async function (snapshots) {
 
                 if (snapshots.docs.length > 0) {
 
@@ -460,7 +475,7 @@
 
                     var div = L.DomUtil.create('div', 'legend');
 
-                    div.innerHTML = "<h4>Map Legend</h4>";
+                    div.innerHTML = "<h4>{{trans('lang.map_legend')}}</h4>";
 
                     div.appendChild(legend);
 
@@ -560,7 +575,7 @@
 
                             }
 
-                            if (val.author.shippingAddress && val.vendor.location) {
+                            if (val.author?.shippingAddress && val.vendor?.location) {
 
                                 html += '<div class="location-ride">';
 
@@ -590,7 +605,9 @@
 
                             html += '<span class="badge badge-danger">In Tranist</span>';
 
-                            html += '&nbsp;&nbsp;<a href="/rides/edit/' + val.id + '" class="badge badge-info" target="_blank">{{trans("lang.order_id")}} : ' + val.id.substring(0, 7) + '</a>';
+                            var orderEditUrl = "{{ route('rides.edit', ['id' => ':id']) }}";
+                                orderEditUrl = orderEditUrl.replace(':id', val.id.trim());
+                            html += '&nbsp;&nbsp;<a href="' + orderEditUrl + '" class="badge badge-info" target="_blank">{{trans("lang.order_id")}} : ' + val.id.substring(0, 7) + '</a>';
 
                             html += '</div>';
 

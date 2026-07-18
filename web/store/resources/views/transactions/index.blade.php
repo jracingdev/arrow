@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.wallet_transaction_plural')}}</li>
             </ol>
         </div>
@@ -181,14 +181,7 @@
                     await Promise.all(querySnapshot.docs.map(async (doc) => {
                         let childData = doc.data();
                         childData.id = doc.id;
-                        var note = '';
-                        if (childData.hasOwnProperty('isTopUp') && childData.isTopUp) {
-                            note = "{{trans('lang.order_amount_credited')}}";
-                        }
-                        if (childData.hasOwnProperty('isTopUp') && !childData.isTopUp) {
-                            note = "{{trans('lang.admin_commision_debited')}}";
-                        }
-                        childData.note = note ? note : "";
+                       
                         var date = '';
                         var time = '';
                         if (childData.hasOwnProperty("date") && childData.date != '') {
@@ -280,35 +273,31 @@
                 },
                 {targets: 0, type: "html-num-fmt"},
             ],
-            "language": {
-                "zeroRecords": "{{trans('lang.no_record_found')}}",
-                "emptyTable": "{{trans('lang.no_record_found')}}",
-                "processing": "" // Remove default loader
-            },
+            "language": datatableLang,
             dom: 'lfrtipB',
             buttons: [
                 {
                     extend: 'collection',
-                    text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                    text: '<i class="mdi mdi-cloud-download"></i> {{trans('lang.export_as')}}',
                     className: 'btn btn-info',
                     buttons: [
                         {
                             extend: 'excelHtml5',
-                            text: 'Export Excel',
+                            text: '{{trans('lang.export_excel')}}',
                             action: function (e, dt, button, config) {
                                 exportData(dt, 'excel',fieldConfig);
                             }
                         },
                         {
                             extend: 'pdfHtml5',
-                            text: 'Export PDF',
+                            text: '{{trans('lang.export_pdf')}}',
                             action: function (e, dt, button, config) {
                                 exportData(dt, 'pdf',fieldConfig);
                             }
                         },   
                         {
                             extend: 'csvHtml5',
-                            text: 'Export CSV',
+                            text: '{{trans('lang.export_csv')}}',
                             action: function (e, dt, button, config) {
                                 exportData(dt, 'csv',fieldConfig);
                             }
@@ -318,7 +307,7 @@
             ],
             initComplete: function() {
                 $(".dataTables_filter").append($(".dt-buttons").detach());
-                $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+                $('.dataTables_filter input').attr('placeholder', '{{trans("lang.search_here")}}').attr('autocomplete','new-password').val('');
                 $('.dataTables_filter label').contents().filter(function() {
                     return this.nodeType === 3; 
                 }).remove();
@@ -353,29 +342,26 @@
             amount = parseFloat(amount).toFixed(decimal_degits);
         }
 
-        var note = '';
         if (val.hasOwnProperty('isTopUp') && val.isTopUp) {
-            note = "{{trans('lang.order_amount_credited')}}";
 
             if (currencyAtRight) {
-                html.push('<td class="text-green" data-html="true" data-order="' + amount + '">' + parseFloat(amount).toFixed(decimal_degits) + '' + currentCurrency + '</td>');
+                html.push('<td class="text-green" data-html="true" data-order="' + amount + '"><span class="text-green">' + parseFloat(amount).toFixed(decimal_degits) + '' + currentCurrency + '</span></td>');
             } else {
-                html.push('<td class="text-green" data-html="true" data-order="' + amount + '">' + currentCurrency + '' + parseFloat(amount).toFixed(decimal_degits) + '</td>');
+                html.push('<td class="text-green" data-html="true" data-order="' + amount + '"><span class="text-green">' + currentCurrency + '' + parseFloat(amount).toFixed(decimal_degits) + '</span></td>');
             }
         } else if (val.hasOwnProperty('isTopUp') && !val.isTopUp) {
-            note = "{{trans('lang.admin_commision_debited')}}";
 
             if (currencyAtRight) {
-                html.push('<td class="text-red" data-html="true" data-order="' + amount + '">(' + parseFloat(amount).toFixed(decimal_degits) + '' + currentCurrency + ')</td>');
+                html.push('<td class="text-red" data-html="true" data-order="' + amount + '"><span class="text-red">(' + parseFloat(amount).toFixed(decimal_degits) + '' + currentCurrency + ')</span></td>');
             } else {
-                html.push('<td class="text-red" data-html="true" data-order="' + amount + '">(' + currentCurrency + '' + parseFloat(amount).toFixed(decimal_degits) + ')</td>');
+                html.push('<td class="text-red" data-html="true" data-order="' + amount + '"><span class="text-red">(' + currentCurrency + '' + parseFloat(amount).toFixed(decimal_degits) + ')</span></td>');
             }
 
         } else {
             if (currencyAtRight) {
-                html.push('<td class="" data-html="true" data-order="' + amount + '">' + parseFloat(amount).toFixed(decimal_degits) + '' + currentCurrency + '</td>');
+                html.push('<td class="" data-html="true" data-order="' + amount + '"><span class="text-green">' + parseFloat(amount).toFixed(decimal_degits) + '' + currentCurrency + '</span></td>');
             } else {
-                html.push('<td class="" data-html="true" data-order="' + amount + '">' + currentCurrency + '' + parseFloat(amount).toFixed(decimal_degits) + '</td>');
+                html.push('<td class="" data-html="true" data-order="' + amount + '"><span class="text-green">' + currentCurrency + '' + parseFloat(amount).toFixed(decimal_degits) + '</span></td>');
             }
         }
 
@@ -426,7 +412,7 @@
                 image = '{{asset("images/payment/marcado_pago.png")}}';
                 payment_method = '<img class="size" alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'" >';
 
-            } else if (val.payment_method == "Wallet") {
+            } else if (val.payment_method == "Wallet" || val.payment_method == "tax") {
                 image = '{{asset("images/payment/emart_wallet.png")}}';
                 payment_method = '<img class="size" alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'" >';
 
@@ -450,16 +436,16 @@
         }
 
         html.push('<td class="payment_images">' + payment_method + '</td>');
-        html.push('<td>' + note + '</td>');
+        html.push('<td>' + val.note + '</td>');
 
         if (val.payment_status == 'success') {
-            html.push('<td class="success"><span>' + val.payment_status + '</span></td>');
+            html.push('<td class="success"><span class="badge badge-success">' + val.payment_status + '</span></td>');
         } else if (val.payment_status == 'undefined') {
-            html.push('<td class="undefined"><span>' + val.payment_status + '</span></td>');
+            html.push('<td class="undefined"><span class="badge badge-secondary">' + val.payment_status + '</span></td>');
         } else if (val.payment_status == 'Refund success') {
-            html.push('<td class="refund_success"><span>' + val.payment_status + '</span></td>');
+            html.push('<td class="refund_success"><span class="badge badge-success">' + val.payment_status + '</span></td>');
         } else {
-            html.push('<td><span>' + val.payment_status + '</span></td>');
+            html.push('<td><span class="badge badge-info">' + val.payment_status + '</span></td>');
         }
 
         if (val.hasOwnProperty('order_id') && val.order_id != null && val.order_id != "") {

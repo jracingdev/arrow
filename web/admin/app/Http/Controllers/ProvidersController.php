@@ -29,7 +29,10 @@ class ProvidersController extends Controller
     {
     	return view('providers.view')->with('id', $id);
     }
-   
+    public function providerChat($id)
+    {
+        return view('providers.chat', compact('id'));
+    }
 
 }
 

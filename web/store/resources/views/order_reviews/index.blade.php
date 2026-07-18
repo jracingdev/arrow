@@ -15,7 +15,7 @@
 
                     <ol class="breadcrumb">
 
-                        <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                        <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
 
                         <li class="breadcrumb-item active">{{trans('lang.order_review_table')}}</li>
 
@@ -141,10 +141,7 @@
                     ],
                     order: [['0', 'desc']],
 
-                    "language": {
-                        "zeroRecords": "{{trans("lang.no_record_found")}}",
-                        "emptyTable": "{{trans("lang.no_record_found")}}"
-                    },
+                    "language": datatableLang,
                     responsive: true
                 });
 

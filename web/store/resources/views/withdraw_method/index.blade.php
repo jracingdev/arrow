@@ -7,18 +7,18 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.withdrawal_method')}}</li>
             </ol>
         </div>
     </div>
-    <div class="container-fluid">
+    <div class="container-fluid page-menu">
         <div class="row">
             <div class="col-12">
                 <div class="card">
                  
                     <div class="card-body">
-                        <div id="data-table_processing" class="dataTables_processing panel panel-default" style="display: none;">Processing...</div>
+                        <div id="data-table_processing" class="dataTables_processing panel panel-default" style="display: none;">{{trans('lang.processing')}}</div>
                        
                        <div class="title-head d-flex align-items-center mb-4 border-bottom pb-4"> 
                         <h3 class="mb-0">{{trans('lang.withdrawal_method')}}</h3>
@@ -64,8 +64,10 @@
     var razorpayObj = '';
     var paypalObj = '';
     var flutterwaveObj = '';
-    
+    var authRole = "{{ $authRole }}";
+    var empVendorId = "{{ $empVendorId }}";
     var razorpayWithdrawEnabled = false;
+    var ref;  
     var razorpaySettings = database.collection('settings').doc('razorpaySettings');
     razorpaySettings.get().then(async function (snapshots) {
         var razorpayData = snapshots.data();
@@ -99,7 +101,7 @@
             stripeWithdrawEnabled = true;
         }
     });
-
+    var correctVendorUserId = '';
     var place_image = '';
     var ref_place = database.collection('settings').doc("placeHolderImage");
     ref_place.get().then(async function(snapshots) {
@@ -107,10 +109,41 @@
         var placeHolderImage = snapshots.data();
         place_image = placeHolderImage.image;
 
-    });
-    var ref = database.collection('withdraw_method').where('userId', '==', vendorUserId);
+    });    
     
-    $(document).ready(function () {
+    document.addEventListener("DOMContentLoaded", async function() {
+        if (authRole === 'employee') {               
+            const perm = await getEmployeePermissionForTitle(vendorUserId, "Withdraw Method");
+
+            currentPermissions = {
+                isActive: perm.isActive ?? false
+            };
+
+            if (!currentPermissions.isActive) {             
+                alert('{{ trans("lang.no_permission") }}');               
+                $('.title-head .btn').remove(); // optional: remove add button too
+                $('.page-menu').html('<p class="text-center text-danger font-weight-bold">{{ trans("lang.no_permission") }}</p>');
+                return;
+            }
+        }
+        if(authRole == 'vendor'){
+            ref = database.collection('withdraw_method').where('userId', '==', vendorUserId);
+        }else{
+            try {
+                let snapshot = await database.collection('vendors').doc(empVendorId).get();
+
+                if (snapshot.exists) {
+                    let data = snapshot.data();
+                    correctVendorUserId = data.author;
+                } else {
+                    console.error("Vendor not found");
+                }
+
+            } catch (error) {
+                console.error("Error fetching vendor:", error);
+            }
+            ref = database.collection('withdraw_method').where('userId', '==', correctVendorUserId);
+        }
         $(document.body).on('click', '.redirecttopage', function () {
             var url = $(this).attr('data-url');
             window.location.href = url;

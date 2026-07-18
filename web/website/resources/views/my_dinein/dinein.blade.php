@@ -12,15 +12,15 @@
             <div class="col-md-12 top-nav mb-3">
                 <ul class="nav nav-tabsa custom-tabsa border-0 bg-white rounded overflow-hidden shadow-sm p-2 c-t-order" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <a class="nav-link border-0 text-dark py-3 active" href="{{ url('my_dinein') }}"> <i class="feather-check mr-2 text-success mb-0"></i>
+                        <a class="nav-link border-0 text-dark py-3 active" href="{{ route('my_dinein') }}"> <i class="feather-check mr-2 text-success mb-0"></i>
                             {{ trans('lang.completed') }}</a>
                     </li>
                     <li class="nav-item border-top" role="presentation">
-                        <a class="nav-link border-0 text-dark py-3" href="{{ url('my_dinein') }}"> <i class="feather-clock mr-2 text-warning mb-0"></i>
+                        <a class="nav-link border-0 text-dark py-3" href="{{ route('my_dinein') }}"> <i class="feather-clock mr-2 text-warning mb-0"></i>
                             {{ trans('lang.on_progress') }}</a>
                     </li>
                     <li class="nav-item border-top" role="presentation">
-                        <a class="nav-link border-0 text-dark py-3" href="{{ url('my_dinein') }}"> <i class="feather-x-circle mr-2 text-danger mb-0"></i>
+                        <a class="nav-link border-0 text-dark py-3" href="{{ route('my_dinein') }}"> <i class="feather-x-circle mr-2 text-danger mb-0"></i>
                             {{ trans('lang.canceled') }}</a>
                     </li>
                 </ul>
@@ -291,7 +291,7 @@
                 uploadTask.on('state_changed', function(snapshot) {
                     var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                     console.log('Upload is ' + progress + '% done');
-                    jQuery("#uploding_image").text("Image is uploading...");
+                    jQuery("#uploding_image").text("{{trans('lang.image_is_uploading')}}");
                 }, function(error) {}, function() {
                     uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
                         jQuery("#uploding_image").text("Upload is completed");

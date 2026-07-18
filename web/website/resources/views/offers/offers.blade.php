@@ -15,7 +15,7 @@
         <div style="display:none" class="coupon_code_copied_div mt-4 bg-success text-white text-center">
             <span>{{trans('lang.coupon_code_copied')}}</span>
         </div>
-        <div id="append_list1" class="res-search-list"></div>
+        <div id="coupons_list" class="res-search-list"></div>
         <div class="row fu-loadmore-btn">
             <a class="page-link loadmore-btn d-none" href="javascript:void(0);" id="loadmore" onclick="moreload()"
                data-dt-idx="0" tabindex="0">{{trans('lang.load_more')}}</a>
@@ -45,6 +45,7 @@
     var start = null;
     var append_list = '';
     var totalPayment = 0;
+    var vendorIds = [];
     var currentCurrency = '';
     var currencyAtRight = false;
     var placeholderImage = '';
@@ -65,48 +66,78 @@
     });
     $(document).ready(function () {
         jQuery("#overlay").show();
-        append_list = document.getElementById('append_list1');
-        append_list.innerHTML = '';
+        setTimeout( function(){ 
+            getCouponsList();
+        },3000);
+    });
+    async function getCouponsList(){
+        coupons_list = document.getElementById('coupons_list');
+        coupons_list.innerHTML='';
         var html = '';
-
-        ref.limit(pagesize).get().then(async function (snapshots) {
-
-            if (snapshots.docs.length > 0) {
-
-                html = buildHTML(snapshots);
-
-                if (html != '') {
-                    append_list.innerHTML = html;
+        var vendorsSnapshots = await database.collection('vendors').where('zoneId','==',user_zone_id).get();
+        if(vendorsSnapshots.docs.length > 0){
+			vendorsSnapshots.docs.forEach((listval) => {
+				vendorIds.push(listval.id);
+			});	
+            ref.limit(pagesize).get().then( async function(snapshots){ 
+                if(snapshots.docs.length > 0){
+                    html = await buildHTML(snapshots);
+                    coupons_list.innerHTML=html;
                     start = snapshots.docs[snapshots.docs.length - 1];
                     endarray.push(snapshots.docs[0]);
-                    if (snapshots.docs.length < pagesize) {
-                        $('#loadmore').addClass('d-none');
+                    if(snapshots.docs.length < pagesize){ 
+                        jQuery("#loadmore").hide();
+                    }else{
+                        jQuery("#loadmore").show();
                     }
-                } else {
-                    $("#noMoreCoupons").addClass('d-none');
+                    jQuery("#overlay").hide();
+                }else{
+                    html = html +"<h5 class='font-weight-bold text-center mx-auto p-3'>{{trans('lang.no_results')}}</h5>";
+                    coupons_list.innerHTML= html;
+                    jQuery("#overlay").hide();
                 }
-            } else {
-                html = html + "<h5 class='font-weight-bold text-center mx-auto p-3'>{{ trans('lang.no_results') }}</h5>";
-                append_list.innerHTML = html;
-            }
-
+            }); 
+        }else{
+            html = html +"<h5 class='font-weight-bold text-center mx-auto p-3'>{{trans('lang.no_results')}}</h5>";
+            coupons_list.innerHTML= html;
             jQuery("#overlay").hide();
-        });
-    });
+        }
+        
+    }
 
-    function buildHTML(snapshots) {
+    async function buildHTML(snapshots) {
         var html = '';
         var alldata = [];
         var number = [];
         var vendorIDS = [];
         if (snapshots.docs.length > 0) {
+            
             snapshots.docs.forEach((listval) => {
                 var datas = listval.data();
                 datas.id = listval.id;
                 alldata.push(datas);
             });
-            alldata.forEach((listval) => {
+
+            for (const listval of alldata) {
+                
                 var val = listval;
+
+                let isValidZone = true;
+                if (val.hasOwnProperty('vendorID') && val.vendorID != '') {
+                    const vendorDoc = await database.collection('vendors').doc(val.vendorID).get();
+                    if (!vendorDoc.exists) {
+                        isValidZone = false;
+                    } else {
+                        const vendorData = vendorDoc.data();
+                        if (vendorData.zoneId !== user_zone_id) {
+                            isValidZone = false;
+                        }
+                    }
+                }
+                if (!isValidZone) {
+                    continue;
+                }
+
                 var date = '';
                 var time = '';
                 if (val.hasOwnProperty('expiresAt') && val.expiresAt) {
@@ -145,12 +176,12 @@
                     view_vendor_route = view_vendor_route.replace(':id', val.vendorID);
                     html = html + "<p class='text-dark mb-0 offer-address'></span><a class='vendor_" + val.vendorID + "' href='" + view_vendor_route + "'></a></p>";
                 } else {
-                    html = html + "<p class='text-light mb-0 app-off-btn'><a sttyle='pointer-events: none;cursor: default;'>App Offer</a></p>";
+                    html = html + "<p class='text-light mb-0 app-off-btn'><a sttyle='pointer-events: none;cursor: default;'>{{trans('lang.app_offer')}}</a></p>";
                 }
                 html = html + '</div></div>';
                 html = html + '<div class="float-right ml-auto"><span class="price font-weight-bold h4">' + price_val + '</span>';
                 html = html + '</div> </div></div></div>';
-            });
+            }
         } else {
             $('#noMoreCoupons').removeClass('d-none');
             $('#loadmore').addClass('d-none');
@@ -167,7 +198,7 @@
             listener = ref.startAfter(start).limit(pagesize).get();
             listener.then(async (snapshots) => {
                 html = '';
-                html = buildHTML(snapshots);
+                html = await buildHTML(snapshots);
                 jQuery("#overlay").hide();
                 if (html != '') {
                     append_list.innerHTML += html;

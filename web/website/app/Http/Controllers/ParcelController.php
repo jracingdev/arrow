@@ -13,6 +13,7 @@ use Xendit\Invoice\InvoiceApi;
 use Xendit\Invoice\CreateInvoiceRequest;
 use Xendit\XenditSdkException;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Http;
 
 class ParcelController extends Controller
 {
@@ -27,7 +28,6 @@ class ParcelController extends Controller
             \Redirect::to('set-location')->send();
         }
         $this->middleware('auth');
-        error_reporting(0);
     }
 
     public function parcel($id)
@@ -45,15 +45,19 @@ class ParcelController extends Controller
         $email = Auth::user()->email;
         $user = VendorUsers::where('email', $email)->first();
         $parcel_cart = Session::get('parcel_cart', []);
-        return view('parcel.parcel_checkout', ['parcel_cart' => $parcel_cart, 'id' => $user->uuid]);
+        return view('parcel.parcel_checkout', ['parcel_cart' => $parcel_cart, 'id' => $user->uuid, 'errorMessage' => Session::get('payment_error', '')]);
     }
 
     public function parcelCart(Request $request)
     {
+        Session::put('parcel_cart', []);
+        Session::save();
+        
         $req = $request->all();
+        $parcel_cart = Session::get('parcel_cart', []);
+
         $parcelCategoryId = $req['parcelCategoryId'];
         $section_id = $req['section_id'];
-        $parcel_cart = Session::get('parcel_cart', []);
         $parcelType = $req['parcelType'];
         $senderAddress = $req['senderAddress'];
         $senderName = $req['senderName'];
@@ -61,7 +65,8 @@ class ParcelController extends Controller
         $senderParcelWeight = $req['senderParcelWeight'];
         $senderParcelWeightName = $req['senderParcelWeightName'];
         $senderNote = $req['senderNote'];
-        $senderArrive = $req['senderArrive'];
+        $receiverNote = $req['receiverNote'];
+        $senderZoneId = $req['senderZoneId'];
         $receiverAddress = $req['receiverAddress'];
         $receiverName = $req['receiverName'];
         $receiverPhone = $req['receiverPhone'];
@@ -69,35 +74,34 @@ class ParcelController extends Controller
         $sender_address_lat = $req['sender_address_lat'];
         $receiver_address_lng = $req['receiver_address_lng'];
         $receiver_address_lat = $req['receiver_address_lat'];
+        $receiverZoneId = $req['receiverZoneId'];
         $delivery_charge = $req['delivery_charge'];
         $isSchedule = $req['isSchedule'];
         $discount = $req['discount'];
-        $total_pay = 0;
+        
         $parcelDeliveryCharge = 0;
         $kmradius = 0;
         if (@$delivery_charge && @$sender_address_lng && @$sender_address_lat && @$receiver_address_lng && @$receiver_address_lat) {
             if (!empty($delivery_charge)) {
-                $kmradius = $this->distance($sender_address_lng, $sender_address_lat, $receiver_address_lng, $receiver_address_lat, 'K');
+                $mapType = $req['mapType'] ?? 'google';
+                if($mapType == 'google'){
+                    $kmradius = $this->distance($sender_address_lat, $sender_address_lng, $receiver_address_lat, $receiver_address_lng, );
+                }else{
+                    $kmradius = $this->getDrivingDistance($sender_address_lat, $sender_address_lng, $receiver_address_lat, $receiver_address_lng);
+                }
                 $parcelDeliveryCharge = round($kmradius * $delivery_charge);
-                $total_pay = $parcelDeliveryCharge;
             }
         }
+        
         $parcel_cart['parcelDeliveryCharge'] = $parcelDeliveryCharge;
         $parcel_cart['parcelDeliveryKM'] = $kmradius;
-        $parcel_cart['taxValue'] = @$req['taxValue'];
-        $totalTaxAmount = 0;
-        if (is_array($parcel_cart['taxValue'])) {
-            foreach ($parcel_cart['taxValue'] as $val) {
-                if ($val['type'] == 'percentage') {
-                    $tax = ($val['tax'] * $total_pay) / 100;
-                } else {
-                    $tax = $val['tax'];
-                }
-                $totalTaxAmount += floatval($tax);
-            }
-        }
-        $parcel_cart['tax_total_amount'] = $totalTaxAmount;
-        $total_pay = $total_pay + $totalTaxAmount;
+        $parcel_cart['decimal_degits'] = $req['decimal_degits'] ?? 2;
+        $parcel_cart['currencyData'] = $req['currencyData'] ?? [];
+        $parcel_cart['taxScope'] = $req['taxScope'] ?? 'order';
+        $parcel_cart['taxesByScope'] = $req['taxesByScope'] ?? [];
+        $parcel_cart['taxSetting'] = $parcel_cart['taxScope'] == "order" ? ($parcel_cart['taxesByScope']['order'] ?? []) : [];
+        $parcel_cart['platformCharge'] = $req['platformCharge'] ?? 0;
+
         $parcel_cart['section_id'] = $section_id;
         $parcel_cart['parcelType'] = $parcelType;
         $parcel_cart['parcelCategoryId'] = $parcelCategoryId;
@@ -107,15 +111,16 @@ class ParcelController extends Controller
         $parcel_cart['senderParcelWeight'] = $senderParcelWeight;
         $parcel_cart['senderParcelWeightName'] = $senderParcelWeightName;
         $parcel_cart['senderNote'] = $senderNote;
-        $parcel_cart['senderArrive'] = $senderArrive;
+        $parcel_cart['receiverNote'] = $receiverNote;
         $parcel_cart['receiverAddress'] = $receiverAddress;
         $parcel_cart['receiverName'] = $receiverName;
         $parcel_cart['receiverPhone'] = $receiverPhone;
         $parcel_cart['sender_address_lat'] = $sender_address_lat;
         $parcel_cart['sender_address_lng'] = $sender_address_lng;
+        $parcel_cart['senderZoneId'] = $senderZoneId;
         $parcel_cart['receiver_address_lng'] = $receiver_address_lng;
         $parcel_cart['receiver_address_lat'] = $receiver_address_lat;
-        $parcel_cart['total_pay'] = $total_pay;
+        $parcel_cart['receiverZoneId'] = $receiverZoneId;
         $parcel_cart['deliveryCharge'] = $delivery_charge;
         $parcel_cart['coupon'] = [];
         $parcel_cart['parcelImages'] = $req['parcelImages'];
@@ -123,19 +128,43 @@ class ParcelController extends Controller
         $parcel_cart['senderPickupDateTime'] = $req['senderPickupDateTime'];
         $parcel_cart['receiverPickupDateTime'] = $req['receiverPickupDateTime'];
         $parcel_cart['decimal_degits'] = $req['decimal_degits'];
+
+        $parcel_cart = $this->calculateTax($parcel_cart);
+
         Session::put('parcel_cart', $parcel_cart);
         Session::save();
-        $res = array('status' => true, 'html' => view('parcel.parcel_checkout', ['parcel_cart' => $parcel_cart])->render());
+
+        $email = Auth::user()->email;
+        $user = VendorUsers::where('email', $email)->first();
+        $res = array('status' => true, 'html' => view('parcel.parcel_checkout', ['parcel_cart' => $parcel_cart, 'id' => $user->uuid])->render());
         echo json_encode($res);
         exit;
     }
-
-    public function distance($lon1, $lat1, $lon2, $lat2, $unit)
+   
+    function distance($lat1, $lon1, $lat2, $lon2)
     {
-        $theta = $lon2 - $lon1;
-        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
-        $dist = 6378.8 * acos($dist);
-        return $dist;
+        $earthRadius = 6371;
+
+        $lat1 = deg2rad(floatval($lat1));
+        $lon1 = deg2rad(floatval($lon1));
+        $lat2 = deg2rad(floatval($lat2));
+        $lon2 = deg2rad(floatval($lon2));
+
+        $latDiff = $lat2 - $lat1;
+        $lonDiff = $lon2 - $lon1;
+
+        $a = sin($latDiff / 2) ** 2 + cos($lat1) * cos($lat2) * sin($lonDiff / 2) ** 2;
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
+    }
+
+    function getDrivingDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $url = "https://router.project-osrm.org/route/v1/driving/$lon1,$lat1;$lon2,$lat2?overview=full&geometries=geojson";
+        $response = file_get_contents($url);
+        $data = json_decode($response, true);
+        return $data['routes'][0]['distance'] / 1000; // km
     }
 
     public function applyParcelCoupon(Request $request)
@@ -147,6 +176,7 @@ class ParcelController extends Controller
             $parcel_cart['coupon']['discount'] = $request->discount;
             $parcel_cart['coupon']['discountType'] = $request->discountType;
             $total_item_price = $parcel_cart['parcelDeliveryCharge'];
+            
             $discount_amount = 0;
             if (@$parcel_cart['coupon'] && $parcel_cart['coupon']['discountType']) {
                 $discountType = $parcel_cart['coupon']['discountType'];
@@ -166,26 +196,91 @@ class ParcelController extends Controller
                     }
                 }
             }
-            $parcel_cart['coupon']['coupon_code'] = $request->coupon_code;
-            $parcel_cart['coupon']['coupon_id'] = $request->coupon_id;
+            
             $parcel_cart['coupon']['discount_amount'] = $discount_amount;
-            $parcel_cart['coupon']['discount'] = $discount;
-            $parcel_cart['coupon']['discountType'] = $request->discountType;
-            $total_item_price = $total_item_price - $discount_amount;
-            if ($parcel_cart['tax_type'] == 'percent') {
-                $tax_total_amount = round((($parcel_cart['tax_amount'] * $total_item_price) / 100), 2);
-            } else {
-                $tax_total_amount = $parcel_cart['tax_amount'];
-            }
-            $parcel_cart['tax_total_amount'] = $tax_total_amount;
-            $total_item_price = $total_item_price + $tax_total_amount;
-            $parcel_cart['total_pay'] = $total_item_price;
+            
+            $parcel_cart = $this->calculateTax($parcel_cart);
             Session::put('parcel_cart', $parcel_cart);
             Session::save();
-            $res = array('status' => true, 'html' => view('parcel.parcel_checkout', ['parcel_cart' => $parcel_cart])->render());
+           
+            $email = Auth::user()->email;
+            $user = VendorUsers::where('email', $email)->first();
+            $res = array('status' => true, 'html' => view('parcel.parcel_checkout', ['parcel_cart' => $parcel_cart, 'id' => $user->uuid])->render());
             echo json_encode($res);
             exit;
         }
+    }
+
+    public function removeParcelCoupon(Request $request)
+    {
+        $parcel_cart = Session::get('parcel_cart');
+        $parcel_cart['coupon'] = [];
+        
+        $parcel_cart = $this->calculateTax($parcel_cart);
+        Session::put('parcel_cart', $parcel_cart);
+        Session::save();
+        
+        exit;
+    }
+
+    public function calculateTax($cart){
+
+        $cart['taxBreakdownGrouped'] = [
+            'order' => [],
+            'platform' => []
+        ];
+        
+        // Item subtotal before discount
+        $itemSubtotal = $cart['parcelDeliveryCharge'];
+        
+        // Calculate discount
+        $discount_amount = 0;
+        if (!empty($cart['coupon'])) {
+            if ($cart['coupon']['discountType'] === 'Fix Price') {
+                $discount_amount = min($cart['coupon']['discount'], $itemSubtotal);
+            } else {
+                $discount_amount = min(($itemSubtotal * $cart['coupon']['discount']) / 100, $itemSubtotal);
+            }
+        }
+
+        $totalDiscount = $discount_amount;
+
+        // Item subtotal after discount
+        $finalSubtotal = $totalDiscount > 0 ? $itemSubtotal - $totalDiscount : $itemSubtotal;
+
+        $totalTax = 0;
+
+        // ORDER-LEVEL TAX
+        if ($cart['taxScope'] === 'order') {
+            $orderTaxable = max(0, $itemSubtotal - $totalDiscount);
+            foreach ($cart['taxesByScope']['order'] ?? [] as $tax) {
+                if ($tax['enable'] ?? true) {
+                    $taxAmount = $this->applyTax($orderTaxable, $tax);
+                    $totalTax += $taxAmount;
+                    $cart['taxBreakdownGrouped']['order'][$tax['title']] =
+                        ($cart['taxBreakdownGrouped']['order'][$tax['title']] ?? 0) + $taxAmount;
+                }
+            }
+        }
+
+        // PLATFORM TAXES
+        $extraScopes = ['platform'];
+        foreach ($extraScopes as $scope) {
+            $charge = $cart[$scope . 'Charge'] ?? 0;
+            foreach ($cart['taxesByScope'][$scope] ?? [] as $tax) {
+                if (!isset($cart['taxBreakdownGrouped'][$scope][$tax['title']])) {
+                    $cart['taxBreakdownGrouped'][$scope][$tax['title']] = 0;
+                }
+                $taxAmount = ($charge > 0) ? $this->applyTax($charge, $tax) : 0;
+                $totalTax += $taxAmount;
+                $cart['taxBreakdownGrouped'][$scope][$tax['title']] += $taxAmount;
+            }
+        }
+
+        $cart['tax_total_amount'] = $totalTax;
+        $cart['total_pay'] = $finalSubtotal + $cart['platformCharge'] + $totalTax;
+
+        return $cart;
     }
 
     public function parcelOrderProccessing(Request $request)
@@ -213,8 +308,8 @@ class ParcelController extends Controller
                 $razorpayKey = $parcel_cart['cart_order']['razorpayKey'];
                 $authorName = $parcel_cart['cart_order']['authorName'];
                 $total_pay = $parcel_cart['cart_order']['total_pay'];
-                $amount = 0;
-                return view('parcel.razorpay', ['is_checkout' => 1, 'parcel_cart' => $parcel_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'razorpaySecret' => $razorpaySecret, 'razorpayKey' => $razorpayKey, 'cart_order' => $parcel_cart['cart_order']]);
+                $formatted_price = $parcel_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $parcel_cart['cart_order']['currencyData']['decimal_degits']);
+                return view('parcel.razorpay', ['is_checkout' => 1, 'parcel_cart' => $parcel_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'razorpaySecret' => $razorpaySecret, 'razorpayKey' => $razorpayKey, 'cart_order' => $parcel_cart['cart_order'], 'formatted_price' => $formatted_price]);
             } else if ($parcel_cart['cart_order']['payment_method'] == 'payfast') {
                 $payfast_merchant_key = $parcel_cart['cart_order']['payfast_merchant_key'];
                 $payfast_merchant_id = $parcel_cart['cart_order']['payfast_merchant_id'];
@@ -224,20 +319,45 @@ class ParcelController extends Controller
                 $payfast_cancel_url = route('process_parcel_order_pay');
                 $authorName = $parcel_cart['cart_order']['authorName'];
                 $total_pay = $parcel_cart['cart_order']['total_pay'];
-                $amount = 0;
+                $formatted_price = $parcel_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $parcel_cart['cart_order']['currencyData']['decimal_degits']);
+                
                 $token = uniqid();
                 Session::put('payfast_payment_token', $token);
                 Session::save();
                 $payfast_return_url = $payfast_return_url . '?token=' . $token;
-                return view('parcel.payfast', ['is_checkout' => 1, 'parcel_cart' => $parcel_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'payfast_merchant_key' => $payfast_merchant_key, 'payfast_merchant_id' => $payfast_merchant_id, 'payfast_isSandbox' => $payfast_isSandbox, 'payfast_return_url' => $payfast_return_url, 'payfast_notify_url' => $payfast_notify_url, 'payfast_cancel_url' => $payfast_cancel_url, 'cart_order' => $parcel_cart['cart_order']]);
+                $amount = number_format($total_pay, 2, '.', '');
+                $data = [
+                    'merchant_id' => $payfast_merchant_id,
+                    'merchant_key' => $payfast_merchant_key,
+                    'return_url' => $payfast_return_url,
+                    'cancel_url' => $payfast_cancel_url,
+                    'notify_url' => $payfast_notify_url,
+                    'name_first' => $authorName,
+                    'm_payment_id' => $token,
+                    'amount' => $amount,
+                    'item_name' => 'Test',
+                ];
+                $signature = $this->generateSignature($data);
+                $data['signature'] = $signature;
+                $pfHost = $payfast_isSandbox == 'true' ? 'sandbox.payfast.co.za' : 'www.payfast.co.za';
+                return view('parcel.payfast', [
+                    'amount' => $amount,
+                    'pfHost' => $pfHost,
+                    'data' => $data,
+                    'payfast_merchant_key' => $payfast_merchant_key,
+                    'payfast_merchant_id' => $payfast_merchant_id,
+                    'payfast_return_url' => $payfast_return_url,
+                    'payfast_notify_url' => $payfast_notify_url,
+                    'payfast_cancel_url' => $payfast_cancel_url,
+                    'formatted_price' => $formatted_price,
+                ]);
             } else if ($parcel_cart['cart_order']['payment_method'] == 'paystack') {
                 $paystack_public_key = $parcel_cart['cart_order']['paystack_public_key'];
                 $paystack_secret_key = $parcel_cart['cart_order']['paystack_secret_key'];
                 $paystack_isSandbox = $parcel_cart['cart_order']['paystack_isSandbox'];
                 $authorName = $parcel_cart['cart_order']['authorName'];
                 $total_pay = $parcel_cart['cart_order']['total_pay'];
-                $amount = 0;
-
+                
                 \Paystack\Paystack::init($paystack_secret_key);
                 $payment = \Paystack\Transaction::initialize([
                     'email' => $email,
@@ -268,12 +388,13 @@ class ParcelController extends Controller
                 $flutterWave_encryption_key = $parcel_cart['cart_order']['flutterWave_encryption_key'];
                 $authorName = $parcel_cart['cart_order']['authorName'];
                 $total_pay = $parcel_cart['cart_order']['total_pay'];
+                $formatted_price = $parcel_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $parcel_cart['cart_order']['currencyData']['decimal_degits']);
                 Session::put('flutterwave_pay', 1);
                 Session::save();
                 $token = uniqid();
                 Session::put('flutterwave_pay_tx_ref', $token);
                 Session::save();
-                return view('parcel.flutterwave', ['is_checkout' => 1, 'parcel_cart' => $parcel_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'cart_order' => $parcel_cart['cart_order'], 'currency' => $currency]);
+                return view('parcel.flutterwave', ['is_checkout' => 1, 'parcel_cart' => $parcel_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'cart_order' => $parcel_cart['cart_order'], 'currency' => $currency, 'formatted_price' => $formatted_price]);
             } else if ($parcel_cart['cart_order']['payment_method'] == 'mercadopago') {
                 $currency = "USD";
                 if (@$parcel_cart['cart_order']['currencyData']['code']) {
@@ -305,12 +426,20 @@ class ParcelController extends Controller
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json", "Authorization:Bearer " . $mercadopago_access_token));
                 $response = curl_exec($ch);
+                if ($response === false) {
+                    $error = curl_error($ch);
+                    curl_close($ch);
+                    Session::put('payment_error', 'Unable to initialize payment, credentials are invalid or not authorized. Please check credentials, environment (sandbox/live), and account region.');
+                    return redirect()->route('parcel_checkout');
+                }
+                curl_close($ch);
                 $mercadopago = json_decode($response);
+                if (!isset($mercadopago->id)) {
+                    Session::put('payment_error', 'Unable to initialize payment, credentials are invalid or not authorized. Please check credentials, environment (sandbox/live), and account region.');
+                    return redirect()->route('parcel_checkout');
+                }
                 Session::put('mercadopago_preference_id', $mercadopago->id);
                 Session::save();
-                if ($mercadopago === null) {
-                    die(curl_error($ch));
-                }
                 $authorName = $parcel_cart['cart_order']['authorName'];
                 $total_pay = $parcel_cart['cart_order']['total_pay'];
                 if ($mercadopago_isSandbox == "true") {
@@ -331,21 +460,21 @@ class ParcelController extends Controller
                 $isStripeSandboxEnabled = $parcel_cart['cart_order']['isStripeSandboxEnabled'];
                 $authorName = $parcel_cart['cart_order']['authorName'];
                 $total_pay = $parcel_cart['cart_order']['total_pay'];
-                $amount = 0;
-                return view('parcel.stripe', ['is_checkout' => 1, 'parcel_cart' => $parcel_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'stripeSecret' => $stripeSecret, 'stripeKey' => $stripeKey, 'cart_order' => $parcel_cart['cart_order'], 'senderAddress' => $senderAddress]);
+                $formatted_price = $parcel_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $parcel_cart['cart_order']['currencyData']['decimal_degits']);
+                return view('parcel.stripe', ['is_checkout' => 1, 'parcel_cart' => $parcel_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'stripeSecret' => $stripeSecret, 'stripeKey' => $stripeKey, 'cart_order' => $parcel_cart['cart_order'], 'senderAddress' => $senderAddress, 'formatted_price' => $formatted_price]);
             } else if ($parcel_cart['cart_order']['payment_method'] == 'paypal') {
                 $paypalSecret = $parcel_cart['cart_order']['paypalSecret'];
                 $paypalKey = $parcel_cart['cart_order']['paypalKey'];
                 $ispaypalSandboxEnabled = $parcel_cart['cart_order']['ispaypalSandboxEnabled'];
                 $authorName = $parcel_cart['cart_order']['authorName'];
                 $total_pay = $parcel_cart['cart_order']['total_pay'];
-                return view('parcel.paypal', ['is_checkout' => 1, 'parcel_cart' => $parcel_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'paypalSecret' => $paypalSecret, 'paypalKey' => $paypalKey, 'cart_order' => $parcel_cart['cart_order']]);
+                $formatted_price = $parcel_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $parcel_cart['cart_order']['currencyData']['decimal_degits']);
+                return view('parcel.paypal', ['is_checkout' => 1, 'parcel_cart' => $parcel_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'paypalSecret' => $paypalSecret, 'paypalKey' => $paypalKey, 'cart_order' => $parcel_cart['cart_order'], 'formatted_price' => $formatted_price]);
             }else if($parcel_cart['cart_order']['payment_method']=='xendit'){
                 $xendit_enable=$parcel_cart['cart_order']['xendit_enable'];
                 $xendit_apiKey=$parcel_cart['cart_order']['xendit_apiKey'];
                 if (isset($xendit_enable) && $xendit_enable == true) {
                     $total_pay = $parcel_cart['cart_order']['total_pay'];
-                    //$currency = $parcel_cart['cart_order']['currencyData']['code'];
                     $currency = "IDR";
                     $fail_url = route('process_parcel_order_pay');
                     $success_url = route('parcel_success');
@@ -502,14 +631,15 @@ class ParcelController extends Controller
         $payment = $api->payment->fetch($input['razorpay_payment_id']);
         if (count($input) && !empty($input['razorpay_payment_id'])) {
             try {
-                $response = $api->payment->fetch($input['razorpay_payment_id'])->capture(array('amount' => $payment['amount']));
+                if($payment['status'] !== 'captured'){
+                    $response = $api->payment->fetch($input['razorpay_payment_id'])->capture(array('amount' => $payment['amount']));
+                }
                 $parcel_cart['payment_status'] = true;
                 Session::put('parcel_cart', $parcel_cart);
                 Session::save();
             } catch (Exception $e) {
-                return $e->getMessage();
                 Session::put('error', $e->getMessage());
-                return redirect()->back();
+                return $e->getMessage();
             }
         }
         Session::put('success', 'Payment successful');
@@ -587,6 +717,22 @@ class ParcelController extends Controller
         echo json_encode($res);
         exit;
     }
+
+    public function parcelNotify() {
+        if ($_POST) {
+            $pfData = $_POST;
+            if (@$pfData['payment_status']) {
+                Session::put('payfast_payment', $pfData);
+                Session::save();
+            }
+        }
+    }
+
+    public function generateSignature($data) {
+        $getString = http_build_query($data, '', '&', PHP_QUERY_RFC3986);
+        return md5( $getString );
+    } 
+
     private function getAccessToken($clientId, $clientSecret)
     {
         $authUrl = 'https://api.orange.com/oauth/v3/token';
@@ -612,6 +758,12 @@ class ParcelController extends Controller
     }
     public function parcelSuccess()
     {
+        $requestUri = $_SERVER['REQUEST_URI'];
+        if (strpos($requestUri, 'status_code=') !== false || strpos($requestUri, '&midtrans_token') !== false) {
+            $fixedUri = preg_replace('/[?&]status_code=[^&]+/', '', $requestUri);
+            $fixedUri = preg_replace('/&/', '?', $fixedUri, 1);
+            return redirect($fixedUri);
+        }
         $parcel_cart = Session::get('parcel_cart', []);
         $order_json = array();
         $email = Auth::user()->email;
@@ -724,12 +876,25 @@ class ParcelController extends Controller
 
     public function parcelOrderComplete(Request $request)
     {
+        $email = Auth::user()->email;
+        $user = VendorUsers::where('email', $email)->first();
         $parcel_cart = array();
         Session::put('parcel_cart', []);
         Session::put('success', 'Your order has been successful!');
         Session::save();
-        $res = array('status' => true, 'order_complete' => true, 'html' => view('parcel.success', ['parcel_cart' => $parcel_cart, 'order_complete' => true, 'is_checkout' => 1])->render());
+        $res = array('status' => true, 'order_complete' => true, 'html' => view('parcel.success', ['parcel_cart' => $parcel_cart, 'order_complete' => true, 'is_checkout' => 1, 'id' => $user->uuid])->render());
         echo json_encode($res);
         exit;
+    }
+
+    public function applyTax($amount, $tax) {
+        if (!$tax['enable']) return 0;
+        if ($tax['type'] === 'percentage') {
+            return ($amount * $tax['tax']) / 100;
+        }
+        if ($tax['type'] === 'fix') {
+            return $tax['tax'];
+        }
+        return 0;
     }
 }

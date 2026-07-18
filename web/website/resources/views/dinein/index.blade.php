@@ -14,7 +14,7 @@
                 <li class="nav-item" role="presentation">
                     <a class="nav-link active border-0 bg-light text-dark rounded" id="home-tab" data-toggle="tab"
                        href="#home" role="tab" aria-controls="home" aria-selected="true"><i
-                                class="feather-home mr-2"></i><span class="restaurant_counts">DINE IN Restaurants</span></a>
+                                class="feather-home mr-2"></i><span class="restaurant_counts">{{trans('lang.dine_in_restaurants')}}</span></a>
                 </li>
             </ul>
             <ul class="nav nav-tabs border-0" id="myTab" role="tablist">

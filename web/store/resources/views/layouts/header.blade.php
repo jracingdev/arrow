@@ -46,13 +46,14 @@
         <!-- Profil -->
         <li class="nav-item dropdown">
 
-		 <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{ asset('/images/users/user-new.png') }}" onerror="this.onerror=null; this.src='{{ asset('/images/users/user-new.png') }}';" alt="user" class="profile-pic userimage"></a>
+		 <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{ asset('images/users/user-2.png') }}" onerror="this.onerror=null; this.src='{{ asset('images/users/user-2.png') }}';" alt="user" class="profile-pic userimage"></a>
         
             <div class="dropdown-menu dropdown-menu-right scale-up">
                 <ul class="dropdown-user">
                     <li>
                         <div class="dw-user-box">
-                            <div class="u-img"><img src="{{ asset('/images/users/user-2.png') }}" onerror="this.onerror=null; this.src='{{ asset('/images/users/user-2.png') }}';" class="userimage" alt="user" style="max-width: 45px;"></div>
+                            <div class="u-img"><img src="{{ asset('images/users/user-2.png') }}" onerror="this.onerror=null; this.src='{{ asset('images/users/user-2.png') }}';"  class="userimage" alt="user" style="max-width: 45px;"></div>
+                            
                             <div class="u-text">
                             <h4 id="username"></h4>
                             </div>
@@ -71,6 +72,83 @@
     </ul>
 </div>
 
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="{{ asset('js/geofirestore.js') }}"></script>
+<script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
+<script src="{{ asset('js/crypto-js.js') }}"></script>
+<script src="{{ asset('js/jquery.cookie.js') }}"></script>
+<script src="{{ asset('js/jquery.validate.js') }}"></script>
 <script>
-    var doNotDeleteAlert = "This is for demo, We can not allow to delete";
+    var doNotDeleteAlert = "{{trans('lang.this_is_for_demo_we_can_not_allow_to_delete')}}";
+
+    // Wait for DOM + jQuery to be fully loaded
+    $(document).ready(function () {
+        var database = firebase.firestore();
+        let placeholderImage = '';
+
+        // 1. Fetch placeholder from Firestore
+        database.collection('settings').doc('placeHolderImage')
+            .get()
+            .then(function (snapshot) {
+                if (snapshot.exists && snapshot.data().image) {
+                    placeholderImage = snapshot.data().image;
+                }
+                applyGlobalPlaceholder();
+                applyUserImagePlaceholder();   // Now safe to run
+            })
+            .catch(function (err) {
+                console.error('Firestore placeholder error:', err);
+                applyGlobalPlaceholder();
+                applyUserImagePlaceholder();
+            });
+
+        // 2. Apply onerror fallback to ALL images
+        function applyGlobalPlaceholder() {
+            if (!placeholderImage) return;
+
+            $('img').each(function () {
+                var $img = $(this);
+                if (!$img.data('placeholder')) {
+                    $img.data('placeholder', placeholderImage);
+                }
+
+                // Replace or set onerror
+                $img.off('error').on('error', function () {
+                    if ($(this).data('placeholder')) {
+                        this.src = $(this).data('placeholder');
+                    }
+                });
+            });
+        }
+
+        // 3. FORCE placeholder into #user_image and #user_avatar
+        function applyUserImagePlaceholder() {
+            if (!placeholderImage) return;
+
+            var $userImg   = $('#user_image');
+            var $avatarImg = $('#user_avatar');
+
+            // Update #user_image (dropdown)
+            if ($userImg.length) {
+                if (!$userImg.data('original-src')) {
+                    $userImg.data('original-src', $userImg.attr('src'));
+                }
+                $userImg.attr('src', placeholderImage);   // This is what you want
+            }
+
+            // Update #user_avatar (navbar trigger) – optional but consistent
+            if ($avatarImg.length) {
+                if (!$avatarImg.data('original-src')) {
+                    $avatarImg.data('original-src', $avatarImg.attr('src'));
+                }
+                $avatarImg.attr('src', placeholderImage);
+            }
+        }
+    });
+   
 </script>

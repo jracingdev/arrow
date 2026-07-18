@@ -20,7 +20,7 @@
 
 			<ol class="breadcrumb">
 
-				<li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+				<li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
 				<li class="breadcrumb-item active">{{trans('lang.terms_and_conditions')}}</li>
 

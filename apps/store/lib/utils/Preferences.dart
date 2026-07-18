@@ -1,34 +1,31 @@
-// ignore_for_file: file_names
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Preferences {
-  static const isFinishOnBoardingKey = "isFinishOnBoardingKey";
   static const languageCodeKey = "languageCodeKey";
-  static const isLogin = "isLogin";
-  static const userId = "userId";
-  static const user = "userData";
-  static const paymentSetting = "paymentSetting";
-  static const currency = "currency";
-  static const accesstoken = "accesstoken";
-  static const admincommission = "adminCommission";
+  static const isFinishOnBoardingKey = "isFinishOnBoardingKey";
+  static const foodDeliveryType = "foodDeliveryType";
+  static const themKey = "themKey";
 
-  static String walletPref = 'walletPref';
-  static String paystackPref = 'paystackPref';
-  static String xenditPref = 'xenditPref';
-  static String orangeMoneyPref = 'orangeMoneyPref';
-  static String midTransPref = 'midTransPref';
-  static String razorpayPref = 'razorpayPref';
-  static String paytmPref = 'paytmPref';
-  static String flutterwavePref = 'flutterwavePref';
-  static String stripePref = 'stripePref';
-  static String paypalPref = 'paypalPref';
-  static String mercadoPagoPref = 'mercadoPagoPref';
-  static String payfastPref = 'payfastPref';
+  static const payFastSettings = "payFastSettings";
+  static const mercadoPago = "MercadoPago";
+  static const paypalSettings = "paypalSettings";
+  static const stripeSettings = "stripeSettings";
+  static const flutterWave = "flutterWave";
+  static const payStack = "payStack";
+  static const paytmSettings = "PaytmSettings";
+  static const walletSettings = "walletSettings";
+  static const razorpaySettings = "razorpaySettings";
+  static const midTransSettings = "midTransSettings";
+  static const orangeMoneySettings = "orangeMoneySettings";
+  static const xenditSettings = "xenditSettings";
+  static const codSettings = "CODSettings";
+  static const orderRingtone = "audioSound";
+
+  static const isClickOnNotification = "isClickOnNotification";
 
   static late SharedPreferences pref;
 
-  static initPref() async {
+  static Future<void> initPref() async {
     pref = await SharedPreferences.getInstance();
   }
 
@@ -40,8 +37,8 @@ class Preferences {
     await pref.setBool(key, value);
   }
 
-  static String getString(String key) {
-    return pref.getString(key) ?? "";
+  static String getString(String key, {String? defaultValue}) {
+    return pref.getString(key) ?? defaultValue ?? "";
   }
 
   static Future<void> setString(String key, String value) async {

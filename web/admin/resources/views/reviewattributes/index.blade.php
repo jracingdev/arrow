@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.reviewattribute_table')}}</li>
             </ol>
         </div>
@@ -75,10 +75,9 @@
 @section('scripts')
 
 <script type="text/javascript">
+    
     var user_permissions = '<?php echo @session('user_permissions') ?>';
-
-    user_permissions = JSON.parse(user_permissions);
-
+    user_permissions = Object.values(JSON.parse(user_permissions));
     var checkDeletePermission = false;
 
     if ($.inArray('review.attributes.delete', user_permissions) >= 0) {
@@ -113,6 +112,9 @@
                 $('.total_count').text(0);                 
             }
             html = buildHTML(snapshots);
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
             jQuery("#data-table_processing").hide();
             if (html != '') {
                 append_list.innerHTML = html;
@@ -129,10 +131,8 @@
                     {orderable: false, targets: [1]},
                 ],
                 order: [0,"asc"],
-                "language": {
-                    "zeroRecords": "{{trans("lang.no_record_found")}}",
-                    "emptyTable": "{{trans("lang.no_record_found")}}"
-                },
+                "language": datatableLang,
+
                 responsive: true,
             });
         });
@@ -161,9 +161,9 @@
             route1 = route1.replace(':id', id);
 
             html = html + '<td>' + val.title + '</td>';
-            html = html + '<td><span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil"></i></a>';
+            html = html + '<td><span class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';
             if(checkDeletePermission){
-                html=html+'<a id="' + val.id + '" name="reviewattribute-delete action-btn" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
+                html=html+'<a id="' + val.id + '" name="reviewattribute-delete" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.delete') }}"><i class="mdi mdi-delete"></i></a>';
             }
             html=html+'</td></span>';
 
@@ -175,8 +175,8 @@
     }
 
    
-    $(document).on("click", "a[name='reviewattribute-delete']", function (e) {
-        var id = this.id;
+    $(document).on("click", "a[name='reviewattribute-delete']", function (e) {        
+        var id = this.id;        
         database.collection('review_attributes').doc(id).delete().then(function (result) {
             window.location.href = '{{ route("reviewattributes")}}';
         });

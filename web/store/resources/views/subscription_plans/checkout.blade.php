@@ -307,13 +307,14 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{{ asset('assets/plugins/select2/dist/js/select2.min.js') }}"></script>
-    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js"></script>
-    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-firestore.js"></script>
-    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-storage.js"></script>
-    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-auth.js"></script>
-    <script data-cfasync="false" src="https://www.gstatic.com/firebasejs/7.2.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="{{ asset('js/crypto-js.js') }}"></script>
-    @include('partials.firebase-init')
+    <script src="{{ asset('js/jquery.cookie.js') }}"></script>
+    <script src="{{ asset('js/jquery.validate.js') }}"></script>
 
     <script type="text/javascript">
     
@@ -450,12 +451,12 @@
                     <div class="subscription-card-right">
                         <div
                             class="d-flex justify-content-between align-items-center py-3 px-3 text-dark-2">
-                            <span class="font-weight-medium">Validity</span>
+                            <span class="font-weight-medium">{{trans('lang.validity')}}</span>
                             <span class="font-weight-semibold">${choosedPlan.expiryDay==-1 ? "{{ trans('lang.unlimited') }}" : choosedPlan.expiryDay} {{trans('lang.days')}}</span>
                         </div>
                         <div
                             class="d-flex justify-content-between align-items-center py-3 px-3 text-dark-2">
-                            <span class="font-weight-medium">Price</span>
+                            <span class="font-weight-medium">{{trans('lang.price')}}</span>
                             <span class="font-weight-semibold">${choosedPlan_price}</span>
                         </div>
                         <div
@@ -492,12 +493,12 @@
                     <div class="subscription-card-right">
                         <div
                             class="d-flex justify-content-between align-items-center py-3 px-3 text-dark-2">
-                            <span class="font-weight-medium">Validity</span>
+                            <span class="font-weight-medium">{{trans('lang.validity')}}</span>
                             <span class="font-weight-semibold">${choosedPlan.expiryDay==-1 ? "{{ trans('lang.unlimited') }}" : choosedPlan.expiryDay} {{trans('lang.days')}}</span>
                         </div>
                         <div
                             class="d-flex justify-content-between align-items-center py-3 px-3 text-dark-2">
-                            <span class="font-weight-medium">Price</span>
+                            <span class="font-weight-medium">{{trans('lang.price')}}</span>
                             <span class="font-weight-semibold">${choosedPlan_price}</span>
                         </div>
                         <div
@@ -528,10 +529,21 @@
 
         var authorName = '';
         var authorEmail = '';
-
+        var documentVerificationEnable = false; 
         $(document).ready(function() {
             var today = new Date().toISOString().slice(0, 16);
             getUserDetails();
+            database.collection('settings').doc("document_verification_settings").get().then(function(snapshot) {
+                if (snapshot.exists) {
+                    var settings = snapshot.data();
+                    documentVerificationEnable = !!settings.isStoreVerification;   
+                    
+                } else {
+                    console.log("document_verification_settings document does not exist");
+                }
+            }).catch(err => {
+                console.error("❌ Error loading document verification settings:", err);
+            });
         });
 
         async function getUserDetails() {
@@ -1093,16 +1105,23 @@
                     'subscription_plan': planData,
                     'subscriptionPlanId': planId,
                     'subscriptionExpiryDate': expiryDay,
-                    'section_id':sectionId
+                    'sectionId':sectionId
                 }).then(async function(result) {
+                    var sectionCommissionSetting = {};
                     if(vendorId!=null){
+                        const sectionRef = database.collection('sections').where('id', '==', sectionId);
+                        const sectionSnap = await sectionRef.get();
+                        if (!sectionSnap.empty) {
+                            const sectionData = sectionSnap.docs[0].data();
+                            sectionCommissionSetting = sectionData.adminCommision;
+                        }
                         await database.collection('vendors').doc(vendorId).update({
                            'subscription_plan': planData,
                             'subscriptionPlanId': planId,
                             'subscriptionExpiryDate': expiryDay,
                             'subscriptionTotalOrders':planData.orderLimit,
-                            'section_id':sectionId
-
+                            'section_id':sectionId,
+                            'adminCommission': sectionCommissionSetting
                         })
                     }
                     await database.collection('subscription_history').doc(id_order).set({
@@ -1146,7 +1165,46 @@
 
                                     success: function(data) {
                                         if(data.access) {
-                                            window.location.href='{{ route('dashboard') }}';
+                                            database.collection("users").doc(userId).get().then(async function(snapshots_login) {
+                                                var userData=snapshots_login.data();
+                                                var isDocumentVerified = userData.hasOwnProperty('isDocumentVerify') 
+                                                    ? userData.isDocumentVerify 
+                                                    : false;
+                                                var isAutoVerified = userData.hasOwnProperty('isAutoVerify') 
+                                                    ? userData.isAutoVerify 
+                                                    : false;                                                
+
+                                                if (userData.hasOwnProperty('subscriptionPlanId') &&
+                                                    userData.subscriptionPlanId != '' && userData
+                                                    .subscriptionPlanId != null) {
+                                                    if (documentVerificationEnable && (!isDocumentVerified || userData.isDocumentVerify)) {                                                        
+                                                        window.location = "{{ route('vendors.document') }}";
+                                                    } else if(documentVerificationEnable && isAutoVerified){
+                                                        window.location = "{{ route('dashboard') }}";
+                                                    }else if(!documentVerificationEnable && isAutoVerified){
+                                                        window.location = "{{ route('dashboard') }}";
+                                                    }else{
+                                                        window.location = "{{ route('dashboard') }}";
+                                                    }
+                                                } else {
+                                                    if (subscriptionModel || commisionModel) {
+
+                                                        window.location =
+                                                            "{{ route('subscription-plan.show') }}";
+
+                                                    } else {
+                                                        if (documentVerificationEnable && (!isDocumentVerified || userData.isDocumentVerify)) {                                                           
+                                                            window.location = "{{ route('vendors.document') }}";
+                                                        } else if(documentVerificationEnable && isAutoVerified){
+                                                            window.location = "{{ route('dashboard') }}";
+                                                        }else if(!documentVerificationEnable && isAutoVerified){
+                                                            window.location = "{{ route('dashboard') }}";
+                                                        }else{
+                                                            window.location = "{{ route('dashboard') }}";
+                                                        }
+                                                    }
+                                                }
+                                            })
                                         }
                                     }
 

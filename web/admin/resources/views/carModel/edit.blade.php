@@ -20,7 +20,7 @@
 
             <ol class="breadcrumb">
 
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
 
                 <li class="breadcrumb-item"><a href="{!! route('carModel') !!}">{{trans('lang.car_model')}}</a>
 
@@ -54,7 +54,7 @@
 
                             <label class="col-3 control-label">{{trans('lang.car_make')}}</label>
 
-                            <div class="col-7">
+                            <div class="col-7 select2-container-full">
 
                                 <select name="car_make" class="form-control car_make">
 

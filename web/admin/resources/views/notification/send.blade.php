@@ -9,8 +9,8 @@
 
             <div class="col-md-7 align-self-center">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                    <li class="breadcrumb-item"><a href="{{ url('notification') }}">{{trans('lang.send_notification')}}</a>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('notification') }}">{{trans('lang.send_notification')}}</a>
                     </li>
                     <li class="breadcrumb-item active">{{trans('lang.notification')}}</li>
                 </ol>
@@ -86,7 +86,7 @@ var ref = database.collection('notifications').where("id", "==", id);
 var users = database.collection('users').where("fcmToken", "!=", "");
 var pagesize = 20;
 var start = '';
-var ref_sections = database.collection('sections');
+var ref_sections = database.collection('sections').where('isActive', '==', true).orderBy('order');
 var sections_list = [];
 
 $(document).ready(function () {

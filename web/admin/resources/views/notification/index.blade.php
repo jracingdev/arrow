@@ -9,7 +9,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.send_notification')}}</li>
             </ol>
         </div>
@@ -68,7 +68,7 @@
                                         <th>{{trans('lang.notification_message')}}</th>
 
                                         <th>{{trans('lang.date_created')}}</th>
-                                        <?php if (in_array('notification.delete', json_decode(@session('user_permissions')))) { ?>
+                                        <?php if (in_array('notification.delete', json_decode(@session('user_permissions'),true))) { ?>
 
                                         <th>{{trans('lang.actions')}}</th>
                                         <?php } ?>
@@ -93,7 +93,7 @@
     <script type="text/javascript">
 
         var user_permissions = '<?php echo @session('user_permissions') ?>';
-        user_permissions = JSON.parse(user_permissions);
+        user_permissions = Object.values(JSON.parse(user_permissions));
         var checkDeletePermission = false;
         if ($.inArray('notification.delete', user_permissions) >= 0) {
             checkDeletePermission = true;
@@ -161,7 +161,7 @@
                                 }
                             }
 
-                            var createdAt = date + ' ' + time ;          
+                            var createdAt = date + '<br> ' + time ;          
                         
                             if (searchValue) {
 
@@ -203,7 +203,9 @@
                             var getData = await buildHTML(childData);
                             records.push(getData);
                         }));
-
+                        $(function () {
+                                $('[data-toggle="tooltip"]').tooltip();
+                            });
                         $('#data-table_processing').hide(); // Hide loader
                         callback({
                             draw: data.draw,
@@ -227,11 +229,7 @@
                     
                     { orderable: false, targets: (checkDeletePermission) ? [0,4] : [0,4] },
                 ],
-                "language": {
-                    "zeroRecords": "{{trans("lang.no_record_found")}}",
-                    "emptyTable": "{{trans("lang.no_record_found")}}",
-                    "processing": "" // Remove default loader
-                },
+               "language": datatableLang,
             });
 
             function debounce(func, wait) {
@@ -274,7 +272,7 @@
             var count = 0;
             newdate = '';
             var id = val.id;
-            <?php if (in_array('notification.delete', json_decode(@session('user_permissions')))) { ?>
+            <?php if (in_array('notification.delete', json_decode(@session('user_permissions'),true))) { ?>
 
             html.push('<td class="delete-all"><input type="checkbox" id="is_open_' + id + '" class="is_open" dataId="' + id + '"><label class="col-3 control-label"\n' +
                 'for="is_open_' + id + '" ></label></td>');
@@ -297,9 +295,9 @@
                 html.push('<td></td>');
             }
 
-            <?php if (in_array('notification.delete', json_decode(@session('user_permissions')))) { ?>
+            <?php if (in_array('notification.delete', json_decode(@session('user_permissions'),true))) { ?>
 
-            html.push('<span class="action-btn"><a id="' + val.id + '" name="notifications-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a></span>');
+            html.push('<span class="action-btn"><a id="' + val.id + '" name="notifications-delete" class="delete-btn" href="javascript:void(0)" data-toggle="tooltip" title="{{ trans("lang.delete") }}"><i class="mdi mdi-delete"></i></a></span>');
 
             <?php }?>
             count = count + 1;

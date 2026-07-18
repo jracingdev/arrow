@@ -14,7 +14,7 @@
         <div class="col-md-7 align-self-center">
 
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.special_offer')}}</li>
             </ol>
 
@@ -27,7 +27,7 @@
     </div>
 
 
-    <div class="container-fluid">
+    <div class="container-fluid page-menu">
        <div id="data-table_processing" class="dataTables_processing panel panel-default"
                              style="display: none;">{{trans('lang.processing')}}
                         </div>
@@ -297,7 +297,7 @@
                                                         class="btn btn-primary  save_special_offer_btn"><i
                                                             class="fa fa-save"></i> {{trans('lang.save')}}
                                                 </button>
-                                                <a href="{{url('/dashboard')}}" class="btn btn-default"><i
+                                                <a href="{{route('dashboard')}}" class="btn btn-default"><i
                                                             class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
                                             </div>
                                         </div>
@@ -358,14 +358,30 @@
         currentCurrency = currencyData.symbol;
         currencyAtRight = currencyData.symbolAtRight;
     });
-
+    var dine_in_active = false;
     var append_list = '';
+    var authRole = "{{ $authRole }}";
+    var empVendorId = "{{ $empVendorId }}";
+    // getVendorId(vendorUserId).then(data => {
+       
+        document.addEventListener("DOMContentLoaded", async function() {
+            if (authRole === 'employee') {               
+                const perm = await getEmployeePermissionForTitle(vendorUserId, "Special Discounts");
 
-    getVendorId(vendorUserId).then(data => {
-        jQuery("#data-table_processing").show();
-        vendorId = data;
-        var ref = database.collection('vendors').where("id", "==", vendorId);
-        $(document).ready(function () {
+                currentPermissions = {
+                    isActive: perm.isActive ?? false
+                };               
+
+                if (!currentPermissions.isActive) {
+                    alert('{{ trans("lang.no_permission") }}');
+                    $('#advertisementTable').hide();
+                    $('.page-menu').html('<p class="text-center text-danger font-weight-bold">{{ trans("lang.no_permission") }}</p>');
+                    return;
+                }
+            }
+            jQuery("#data-table_processing").show();
+            vendorId = await getVendorId(vendorUserId);
+            var ref = database.collection('vendors').where("id", "==", vendorId);
 
             $(document.body).on('click', '.redirecttopage', function () {
                 var url = $(this).attr('data-url');
@@ -412,7 +428,10 @@
                                 } else if (day == 'Satuarday') {
                                     timeslotSatuarday.push(TimeslotVar);
                                 }
-
+                                let dineInOption = '';
+                                if (typeof dine_in_active !== 'undefined' && dine_in_active === true) {
+                                    dineInOption = '<option value="dinein">{{trans("lang.dine_in_discount")}}</option>';
+                                }
 
                                 $('#special_offer_table_' + day + ' tr:last').after('<tr>' +
                                     '<td class="" style="width:10%;"><input type="time" class="form-control ' + i + '_' + j + '_row" value="' + timeslot[`from`] + '" id="openTime' + day + j + i + '" onchange="replaceText(`' + i + '`,`' + j + '`,`specialDiscount`)"></td>' +
@@ -420,7 +439,7 @@
                                     '<td class="" style="width:30%;">' +
                                     '<input type="number" class="form-control ' + i + '_' + j + '_row" value="' + timeslot[`discount`] + '" style="width:60%;" id="discount' + day + j + i + '" onchange="replaceText(`' + i + '`,`' + j + '`,`specialDiscount`)">' +
                                     '<select id="discount_type' + day + j + i + '" class="form-control ' + i + '_' + j + '_row"  style="width:40%;" onchange="replaceText(`' + i + '`,`' + j + '`,`specialDiscount`)"><option value="percentage">%</option><option value="amount">' + currentCurrency + '</option></select></td>' +
-                                    '<td style="width:30%;"><select id="type' + day + j + i + '" class="form-control ' + i + '_' + j + '_row" onchange="replaceText(`' + i + '`,`' + j + '`,`specialDiscount`)"><option value="delivery">Delivery Discount</option></select>' +
+                                    '<td style="width:30%;"><select id="type' + day + j + i + '" class="form-control ' + i + '_' + j + '_row" onchange="replaceText(`' + i + '`,`' + j + '`,`specialDiscount`)"><option value="delivery">{{trans("lang.delivery_discount")}}</option>'+dineInOption+'</select>' +
                                     '</td>' +
                                     '<td class="action-btn" style="width:20%;">' +
                                     '<button type="button" class="btn btn-primary ' + i + '_' + j + '_row specialDiscount_' + i + '_' + j + '"  onclick="updateMoreFunctionButton(`' + day + '`,`' + j + '`,`' + i + '`)" ><i class="fa fa-edit"></i></button>' +
@@ -429,6 +448,11 @@
 
                                 if (timeslot[`type`] == 'amount') {
                                     $('#discount_type' + day + j + i).val(timeslot[`type`]);
+                                }
+                                if (timeslot[`discount_type`] == 'dinein') {
+                                    $('#type' + day + j + i).val('dinein');
+                                } else {
+                                    $('#type' + day + j + i).val('delivery');
                                 }
                               
 
@@ -440,11 +464,12 @@
             });
 
         });
-    })
+        jQuery("#data-table_processing").hide();
+    // })
 
     function replaceText(i, j, type) {
 
-        $('.' + type + '_' + i + '_' + j).text("Save");
+        $('.' + type + '_' + i + '_' + j).text("{{trans('lang.save')}}");
     }
 
     $(".save_special_offer_btn").click(function () {
@@ -478,7 +503,10 @@
     function addMoreButton(day, day2, count) {
         count = countAddButton;
         $(".restaurant_discount_options_" + day + "_div").show();
-
+        let dineInOption = '';
+        if (dine_in_active === true) {
+           dineInOption = '<option value="dinein">Dine-In Discount</option>';
+        }
         $('#special_offer_table_' + day + ' tr:last').after('<tr>' +
             '<td class="" style="width:10%;"><input type="time" class="form-control" id="openTime' + day + count + '"></td>' +
             '<td class="" style="width:10%;"><input type="time" class="form-control" id="closeTime' + day + count + '"></td>' +
@@ -486,9 +514,9 @@
             '<input type="number" class="form-control" id="discount' + day + count + '" style="width:60%;">' +
             '<select id="discount_type' + day + count + '" class="form-control" style="width:40%;"><option value="percentage">%</option><option value="amount">' + currentCurrency + '</option></select>' +
             '</td>' +
-            '<td style="width:30%;"><select id="type' + day + count + '" class="form-control"><option value="delivery">Delivery Discount</option></select></td>' +
+            '<td style="width:30%;"><select id="type' + day + count + '" class="form-control"><option value="delivery">{{trans("lang.delivery_discount")}}</option>'+ dineInOption + '</select></td>' +
             '<td class="action-btn" style="width:20%;">' +
-            '<button type="button" class="btn btn-primary save_option_day_button' + day + count + '" onclick="addMoreFunctionButton(`' + day2 + '`,`' + day + '`,' + count + ')" style="width:62%;">Save</button>' +
+            '<button type="button" class="btn btn-primary save_option_day_button' + day + count + '" onclick="addMoreFunctionButton(`' + day2 + '`,`' + day + '`,' + count + ')" style="width:62%;">{{trans("lang.save")}}</button>' +
             '</td></tr>');
         countAddButton++;
     }
@@ -502,12 +530,12 @@
         if (discount == "" && closeTime == '' && openTime == '') {
             $(".error_top").show();
             $(".error_top").html("");
-            $(".error_top").append("<p>Please Enter valid time or discount</p>");
+            $(".error_top").append("<p>{{trans('lang.please_enter_valid_time_or_discount')}}</p>");
             window.scrollTo(0, 0);
         } else if (discount > 100 || discount == 0) {
             $(".error_top").show();
             $(".error_top").html("");
-            $(".error_top").append("<p>Please Enter valid discount</p>");
+            $(".error_top").append("<p>{{trans('lang.please_enter_valid_discount')}}</p>");
             window.scrollTo(0, 0);
         } else {
 
@@ -554,12 +582,12 @@
         if (discount == "" && closeTime == '' && openTime == '') {
             $(".error_top").show();
             $(".error_top").html("");
-            $(".error_top").append("<p>Please Enter valid time or discount</p>");
+            $(".error_top").append("<p>{{trans('lang.please_enter_valid_time_or_discount')}}</p>");
             window.scrollTo(0, 0);
         } else if (discount > 100 || discount == 0) {
             $(".error_top").show();
             $(".error_top").html("");
-            $(".error_top").append("<p>Please Enter valid discount</p>");
+            $(".error_top").append("<p>{{trans('lang.please_enter_valid_discount')}}</p>");
             window.scrollTo(0, 0);
         } else {
 
@@ -638,13 +666,46 @@
 
     }
 
+   
     async function getVendorId(vendorUser) {
         var vendorId = '';
         var ref;
-        await database.collection('vendors').where('author', "==", vendorUser).get().then(async function (vendorSnapshots) {
+
+        let vendorQuery;
+
+        if (authRole === 'vendor') {
+            vendorQuery = database.collection('vendors').where('author', "==", vendorUser);
+        } else {
+            vendorQuery = database.collection('vendors').where('id', "==", empVendorId);
+        }
+
+        await vendorQuery.get().then(async function (vendorSnapshots) {
+
+            if (vendorSnapshots.empty) {
+                console.log("No vendor found");
+                return;
+            }
+
             var vendorData = vendorSnapshots.docs[0].data();
             vendorId = vendorData.id;
-        })
+
+            var sectionId = vendorData.section_id;
+
+            await database.collection('sections').where('id', '==', sectionId).get()
+                .then(function (sectionSnapshot) {
+
+                    if (!sectionSnapshot.empty) {
+
+                        var section = sectionSnapshot.docs[0].data();
+
+                        if (section.hasOwnProperty('dine_in_active') && section.dine_in_active === true) {
+                            dine_in_active = true;
+                        } else {
+                            dine_in_active = false;
+                        }
+                    }
+                });
+        });
 
         return vendorId;
     }

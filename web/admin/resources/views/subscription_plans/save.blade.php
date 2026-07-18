@@ -11,9 +11,9 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
                 <li class="breadcrumb-item"><a
-                        href="{{ url('subscription-plans') }}">{{ trans('lang.subscription_plans') }}</a>
+                        href="{{ route('subscription-plans.index') }}">{{ trans('lang.subscription_plans') }}</a>
                 </li>
                 @if ($id == '')
                 <li class="breadcrumb-item active">{{ trans('lang.create_subscription_plan') }}</li>
@@ -81,15 +81,7 @@
                                 <textarea class="form-control" id="description" rows="5"></textarea>
                             </div>
                         </div>
-                        <div class="form-group row width-100 section-div">
-                            <label class="col-3 control-label">{{ trans('lang.section') }}</label>
-                            <div class="col-7">
-                                <select name="section" id="section" class="form-control section">
-                                    <option value="">{{trans('lang.select')}} {{trans('lang.section')}}</option>
-                                </select>
-                            </div>
-                        </div>
-                      
+                        
                         <div class="form-group row width-100 status-div">
                             <div class="form-check width-100">
                                 <input type="checkbox" id="status">
@@ -117,7 +109,7 @@
                                 <input type="checkbox" id="chat" name="features" value="chat">
                                 <label class="control-label" for="chat">{{ trans('lang.chat') }}</label>
                             </div>
-                            <div class="form-check d-none">
+                            <div class="form-check qrCodeGenerateDiv" style="display:none">
                                 <input type="checkbox" id="qrCodeGenerate" name="features" value="qrCodeGenerate">
                                 <label class="control-label" for="qrCodeGenerate">{{ trans('lang.generate_qr_code') }}</label>
                             </div>
@@ -183,8 +175,12 @@
     </div>
 </div>
 @endsection
+
 @section('scripts')
+
 <script>
+
+    var section_id = getCookie('section_id') || null;
     var requestId = "<?php echo $id; ?>";
     var database = firebase.firestore();
     var createdAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -200,73 +196,38 @@
     var placeholder = database.collection('settings').doc('placeHolderImage');
     var storageRef = firebase.storage().ref('images');
     var storage = firebase.storage();
-    var EnabledSubscriptions = '';
-    var serviceType = '';
-    var sections = database.collection('sections').where('serviceTypeFlag', 'in', ['delivery-service', 'ondemand-service', 'ecommerce-service']);
+
+    var enabledSubscriptions = 0; 
+    var serviceTypeFlag = '';
+    var sectionData = '';
+    
     $(document).ready(async function() {
-        sections.get().then(async function(snapshots) {
-            snapshots.docs.forEach((listval) => {
-                var data = listval.data();
-                var $optgroup = $('#section').find("optgroup[label='" + data.serviceType + "']");
-                if ($optgroup.length === 0) {
-                    $optgroup = $("<optgroup></optgroup>").attr("label", data.serviceType);
-                    $('#section').append($optgroup);
-                }
-                $optgroup.append(
-                    $("<option></option>")
-                    .attr("value", data.id)
-                    .text(data.name)
-                );
 
-            });
-        });
-        $('#section').on('change', async function() {
-            var sectionId = $('#section').val();
-            var refactiveSubscription = await database.collection('subscription_plans').where('isEnable', '==', true)
-                .where('isCommissionPlan', '==', false).where('sectionId', '==', sectionId).get();
-            EnabledSubscriptions = refactiveSubscription.size;
+        let sectionRef = await database.collection('sections').doc(section_id).get();
+        if(sectionRef.exists){
+            sectionData = sectionRef.data();
+            serviceTypeFlag = sectionData.serviceTypeFlag;
+        }
+        
+        let subscriptionRef = await database.collection('subscription_plans').where('isEnable', '==', true)
+        .where('isCommissionPlan', '==', false).where('sectionId', '==', section_id).get();
+        enabledSubscriptions = subscriptionRef.docs.length;
+        
+        var itemLimitLegend = $("#item_service_limit_heading");
+        var orderLimitLegend  = $("#order_booking_limit_heading");
+        if(serviceTypeFlag == "ondemand-service" || serviceTypeFlag == "ecommerce-service"){
+            itemLimitLegend.text("{{ trans('lang.maximum_service_limit') }}");
+            orderLimitLegend.text("{{ trans('lang.maximum_booking_limit') }}");             
+            $('.qrCodeGenerateDiv').hide();
+        } else {
+            itemLimitLegend.text("{{ trans('lang.maximum_item_limit') }}");
+            orderLimitLegend.text("{{ trans('lang.maximum_order_limit') }}");
+            $('.qrCodeGenerateDiv').removeAttr('style').show();
+        }
 
-            if(sectionId){
-
-                var serviceSnapshot = await database.collection('sections').where('id', '==', sectionId).get();
-
-                if (!serviceSnapshot.empty) {
-                    var serviceData = serviceSnapshot.docs[0].data(); 
-                    var serviceTypeFlag = serviceData.serviceTypeFlag;
-                    serviceType = serviceTypeFlag;
-                        var itemLimitLegend = $("#item_service_limit_heading");
-                        var orderLimitLegend  = $("#order_booking_limit_heading");
-                        
-
-                        if(serviceTypeFlag == "ondemand-service"){
-                            itemLimitLegend.text("{{ trans('lang.maximum_service_limit') }}");
-                            orderLimitLegend.text("{{ trans('lang.maximum_booking_limit') }}"); 
-                            $('#qrCodeGenerate').closest('.form-check').addClass('d-none');
-                        }
-                        else
-                        {
-                            itemLimitLegend.text("{{ trans('lang.maximum_item_limit') }}");
-                            orderLimitLegend.text("{{ trans('lang.maximum_order_limit') }}");
-                            $('#qrCodeGenerate').closest('.form-check').removeClass('d-none');
-                        }
-
-                        $("#item_service_limit").removeClass('d-none');
-                        $("#order_booking_limit").removeClass('d-none');
-                }
-                else
-                {
-                    console.log("No service found for sectionId: " + sectionId);
-                }
-            }
-            else {
-                // If no sectionId is selected, hide the fields
-                $("#item_service_limit").addClass('d-none');
-                $("#order_booking_limit").addClass('d-none');
-            }
-          
- 
-        })
-
+        $("#item_service_limit").removeClass('d-none');
+        $("#order_booking_limit").removeClass('d-none');
+        
         $('input[name="set_expiry_limit"]').on('change', function() {
             if ($('#limited_days').is(':checked')) {
                 $('.expiry-limit-div').removeClass('d-none');
@@ -274,6 +235,7 @@
                 $('.expiry-limit-div').addClass('d-none');
             }
         });
+ 
         $('input[name="set_item_limit"]').on('change', function() {
             if ($('#limited_item').is(':checked')) {
                 $('.item-limit-div').removeClass('d-none');
@@ -281,6 +243,7 @@
                 $('.item-limit-div').addClass('d-none');
             }
         });
+
         $('input[name="set_order_limit"]').on('change', function() {
             if ($('#limited_order').is(':checked')) {
                 $('.order-limit-div').removeClass('d-none');
@@ -288,6 +251,7 @@
                 $('.order-limit-div').addClass('d-none');
             }
         });
+
         if (requestId != '') {
             var ref = database.collection('subscription_plans').where('id', '==', id);
             jQuery("#data-table_processing").show();
@@ -321,6 +285,7 @@
                     }
                     $('#item_limit').val(data.itemLimit);
                     $('#order_limit').val(data.orderLimit);
+
                     if (data.hasOwnProperty('features')) {
                         Object.entries(data.features).forEach(([key, value]) => {
                             if (value) {
@@ -339,6 +304,7 @@
                             $('#plan_price').attr('readonly', true);
                         }
                     }
+
                     if (data.isCommissionPlan == true) {
                         $('#commissionPlan-features-div').removeClass('d-none');
                         planPoints = data.plan_points;
@@ -359,38 +325,7 @@
                         $('#free_type').prop('checked', true);
                         $('.plan_price_div').addClass('d-none');
                     }
-                    if (data.hasOwnProperty('sectionId') && data.sectionId != null && data.sectionId != '') {
-                        
-                        $('#section').val(data.sectionId);
-                        var serviceSnapshot = await database.collection('sections').where('id', '==', data.sectionId).get();
-
-                        if (!serviceSnapshot.empty) {
-                            var serviceData = serviceSnapshot.docs[0].data(); 
-                            serviceType = serviceData.serviceTypeFlag;
-
-                            var itemLimitLegend = $("#item_service_limit_heading");
-                            var orderLimitLegend  = $("#order_booking_limit_heading");
-                        
-                            if(serviceType == "ondemand-service"){
-                                itemLimitLegend.text("{{ trans('lang.maximum_service_limit') }}");
-                                orderLimitLegend.text("{{ trans('lang.maximum_booking_limit') }}"); 
-                                $('#qrCodeGenerate').closest('.form-check').addClass('d-none');
-
-                            }
-                            else
-                            {
-                                itemLimitLegend.text("{{ trans('lang.maximum_item_limit') }}");
-                                orderLimitLegend.text("{{ trans('lang.maximum_order_limit') }}");
-                                $('#qrCodeGenerate').closest('.form-check').removeClass('d-none');
-                            }
-
-                            $("#item_service_limit").removeClass('d-none');
-                            $("#order_booking_limit").removeClass('d-none');
-                           
-                        }
-                       
-
-                    }
+                  
                     if (data.image != '' && data.image != null) {
                         photo = data.image;
                         planImageFile = data.image;
@@ -406,6 +341,7 @@
             });
         }
     });
+
     $('input[name="planType"]').on('change', function() {
         if ($('input[name="planType"]:checked').val() == 'free') {
             $('.plan_price_div').addClass('d-none');
@@ -414,16 +350,18 @@
             $('.plan_price_div').removeClass('d-none');
         }
     });
+    
     $(".edit-form-btn").click(async function() {
+
         $(".success_top").hide();
         $(".error_top").hide();
+        
         var planType = $('input[name="planType"]:checked').val();
         var plan_name = $("#plan_name").val();
         var plan_price = $("#plan_price").val();
         if (planType == 'free') {
             plan_price = '0';
         }
-        var section = $("#section").val();
         var description = $('#description').val();
         var expiryDay = $('#plan_validity').val();
         var set_expiry_limit = $('input[name="set_expiry_limit"]:checked').val();
@@ -434,6 +372,7 @@
         var set_order_limit = $('input[name="set_order_limit"]:checked').val();
         var order_limit = (set_order_limit == 'limited') ? $('#order_limit').val() : '-1';
         var checkboxes = document.querySelectorAll('input[name="features"]');
+        
         var featuresObject = {};
         var selectedCheckboxCount = 0;
         checkboxes.forEach((checkbox) => {
@@ -441,6 +380,7 @@
             selectedCheckboxCount = (checkbox.checked == true) ? selectedCheckboxCount + 1 :
                 selectedCheckboxCount;
         });
+        
         if (plan_name.trim() == "") {
             $(".error_top").show();
             $(".error_top").html("");
@@ -457,12 +397,6 @@
             $(".error_top").show();
             $(".error_top").html("");
             $(".error_top").append("<p>{{ trans('lang.enter_proper_price') }}</p>");
-            window.scrollTo(0, 0);
-            return false;
-        } else if (section.trim() == "") {
-            $(".error_top").show();
-            $(".error_top").html("");
-            $(".error_top").append("<p>{{ trans('lang.select_section') }}</p>");
             window.scrollTo(0, 0);
             return false;
         } else if (description.trim() == "") {
@@ -498,7 +432,7 @@
         } else if (set_item_limit == 'limited' && ($('#item_limit').val() == '' || $('#item_limit').val() <= '0')) {
             $(".error_top").html("");
             $(".error_top").show();
-            if(serviceType == "ondemand-service"){
+            if(serviceTypeFlag == "ondemand-service"){
                 $(".error_top").html("");
                 $(".error_top").show();
                 $(".error_top").append("<p>{{ trans('lang.enter_service_limit') }}</p>");
@@ -516,7 +450,7 @@
         } else if (set_order_limit == 'limited' && ($('#order_limit').val() == '' || $('#order_limit').val() <= '0')) {
             $(".error_top").html("");
             $(".error_top").show();
-            if(serviceType == "ondemand-service"){
+            if(serviceTypeFlag == "ondemand-service"){
                 $(".error_top").html("");
                 $(".error_top").show();
                 $(".error_top").append("<p>{{ trans('lang.enter_booking_limit') }}</p>");
@@ -529,18 +463,22 @@
             }
             window.scrollTo(0, 0);
             return false;
-
           
         } else if (!validatePlanPoints()) {
+
             return false;
-        } else if (EnabledSubscriptions == 0 && status == false) {
+
+        } else if (enabledSubscriptions == 0 && status == false) {
+            
             $(".error_top").show();
             $(".error_top").html("");
             $(".error_top").append(
                 "<p>{{ trans('lang.atleast_one_subscription_plan_should_be_active') }}</p>");
             window.scrollTo(0, 0);
             return false;
+
         } else {
+
             requestId == '' ? (
                     storeImageData().then(IMG => {
                         if (IMG == '') {
@@ -566,7 +504,7 @@
                             'type': planType,
                             'createdAt': createdAt,
                             'image': IMG,
-                            'sectionId': section,
+                            'sectionId': section_id,
                             'isCommissionPlan':false
                         }).then(function(result) {
                             jQuery("#data-table_processing").hide();
@@ -606,7 +544,7 @@
                             'plan_points': planPoints,
                             'image': IMG,
                             'type': planType,
-                            'sectionId': section
+                            'sectionId': section_id
                         }).then(function(result) {
                             jQuery("#data-table_processing").hide();
                             $(".success_top").show();

@@ -7,7 +7,7 @@
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+                <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{trans('lang.dashboard')}}</a></li>
                 <li class="breadcrumb-item"><a
                         href="{!! route('withdraw-method') !!}">{{trans('lang.withdrawal_method')}}</a></li>
                 <li class="breadcrumb-item active">{{trans('lang.add_withdrawal_method')}}</li>
@@ -66,33 +66,52 @@
     var paypalSetupDone = false;
     var stripeSetupDone = false;
     var flutterwaveSetupDone = false;
-    
-    database.collection('withdraw_method').where('userId', '==', vendorUserId).get().then(async function (Snapshot) {
-        if (Snapshot.docs.length > 0) {
-            checkAlreadyExist = true;
-            var data = Snapshot.docs[0].data();
-            existId = data.id;
-            if (data.stripe) {
-                stripeSetupDone = true;
-            }
-            if (data.razorpay) {
-                razorpaySetupDone = true;
-            }
-            if (data.paypal) {
-                paypalSetupDone = true;
-            }
-            if (data.flutterwave) {
-                flutterwaveSetupDone = true;
-            }
-        }
-    })
+    var authRole = "{{ $authRole }}";
+    var empVendorId = "{{ $empVendorId }}";
+    var correctVendorUserId = '';
     var ref = database.collection('settings').doc('stripeSettings');
     var razorpayData = database.collection('settings').doc('razorpaySettings');
     var paypalData = database.collection('settings').doc('paypalSettings');
     var flutterWaveSettings = database.collection('settings').doc('flutterWave');
     var stripeSettings = database.collection('settings').doc('stripeSettings');
-    $(document).ready(function () {
+    document.addEventListener("DOMContentLoaded", async function() {
         jQuery("#data-table_processing").show();
+        if(authRole === 'vendor'){
+            correctVendorUserId = vendorUserId;
+        }else{
+            try {
+                let snapshot = await database.collection('vendors').doc(empVendorId).get();
+
+                if (snapshot.exists) {
+                    let data = snapshot.data();
+                    correctVendorUserId = data.author;
+                } else {
+                    console.error("Vendor not found");
+                }
+
+            } catch (error) {
+                console.error("Error fetching vendor:", error);
+            }
+        }
+        database.collection('withdraw_method').where('userId', '==', correctVendorUserId).get().then(async function (Snapshot) {
+            if (Snapshot.docs.length > 0) {
+                checkAlreadyExist = true;
+                var data = Snapshot.docs[0].data();
+                existId = data.id;
+                if (data.stripe) {
+                    stripeSetupDone = true;
+                }
+                if (data.razorpay) {
+                    razorpaySetupDone = true;
+                }
+                if (data.paypal) {
+                    paypalSetupDone = true;
+                }
+                if (data.flutterwave) {
+                    flutterwaveSetupDone = true;
+                }
+            }
+        })
     
         stripeSettings.get().then(async function (Snapshots) {
             var stripe = Snapshots.data();
@@ -258,7 +277,7 @@
                 (database.collection('withdraw_method').doc(id).set({
                     'stripe': stripeObject,
                     'id': id,
-                    'userId': vendorUserId
+                    'userId': correctVendorUserId
                 }).then(function (result) {
                     window.location.href = '{{ route("withdraw-method")}}';
                 })

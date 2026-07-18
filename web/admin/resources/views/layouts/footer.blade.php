@@ -1,3 +1,3 @@
-<footer class="footer"> © 2020-<?php echo date('Y'); ?> Emart. All rights reserved.</footer>
+<footer class="footer"> © 2020-<?php echo date('Y'); ?> {{trans('lang.rights_reserved')}}</footer>
 
 

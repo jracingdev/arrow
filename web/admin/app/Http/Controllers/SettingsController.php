@@ -97,6 +97,11 @@ class SettingsController extends Controller
         return view('settings.app.deliveryCharge');
     }
 
+    public function openaiSettings()
+    {
+        return view("settings.app.openaiSettings");
+    }
+
     public function languages()
     {
         return view('settings.languages.index');
@@ -288,5 +293,17 @@ class SettingsController extends Controller
     public function businessModel()
     {
         return view('settings.app.businessModel');
+    }
+    public function documentVerification()
+    {
+        return view('settings.app.documentVerificationSetting');
+    }
+    public function scheduleOrderNotification()
+    {
+        return view('settings.app.schedule_notification');
+    }
+    public function maintenanceSettings()
+    {
+        return view('settings.app.maintenance_settings');
     }
 }

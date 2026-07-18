@@ -38,23 +38,23 @@
         </div>
     </div>
     <div class="bg-white p-3 clearfix btm-total">
+
         <p class="mb-2">
             {{trans('lang.sub_total')}}
             <span class="float-right text-dark">
-            <span class="currency-symbol-left"></span>
-            {{number_format($total_price, $digit_decimal);}}
-            <span class="currency-symbol-right"></span>
-        </span>
+                {{ formatCurrency($total_price, $service_charge_cart['currencyData']) }}                                                                        
+            </span>
         </p>
-        @php $discount_amount = 0;
-    $coupon_id = '';
-    $coupon_code = '';
-    $discount = '';
-    $discountType = '';
+        @php 
+        $discount_amount = 0;
+        $coupon_id = '';
+        $coupon_code = '';
+        $discount = '';
+        $discountType = '';
         @endphp
         @if(@$service_charge_cart['coupon'] && $service_charge_cart['coupon']['discountType'])
             <hr>
-            <p class="mb-1 text-success">
+            <p class="mb-1">
                 @php
                     $discountType = @$service_charge_cart['coupon']['discountType'];
                     $coupon_code = @$service_charge_cart['coupon']['coupon_code'];
@@ -84,11 +84,16 @@
                     @endif
                 @endif
                 {{trans('lang.total')}}
-                {{trans('lang.discount')}} <span class="float-right text-success">
-                <span class="currency-symbol-left"></span>
-                {{ number_format($discount_amount, $digit_decimal)}}
-                <span class="currency-symbol-right"></span></span>
+                {{trans('lang.discount')}} 
+                <span class="float-right text-danger">
+                    (-{{ formatCurrency($discount_amount, $service_charge_cart['currencyData']) }})                                                                        
+                </span>
             </p>
+            @if(isset($service_charge_cart['coupon']) && !empty($service_charge_cart['coupon']['coupon_code']))
+                <div class="remove-coupon text-right">
+                    <small><a href="javascript:void(0)" class="text-primary">{{ trans('lang.remove_discount') }}</a></small>
+                </div>
+            @endif
         @else
         @endif
         <input type="hidden" id="discount_amount" value="{{$discount_amount}}">
@@ -96,62 +101,89 @@
         <input type="hidden" id="coupon_code_main" value="{{$coupon_code}}">
         <input type="hidden" id="discount" value="{{$discount}}">
         <input type="hidden" id="discountType" value="{{$discountType}}">
+
         @php
             $total_price = $total_price - $discount_amount;
         @endphp
-        @if($total_price && @$service_charge_cart['taxValue'])
-            <hr>
-            @php $total_tax_amount=0; @endphp
-            @foreach ($service_charge_cart['taxValue'] as $val)
-                <p class="mb-2">{{$val['title']}}
-                    @if ($val['type'] == 'fix')
-                        ( <span class="currency-symbol-left"></span>
-                        {{number_format(floatval($val['tax']), $digit_decimal)}}
-                        @php $tax = $val['tax']; @endphp
-                        <span class="currency-symbol-right"></span> )
-                    @else
-                        @php $tax = (floatval($val['tax']) * $total_price) / 100; @endphp
-        ({{$val['tax']}}%)
-                    @endif
-                    <span class="float-right text-dark">
-            <span class="currency-symbol-left"></span>
-            {{number_format(floatval($tax), $digit_decimal)}}
-            <span class="currency-symbol-right"></span>
-        </span>
-                </p>
-                @php $total_tax_amount = $total_tax_amount + $tax; @endphp
-            @endforeach
-            @php $total_price=$total_price+$total_tax_amount @endphp
+
+        @if($service_charge_cart['platformCharge'])
+        <hr>
+        <p class="mb-2">
+            {{trans('lang.platform_charge')}} 
+            <span class="float-right text-dark">
+                {{ formatCurrency($service_charge_cart['platformCharge'], $service_charge_cart['currencyData']) }}                                                                        
+            </span>
+        </p>
+            @php $total_price =$total_price + $service_charge_cart['platformCharge'] @endphp
         @endif
+
+        @if(!empty($service_charge_cart['taxBreakdownGrouped']))
+            <hr>
+            {{-- Order-level --}}
+            @if($service_charge_cart['taxScope'] === 'order')
+                <p class="mb-2">
+                    {{trans('lang.tax_on_order_total')}} 
+                    <span class="float-right text-dark">
+                        {{ formatCurrency(array_sum($service_charge_cart['taxBreakdownGrouped']['order']), $service_charge_cart['currencyData']) }}                                                          
+                    </span>
+                </p>
+            @endif
+            <hr>
+            {{-- Platform-level --}}
+            @foreach($service_charge_cart['taxBreakdownGrouped']['platform'] ?? [] as $title => $amount)
+                <p class="mb-2">
+                    {{trans('lang.tax_on_platform_fee')}} 
+                    <span class="float-right text-dark">
+                        {{ formatCurrency($amount, $service_charge_cart['currencyData']) }}                                                          
+                    </span>
+                </p>
+                <hr>
+            @endforeach
+            {{-- Total --}}
+            <p class="mb-2">
+                <strong>{{trans('lang.total_tax_amount')}} </strong>
+                <span class="float-right text-dark">
+                    <strong>{{ formatCurrency($service_charge_cart['total_tax'], $service_charge_cart['currencyData']) }}</strong>                                                          
+                </span>
+            </p>
+        @endif
+
+        @php $total_price = $total_price + $service_charge_cart['total_tax'] @endphp
+        <hr>
+        <p class="mb-2">
+            <strong>{{trans('lang.total_amount')}} </strong>
+            <span class="float-right text-dark">
+                <strong>{{ formatCurrency($total_price, $service_charge_cart['currencyData']) }}</strong>                                                          
+            </span>
+        </p>
+
         @if($total_price && @$service_charge_cart['extra_charge'] && @$service_charge_cart['extra_charge']!=0 )
             <hr>
-            <p class="mb-1 ">
+            <p class="mb-1">
                 {{trans('lang.extra_charge')}}
-                <span class="float-right ">
-                <span class="currency-symbol-left"></span>
-                {{ number_format(floatval(@$service_charge_cart['extra_charge']), $digit_decimal)}}
-                <span class="currency-symbol-right"></span></span>
+                <span class="float-right text-dark">
+                    {{ formatCurrency($service_charge_cart['extra_charge'], $service_charge_cart['currencyData']) }}
+                </span>
             </p>
             @php $total_price=$total_price+floatval(@$service_charge_cart['extra_charge']) @endphp
         @endif
         <hr>
-        <h6 class="font-weight-bold mb-0">{{trans('lang.total')}}
+        <h6 class="font-weight-bold mb-0">{{trans('lang.final_total')}}
             <p class="float-right">
-                <span class="currency-symbol-left"></span>
-                <span>
-                {{number_format(floatval($total_price), $digit_decimal)}}
-            </span>
-                <span class="currency-symbol-right"></span>
+                <span class="float-right text-dark">
+                    {{ formatCurrency($total_price, $service_charge_cart['currencyData']) }}
+                </span>
             </p>
         </h6>
     </div>
     <input type="hidden" id="total_pay" value="{{round($total_price, $digit_decimal)}}">
     <div class="p-3">
         @if($total_price>0)
-            <a class="btn btn-primary btn-block btn-lg" href="javascript:void(0)"
-               onclick="payServiceCharge()">{{trans('lang.pay')}} <span
-                        class="currency-symbol-left"></span>{{number_format(floatval($total_price), $digit_decimal)}}
-                <span class="currency-symbol-right"></span><i class="feather-arrow-right"></i></a>
+            <a class="btn btn-primary btn-block btn-lg" href="javascript:void(0)" onclick="payServiceCharge()">
+               {{trans('lang.pay')}} 
+               {{ formatCurrency($total_price, $service_charge_cart['currencyData']) }}
+                <i class="feather-arrow-right"></i>
+            </a>
         @endif
     </div>
 @endif

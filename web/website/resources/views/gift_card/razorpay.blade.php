@@ -12,28 +12,18 @@
                     <div class="siddhi-cart-item mb-3 rounded shadow-sm bg-white overflow-hidden">
                         <div class="siddhi-cart-item-profile bg-white p-3">
                             <div class="card card-default payment-wrap">
-                                <table class="payment-table">
-                                    <thead>
-                                    <tr>
-                                        <th>
-                                            {{trans('lang.pay')}}
-                                        </th>
-                                        <th class="text-right">
-                                            {{trans('lang.total')}}
-                                        </th>
-                                    </tr>
-                                    </thead>
+                                <table class="payment-table m-4">
                                     <tbody>
                                     <tr>
                                         <td>
-                                            {{trans('lang.razorpay_payment')}}
+                                            {{ trans('lang.pay_total_amount') }} : {{ $formatted_price }}
                                         </td>
                                         <td class="text-right payment-button">
                                             <form action="{{ route('giftcard.razorpaypayment') }}" method="POST">
                                                 @csrf
                                                 <script src="https://checkout.razorpay.com/v1/checkout.js"
                                                         data-key="{{ $razorpayKey }}"
-                                                        data-amount="{{$amount*1000}}"
+                                                        data-amount="{{$amount*100}}"
                                                         data-buttontext="Pay ${{$amount}}"
                                                         data-name="{{env('APP_NAME', 'Foodie')}}"
                                                         data-description="Rozerpay"

@@ -1,6 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 
 class ImageSaver {
   static const MethodChannel _channel = MethodChannel('image_saver');

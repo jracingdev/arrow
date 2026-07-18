@@ -9,7 +9,7 @@
 
 		<div class="col-md-7 align-self-center">
 			<ol class="breadcrumb">
-				<li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
+				<li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{trans('lang.dashboard')}}</a></li>
         <?php if(isset($_GET['eid']) && $_GET['eid'] != ''){?>
           <li class="breadcrumb-item"><a href= "{{route('vendors.reviews',$_GET['eid'])}}" >{{trans('lang.order_review')}}</a></li>
         <?php }else{ ?>
