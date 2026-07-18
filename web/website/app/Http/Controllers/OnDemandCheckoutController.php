@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -116,7 +116,7 @@ class OnDemandCheckoutController extends Controller
                 
             } else if ($ondemand_cart['cart_order']['payment_method'] == 'flutterwave') {
 
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$ondemand_cart['cart_order']['currencyData']['code']) {
                     $currency = $ondemand_cart['cart_order']['currencyData']['code'];
                 }
@@ -174,7 +174,7 @@ class OnDemandCheckoutController extends Controller
 
             } else if ($ondemand_cart['cart_order']['payment_method'] == 'mercadopago') {
 
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$ondemand_cart['cart_order']['currencyData']['code']) {
                     $currency = $ondemand_cart['cart_order']['currencyData']['code'];
                 }
@@ -392,7 +392,7 @@ class OnDemandCheckoutController extends Controller
         $ondemand_cart = Session::get('ondemand_cart', []);
         if (@$ondemand_cart['cart_order'] && $input['token_id']) {
             if ($ondemand_cart['cart_order']['stripeKey'] && $ondemand_cart['cart_order']['stripeSecret']) {
-                $currency = "usd";
+                $currency = "BRL";
                 if (@$ondemand_cart['cart_order']['currency']) {
                     $currency = $ondemand_cart['cart_order']['currency'];
                 }

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -264,7 +264,7 @@ class PayLaterServiceChargeController extends Controller
                     exit;
                 }
             } else if ($service_charge_cart['cart_order']['payment_method'] == 'flutterwave') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$service_charge_cart['cart_order']['currencyData']['code']) {
                     $currency = $service_charge_cart['cart_order']['currencyData']['code'];
                 }
@@ -319,7 +319,7 @@ class PayLaterServiceChargeController extends Controller
                 $formatted_price = $service_charge_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $service_charge_cart['cart_order']['currencyData']['decimal_degits']);
                 return view('providersService.service_charge.paypal', ['is_checkout' => 1, 'cart' => $service_charge_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'paypalSecret' => $paypalSecret, 'paypalKey' => $paypalKey, 'cart_order' => $service_charge_cart['cart_order'], 'formatted_price' => $formatted_price]);
             } else if ($service_charge_cart['cart_order']['payment_method'] == 'mercadopago') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$service_charge_cart['cart_order']['currencyData']['code']) {
                     $currency = $service_charge_cart['cart_order']['currencyData']['code'];
                 }
@@ -533,7 +533,7 @@ class PayLaterServiceChargeController extends Controller
         $service_charge_cart = Session::get('service_charge_cart', []);
         if (@$service_charge_cart['cart_order'] && $input['token_id']) {
             if ($service_charge_cart['cart_order']['stripeKey'] && $service_charge_cart['cart_order']['stripeSecret']) {
-                $currency = "usd";
+                $currency = "BRL";
                 if (@$service_charge_cart['cart_order']['currency']) {
                     $currency = $service_charge_cart['cart_order']['currency'];
                 }

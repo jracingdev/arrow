@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 use App\Models\User;
@@ -369,7 +369,7 @@ class RentalController extends Controller
                     exit;
                 }
             } else if ($rentalCarsData['cart_order']['payment_method'] == 'flutterwave') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$rentalCarsData['cart_order']['currencyData']['code']) {
                     $currency = $rentalCarsData['cart_order']['currencyData']['code'];
                 }
@@ -387,7 +387,7 @@ class RentalController extends Controller
                 Session::save();
                 return view('rental.flutterwave', ['is_checkout' => 1, 'rentalCarsData' => $rentalCarsData, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'cart_order' => $rentalCarsData['cart_order'], 'currency' => $currency, 'formatted_price' => $formatted_price]);
             } else if ($rentalCarsData['cart_order']['payment_method'] == 'mercadopago') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$rentalCarsData['cart_order']['currencyData']['code']) {
                     $currency = $rentalCarsData['cart_order']['currencyData']['code'];
                 }
@@ -644,7 +644,7 @@ class RentalController extends Controller
         $rentalCarsData = Session::get('rentalCarsData', []);
         if (@$rentalCarsData['cart_order'] && $input['token_id']) {
             if ($rentalCarsData['cart_order']['stripeKey'] && $rentalCarsData['cart_order']['stripeSecret']) {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$rentalCarsData['cart_order']['currency']) {
                     $currency = $rentalCarsData['cart_order']['currency'];
                 }

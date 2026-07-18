@@ -300,7 +300,7 @@ class UserController extends Controller
                         "note" => "Your $".$data["amount"]." payout",
                         "sender_item_id" => $data["payoutId"],
                         "amount" => [
-                            "currency" => "USD",
+                            "currency" => "BRL",
                             "value" => $data["amount"],
                         ],
                     ],
@@ -398,7 +398,7 @@ class UserController extends Controller
 
             try {
 
-                $response = $api->transfer->create(array('account' => $accountId, 'amount' => $amount, 'currency' => 'INR'));
+                $response = $api->transfer->create(array('account' => $accountId, 'amount' => $amount, 'currency' => 'BRL'));
                 $response = json_decode($response,true);
 
                 if(isset($response['status']) && isset($response['id'])){

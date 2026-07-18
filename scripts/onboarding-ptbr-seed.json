@@ -1,0 +1,46 @@
+{
+  "_comment": "Seed/patch para Firestore collection on_boarding. Aplicar com o script update-onboarding-ptbr.js ou via Admin editando cada tela.",
+  "updates_by_english_title": {
+    "Your All-in-One Work App.": {
+      "title": "Seu app de trabalho completo",
+      "description": "Veja detalhes das reservas, atualize o status e converse com facilidade. Arrow Worker — disponível em vários idiomas."
+    },
+    "Start Serving Customers": {
+      "title": "Comece a atender clientes",
+      "description": "Acompanhe pedidos, gerencie o estoque e aumente seu faturamento desde o primeiro dia."
+    },
+    "Quick and Easy Setup": {
+      "title": "Configuração rápida e fácil",
+      "description": "Informe seus dados, verifique os documentos e esteja pronto para começar."
+    },
+    "Welcome to eMart!": {
+      "title": "Bem-vindo à Arrow!",
+      "description": "Seja nosso parceiro para alcançar mais clientes e fazer seu negócio crescer com facilidade."
+    },
+    "Welcome to eMart Worker!": {
+      "title": "Bem-vindo ao Arrow Worker!",
+      "description": "Gerencie sua agenda, veja as reservas e atualize o status — tudo em um só lugar."
+    },
+    "Welcome to eMart-Provider!": {
+      "title": "Bem-vindo ao Arrow Prestador!",
+      "description": "Gerencie seu negócio, profissionais e serviços — tudo em um só lugar."
+    },
+    "Work Simplified Globally.": {
+      "title": "Trabalho simplificado",
+      "description": "Gerencie reservas, converse em vários idiomas e resolva tudo com eficiência no Arrow Worker."
+    },
+    "Welcome to the community": {
+      "title": "Bem-vindo à comunidade",
+      "description": "Entre na nossa rede e comece a ganhar com horários flexíveis e entregas simples."
+    },
+    "Start Driving & Earning": {
+      "title": "Comece a dirigir e ganhar",
+      "description": "Tenha acesso imediato aos pedidos e navegue com eficiência com nossas ferramentas."
+    }
+  },
+  "how_to_apply": [
+    "Opção A (recomendada se credentials.json do service account estiver válido): node scripts/update-onboarding-ptbr.js",
+    "Opção B: reimportar firebase/import-export/collections.json (já com textos PT nas entradas on_boarding).",
+    "Opção C: editar manualmente em Admin > Onboarding cada título/descrição."
+  ]
+}

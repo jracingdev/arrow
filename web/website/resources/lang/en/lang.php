@@ -906,5 +906,13 @@ return [
     'click_here_to_request_another' => 'click here to request another',
     'dine_in_restaurants' => 'DINE IN Restaurants',
     'type_comment' => 'Type Comment...',
+    'cpf' => 'CPF',
+    'cpf_help' => 'Optional. Brazilian individual taxpayer ID (11 digits).',
+    'cpf_invalid' => 'Invalid CPF. Please check the number.',
+    'cnpj' => 'CNPJ',
+    'cnpj_help' => 'Optional. Brazilian company taxpayer ID (14 digits).',
+    'cnpj_invalid' => 'Invalid CNPJ. Please check the number.',
+    'cep' => 'CEP',
+    'cep_help' => 'Optional. Brazilian postal code (8 digits).',
 ];
 

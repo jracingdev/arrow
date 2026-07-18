@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -148,7 +148,7 @@ class GiftCardController extends Controller
                     exit;
                 }
             } else if ($cart['gift_cart_order']['payment_method'] == 'flutterwave') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$cart['gift_cart_order']['currencyData']['code']) {
                     $currency = $cart['gift_cart_order']['currencyData']['code'];
                 }
@@ -166,7 +166,7 @@ class GiftCardController extends Controller
                 Session::save();
                 return view('gift_card.flutterwave', ['is_checkout' => 1, 'cart' => $cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'gift_cart_order' => $cart['gift_cart_order'], 'currency' => $currency, 'formatted_price' => $formatted_price]);
             } else if ($cart['gift_cart_order']['payment_method'] == 'mercadopago') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$cart['gift_cart_order']['currencyData']['code']) {
                     $currency = $cart['gift_cart_order']['currencyData']['code'];
                 }
@@ -423,7 +423,7 @@ class GiftCardController extends Controller
         $cart = Session::get('gift_cart', []);
         if (@$cart['gift_cart_order'] && $input['token_id']) {
             if ($cart['gift_cart_order']['stripeKey'] && $cart['gift_cart_order']['stripeSecret']) {
-                $currency = "usd";
+                $currency = "BRL";
                 if (@$cart['gift_cart_order']['currency']) {
                     $currency = $cart['gift_cart_order']['currency'];
                 }

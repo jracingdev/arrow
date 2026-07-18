@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
@@ -391,7 +391,7 @@ class CheckoutController extends Controller
                     // $success_url = $success_url . '?orangepay_token=' . $orangepay_token;
                     // $notify_url = $success_url . '?orangepay_token=' . $orangepay_token;
                     $success_url = $successPage . '?orangepay_token=' . $orangepay_token;
-                    $cancel_url  = $cancelPage  . '?orangepay_token=' . $orangepay_token;   // ← same token, different base URL
+                    $cancel_url  = $cancelPage  . '?orangepay_token=' . $orangepay_token;   // â† same token, different base URL
                     $notif_url   = $success_url;
                     Session::put('orangepay_payment_token', $orangepay_token);
                     Session::save();
@@ -400,8 +400,8 @@ class CheckoutController extends Controller
                         'currency' => $currency,  
                         'order_id' => $orangepay_token,
                         'amount' => (int)($total_pay),
-                        'return_url'       => $success_url,     // success → goes to wallet.success
-                        'cancel_url'       => $cancel_url,      // cancel/fail → goes back to wallet.pay
+                        'return_url'       => $success_url,     // success â†’ goes to wallet.success
+                        'cancel_url'       => $cancel_url,      // cancel/fail â†’ goes back to wallet.pay
                         'notif_url'        => $notif_url,
                         'lang' => 'en', 
                         'reference' => $orangepay_token,
@@ -457,7 +457,7 @@ class CheckoutController extends Controller
 
             } else if ($cart['cart_order']['payment_method'] == 'flutterwave') {
 
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$cart['cart_order']['currencyData']['code']) {
                     $currency = $cart['cart_order']['currencyData']['code'];
                 }
@@ -582,7 +582,7 @@ class CheckoutController extends Controller
         $cart = Session::get('cart', []);
         if (@$cart['cart_order'] && $input['token_id']) {
             if ($cart['cart_order']['stripeKey'] && $cart['cart_order']['stripeSecret']) {
-                $currency = "usd";
+                $currency = "BRL";
                 if (@$cart['cart_order']['currency']) {
                     $currency = $cart['cart_order']['currency'];
                 }
@@ -628,7 +628,7 @@ class CheckoutController extends Controller
         $cart = Session::get('cart', []);
         if (@$cart['cart_order'] && $input['token_id']) {
             if ($cart['cart_order']['PublicKey'] && $cart['cart_order']['AccessToken']) {
-                $currency = "usd";
+                $currency = "BRL";
                 if (@$cart['cart_order']['currency']) {
                     $currency = $cart['cart_order']['currency'];
                 }
@@ -790,7 +790,7 @@ class CheckoutController extends Controller
                     'headers' => [
                         'Authorization' => 'Bearer ' . $accessToken,
                     ],
-                    'form_params' => [              // ← this is the key change
+                    'form_params' => [              // â† this is the key change
                         'pay_token' => $payToken,
                     ],
                 ]);

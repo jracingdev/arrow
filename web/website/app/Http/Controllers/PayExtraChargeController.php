@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -113,7 +113,7 @@ class PayExtraChargeController extends Controller
                     exit;
                 }
             } else if ($ondemand_cart['cart_order']['payment_method'] == 'flutterwave') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$ondemand_cart['cart_order']['currencyData']['code']) {
                     $currency = $ondemand_cart['cart_order']['currencyData']['code'];
                 }
@@ -165,7 +165,7 @@ class PayExtraChargeController extends Controller
                 $formatted_price = $ondemand_cart['cart_order']['currencyData']['symbol'] . number_format($total_pay, $ondemand_cart['cart_order']['currencyData']['decimal_degits']);
                 return view('providersService.extra_charge.paypal', ['is_checkout' => 1, 'cart' => $ondemand_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'paypalSecret' => $paypalSecret, 'paypalKey' => $paypalKey, 'cart_order' => $ondemand_cart['cart_order'], 'formatted_price' => $formatted_price]);
             } else if ($ondemand_cart['cart_order']['payment_method'] == 'mercadopago') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$ondemand_cart['cart_order']['currencyData']['code']) {
                     $currency = $ondemand_cart['cart_order']['currencyData']['code'];
                 }
@@ -380,7 +380,7 @@ class PayExtraChargeController extends Controller
         $ondemand_cart = Session::get('ondemand_cart', []);
         if (@$ondemand_cart['cart_order'] && $input['token_id']) {
             if ($ondemand_cart['cart_order']['stripeKey'] && $ondemand_cart['cart_order']['stripeSecret']) {
-                $currency = "usd";
+                $currency = "BRL";
                 if (@$ondemand_cart['cart_order']['currency']) {
                     $currency = $ondemand_cart['cart_order']['currency'];
                 }

@@ -1138,7 +1138,7 @@
         taxDetailsHtml += renderMailTaxSection('delivery', 'Tax on Delivery Fee');
         taxDetailsHtml += renderMailTaxSection('packaging', 'Tax on Packaging Fee');
         taxDetailsHtml += renderMailTaxSection('platform', 'Tax on Platform Fee');
-        taxDetailsHtml += `<strong>Total Tax : ${formatCurrency(total_tax_amount, currencyData)}</strong><br>`;
+        taxDetailsHtml += `<strong>{{ trans('lang.total_tax') }} : ${formatCurrency(total_tax_amount, currencyData)}</strong><br>`;
         if (taxDetailsHtml != '') {
             message = message.replace(/{taxdetails}/g, taxDetailsHtml);
         } else {
@@ -1298,7 +1298,7 @@
         
         var taxDetailsHtml = renderMailTaxSection('order', 'Tax on Order Total');
         taxDetailsHtml += renderMailTaxSection('platform', 'Tax on Platform Fee');
-        taxDetailsHtml += `<strong>Total Tax : ${formatCurrency(total_tax_amount, currencyData)}</strong><br>`;
+        taxDetailsHtml += `<strong>{{ trans('lang.total_tax') }} : ${formatCurrency(total_tax_amount, currencyData)}</strong><br>`;
         if (taxDetailsHtml != '') {
             message = message.replace(/{taxdetails}/g, taxDetailsHtml);
         } else {

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -107,7 +107,7 @@ class TransactionController extends Controller
                     exit;
                 }
             } else if ($user_wallet['data']['payment_method'] == 'flutterwave') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$user_wallet['data']['currencyData']['code']) {
                     $currency = $user_wallet['data']['currencyData']['code'];
                 }
@@ -126,7 +126,7 @@ class TransactionController extends Controller
                 Session::save();
                 return view('transactions.flutterwave', ['is_checkout' => 1, 'user_wallet' => $user_wallet, 'id' => $user->uuid, 'email' => $userEmail, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'data' => $user_wallet['data'], 'currency' => $currency, 'formatted_price' => $formatted_price]);
             } else if ($user_wallet['data']['payment_method'] == 'mercadopago') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$user_wallet['data']['currencyData']['code']) {
                     $currency = $user_wallet['data']['currencyData']['code'];
                 }
@@ -190,7 +190,7 @@ class TransactionController extends Controller
                 $xendit_apiKey = $user_wallet['data']['xendit_apiKey'];
                 if (isset($xendit_enable) && $xendit_enable == true) {
                     $total_pay = $user_wallet['data']['amount'];
-                    $currency = "USD";
+                    $currency = "BRL";
                     $fail_url = route('pay-wallet');
                     $success_url = route('wallet-success');
                     Configuration::setXenditKey($xendit_apiKey);
@@ -228,7 +228,7 @@ class TransactionController extends Controller
                     else
                         $url = 'https://api.midtrans.com/v1/payment-links';
                     $total_pay = $user_wallet['data']['amount'];
-                    $currency = "USD";
+                    $currency = "BRL";
                     $fail_url = route('pay-wallet');
                     $success_url = route('wallet-success');
                     $token = uniqid();

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -378,7 +378,7 @@ class ParcelController extends Controller
                     exit;
                 }
             } else if ($parcel_cart['cart_order']['payment_method'] == 'flutterwave') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$parcel_cart['cart_order']['currencyData']['code']) {
                     $currency = $parcel_cart['cart_order']['currencyData']['code'];
                 }
@@ -396,7 +396,7 @@ class ParcelController extends Controller
                 Session::save();
                 return view('parcel.flutterwave', ['is_checkout' => 1, 'parcel_cart' => $parcel_cart, 'id' => $user->uuid, 'email' => $email, 'authorName' => $authorName, 'amount' => $total_pay, 'flutterWave_secret_key' => $flutterWave_secret_key, 'flutterWave_public_key' => $flutterWave_public_key, 'flutterWave_isSandbox' => $flutterWave_isSandbox, 'flutterWave_encryption_key' => $flutterWave_encryption_key, 'token' => $token, 'cart_order' => $parcel_cart['cart_order'], 'currency' => $currency, 'formatted_price' => $formatted_price]);
             } else if ($parcel_cart['cart_order']['payment_method'] == 'mercadopago') {
-                $currency = "USD";
+                $currency = "BRL";
                 if (@$parcel_cart['cart_order']['currencyData']['code']) {
                     $currency = $parcel_cart['cart_order']['currencyData']['code'];
                 }
@@ -653,7 +653,7 @@ class ParcelController extends Controller
         $parcel_cart = Session::get('parcel_cart', []);
         if (@$parcel_cart['cart_order'] && $input['token_id']) {
             if ($parcel_cart['cart_order']['stripeKey'] && $parcel_cart['cart_order']['stripeSecret']) {
-                $currency = "usd";
+                $currency = "BRL";
                 if (@$parcel_cart['cart_order']['currency']) {
                     $currency = $parcel_cart['cart_order']['currency'];
                 }

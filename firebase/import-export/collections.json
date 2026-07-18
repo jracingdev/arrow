@@ -5548,15 +5548,15 @@
       "0di6e8vs12ysuh4FSlJj": {
         "type": "provider",
         "id": "0di6e8vs12ysuh4FSlJj",
-        "description": "Manage your business, workers and services - all in one place.",
+        "description": "Gerencie seu negócio, profissionais e serviços — tudo em um só lugar.",
         "image": "https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/images%2FFrame%2023_1713783536414.png?alt=media&token=066c43cc-d31e-4dcf-a377-391e39efe131",
-        "title": "Welcome to eMart-Provider!",
+        "title": "Bem-vindo ao Arrow Prestador!",
         "__collections__": {}
       },
       "7EMeqzvLCU1A5gO8dTO4": {
-        "description": "Manage your work schedule, view bookings, and update their status - all in one place.",
+        "description": "Gerencie sua agenda, veja as reservas e atualize o status — tudo em um só lugar.",
         "id": "7EMeqzvLCU1A5gO8dTO4",
-        "title": "Welcome to eMart Worker!",
+        "title": "Bem-vindo ao Arrow Worker!",
         "type": "worker",
         "image": "https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/images%2FFrame_1713783669608.png?alt=media&token=f99bb0da-95e2-4f6a-9b6a-12902fa02192",
         "__collections__": {}
@@ -5572,22 +5572,22 @@
       "BZn1zOlkxeySPNVgmBW0": {
         "type": "store",
         "image": "https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/images%2FVendor2_1759296916969.png?alt=media&token=0a1efcbe-cc2c-4e3f-ba6f-d4678c5dc465",
-        "title": "Welcome to eMart!",
-        "description": "Partner with us to reach more customers and grow your business effortlessly.",
+        "title": "Bem-vindo à Arrow!",
+        "description": "Seja nosso parceiro para alcançar mais clientes e fazer seu negócio crescer com facilidade.",
         "id": "BZn1zOlkxeySPNVgmBW0",
         "__collections__": {}
       },
       "JHynf1CBWeND7pxl9gan": {
-        "title": "Work Simplified Globally.",
+        "title": "Trabalho simplificado",
         "type": "worker",
         "id": "JHynf1CBWeND7pxl9gan",
-        "description": "Manage bookings, chat in multiple languages, and get things done efficiently with eMart Worker.",
+        "description": "Gerencie reservas, converse em vários idiomas e resolva tudo com eficiência no Arrow Worker.",
         "image": "https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/images%2FFrame-1_1713783698369.png?alt=media&token=e9ea5f22-5090-445c-9a2f-5000a081e78d",
         "__collections__": {}
       },
       "ahhLjutVuCstQptSwVCV": {
-        "title": "Your All-in-One Work App.",
-        "description": "See booking details, update status, and chat with ease. eMart Worker -Available in multiple languages.",
+        "title": "Seu app de trabalho completo",
+        "description": "Veja detalhes das reservas, atualize o status e converse com facilidade. Arrow Worker — disponível em vários idiomas.",
         "id": "ahhLjutVuCstQptSwVCV",
         "type": "worker",
         "image": "https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/images%2FFrame-2_1713784131626_1727696288300.png?alt=media&token=c7c85daa-79f9-4fc8-a16d-cac5517b2e91",
@@ -5611,26 +5611,26 @@
       },
       "UQKZio5YxC4bSiX9vvxu": {
         "type": "driver",
-        "description": "Provide your details, verify documents, and you’re ready to hit the road.",
+        "description": "Informe seus dados, verifique os documentos e esteja pronto para começar.",
         "image": "https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/images%2FScreenshot%202025-10-01%20140222_1759307641524.png?alt=media&token=a01e3e31-7fa3-465b-9b7b-69a11b9511b6",
-        "title": "Quick and Easy Setup",
+        "title": "Configuração rápida e fácil",
         "id": "UQKZio5YxC4bSiX9vvxu",
         "__collections__": {}
       },
       "GR0PVNvihY8LG5uVT7VR": {
-        "description": "Join our network and start earning with flexible hours and seamless deliveries.",
+        "description": "Entre na nossa rede e comece a ganhar com horários flexíveis e entregas simples.",
         "id": "GR0PVNvihY8LG5uVT7VR",
         "type": "driver",
-        "title": "Welcome to the community",
+        "title": "Bem-vindo à comunidade",
         "image": "https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/images%2FOnboard_driver1_1727704381491.png?alt=media&token=5f6bc3e6-6c38-44cf-8016-45db8de7c96d",
         "__collections__": {}
       },
       "t8DjEPYoG0XiTY86cr3c": {
-        "description": "Get instant access to orders and navigate efficiently with our built-in tools.",
+        "description": "Tenha acesso imediato aos pedidos e navegue com eficiência com nossas ferramentas.",
         "type": "driver",
         "id": "t8DjEPYoG0XiTY86cr3c",
         "image": "https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/driver_onboard_3.png?alt=media&token=597a2079-223e-4329-84a2-61949ede4d10",
-        "title": "Start Driving & Earning",
+        "title": "Comece a dirigir e ganhar",
         "__collections__": {}
       },
       "mQstHpQeXQTeyOTJldZe": {
@@ -5650,7 +5650,7 @@
         "__collections__": {}
       },
       "zMGQrQ4hxZ2zlasNEziJ": {
-        "title": "Start Serving Customers",
+        "title": "Comece a atender clientes",
         "description": "Rack orders, manage inventory, and grow your revenue right from day one.",
         "image": "https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/images%2Fvendor1_1759297133643.png?alt=media&token=73c1863c-76d2-47b4-97c1-c4e535a28ea5",
         "type": "store",

@@ -77,6 +77,11 @@ foreach ($countries as $keycountry => $valuecountry) {
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label>{{ trans('lang.cpf') }}</label>
+                                <input type="text" class="form-control user_cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
+                                <small class="form-text text-muted">{{ trans('lang.cpf_help') }}</small>
+                            </div>
+                            <div class="form-group">
                                 <label>{{trans('lang.profile_picture')}}</label>
                                 <div class="clearfix"></div>
                                 <input type="file" onChange="handleFileSelect(event)">
@@ -235,6 +240,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                     $("#country_selector").val(user.countryCode.replace('+', '')).trigger('change');
                 }
                 $(".user_phone").val(user.phoneNumber);
+                $(".user_cpf").val(user.cpf || '');
                 photo = user.profilePictureURL;
                 if (photo != '') {
                     $(".user_image").append('<img class="rounded" style="width:50px" src="' + photo + '" alt="image">');
@@ -298,9 +304,21 @@ foreach ($countries as $keycountry => $valuecountry) {
         var email = $(".user_email").val();
         var countryCode = '+' + jQuery("#country_selector").val();
         var userPhone = $(".user_phone").val();
+        var userCpf = ($(".user_cpf").val() || '').replace(/\D/g, '');
         var active = $(".user_active").is(":checked");
         var password = $(".user_password").val();
         var user_name = userFirstName + " " + userLastName;
+        function isValidCpf(cpf) {
+            if (!cpf || cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+            var s = 0;
+            for (var i = 0; i < 9; i++) s += parseInt(cpf.charAt(i), 10) * (10 - i);
+            var r = (s * 10) % 11; if (r === 10) r = 0;
+            if (r !== parseInt(cpf.charAt(9), 10)) return false;
+            s = 0;
+            for (i = 0; i < 10; i++) s += parseInt(cpf.charAt(i), 10) * (11 - i);
+            r = (s * 10) % 11; if (r === 10) r = 0;
+            return r === parseInt(cpf.charAt(10), 10);
+        }
         if (userFirstName == '') {
             $(".error_top").show();
             $(".error_top").html("");
@@ -321,6 +339,11 @@ foreach ($countries as $keycountry => $valuecountry) {
             $(".error_top").html("");
             $(".error_top").append("<p>{{trans('lang.user_phone_error')}}</p>");
             window.scrollTo(0, 0);
+        } else if (userCpf !== '' && !isValidCpf(userCpf)) {
+            $(".error_top").show();
+            $(".error_top").html("");
+            $(".error_top").append("<p>{{trans('lang.cpf_invalid')}}</p>");
+            window.scrollTo(0, 0);
         } else {
             window.scrollTo(0, 0);
             jQuery("#overlay").show();
@@ -330,6 +353,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                 'email': email,
                 'phoneNumber':userPhone, 
                 'countryCode': countryCode,
+                'cpf': userCpf,
                 'profilePictureURL': photo,
                 'role': 'customer',
                 'active': active
