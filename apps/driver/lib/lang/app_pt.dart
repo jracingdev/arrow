@@ -137,7 +137,7 @@ const Map<String, String> ptPO = {
   "Distance": "Distância",
   "Duration": "Duração",
   "Order Summary": "Resumo do pedido",
-  "Subtotal": "Subtotal",
+  "Subtotal": "Valor Subtotal",
   "Discount": "Desconto",
   "Order Total": "Total do pedido",
   "Note : Admin commission will be debited from your wallet balance. \n \nAdmin commission will apply on your booking Amount minus Discount(if applicable).":
@@ -283,7 +283,7 @@ const Map<String, String> ptPO = {
   "Rental Package Price": "Preço do Pacote de Aluguel",
   "Including Hours": "Incluindo Horas",
   "Extra Minutes": "Minutos Extras",
-  "Extra Distance": "Extra {{distanceType}}",
+  "Extra Distance": "{{distanceType}} Extra",
   "Including {{distanceType}}": "Incluindo {{distanceType}}",
   "Cancel Booking": "Cancelar Reserva",
   "Update Review": "Atualizar Avaliação",
