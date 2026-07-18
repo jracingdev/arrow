@@ -1202,7 +1202,7 @@
 
                                                     let dineInOption = '';
                                                     if (typeof dine_in_active !== 'undefined' && dine_in_active === true) {
-                                                        dineInOption = '<option value="dinein"/>Dine-in Discount</option>';
+                                                        dineInOption = '<option value="dinein"/>Desconto no Consumo no Local</option>';
                                                     }
 
                                                     $('#special_offer_table_' + day + ' tr:last').after('<tr>' +
@@ -1217,7 +1217,7 @@
                                                         '</td>' +
                                                         '<td style="width:30%;">' +
                                                             '<select id="type' + day + j + i + '" class="form-control ' + i + '_' + j + '_row" onchange="replaceText(`' + i + '`,`' + j + '`,`specialDiscount`)">' +
-                                                                '<option value="delivery"/>Delivery Discount</option>' +
+                                                                '<option value="delivery"/>Desconto na Entrega</option>' +
                                                                 dineInOption +
                                                             '</select>' +
                                                         '</td>' +
@@ -1796,13 +1796,13 @@
 
         function replaceText(i, j, type) {
 
-            $('.' + type + '_' + i + '_' + j).text("Save");
+            $('.' + type + '_' + i + '_' + j).text("Salvar");
 
         }
 
         function replaceTextEdit(i, j, type) {
 
-            $('.' + type + '_' + j + '_' + i).text("Edit");
+            $('.' + type + '_' + j + '_' + i).text("Editar");
 
         }
 
@@ -2165,7 +2165,7 @@
             $(".restaurant_discount_options_" + day + "_div").show();
             let dineInOption = '';
             if (dine_in_active === true) {
-                dineInOption = '<option value="dinein"/>Dine-In Discount</option>';
+                dineInOption = '<option value="dinein"/>Desconto no Consumo no Local</option>';
             }
             $('#special_offer_table_' + day + ' tr:last').after('<tr>' +
                 '<td class="" style="width:10%;"><input type="time" class="form-control" id="openTime' + day + count + '"></td>' +
@@ -2174,9 +2174,9 @@
                 '<input type="number" class="form-control" id="discount' + day + count + '" style="width:60%;">' +
                 '<select id="discount_type' + day + count + '" class="form-control" style="width:40%;"><option value="percentage"/>%</option><option value="amount"/>' + currentCurrency + '</option></select>' +
                 '</td>' +
-                '<td style="width:30%;"><select id="type' + day + count + '" class="form-control"><option value="delivery"/>Delivery Discount</option>'+ dineInOption + '</select></td>' +
+                '<td style="width:30%;"><select id="type' + day + count + '" class="form-control"><option value="delivery"/>Desconto na Entrega</option>'+ dineInOption + '</select></td>' +
                 '<td class="action-btn" style="width:20%;">' +
-                '<button type="button" class="btn btn-primary save_option_day_button' + day + count + '" onclick="addMoreFunctionButton(`' + day2 + '`,`' + day + '`,' + countAddButton + ')" style="width:62%;">Save</button>' +
+                '<button type="button" class="btn btn-primary save_option_day_button' + day + count + '" onclick="addMoreFunctionButton(`' + day2 + '`,`' + day + '`,' + countAddButton + ')" style="width:62%;">Salvar</button>' +
                 '</td></tr>');
             countAddButton++;
 
@@ -2507,7 +2507,7 @@
             $('#working_hour_table_' + day + ' tr:last').after('<tr>' +
                 '<td class="" style="width:50%;"><input type="time" class="form-control" id="from' + day + count + '"></td>' +
                 '<td class="" style="width:50%;"><input type="time" class="form-control" id="to' + day + count + '"></td>' +
-                '<td><button type="button" class="btn btn-primary save_option_day_button' + day + count + '" onclick="addMoreFunctionhour(`' + day2 + '`,`' + day + '`,' + countAddhours + ')" style="width:62%;">Save</button>' +
+                '<td><button type="button" class="btn btn-primary save_option_day_button' + day + count + '" onclick="addMoreFunctionhour(`' + day2 + '`,`' + day + '`,' + countAddhours + ')" style="width:62%;">Salvar</button>' +
                 '</td></tr>');
             countAddhours++;
 
@@ -2519,7 +2519,7 @@
             if (to == '' && from == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Please Enter valid time</p>");
+                $(".error_top").append("<p>Digite um horário válido</p>");
                 window.scrollTo(0, 0);
 
             } else {
@@ -2625,23 +2625,23 @@
             var from = $("#from" + day + rowCount + dayCount + "").val();
 
 
-            if (buttonText == "Edit" || buttonText == "") {
+            if (buttonText == "Editar" || buttonText == "") {
                 $("#to" + day + rowCount + dayCount).removeAttr('disabled');
                 $("#from" + day + rowCount + dayCount).removeAttr('disabled');
-                buttonElement.textContent = "Save";
+                buttonElement.textContent = "Salvar";
 
 
             } else {
                 $("#to" + day + rowCount + dayCount).attr('disabled', "true");
                 $("#from" + day + rowCount + dayCount).attr('disabled', "true");
-                buttonElement.textContent = "Edit";
+                buttonElement.textContent = "Editar";
 
             }
 
             if (to == '' && from == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Please Enter valid time </p>");
+                $(".error_top").append("<p>Digite um horário válido </p>");
                 window.scrollTo(0, 0);
 
             } else if (from > to) {

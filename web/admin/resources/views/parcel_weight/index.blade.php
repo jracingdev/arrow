@@ -176,7 +176,7 @@
                 '<td><input type="text" class="form-control" id="title_' + count + '"></td>' +
                 '<td><input type="text" class="form-control" id="price_' + count + '"></td>' +
                 '<td class="action-btn">' +
-                '<button type="button" class="btn btn-primary save_' + count + '" onclick="saveData(' + count + ')">Save</button>' +
+                '<button type="button" class="btn btn-primary save_' + count + '" onclick="saveData(' + count + ')">Salvar</button>' +
                 '</td></tr>');
             countAddButton++;
         }

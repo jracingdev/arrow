@@ -156,14 +156,14 @@
 
                         <div class="auth-header">
                             <div class="mb-4">
-                                <h2 class="title text-dark mb-3">{{ __('Admin Login') }}</h2>
+                                <h2 class="title text-dark mb-3">{{ trans('lang.admin_login') }}</h2>
                                 <p class="text-muted">{{ trans('lang.login_text') }}</p>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="input-label text-capitalize">{{ __('Email Address') }}</label>
-                            <input class="form-control" placeholder="{{ __('Email Address') }}" id="email"
+                            <label class="input-label text-capitalize">{{ trans('lang.email_address') }}</label>
+                            <input class="form-control" placeholder="{{ trans('lang.email_address') }}" id="email"
                                 type="email" class="form-control @error('email') is-invalid @enderror" name="email"
                                 value="{{ old('email') }}" required autocomplete="email" autofocus>
                             @error('email')
@@ -174,9 +174,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="input-label text-capitalize">{{ __('Password') }}</label>
+                            <label class="input-label text-capitalize">{{ trans('lang.password') }}</label>
                             <div class="input-group">
-                            <input id="password" placeholder="{{ __('Password') }}" type="password"
+                            <input id="password" placeholder="{{ trans('lang.password') }}" type="password"
                                 class="form-control @error('password') is-invalid @enderror" name="password" required
                                 autocomplete="current-password">
                             <span class="password-toggle-icon"
@@ -195,13 +195,13 @@
                             <input class="form-check-input" type="checkbox" name="remember" id="remember"
                                 {{ old('remember') ? 'checked' : '' }}>
                             <label class="form-check-label" for="remember">
-                                {{ __('Remember Me') }}
+                                {{ trans('lang.remember_me') }}
                             </label>
                         </div>
 
                         <div class="form-group text-center mb-0">
                             <button type="submit"
-                                class="btn btn-dark btn-lg btn-block text-uppercase waves-effect waves-light btn btn-primary">{{ __('Login') }}
+                                class="btn btn-dark btn-lg btn-block text-uppercase waves-effect waves-light btn btn-primary">{{ trans('lang.login') }}
                             </button>
                         </div>
                     </form>

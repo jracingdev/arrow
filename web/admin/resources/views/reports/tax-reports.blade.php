@@ -71,7 +71,7 @@
         <div class="modal-dialog modal-dialog-centered modal-lg" style="min-width: 70%">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Tax Details</h5>
+                    <h5 class="modal-title">{{ trans('lang.tax_details') }}</h5>
                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -81,7 +81,7 @@
                     <div id="taxDetailContent"></div>
                 </div>
                 <div class="modal-footer">
-                    <button id="download_detailed_report" class="btn btn-primary">Download Report</button>
+                    <button id="download_detailed_report" class="btn btn-primary">Baixar Relatório</button>
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">{{ trans('lang.close') }}</button>
                 </div>
             </div>
@@ -129,14 +129,14 @@
         autoApply: false,
         autoUpdateInput: false,
         ranges: {
-            'Today': [moment(), moment()],
-            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-            'This Month': [moment().startOf('month'), moment().endOf('month')],
-            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-            'This Year': [moment().startOf('year'), moment().endOf('year')],
-            'Last Year': [
+            'Hoje': [moment(), moment()],
+            'Ontem': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            'Últimos 7 dias': [moment().subtract(6, 'days'), moment()],
+            'Últimos 30 dias': [moment().subtract(29, 'days'), moment()],
+            'Este mês': [moment().startOf('month'), moment().endOf('month')],
+            'Mês passado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Este ano': [moment().startOf('year'), moment().endOf('year')],
+            'Ano passado': [
                 moment().subtract(1, 'year').startOf('year'),
                 moment().subtract(1, 'year').endOf('year')
             ]
@@ -185,7 +185,7 @@
 
             // Append admin taxes
             if (adminTaxes.length > 0) {
-                let optgroupAdmin = $('<optgroup label="Admin Taxes"></optgroup>');
+                let optgroupAdmin = $('<optgroup label="Impostos do Admin"></optgroup>');
                 adminTaxes.forEach(t => {
                     optgroupAdmin.append($('<option></option>').attr('value', t.id).text(t.text));
                 });
@@ -195,7 +195,7 @@
             if(service_type == "delivery-service" || service_type == "ecommerce-service" || service_type == "ondemand-service"){
                 // Append vendor taxes
                 if (vendorTaxes.length > 0) {
-                    let optgroupVendor = $('<optgroup label="Vendor Taxes"></optgroup>');
+                    let optgroupVendor = $('<optgroup label="Impostos do Fornecedor"></optgroup>');
                     vendorTaxes.forEach(t => {
                         optgroupVendor.append($('<option></option>').attr('value', t.id).text(t.text));
                     });
@@ -280,24 +280,24 @@
             };
 
             let html = '<div class="d-flex justify-content-between align-items-center mb-2">';
-                html += '<h4 class="mb-0">Tax Report List</h4>';
-                    html += '<button id="download_report" class="btn btn-primary">Download Report</button>';
+                html += '<h4 class="mb-0">Lista de Relatório de Impostos</h4>';
+                    html += '<button id="download_report" class="btn btn-primary">Baixar Relatório</button>';
             html += '</div>';
 
             html += '<table class="table table-bordered">';
-            html += '<tr><th>No</th><th>Income Source</th><th>Total Income</th><th>Total Tax</th><th>Action</th></tr>';
+            html += '<tr><th>Nº</th><th>Fonte de Renda</th><th>Receita Total</th><th>Imposto Total</th><th>Ação</th></tr>';
 
             let rows = [];
             if(service_type == "delivery-service" || service_type == "ecommerce-service" || service_type == "ondemand-service"){
                 rows = [
-                    { key: 'adminCommission', label: 'Admin Commission' },
-                    { key: 'vendorSubscription', label: 'Vendor Subscription' },
-                    { key: 'platformFee', label: 'Platform Fee' }
+                    { key: 'adminCommission', label: 'Comissão do Admin' },
+                    { key: 'vendorSubscription', label: 'Assinatura do Fornecedor' },
+                    { key: 'platformFee', label: 'Taxa da Plataforma' }
                 ];
             }else{
                 rows = [
-                    { key: 'adminCommission', label: 'Admin Commission' },
-                    { key: 'platformFee', label: 'Platform Fee' }
+                    { key: 'adminCommission', label: 'Comissão do Admin' },
+                    { key: 'platformFee', label: 'Taxa da Plataforma' }
                 ];
             }
 
@@ -446,7 +446,7 @@
         let html = '';
 
         if (percentTaxes.length) {
-            html += `<strong>Total Percentage Tax (${percentTotalRate.toFixed(2)}%): $${percentTotalAmount.toFixed(2)}</strong><br>`;
+            html += `<strong>Imposto Percentual Total (${percentTotalRate.toFixed(2)}%): $${percentTotalAmount.toFixed(2)}</strong><br>`;
             percentTaxes.forEach(t => {
                 html += `${t.title} (${t.tax}%): $${t.amount.toFixed(2)}<br>`;
             });
@@ -454,7 +454,7 @@
         }
 
         if (fixedTaxes.length) {
-            html += `<strong>Total Fix Tax ($${fixedTotalAmount.toFixed(2)}): $${fixedTotalAmount.toFixed(2)}</strong><br>`;
+            html += `<strong>Imposto Fixo Total ($${fixedTotalAmount.toFixed(2)}): $${fixedTotalAmount.toFixed(2)}</strong><br>`;
             fixedTaxes.forEach(t => {
                 html += `${t.title} ($${parseFloat(t.tax).toFixed(2)}): $${t.amount.toFixed(2)}<br>`;
             });
@@ -463,7 +463,7 @@
 
         let finalTotal = percentTotalAmount + fixedTotalAmount;
 
-        html += `<strong>Final Total Tax: $${finalTotal.toFixed(2)}</strong>`;
+        html += `<strong>Imposto Total Final: $${finalTotal.toFixed(2)}</strong>`;
 
         return html;
     }
@@ -485,8 +485,8 @@
 
     $(document).on('click', '#download_detailed_report', function () {
         Swal.fire({
-            title: 'Download Detailed Report',
-            text: 'Choose format to download:',
+            title: 'Baixar Relatório Detalhado',
+            text: 'Escolha o formato para baixar:',
             showCancelButton: true,
             confirmButtonText: 'CSV',
             cancelButtonText: 'PDF',
@@ -502,8 +502,8 @@
 
     $(document).on('click', '#download_report', function () {
         Swal.fire({
-            title: 'Download Report',
-            text: 'Choose format to download:',
+            title: 'Baixar Relatório',
+            text: 'Escolha o formato para baixar:',
             showCancelButton: true,
             confirmButtonText: 'CSV',
             cancelButtonText: 'PDF',
@@ -525,8 +525,8 @@
         let displayRange = $('#reportrange').data('daterangepicker').startDate.format('DD-MM-YYYY') + ' - ' + $('#reportrange').data('daterangepicker').endDate.format('DD-MM-YYYY');
                         
         let csv = [];
-        csv.push(`"Tax Report"`);
-        csv.push(`"Date Range: ${displayRange}"`);
+        csv.push(`"Relatório de Impostos"`);
+        csv.push(`"Período: ${displayRange}"`);
         
         // Table header
         let headerRow = [];
@@ -564,8 +564,8 @@
         let displayRange = $('#reportrange').data('daterangepicker').startDate.format('DD-MM-YYYY') + ' - ' + $('#reportrange').data('daterangepicker').endDate.format('DD-MM-YYYY');
 
         let csv = [];
-        csv.push(`"Detailed Tax Report"`);
-        csv.push(`"Date Range: ${displayRange}"`);
+        csv.push(`"Relatório Detalhado de Impostos"`);
+        csv.push(`"Período: ${displayRange}"`);
         
         // Table header
         let headerRow = [];
@@ -587,7 +587,7 @@
             }
         });
         if (!csv.length) {
-            return Swal.fire({ icon: 'error', text: 'No data to download!' });
+            return Swal.fire({ icon: 'error', text: 'Não há dados para baixar!' });
         }
         let csvContent = "data:text/csv;charset=utf-8," + csv.join("\n");
         let encodedUri = encodeURI(csvContent);
@@ -617,9 +617,9 @@
         let pdf = new jsPDF('p', 'pt', 'a4');
 
         pdf.setFontSize(12);
-        pdf.text('Tax Report', 40, 40);
+        pdf.text('Relatório de Impostos', 40, 40);
         pdf.setFontSize(10);
-        pdf.text(`Date Range: ${displayRange}`, 40, 60);
+        pdf.text(`Período: ${displayRange}`, 40, 60);
         
         let canvas = await html2canvas(tableClone[0], { scale: 2 });
         let imgData = canvas.toDataURL('image/png');
@@ -645,9 +645,9 @@
         let pdf = new jsPDF('p', 'pt', 'a4');
         
         pdf.setFontSize(12);
-        pdf.text('Tax Detailed Report', 40, 40);
+        pdf.text('Relatório Detalhado de Impostos', 40, 40);
         pdf.setFontSize(10);
-        pdf.text(`Date Range: ${displayRange}`, 40, 60);
+        pdf.text(`Período: ${displayRange}`, 40, 60);
 
         let canvas = await html2canvas(tableClone[0], { scale: 2 });
         let imgData = canvas.toDataURL('image/png');
@@ -664,8 +664,8 @@
         let endDate = $('#reportrange').data('daterangepicker').endDate.format('DD-MM-YYYY');
 
         // Show search criteria
-        let filterHtml = `<strong>Date:</strong> ${startDate} - ${endDate}<br>
-        <strong>Income Source:</strong> ${source === 'adminCommission' ? 'Admin Commission' : source === 'vendorSubscription' ? 'Vendor Subscription' : 'Platform Fee'}`;
+        let filterHtml = `<strong>Data:</strong> ${startDate} - ${endDate}<br>
+        <strong>Fonte de Renda:</strong> ${source === 'adminCommission' ? 'Comissão do Admin' : source === 'vendorSubscription' ? 'Assinatura do Fornecedor' : 'Taxa da Plataforma'}`;
         $('#filterData').html(filterHtml);
 
         let html = '<table class="table table-bordered">';
@@ -674,7 +674,7 @@
 
         if (source === 'adminCommission') {
 
-            html += '<tr><th>No</th><th>Order ID</th><th>Order Date</th><th>Admin Commission</th><th>Tax Amount</th></tr>';
+            html += '<tr><th>Nº</th><th>ID do Pedido</th><th>Data do Pedido</th><th>Comissão do Admin</th><th>Valor do Imposto</th></tr>';
             
             window.reportData.orders.forEach(order => {
                 
@@ -724,7 +724,7 @@
 
         } else if (source === 'vendorSubscription') {
 
-            html += '<tr><th>No</th><th>Order ID</th><th>Order Date</th><th>Subscription Price</th><th>Tax Amount</th></tr>';
+            html += '<tr><th>Nº</th><th>ID do Pedido</th><th>Data do Pedido</th><th>Preço da Assinatura</th><th>Valor do Imposto</th></tr>';
             
             window.reportData.subscriptions.forEach(sub => {
                 if (!sub.subscription_plan || !sub.subscription_plan.price) return;
@@ -749,7 +749,7 @@
 
         } else if (source === 'platformFee') {
 
-            html += '<tr><th>No</th><th>Order ID</th><th>Order Date</th><th>Platform Fee</th><th>Tax Amount</th></tr>';
+            html += '<tr><th>Nº</th><th>ID do Pedido</th><th>Data do Pedido</th><th>Taxa da Plataforma</th><th>Valor do Imposto</th></tr>';
 
             window.reportData.orders.forEach(order => {
 
