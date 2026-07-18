@@ -77,7 +77,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     Get.put(ThemeController());
     return Obx(() => GetMaterialApp(
-          title: 'Driver'.tr,
+          title: 'Arrow Entregador',
           debugShowCheckedModeBanner: false,
           themeMode: themeController.themeMode,
           theme: ThemeData(

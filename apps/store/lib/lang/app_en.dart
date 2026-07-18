@@ -536,7 +536,6 @@ const Map<String, String> enUS = {
   "Go to your Stripe account settings > Account details > Copy your account ID on the right-hand side. For example, acc_GLGeLkU2JUeyDZ":
       "Go to your Stripe account settings > Account details > Copy your account ID on the right-hand side. For example, acc_GLGeLkU2JUeyDZ",
   "Please enter stripe account Id": "Please enter stripe account Id",
-  "HH:mm": "HH:mm",
   "Start Time": "Start Time",
   "Remove Time": "Remove Time",
   "Foodie": "Foodie",

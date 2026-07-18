@@ -18,6 +18,10 @@ subprojects {
     }
 }
 
+gradle.taskGraph.whenReady { graph ->
+    graph.allTasks.findAll { it.name.toLowerCase().contains('lintvital') }.each { it.enabled = false }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }

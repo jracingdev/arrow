@@ -53,7 +53,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     Get.put(ThemeController());
     return Obx(
       () => GetMaterialApp(
-        title: 'eMart Store'.tr,
+        title: 'Arrow Loja',
         debugShowCheckedModeBanner: false,
         themeMode: themeController.themeMode,
         theme: ThemeData(

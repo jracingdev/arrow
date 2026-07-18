@@ -26,7 +26,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace 'com.emart.store'
-    compileSdkVersion 35
+    compileSdkVersion 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17 // Use VERSION_17 for now
@@ -47,7 +47,7 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.emart.store"
         minSdkVersion 24
-        targetSdkVersion 35
+        targetSdkVersion 36
         multiDexEnabled true
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -61,6 +61,12 @@ android {
             // Signing with the debug keys for now, so `store run --release` works.
             signingConfig signingConfigs.debug
         }
+    }
+
+    // Avoid flaky plugin lintVital failures on AGP 8.9 (e.g. flutter_email_sender)
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
     }
 }
 

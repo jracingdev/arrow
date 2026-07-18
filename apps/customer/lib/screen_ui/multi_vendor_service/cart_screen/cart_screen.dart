@@ -441,11 +441,11 @@ class CartScreen extends StatelessWidget {
                                     controller.deliveryType.value = "schedule";
                                     BottomPicker.dateTime(
                                       onSubmit: (index) {
-                                        controller.scheduleDateTime.value = index;
+                                        controller.scheduleDateTime.value = index as DateTime;
                                       },
                                       minDateTime: DateTime.now(),
                                       displaySubmitButton: true,
-                                      pickerTitle: Text('Schedule Time'.tr),
+                                      headerBuilder: (context) => Text('Schedule Time'.tr),
                                       buttonSingleColor: AppThemeData.primary300,
                                     ).show(context);
                                   },
@@ -480,11 +480,11 @@ class CartScreen extends StatelessWidget {
                                             BottomPicker.dateTime(
                                               initialDateTime: controller.scheduleDateTime.value,
                                               onSubmit: (index) {
-                                                controller.scheduleDateTime.value = index;
+                                                controller.scheduleDateTime.value = index as DateTime;
                                               },
                                               minDateTime: controller.scheduleDateTime.value,
                                               displaySubmitButton: true,
-                                              pickerTitle: Text('Schedule Time'.tr),
+                                              headerBuilder: (context) => Text('Schedule Time'.tr),
                                               buttonSingleColor: AppThemeData.primary300,
                                             ).show(context);
                                           },

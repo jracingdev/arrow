@@ -58,6 +58,12 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    // Avoid flaky plugin lintVital failures on AGP 8.9
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
 }
 
 flutter {

@@ -212,7 +212,7 @@ class OnDemandBookingScreen extends StatelessWidget {
                   onTap: () {
                     BottomPicker.dateTime(
                       onSubmit: (date) {
-                        controller.setDateTime(date);
+                        controller.setDateTime(date as DateTime);
                       },
                       minDateTime: DateTime.now(),
                       buttonAlignment: MainAxisAlignment.center,
@@ -220,10 +220,9 @@ class OnDemandBookingScreen extends StatelessWidget {
                       buttonSingleColor: AppThemeData.primary300,
                       buttonPadding: 10,
                       buttonWidth: 70,
-                      pickerTitle: Text("", style: AppThemeData.mediumTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900)),
+                      headerBuilder: (context) => Text("", style: AppThemeData.mediumTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900)),
                       backgroundColor: isDark ? AppThemeData.greyDark50 : AppThemeData.grey50,
                       pickerTextStyle: AppThemeData.mediumTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900),
-                      closeIconColor: isDark ? Colors.white : Colors.black,
                     ).show(context);
                   },
                   child: TextFieldWidget(title: "Booking Date & Slot".tr, hintText: "Choose Date and Time".tr, controller: controller.dateTimeController.value, enable: false),

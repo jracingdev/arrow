@@ -535,7 +535,6 @@ const Map<String, String> lnAr = {
   "Go to your Stripe account settings > Account details > Copy your account ID on the right-hand side. For example, acc_GLGeLkU2JUeyDZ":
       "اذهب إلى إعدادات حساب Stripe > تفاصيل الحساب > انسخ معرف الحساب من الجهة اليمنى. مثال: acc_GLGeLkU2JUeyDZ",
   "Please enter stripe account Id": "يرجى إدخال معرف حساب Stripe",
-  "HH:mm": "HH:mm",
   "Start Time": "وقت البدء",
   "Remove Time": "إزالة الوقت",
   "Foodie": "Foodie",

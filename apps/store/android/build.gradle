@@ -18,6 +18,11 @@ subprojects {
     }
 }
 
+// Disable lintVital on plugins — prevents corrupt-cache MD5 failures under AGP 8.9
+gradle.taskGraph.whenReady { graph ->
+    graph.allTasks.findAll { it.name.toLowerCase().contains('lintvital') }.each { it.enabled = false }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }

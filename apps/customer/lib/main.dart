@@ -41,6 +41,7 @@ class MyApp extends StatelessWidget {
     Get.put(ThemeController());
     return Obx(
       () => GetMaterialApp(
+        title: 'Arrow',
         debugShowCheckedModeBanner: false,
         builder: (context, child) {
           return SafeArea(bottom: true, top: false, child: EasyLoading.init()(context, child));
