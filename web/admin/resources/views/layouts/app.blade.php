@@ -157,6 +157,22 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/js/bootstrap-timepicker.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script src="{{ asset('js/arrow-datetime.js') }}"></script>
+    <script type="text/javascript">
+        window.ArrowChartMonths = [
+            @json(trans('lang.month_short_jan')),
+            @json(trans('lang.month_short_feb')),
+            @json(trans('lang.month_short_mar')),
+            @json(trans('lang.month_short_apr')),
+            @json(trans('lang.month_short_may')),
+            @json(trans('lang.month_short_jun')),
+            @json(trans('lang.month_short_jul')),
+            @json(trans('lang.month_short_aug')),
+            @json(trans('lang.month_short_sep')),
+            @json(trans('lang.month_short_oct')),
+            @json(trans('lang.month_short_nov')),
+            @json(trans('lang.month_short_dec'))
+        ];
+    </script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 

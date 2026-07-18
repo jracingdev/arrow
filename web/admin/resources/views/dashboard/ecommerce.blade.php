@@ -670,8 +670,7 @@
             let commissionData = currData.cArr;
 
             if (filterType === 'year' || !filterType) {
-                labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-                    'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                labels = (window.ArrowChartMonths || []);
             } else if (filterType === 'month') {
                 const daysInMonth = new Date(year, month, 0).getDate();
                 labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
@@ -684,7 +683,7 @@
                 });
             }
             else {
-                labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                labels = (window.ArrowChartMonths || []);
                 chartData = vArr;
                 commissionData = cArr;
             }
@@ -1137,7 +1136,7 @@
                     borderWidth: 2
                 }]
             };
-            var labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            var labels = (window.ArrowChartMonths || []);
             return new Chart(document.getElementById("commissions"), {
                 type: 'line',
                 data: {
@@ -1187,7 +1186,7 @@
                                 return datasets.map(function (ds, i) {
                                     let value = ds.data.reduce((a, b) => a + b, 0); // sum of dataset
                                     return {
-                                        text: ds.label + " $" + value.toLocaleString(),
+                                        text: ds.label + " " + (typeof currentCurrency !== "undefined" && currentCurrency ? currentCurrency : "R$") + Number(value).toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 2}),
                                         fillStyle: ds.borderColor,
                                         strokeStyle: ds.borderColor,
                                         hidden: !chart.isDatasetVisible(i),

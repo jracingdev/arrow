@@ -795,7 +795,7 @@
             let commissionData = [];
 
             if (filterType === 'year') {
-                labels = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+                labels = (window.ArrowChartMonths || []);
                 chartData = vArr;
                 commissionData = cArr;
             } else if (filterType === 'month') {
@@ -815,7 +815,7 @@
                 chartData = vArr.slice(0, days);
                 commissionData = cArr.slice(0, days);
             } else {
-                labels = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+                labels = (window.ArrowChartMonths || []);
                 chartData = vArr;
                 commissionData = cArr;
             }
@@ -1335,7 +1335,7 @@
                     borderWidth: 2
                 }]
             };
-            var labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            var labels = (window.ArrowChartMonths || []);
             return new Chart(document.getElementById("commissions"), {
                 type: 'line',
                 data: {
@@ -1385,7 +1385,7 @@
                                 return datasets.map(function (ds, i) {
                                     let value = ds.data.reduce((a, b) => a + b, 0);
                                     return {
-                                        text: ds.label + " $" + value.toLocaleString(),
+                                        text: ds.label + " " + (typeof currentCurrency !== "undefined" && currentCurrency ? currentCurrency : "R$") + Number(value).toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 2}),
                                         fillStyle: ds.borderColor,
                                         strokeStyle: ds.borderColor,
                                         hidden: !chart.isDatasetVisible(i),

@@ -577,7 +577,7 @@
 
                 var data = [v01, v02, v03, v04, v05, v06, v07, v08, v09, v10, v11, v12];
 
-                var labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                var labels = (window.ArrowChartMonths || []);
                 var $salesChart = $('#sales-chart');
                 var salesChart = renderChart($salesChart, data, labels);
                 setCommision();
