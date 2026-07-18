@@ -374,7 +374,7 @@
                     jQuery("#section_title").after('<p>{{trans("lang.here_quick_overview_of_your")}} ' + sectionData.name+' - '+sectionData.serviceType + ' {{trans("lang.platform_today")}}</p>')
 
                 } else {
-                    jQuery("#section_title").text('No section found');
+                    jQuery("#section_title").text("{{ trans('lang.no_section_found') }}");
                 }
             })
                 .catch((error) => {

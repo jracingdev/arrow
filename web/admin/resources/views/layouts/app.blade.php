@@ -352,25 +352,66 @@
         });
         
         async function getServiceSections() {
-            let ref = database.collection('sections').where('isActive', '==', true).orderBy('order');
-            const sectionsSnapshot = await ref.get();
             const sectionsContainer = document.getElementById('sections_header');
-            sectionsContainer.innerHTML = await buildServiceSectionsHTML(sectionsSnapshot);
+            if (!sectionsContainer) {
+                return;
+            }
+            try {
+                let snapshot;
+                try {
+                    snapshot = await database.collection('sections')
+                        .where('isActive', '==', true)
+                        .orderBy('order')
+                        .get();
+                } catch (indexErr) {
+                    // Índice composto ausente ou campo order inválido — fallback sem orderBy
+                    console.warn('sections orderBy falhou, usando fallback:', indexErr && indexErr.message);
+                    snapshot = await database.collection('sections')
+                        .where('isActive', '==', true)
+                        .get();
+                }
+                sectionsContainer.innerHTML = await buildServiceSectionsHTML(snapshot);
+            } catch (err) {
+                console.error('Erro ao carregar seções:', err);
+                const addSectionRoute = "{{ route('section.create') }}";
+                const sectionListRoute = "{{ route('section') }}";
+                sectionsContainer.innerHTML = `
+                    <div class="dropdown-service-list p-3">
+                        <p class="text-danger mb-2">{{ trans('lang.no_section_found') }}</p>
+                        <p class="mb-3"><a href="${sectionListRoute}">{{ trans('lang.section') }}</a></p>
+                        <a class="btn btn-primary btn-sm" href="${addSectionRoute}">{{ trans('lang.add_more') }}</a>
+                    </div>`;
+            }
         }
         
         async function buildServiceSectionsHTML(snapshot) {
             let html = '';
             var addSectionRoute = "{{ route('section.create') }}";
+            var sectionListRoute = "{{ route('section') }}";
             var idSecActive = getCookie('section_id') || '';
             var typeSecActive = getCookie('service_type') || '';
-            snapshot.docs.forEach(doc => {
-                var data = doc.data();
+            const docs = (snapshot && snapshot.docs) ? snapshot.docs.slice() : [];
+            docs.sort(function (a, b) {
+                const ao = Number((a.data() || {}).order);
+                const bo = Number((b.data() || {}).order);
+                return (Number.isFinite(ao) ? ao : 9999) - (Number.isFinite(bo) ? bo : 9999);
+            });
+            if (!docs.length) {
+                html += `
+                <div class="col-md-12 mb-3">
+                    <p class="mb-2">{{ trans('lang.no_section_found') }}</p>
+                    <p class="mb-0"><a href="${sectionListRoute}">{{ trans('lang.section') }}</a> — {{ trans('lang.expand_by_adding_new_modules_as_your_business_grows') }}</p>
+                </div>`;
+            }
+            docs.forEach(doc => {
+                var data = doc.data() || {};
                 var sectionName = data.name || 'Unnamed Section';
-                var sectionDescription = data.description || '';
+                var sectionDescription = data.description || data.serviceType || '';
                 var sectionImage = data.sectionImage || placeholderImage;
-                var sectionId = doc.id;
-                var sectionRoute = `{{ route('dashboard') }}/${sectionId}/${data.serviceTypeFlag}`;
-                var isSelected = (sectionId === idSecActive && (data.serviceTypeFlag || '') === typeSecActive);
+                var sectionId = data.id || doc.id;
+                var sectionType = data.serviceTypeFlag || '';
+                var sectionRoute = `{{ route('dashboard') }}/${sectionId}/${sectionType}`;
+                var isSelected = (sectionId === idSecActive && sectionType === typeSecActive);
                 var selectedClass = isSelected ? 'selected-section' : '';
                 if (isSelected) {
                     $('#activeSectionLogo').attr('src', sectionImage || placeholderImage);
@@ -378,7 +419,7 @@
                 }
                 html += `
                 <div class="col-md-4">
-                    <div class="service-list-box ${selectedClass}" data-section-url="${sectionRoute}" data-section-id="${data.id}" data-section-type="${data.serviceTypeFlag}">
+                    <div class="service-list-box ${selectedClass}" data-section-url="${sectionRoute}" data-section-id="${sectionId}" data-section-type="${sectionType}">
                         <img src="${sectionImage}" onerror="this.onerror=null;this.src='${placeholderImage}'">
                         <h3>${sectionName}</h3>
                         <p>${sectionDescription}</p>
