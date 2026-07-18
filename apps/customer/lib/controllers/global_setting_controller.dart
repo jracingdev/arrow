@@ -22,7 +22,7 @@ class GlobalSettingController extends GetxController {
       if (event.docs.isNotEmpty) {
         Constant.currencyModel = CurrencyModel.fromJson(event.docs.first.data());
       } else {
-        Constant.currencyModel = CurrencyModel(id: "", code: "USD", decimal: 2, isactive: true, name: "US Dollar", symbol: "\$", symbolatright: false);
+        Constant.currencyModel = CurrencyModel(id: "", code: "BRL", decimal: 2, isactive: true, name: "Real Brasileiro", symbol: "R\$", symbolatright: false);
       }
     });
     await FireStoreUtils.getSettings();

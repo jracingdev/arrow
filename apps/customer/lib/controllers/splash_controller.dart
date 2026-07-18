@@ -30,7 +30,7 @@ class SplashController extends GetxController {
       final model = LanguageModel.fromJson(jsonData);
       LocalizationService().changeLocale(model.slug!);
     } else {
-      LocalizationService().changeLocale('en');
+      LocalizationService().changeLocale('pt_br');
     }
   }
 

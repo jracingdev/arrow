@@ -40,7 +40,7 @@ class ServiceListController extends GetxController {
     // fetch currency
     CurrencyModel? currency = await FireStoreUtils.getCurrency();
 
-    currencyData.value = currency ?? CurrencyModel(id: "", code: "USD", decimal: 2, isactive: true, name: "US Dollar", symbol: "\$", symbolatright: false);
+    currencyData.value = currency ?? CurrencyModel(id: "", code: "BRL", decimal: 2, isactive: true, name: "Real Brasileiro", symbol: "R\$", symbolatright: false);
 
     // Load sections
     List<SectionModel> sections = await FireStoreUtils.getSections();
