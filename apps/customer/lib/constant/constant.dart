@@ -555,7 +555,12 @@ class Constant {
   }
 
   static DateTime stringToDate(String openDineTime) {
-    return DateFormat('HH:mm').parse(openDineTime);
+    try {
+      return DateFormat('HH:mm').parse(openDineTime);
+    } catch (_) {
+      final normalized = Intl.getCurrentLocale() == "en_US" ? openDineTime : openDineTime.toLowerCase();
+      return DateFormat('hh:mm a').parse(normalized);
+    }
   }
 
   static LanguageModel getLanguage() {
