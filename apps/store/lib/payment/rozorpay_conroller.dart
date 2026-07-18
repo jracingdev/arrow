@@ -19,7 +19,7 @@ class RazorPayController {
       body: {
         "amount": (amount * 100).toString(),
         "receipt_id": orderId,
-        "currency": "INR",
+        "currency": Constant.currencyModel?.code ?? "BRL",
         "razorpaykey": razorPayData.razorpayKey,
         "razorPaySecret": razorPayData.razorpaySecret,
         "isSandBoxEnabled": razorPayData.isSandboxEnabled.toString(),
