@@ -1425,11 +1425,12 @@
 
         $(".vendor_cnpj").on("input", function() {
             var digits = $(this).val().replace(/\D/g, '').slice(0, 14);
-            var formatted = digits;
-            if (digits.length > 2) formatted = digits.replace(/^(\d{2})(\d)/, '$1.$2');
-            if (digits.length > 5) formatted = formatted.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-            if (digits.length > 8) formatted = formatted.replace(/(\d{3})(\d{4})/, '$1/$2');
-            if (digits.length > 12) formatted = formatted.replace(/(\d{4})(\d{2})$/, '$1-$2');
+            var parts = [digits.slice(0, 2), digits.slice(2, 5), digits.slice(5, 8), digits.slice(8, 12), digits.slice(12, 14)].filter(Boolean);
+            var formatted = (parts[0] || '');
+            if (parts[1]) formatted += '.' + parts[1];
+            if (parts[2]) formatted += '.' + parts[2];
+            if (parts[3]) formatted += '/' + parts[3];
+            if (parts[4]) formatted += '-' + parts[4];
             $(this).val(formatted);
         });
 

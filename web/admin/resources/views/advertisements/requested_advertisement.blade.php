@@ -275,8 +275,8 @@
                                         month: 'long',
                                         day: 'numeric'
                                     };
-                                    const startDate = childData.startDate.toDate().toLocaleDateString('en-US', options);
-                                    const endDate = childData.endDate.toDate().toLocaleDateString('en-US', options);
+                                    const startDate = childData.startDate.toDate().toLocaleDateString('pt-BR', options);
+                                    const endDate = childData.endDate.toDate().toLocaleDateString('pt-BR', options);
                                     if(childData.vendorImage==''){
                                         var vendorImage=placeholderImage
                                     }else{

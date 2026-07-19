@@ -1050,7 +1050,7 @@ class IntercityHomeController extends GetxController {
           paymentSheetParameters: SetupPaymentSheetParameters(
             paymentIntentClientSecret: paymentIntentData['client_secret'],
             allowsDelayedPaymentMethods: false,
-            googlePay: const PaymentSheetGooglePay(merchantCountryCode: 'US', testEnv: true, currencyCode: "USD"),
+            googlePay: PaymentSheetGooglePay(merchantCountryCode: 'BR', testEnv: true, currencyCode: Constant.currencyModel?.code ?? "BRL"),
             customFlow: true,
             style: ThemeMode.system,
             appearance: PaymentSheetAppearance(colors: PaymentSheetAppearanceColors(primary: AppThemeData.primary300)),
@@ -1085,7 +1085,7 @@ class IntercityHomeController extends GetxController {
     try {
       Map<String, dynamic> body = {
         'amount': ((double.parse(amount) * 100).round()).toString(),
-        'currency': "USD",
+        'currency': Constant.currencyModel?.code ?? "BRL",
         'payment_method_types[]': 'card',
         "description": "Strip Payment",
         "shipping[name]": userModel.value.fullName(),
@@ -1164,7 +1164,7 @@ class IntercityHomeController extends GetxController {
                 {
                   "amount": {
                     "total": amount,
-                    "currency": "USD",
+                    "currency": Constant.currencyModel?.code ?? "BRL",
                     "details": {"subtotal": amount},
                   },
                 },
@@ -1382,7 +1382,7 @@ class IntercityHomeController extends GetxController {
         "order_id": orderId,
         "key_secret": paytmModel.value.pAYTMMERCHANTKEY,
         "amount": amount.toString(),
-        "currency": "INR",
+        "currency": Constant.currencyModel?.code ?? "BRL",
         "callback_url": callback,
         "custId": FireStoreUtils.getCurrentUid(),
         "issandbox": paytmModel.value.isSandboxEnabled == true ? "1" : "2",
@@ -1406,7 +1406,7 @@ class IntercityHomeController extends GetxController {
       'amount': amount * 100,
       'name': 'eMart',
       'order_id': orderId,
-      "currency": "INR",
+      "currency": Constant.currencyModel?.code ?? "BRL",
       'description': 'wallet Topup',
       'retry': {'enabled': true, 'max_count': 1},
       'send_sms_hash': true,
@@ -1501,7 +1501,7 @@ class IntercityHomeController extends GetxController {
     ShowToastDialog.showLoader("Please wait".tr);
     reset();
     var id = const Uuid().v4();
-    var paymentURL = await fetchToken(context: context, orderId: id, amount: amount, currency: 'USD');
+    var paymentURL = await fetchToken(context: context, orderId: id, amount: amount, currency: Constant.currencyModel?.code ?? 'BRL');
     ShowToastDialog.closeLoader();
     if (paymentURL.toString() != '') {
       Get.to(() => OrangeMoneyScreen(initialURl: paymentURL, accessToken: accessToken, amount: amount, orangePay: orangeMoneyModel.value, orderId: orderId, payToken: payToken))!.then((value) {

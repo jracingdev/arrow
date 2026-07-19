@@ -336,7 +336,7 @@
                                 month: 'long',
                                 day: 'numeric'
                             };
-                            const endDate = childData.endDate.toDate().toLocaleDateString('en-US', options);
+                            const endDate = childData.endDate.toDate().toLocaleDateString('pt-BR', options);
                             const ExpiryDate = childData.endDate;
                             if (ExpiryDate && new Date(ExpiryDate.seconds * 1000) < new Date()) {
                                 childData.status = 'Expired';
@@ -452,8 +452,8 @@
                 month: 'long',
                 day: 'numeric'
             };
-            const startDate = val.startDate.toDate().toLocaleDateString('en-US', options);
-            const endDate = val.endDate.toDate().toLocaleDateString('en-US', options);
+            const startDate = val.startDate.toDate().toLocaleDateString('pt-BR', options);
+            const endDate = val.endDate.toDate().toLocaleDateString('pt-BR', options);
             if (checkDeletePermission) {
                 html.push('<td class="delete-all"><input type="checkbox" id="is_open_' + id + '" class="is_open" dataId="' +
                     id + '"><label class="col-3 control-label"\n' +

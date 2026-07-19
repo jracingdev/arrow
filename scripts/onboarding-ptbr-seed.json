@@ -36,11 +36,59 @@
     "Start Driving & Earning": {
       "title": "Comece a dirigir e ganhar",
       "description": "Tenha acesso imediato aos pedidos e navegue com eficiência com nossas ferramentas."
+    },
+    "Simplify Your Workflow": {
+      "title": "Simplifique seu fluxo de trabalho",
+      "description": "Adicione serviços, atribua tarefas e acompanhe o progresso com facilidade."
+    },
+    "Simple Business Setup": {
+      "title": "Configuração simples do negócio",
+      "description": "Adicione seus produtos e gerencie pedidos com facilidade pelo nosso painel."
+    },
+    "Shop from Your Favorite Stores": {
+      "title": "Compre nas suas lojas favoritas",
+      "description": "Navegue e compre dos melhores vendedores, e receba seus pedidos rapidamente."
+    },
+    "Fast & Reliable Parcel Delivery": {
+      "title": "Entrega de encomendas rápida e confiável",
+      "description": "Envie pacotes para qualquer lugar com parceiros de entrega confiáveis."
+    },
+    "Build Your Dream Team": {
+      "title": "Monte a equipe dos seus sonhos",
+      "description": "Adicione e gerencie profissionais, atribua tarefas e impulsione a colaboração."
+    },
+    "All Your Needs in One App!": {
+      "title": "Tudo o que você precisa em um só app!",
+      "description": "De compras a corridas, aluguéis e entregas, o Arrow facilita sua vida."
+    },
+    "Rack orders, manage inventory, and grow your revenue right from day one.": {
+      "title": "Comece a atender clientes",
+      "description": "Acompanhe pedidos, gerencie o estoque e aumente seu faturamento desde o primeiro dia.",
+      "_note": "Mesmo texto-base de 'Start Serving Customers', porém com o typo 'Rack' (em vez de 'Track') encontrado em um dos documentos on_boarding com título já em PT."
+    }
+  },
+  "settings_patch": {
+    "Version": {
+      "app_version": "6.8",
+      "web_version": "6.8",
+      "_note": "Já está 6.8 em collections.json (settings/Version). Nenhuma ação necessária."
+    },
+    "languages": {
+      "add_if_missing": {
+        "slug": "pt_br",
+        "title": "Português (Brasil)",
+        "is_rtl": false,
+        "isActive": true,
+        "flag": "SUBSTITUA por uma URL de bandeira BR hospedada no seu Firebase Storage (ex.: copie o padrão das entradas 'en'/'ar' em settings/languages/list e faça upload de um ícone de bandeira do Brasil)."
+      },
+      "_note": "Adicionado em firebase/import-export/collections.json > settings > languages > list, ao lado de en/ar. Ajuste apenas o campo 'flag' com uma URL real antes de importar/publicar."
     }
   },
   "how_to_apply": [
-    "Opção A (recomendada se credentials.json do service account estiver válido): node scripts/update-onboarding-ptbr.js",
-    "Opção B: reimportar firebase/import-export/collections.json (já com textos PT nas entradas on_boarding).",
-    "Opção C: editar manualmente em Admin > Onboarding cada título/descrição."
+    "Opção A (recomendada se credentials.json do service account estiver válido): node scripts/update-onboarding-ptbr.js — requer Node.js instalado (não disponível neste ambiente de execução; instale Node LTS e rode 'node -v' para confirmar antes de executar).",
+    "Opção B (sem Node, mais simples): reimportar firebase/import-export/collections.json inteiro (já com todos os textos on_boarding em PT-BR e settings/languages com pt_br) via ferramenta de import do Firestore (ex.: firestore-import, ou o próprio botão de import do painel Admin, se existir).",
+    "Opção C (manual, sem Node/import): editar manualmente em Admin > Onboarding cada título/descrição listados acima (updates_by_english_title), e em Admin > Configurações > Idiomas adicionar 'Português (Brasil)' (slug pt_br) com uma bandeira BR.",
+    "Credenciais: firebase/import-export/credentials.json está com todos os campos vazios (placeholder). NÃO foram inventadas credenciais falsas. Para usar a Opção A, baixe o JSON da service account no Firebase Console (Configurações do projeto > Contas de serviço > Gerar nova chave privada) e cole os valores reais nesse arquivo antes de rodar o script. Nunca commite esse arquivo com credenciais reais — mantenha-o fora do controle de versão (.gitignore) após preenchê-lo.",
+    "Node.js: não encontrado no PATH deste ambiente ('node' não é reconhecido). Instale Node.js 18+ e rode 'npm install' (se houver package.json em scripts/) antes de executar update-onboarding-ptbr.js."
   ]
 }

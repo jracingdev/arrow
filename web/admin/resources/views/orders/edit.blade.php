@@ -2265,7 +2265,7 @@
                         reviewhtml = reviewhtml + '</div>';
                         reviewhtml = reviewhtml + '<div class="review-date ml-auto">';
                         if (val.createdAt != null && val.createdAt != "") {
-                            var review_date = val.createdAt.toDate().toLocaleDateString('en', {
+                            var review_date = val.createdAt.toDate().toLocaleDateString('pt-BR', {
                                 year: "numeric",
                                 month: "short",
                                 day: "numeric"
