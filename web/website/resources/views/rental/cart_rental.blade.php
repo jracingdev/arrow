@@ -10,7 +10,7 @@ if (@$rentalCarsData['decimal_degits']) {
         <div class="carbook-summary">
             <div class="carbook-summary-box mb-4">
                 <h3>{{trans('lang.pick_up_location')}}</h3>
-                <p><span class="icon"><i class="fa fa-calendar"></i></span> <?php echo date('d M Y, h:i A', strtotime($rentalCarsData['startDate'])); ?></p>
+                <p><span class="icon"><i class="fa fa-calendar"></i></span> <?php echo date('d-m-Y, H:i', strtotime($rentalCarsData['startDate'])); ?></p>
                 <p><span class="icon"><i class="fa fa-map-marker"></i></span> <?php echo @$rentalCarsData['pickLocation']; ?>
                 </p>
             </div>
