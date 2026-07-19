@@ -21,9 +21,13 @@ import 'package:get/get.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  FirebaseApp firebaseApp = await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Native google-services may already create [DEFAULT]; Dart Firebase.apps can still be empty.
+  late final FirebaseApp firebaseApp;
+  try {
+    firebaseApp = await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (_) {
+    firebaseApp = Firebase.app();
+  }
 
   if (currentEnv == FirebaseEnv.defaultDb) {
     FireStoreUtils.instance.init(firebaseApp);

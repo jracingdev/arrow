@@ -51,6 +51,12 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
 
+        <!-- Let Dart Firebase.initializeApp(options) own init (avoid stale/placeholder auto-init). -->
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:authorities="${applicationId}.firebaseinitprovider"
+            tools:node="remove" />
+
         <!-- Main Activity (Kotlin-based) -->
         <activity
             android:name="com.emart.customer.MainActivity"

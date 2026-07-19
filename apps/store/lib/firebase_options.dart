@@ -48,24 +48,23 @@ class DefaultFirebaseOptions {
     }
   }
 
+  // Client config from Firebase project j-arrow (same public web keys used by arrow.app.br).
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_ANDROID_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_ANDROID_PROJECT_ID',
-    databaseURL: 'YOUR_ANDROID_DATABASE_URL',
-    storageBucket: 'YOUR_ANDROID_STORAGE_BUCKET',
+    apiKey: 'AIzaSyDCjWM-AAnyO_quYy6_NnMcysURH2SSogw',
+    appId: '1:661081769489:web:7eea7bece5a655cfa4d3b0',
+    messagingSenderId: '661081769489',
+    projectId: 'j-arrow',
+    databaseURL: 'https://j-arrow-default-rtdb.firebaseio.com',
+    storageBucket: 'j-arrow.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'YOUR_IOS_API_KEY',
-    appId: 'YOUR_IOS_APP_ID',
-    messagingSenderId: 'YOUR_IOS_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_IOS_PROJECT_ID',
-    databaseURL: 'YOUR_IOS_DATABASE_URL',
-    storageBucket: 'YOUR_IOS_STORAGE_BUCKET',
-    androidClientId: 'YOUR_ANDROID_CLIENT_ID',
-    iosClientId: 'YOUR_IOS_CLIENT_ID',
-    iosBundleId: 'YOUR_IOS_BUNDLE_ID',
+    apiKey: 'AIzaSyDCjWM-AAnyO_quYy6_NnMcysURH2SSogw',
+    appId: '1:661081769489:web:7eea7bece5a655cfa4d3b0',
+    messagingSenderId: '661081769489',
+    projectId: 'j-arrow',
+    databaseURL: 'https://j-arrow-default-rtdb.firebaseio.com',
+    storageBucket: 'j-arrow.firebasestorage.app',
+    iosBundleId: 'com.emart.store',
   );
 }

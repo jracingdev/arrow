@@ -35,11 +35,12 @@ class SplashController extends GetxController {
   }
 
   Future<void> redirectScreen() async {
-    getLanguage();
-    if (await FireStoreUtils.isMaintenanceMode() == true) {
-      Get.offAll(() => MaintenanceModeScreen());
-      return;
-    } else {
+    try {
+      getLanguage();
+      if (await FireStoreUtils.isMaintenanceMode() == true) {
+        Get.offAll(() => MaintenanceModeScreen());
+        return;
+      }
       if (Preferences.getBoolean(Preferences.isFinishOnBoardingKey) == false) {
         Get.offAll(const OnboardingScreen());
       } else {
@@ -51,7 +52,9 @@ class SplashController extends GetxController {
               log(userModel.toJson().toString());
               if (userModel.role == Constant.userRoleCustomer) {
                 if (userModel.active == true) {
-                  userModel.fcmToken = await NotificationService.getToken();
+                  try {
+                    userModel.fcmToken = await NotificationService.getToken();
+                  } catch (_) {}
                   await FireStoreUtils.updateUser(userModel);
                   if (userModel.shippingAddress != null && userModel.shippingAddress!.isNotEmpty) {
                     if (userModel.shippingAddress!.where((element) => element.isDefault == true).isNotEmpty) {
@@ -71,6 +74,9 @@ class SplashController extends GetxController {
                 await FirebaseAuth.instance.signOut();
                 Get.offAll(const LoginScreen());
               }
+            } else {
+              await FirebaseAuth.instance.signOut();
+              Get.offAll(const LoginScreen());
             }
           });
         } else {
@@ -78,6 +84,9 @@ class SplashController extends GetxController {
           Get.offAll(const LoginScreen());
         }
       }
+    } catch (e, st) {
+      log('splash redirect failed: $e\n$st');
+      Get.offAll(const LoginScreen());
     }
   }
 }

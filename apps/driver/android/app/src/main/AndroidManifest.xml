@@ -20,6 +20,11 @@
         tools:replace="android:label"
         android:enableOnBackInvokedCallback="true"
     >
+        <!-- Let Dart Firebase.initializeApp(options) own init (avoid stale/placeholder auto-init). -->
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:authorities="${applicationId}.firebaseinitprovider"
+            tools:node="remove" />
 
         <activity
             android:name=".MainActivity"

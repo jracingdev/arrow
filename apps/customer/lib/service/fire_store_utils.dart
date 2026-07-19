@@ -189,12 +189,19 @@ class FireStoreUtils {
   }
 
   static Future<bool> isMaintenanceMode() async {
-    bool isMaintenance = false;
-    await fireStore.collection(CollectionName.settings).doc('maintenance_settings').get().then((value) async {
-      isMaintenance = value.data()?['isMaintenanceModeForCustomer'] == true;
+    try {
+      final value = await fireStore
+          .collection(CollectionName.settings)
+          .doc('maintenance_settings')
+          .get()
+          .timeout(const Duration(seconds: 15));
+      final isMaintenance = value.data()?['isMaintenanceModeForCustomer'] == true;
       log("isMaintenance :: $isMaintenance");
-    });
-    return isMaintenance;
+      return isMaintenance;
+    } catch (e) {
+      log("isMaintenanceMode error: $e");
+      return false;
+    }
   }
 
   static Future<List<OnBoardingModel>> getOnBoardingList() async {

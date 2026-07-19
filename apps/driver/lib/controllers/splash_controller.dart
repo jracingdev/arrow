@@ -22,43 +22,52 @@ class SplashController extends GetxController {
   }
 
   Future<void> redirectScreen() async {
-    if (await FireStoreUtils.isMaintenanceMode() == true) {
-      Get.offAll(() => MaintenanceModeScreen());
-      return;
-    } else {
+    try {
+      if (await FireStoreUtils.isMaintenanceMode() == true) {
+        Get.offAll(() => MaintenanceModeScreen());
+        return;
+      }
       if (Preferences.getBoolean(Preferences.isFinishOnBoardingKey) == false) {
         Get.offAll(const OnboardingScreen());
-      } else {
-        bool isLogin = await FireStoreUtils.isLogin();
-        if (isLogin == true) {
-          await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid()).then((value) async {
-            if (value != null) {
-              UserModel userModel = value;
-              log(userModel.toJson().toString());
-              if (userModel.role == Constant.userRoleDriver) {
-                if (userModel.active == true) {
+        return;
+      }
+      bool isLogin = await FireStoreUtils.isLogin();
+      if (isLogin == true) {
+        await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid()).then((value) async {
+          if (value != null) {
+            UserModel userModel = value;
+            log(userModel.toJson().toString());
+            if (userModel.role == Constant.userRoleDriver) {
+              if (userModel.active == true) {
+                try {
                   userModel.fcmToken = await NotificationService.getToken();
-                  await FireStoreUtils.updateUser(userModel);
-                  if (userModel.isOwner == true) {
-                    Get.offAll(OwnerDashboardScreen());
-                  } else {
-                    SignupController.navigateByUserModel(userModel);
-                  }
+                } catch (_) {}
+                await FireStoreUtils.updateUser(userModel);
+                if (userModel.isOwner == true) {
+                  Get.offAll(OwnerDashboardScreen());
                 } else {
-                  await FirebaseAuth.instance.signOut();
-                  Get.offAll(const LoginScreen());
+                  SignupController.navigateByUserModel(userModel);
                 }
               } else {
                 await FirebaseAuth.instance.signOut();
                 Get.offAll(const LoginScreen());
               }
+            } else {
+              await FirebaseAuth.instance.signOut();
+              Get.offAll(const LoginScreen());
             }
-          });
-        } else {
-          await FirebaseAuth.instance.signOut();
-          Get.offAll(const LoginScreen());
-        }
+          } else {
+            await FirebaseAuth.instance.signOut();
+            Get.offAll(const LoginScreen());
+          }
+        });
+      } else {
+        await FirebaseAuth.instance.signOut();
+        Get.offAll(const LoginScreen());
       }
+    } catch (e, st) {
+      log('splash redirect failed: $e\n$st');
+      Get.offAll(const LoginScreen());
     }
   }
 }
