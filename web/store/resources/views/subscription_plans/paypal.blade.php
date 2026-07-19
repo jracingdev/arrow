@@ -91,7 +91,7 @@
          }
      </style>
      <?php } ?>
-<script src="https://www.paypal.com/sdk/js?client-id=<?php echo $paypalKey; ?>&currency=USD"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=<?php echo $paypalKey; ?>&currency=<?php echo $cart_order['currencyData']['code'] ?? 'USD'; ?>"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <div class="siddhi-checkout siddhi-checkout-payment">
     <div class="container position-relative">

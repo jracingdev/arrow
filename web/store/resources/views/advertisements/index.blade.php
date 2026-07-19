@@ -233,8 +233,8 @@
                                 month: 'long',
                                 day: 'numeric'
                             };
-                            const startDate = childData.startDate.toDate().toLocaleDateString('en-US', options);
-                            const endDate = childData.endDate.toDate().toLocaleDateString('en-US', options);
+                            const startDate = childData.startDate.toDate().toLocaleDateString('pt-BR', options);
+                            const endDate = childData.endDate.toDate().toLocaleDateString('pt-BR', options);
                             const ExpiryDate = childData.endDate;
                             if (childData.status == 'approved') {
                                 if (ExpiryDate && new Date(ExpiryDate.seconds * 1000) < new Date()) {
@@ -341,8 +341,8 @@
                 month: 'long',
                 day: 'numeric'
             };
-            const startDate = val.startDate.toDate().toLocaleDateString('en-US', options);
-            const endDate = val.endDate.toDate().toLocaleDateString('en-US', options);
+            const startDate = val.startDate.toDate().toLocaleDateString('pt-BR', options);
+            const endDate = val.endDate.toDate().toLocaleDateString('pt-BR', options);
 
             html.push('<td class="delete-all"><input type="checkbox" id="is_open_' + id + '" class="is_open" dataId="' +
                 id + '"><label class="col-3 control-label"\n' +

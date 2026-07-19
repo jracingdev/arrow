@@ -25,7 +25,7 @@
                                                         data-key="{{ $razorpayKey }}"
                                                         data-amount="{{$amount*100}}"
                                                         data-buttontext="Pay ${{$amount}}"
-                                                        data-name="{{env('APP_NAME', 'GroMart')}}"
+                                                        data-name="{{env('APP_NAME', 'Arrow')}}"
                                                         data-description="Rozerpay"
                                                         data-image="https://www.itsolutionstuff.com/frontTheme/images/logo.png"
                                                         data-prefill.name="{{$authorName}}"

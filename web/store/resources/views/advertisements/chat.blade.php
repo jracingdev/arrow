@@ -89,7 +89,7 @@
 
                 if (data.createdAt && data.createdAt.toDate) {
                     const date = data.createdAt.toDate();
-                    const formattedTime = date.toLocaleString('en-IN', {
+                    const formattedTime = date.toLocaleString('pt-BR', {
                         hour: '2-digit',
                         minute: '2-digit',
                         hour12: false,

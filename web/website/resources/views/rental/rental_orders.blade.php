@@ -576,7 +576,7 @@
                                         <h3>{{trans("lang.pick_up")}}</h3>
                                         <p>
                                             <img src="../img/time-icon.png"> 
-                                            ${val.bookingDateTime.toDate().toLocaleString('en-US', {
+                                            ${val.bookingDateTime.toDate().toLocaleString('pt-BR', {
                                                 year: 'numeric',
                                                 month: 'short',
                                                 day: '2-digit',
@@ -780,7 +780,7 @@
                                         <h3>{{trans("lang.pick_up")}}</h3>
                                         <p>
                                             <img src="../img/time-icon.png"> 
-                                            ${val.bookingDateTime.toDate().toLocaleString('en-US', {
+                                            ${val.bookingDateTime.toDate().toLocaleString('pt-BR', {
                                                 year: 'numeric',
                                                 month: 'short',
                                                 day: '2-digit',
@@ -972,7 +972,7 @@
                                         <h3>{{trans("lang.pick_up")}}</h3>
                                         <p>
                                             <img src="../img/time-icon.png"> 
-                                            ${val.bookingDateTime.toDate().toLocaleString('en-US', {
+                                            ${val.bookingDateTime.toDate().toLocaleString('pt-BR', {
                                                 year: 'numeric',
                                                 month: 'short',
                                                 day: '2-digit',

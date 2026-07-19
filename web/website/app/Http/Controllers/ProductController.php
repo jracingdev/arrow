@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -792,7 +792,7 @@ class ProductController extends Controller
         $decimals = $currency['decimal_degits'] ?? 2;
         $symbolAtRight = filter_var($currency['symbolAtRight'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $formatted = number_format($amount, $decimals);
+        $formatted = number_format($amount, $decimals, ',', '.');
 
         return $symbolAtRight
             ? $formatted . ' ' . $symbol

@@ -683,7 +683,7 @@
             $('.discount_').html(getFormattedPrice(parseFloat(order_discount)));
             $('.platform_charge_').html(getFormattedPrice(parseFloat(platformFee)));
             $('.total_').html(getFormattedPrice(parseFloat(order_total)));
-            $('.pickup').html(order.bookingDateTime.toDate().toLocaleString('en-US', {
+            $('.pickup').html(order.bookingDateTime.toDate().toLocaleString('pt-BR', {
                 year: 'numeric',
                 month: 'short',
                 day: '2-digit',

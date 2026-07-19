@@ -161,8 +161,8 @@
                 month: 'long',
                 day: 'numeric'
             };
-            var startDate = data.startDate.toDate().toLocaleDateString('en-US', options);
-            var endDate = data.endDate.toDate().toLocaleDateString('en-US', options);
+            var startDate = data.startDate.toDate().toLocaleDateString('pt-BR', options);
+            var endDate = data.endDate.toDate().toLocaleDateString('pt-BR', options);
             $('#duration').html(startDate + '-' + endDate);
             startDate = new Date(data.startDate.seconds * 1000);
             endDate = new Date(data.endDate.seconds * 1000);

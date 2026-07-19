@@ -1410,7 +1410,54 @@
                     });
             }
         })
-      
+
+        function isValidCnpj(cnpj) {
+            if (!cnpj || cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
+            var calc = function(len) {
+                var weights = len === 12 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2] : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+                var sum = 0;
+                for (var i = 0; i < len; i++) sum += parseInt(cnpj.charAt(i), 10) * weights[i];
+                var r = sum % 11;
+                return r < 2 ? 0 : 11 - r;
+            };
+            return calc(12) === parseInt(cnpj.charAt(12), 10) && calc(13) === parseInt(cnpj.charAt(13), 10);
+        }
+
+        $(".vendor_cnpj").on("input", function() {
+            var digits = $(this).val().replace(/\D/g, '').slice(0, 14);
+            var formatted = digits;
+            if (digits.length > 2) formatted = digits.replace(/^(\d{2})(\d)/, '$1.$2');
+            if (digits.length > 5) formatted = formatted.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+            if (digits.length > 8) formatted = formatted.replace(/(\d{3})(\d{4})/, '$1/$2');
+            if (digits.length > 12) formatted = formatted.replace(/(\d{4})(\d{2})$/, '$1-$2');
+            $(this).val(formatted);
+        });
+
+        $(".vendor_cep").on("input", function() {
+            var digits = $(this).val().replace(/\D/g, '').slice(0, 8);
+            var formatted = digits.length > 5 ? digits.replace(/^(\d{5})(\d)/, '$1-$2') : digits;
+            $(this).val(formatted);
+        });
+
+        $(".vendor_cep").on("blur", function() {
+            var cep = $(this).val().replace(/\D/g, '');
+
+            if (cep.length !== 8) {
+                return;
+            }
+
+            $.getJSON("https://viacep.com.br/ws/" + cep + "/json/")
+                .done(function(data) {
+                    if (data && !data.erro && $(".vendor_address").val() == '') {
+                        var parts = [data.logradouro, data.bairro, data.localidade, data.uf].filter(Boolean);
+                        $(".vendor_address").val(parts.join(', '));
+                    }
+                })
+                .fail(function() {
+                    // Falha silenciosa: preenchimento automático é apenas um auxílio, o campo continua editável manualmente.
+                });
+        });
+
         $(".save_vendor_btn").click(async function(e) {
             e.preventDefault();            
             $(".error_top").hide();
@@ -1426,6 +1473,8 @@
             var longitude = parseFloat($(".vendor_longitude").val());
             var description = $(".vendor_description").val();
             var phonenumber = $(".vendor_phone").val();
+            var vendorCnpj = ($(".vendor_cnpj").val() || '').replace(/\D/g, '');
+            var vendorCep = ($(".vendor_cep").val() || '').replace(/\D/g, '');
             var userFirstName = $(".user_first_name").val();
             var userLastName = $(".user_last_name").val();
             var email = $(".user_email").val();
@@ -1612,6 +1661,12 @@
                 $(".error_top").html("<p>{{ trans('lang.vendor_phone_error') }}</p>");
                 window.scrollTo(0, 0);
                 return false;
+            } else if (vendorCnpj !== '' && !isValidCnpj(vendorCnpj)) {
+                jQuery("#data-table_processing").hide();
+                $(".error_top").show();
+                $(".error_top").html("<p>{{ trans('lang.cnpj_invalid') }}</p>");
+                window.scrollTo(0, 0);
+                return false;
             } else if (zoneId == '') {
                 jQuery("#data-table_processing").hide();
                 $(".error_top").show();
@@ -1750,8 +1805,8 @@
                     'section_id': section_id,
                     'categoryID': cuisines,
                     'phonenumber': phonenumber,
-                    'cnpj': ($(".vendor_cnpj").val() || '').replace(/\D/g, ''),
-                    'postalCode': ($(".vendor_cep").val() || '').replace(/\D/g, ''),
+                    'cnpj': vendorCnpj,
+                    'postalCode': vendorCep,
                     'categoryTitle': categoryTitle,
                     'coordinates': coordinates,
                     'authorName': userFirstName,
