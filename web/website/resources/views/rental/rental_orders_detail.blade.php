@@ -944,9 +944,9 @@
         wallet_amount = wallet_amount.toFixed(decimal_degits);
         
         if (currencyAtRight) {
-            $('#wallet_box').text('Wallet ( You have ' + wallet_amount + currentCurrency + ' )');
+            $('#wallet_box').text("{{ trans('lang.wallet_available') }} " + wallet_amount + currentCurrency + ' )');
         } else {
-            $('#wallet_box').text('Wallet ( You have ' + currentCurrency + wallet_amount + ' )');
+            $('#wallet_box').text("{{ trans('lang.wallet_available') }} " + currentCurrency + wallet_amount + ' )');
         }
     }
 
@@ -972,11 +972,11 @@
             var payment_method = $('#payment').val();
             
             if (payment_method == "") {
-                alert("Please Select Payment Method!");
+                alert("{{ trans('lang.please_select_payment_method_exclaim') }}");
                 return false;
             }
             if (payment_method == "wallet" && wallet_amount < total_pay) {
-                alert("You don't have sufficient balance");
+                alert("{{ trans('lang.you_dont_have_sufficient_balance') }}");
                 return false;
             }
 
@@ -1178,7 +1178,7 @@
             } else if (payment_method == "xendit") {
 
                     if (!['IDR', 'PHP', 'USD', 'VND', 'THB', 'MYR', 'SGD'].includes(currencyData.code)) {
-                        alert("Currency restriction");
+                        alert("{{ trans('lang.currency_restriction') }}");
                         return false;
                     }
                     var xendit_enable = $("#xendit_enable").val();

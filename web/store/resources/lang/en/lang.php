@@ -1082,5 +1082,6 @@ return [
     'cnpj_invalid' => 'Invalid CNPJ. Please check the number.',
     'cep' => 'CEP',
     'cep_help' => 'Optional. Brazilian postal code (8 digits).',
+    'please_enter_otp' => 'Please Enter OTP',
 ];
 ?>

@@ -89,12 +89,12 @@ session_start();
             jQuery('.currency-symbol-left').hide();
             jQuery('.currency-symbol-right').show();
             jQuery('.currency-symbol-right').text(currentCurrency);
-            $('#wallet_box').text('Wallet ( You have ' + currentCurrency + '0 )');
+            $('#wallet_box').text("{{ trans('lang.wallet_available') }} " + currentCurrency + '0 )');
         } else {
             jQuery('.currency-symbol-left').show();
             jQuery('.currency-symbol-right').hide();
             jQuery('.currency-symbol-left').text(currentCurrency);
-            $('#wallet_box').text('Wallet ( You have 0' + currentCurrency + ' )');
+            $('#wallet_box').text("{{ trans('lang.wallet_available') }} 0" + currentCurrency + ' )');
         }
     }
 
@@ -241,7 +241,7 @@ session_start();
             } else {
                 userWalletAmount = currentCurrency + "" + userWalletAmount;
             }
-            $('#wallet_box').text('Wallet ( You have ' + userWalletAmount + ')');
+            $('#wallet_box').text("{{ trans('lang.wallet_available') }} " + userWalletAmount + ')');
             $("#wallet_amount").html(userWalletAmount);
             if (rentalVehicleTypeDetails.hasOwnProperty('carInfo')) {
                 var carInfo = rentalVehicleTypeDetails.carInfo;

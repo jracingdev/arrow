@@ -386,13 +386,13 @@
         if (currencyAtRight) {
             jQuery('.currency-symbol-left').hide();
             jQuery('.currency-symbol-right').show();
-            $('#wallet_box').text('Wallet ( You have ' + wallet_amount + currentCurrency + ' )');
+            $('#wallet_box').text("{{ trans('lang.wallet_available') }} " + wallet_amount + currentCurrency + ' )');
             jQuery('.currency-symbol-right').text(currentCurrency);
         } else {
             jQuery('.currency-symbol-left').show();
             jQuery('.currency-symbol-right').hide();
             jQuery('.currency-symbol-left').text(currentCurrency);
-            $('#wallet_box').text('Wallet ( You have ' + currentCurrency + wallet_amount + ' )');
+            $('#wallet_box').text("{{ trans('lang.wallet_available') }} " + currentCurrency + wallet_amount + ' )');
         }
     }
 

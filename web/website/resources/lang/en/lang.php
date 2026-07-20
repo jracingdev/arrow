@@ -914,5 +914,12 @@ return [
     'cnpj_invalid' => 'Invalid CNPJ. Please check the number.',
     'cep' => 'CEP',
     'cep_help' => 'Optional. Brazilian postal code (8 digits).',
+    'please_select_your_address' => 'Please select your address',
+    'please_select_your_section' => 'Please select your section',
+    'email_address_already_exist' => 'Email address already exist',
+    'only_formats_are_allowed' => 'Only formats are allowed : :formats',
+    'file_size_not_allowed_more_than_2mb' => 'File size not allowed more than 2 MB',
+    'you_dont_have_sufficient_balance' => "You don't have sufficient balance",
+    'please_select_payment_method_exclaim' => 'Please Select Payment Method!',
 ];
 

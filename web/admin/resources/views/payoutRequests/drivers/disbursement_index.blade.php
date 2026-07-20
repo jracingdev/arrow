@@ -806,7 +806,7 @@
                     });
                 }
             } else {
-                alert('Driver not found.');
+                alert("{{ trans('lang.driver_not_found') }}");
             }
         });
     });

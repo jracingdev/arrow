@@ -820,11 +820,11 @@
                         if ($('#attributes').val().length > 0) {
                             var attributes = $.parseJSON($('#attributes').val());
                         } else {
-                            alert('Please add your attribute value');
+                            alert("{{ trans('lang.please_add_attribute_value') }}");
                             return false;
                         }
                         if ($("#item_attribute").val().length !== attributes.length) {
-                            alert('Please add your attribute value');
+                            alert("{{ trans('lang.please_add_attribute_value') }}");
                             return false;
                         }
                     }
@@ -880,12 +880,12 @@
                     if (attributes.length > 0 && variants.length > 0) {
                         if (quantityerror > 0) {
                             alert(
-                                'Please add your variants quantity it should be -1 or greater than -1'
+                                "{{ trans('lang.please_add_variants_quantity') }}"
                             );
                             return false;
                         }
                         if (priceerror > 0) {
-                            alert('Please add your variants  Price');
+                            alert("{{ trans('lang.please_add_variants_price') }}");
                             return false;
                         }
                         var item_attribute = {
@@ -1153,7 +1153,7 @@
                     '" disabled ></div><div class="col-2"><button class="btn" type="button" onclick="deleteAddOnesSingle(' +
                     index + ')"><span class="fa fa-trash"></span></button></div></div>');
             } else {
-                alert("Please enter Title and Price");
+                alert("{{ trans('lang.enter_title_and_price_error') }}");
             }
         }
         function saveProductSpecificationFunction() {
@@ -1171,7 +1171,7 @@
                     '" disabled ></div><div class="col-2"><button class="btn" type="button" onclick=deleteProductSpecificationSingle("' +
                     optionlabel + '")><span class="fa fa-trash"></span></button></div></div>');
             } else {
-                alert("Please enter Label and Value");
+                alert("{{ trans('lang.please_enter_label_and_value') }}");
             }
         }
         function deleteAddOnesSingle(index) {

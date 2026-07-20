@@ -92,7 +92,7 @@
           window.location.href = '{{ route("vendorFilters") }}';
         })
       } else {
-        alert("Filter name or filter options should not be blank");
+        alert("{{ trans('lang.filter_name_or_options_blank') }}");
       }
 
 

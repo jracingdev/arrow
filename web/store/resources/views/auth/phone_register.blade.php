@@ -440,7 +440,7 @@
             function applicationVerifier() {
                 var code = $('#verificationcode').val();
                 if (code == "") {
-                    $('.otp_error').html('Please Enter OTP')
+                    $('.otp_error').html("{{ trans('lang.please_enter_otp') }}")
                 } else {
                     window.confirmationResult.confirm(document.getElementById("verificationcode").value)
                         .then(async function(result) {

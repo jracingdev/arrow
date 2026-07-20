@@ -1139,11 +1139,11 @@
         var fileExtension = ['jpeg', 'jpg', 'png'];
         var extension = f.name.replace(/^.*\./, '');
         if ($.inArray(extension, fileExtension) == -1) {
-            alert("Only formats are allowed : " + fileExtension.join(', '));
+            alert(("{{ trans('lang.only_formats_are_allowed') }}").replace(":formats", fileExtension.join(', ')));
             return false;
         }
         if (f.size > 2000000) {
-            alert("File size not allowed more than 2 MB");
+            alert("{{ trans('lang.file_size_not_allowed_more_than_2mb') }}");
             return false;
         }
         reader.onload = (function(theFile) {

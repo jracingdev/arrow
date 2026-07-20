@@ -329,7 +329,7 @@ return vendorName;
 
 $(document).on("click","a[name='item-review-delete']", function (e) {
     var id = this.id;
-    alert("This is for demo, We can't allow to delete");
+    alert("{{ trans('lang.this_is_for_demo_we_can_not_allow_to_delete') }}");
    
 
 

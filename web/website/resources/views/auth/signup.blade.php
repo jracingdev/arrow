@@ -330,7 +330,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                 success: function (res) {
                     if (res.exist == "yes") {
                         $("#email_valid").val(0);
-                        alert('Email address already exist');
+                        alert("{{ trans('lang.email_address_already_exist') }}");
                         $("#email").focus();
                         return false;
                     } else {

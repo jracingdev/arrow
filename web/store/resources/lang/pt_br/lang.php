@@ -1260,5 +1260,6 @@ return [
     'canceled_ride' => 'Corrida cancelada',
     'order_assigned' => 'Pedido atribuído',
     'Permission' => 'Permissão',
+    'please_enter_otp' => 'Digite o código OTP',
 ];
 ?>

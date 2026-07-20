@@ -894,11 +894,11 @@
                         if ($('#attributes').val().length > 0) {
                             var attributes = $.parseJSON($('#attributes').val());
                         } else {
-                            alert('Please add your attribute value');
+                            alert("{{ trans('lang.please_add_attribute_value') }}");
                             return false;
                         }
                         if ($("#item_attribute").val().length !== attributes.length) {
-                            alert('Please add your attribute value');
+                            alert("{{ trans('lang.please_add_attribute_value') }}");
                             return false;
                         }
                     }
@@ -949,15 +949,15 @@
 
                     if (attributes.length > 0 && variants.length > 0) {
                         if (error > 0) {
-                            alert('Please add your variants price');
+                            alert("{{ trans('lang.please_add_variants_price') }}");
                             return false;
                         }
                         if (quantityerror > 0) {
-                            alert('Please add your variants quantity it should be -1 or greater than -1');
+                            alert("{{ trans('lang.please_add_variants_quantity') }}");
                             return false;
                         }
                         if (priceerror > 0) {
-                            alert('Please add your variants  Price');
+                            alert("{{ trans('lang.please_add_variants_price') }}");
                             return false;
                         }
                         var item_attribute = {
@@ -1357,7 +1357,7 @@
                 $(".product_specification").append('<div class="row" style="margin-top:5px;" id="add_product_specification_iteam_' + optionlabel + '"><div class="col-5"><input class="form-control" type="text" value="' + optionlabel + '" disabled ></div><div class="col-5"><input class="form-control" type="text" value="' + optionvalue + '" disabled ></div><div class="col-2"><button class="btn" type="button" onclick=deleteProductSpecificationSingle("' + optionlabel +
                     '")><span class="fa fa-trash"></span></button></div></div>');
             } else {
-                alert("Please enter Label and Value");
+                alert("{{ trans('lang.please_enter_label_and_value') }}");
             }
         }
         function deleteAddOnesSingle(index) {

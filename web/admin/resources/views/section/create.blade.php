@@ -539,7 +539,7 @@
                     'image/gif'
                 ];
                 if (!allowedTypes.includes(contentType)) {
-                    throw "Please upload only JPG, JPEG, PNG, or GIF images.";
+                    throw "{{ trans('lang.upload_only_jpg_jpeg_png_gif') }}";
                 }
                 const base64Data = photo.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, "");
                 const uploadTask = await storageRef.child(fileName).putString(base64Data, 'base64', {

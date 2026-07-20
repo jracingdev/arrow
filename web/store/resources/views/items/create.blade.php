@@ -1194,7 +1194,7 @@
                     '" disabled ></div><div class="col-2"><button class="btn" type="button" onclick="deleteAddOnesSingle(' +
                     index + ')"><span class="fa fa-trash"></span></button></div></div>');
             } else {
-                alert("Please enter Title and Price");
+                alert("{{ trans('lang.please_enter_title_and_price') }}");
             }
         }
 
@@ -1226,7 +1226,7 @@
                     '" disabled ></div><div class="col-2"><button class="btn" type="button" onclick=deleteProductSpecificationSingle("' +
                     optionlabel + '")><span class="fa fa-trash"></span></button></div></div>');
             } else {
-                alert("Please enter Label and Value");
+                alert("{{ trans('lang.please_enter_label_and_value') }}");
             }
         }
 

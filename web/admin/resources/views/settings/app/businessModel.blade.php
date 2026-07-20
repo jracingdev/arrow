@@ -444,7 +444,7 @@
 
                     if (sectionId == '') {
 
-                        Swal.fire('Please select section!', '', 'warning');
+                        Swal.fire("{{ trans('lang.please_select_section_exclaim') }}", '', 'warning');
 
                         return false;
 
@@ -572,7 +572,7 @@
 
                         } else {
 
-                            Swal.fire('No vendors selected or found!', '', 'warning');
+                            Swal.fire("{{ trans('lang.no_vendors_selected_or_found') }}", '', 'warning');
 
                         }
 

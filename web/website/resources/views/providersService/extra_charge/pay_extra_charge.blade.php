@@ -636,7 +636,7 @@
             });
         } else if (payment_method == "xendit") {
             if (!['IDR', 'PHP', 'USD', 'VND', 'THB', 'MYR', 'SGD'].includes(currencyData.code)) {
-                alert("Currency restriction");
+                alert("{{ trans('lang.currency_restriction') }}");
                 return false;
             }
             var xendit_enable = $("#xendit_enable").val();

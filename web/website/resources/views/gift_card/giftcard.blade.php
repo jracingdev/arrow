@@ -869,7 +869,7 @@
 
             if (currencyData && currencyData.code) {
                 if (!['IDR', 'PHP', 'USD', 'VND', 'THB', 'MYR', 'SGD'].includes(currencyData.code)) {
-                    alert("Currency restriction");
+                    alert("{{ trans('lang.currency_restriction') }}");
                     return false;
                 }
             }

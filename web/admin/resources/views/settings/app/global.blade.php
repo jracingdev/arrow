@@ -730,7 +730,7 @@
                 var tax_scope = $('#tax_scope').val();
                 
                 if (applicationName == '') {
-                    alert("Please enter application name");
+                    alert("{{ trans('lang.enter_application_name_error') }}");
                 } else if (minimumDepositToRideAccept == '' || ownerMinimumDepositToRideAccept == '') {
                     $(".error_top").show();
                     $(".error_top").html("");
@@ -780,7 +780,7 @@
                 } else if (defaultCountryCode == '') {
                     $(".error_top").show();
                     $(".error_top").html("");
-                    $(".error_top").append("<p>Please enter default country</p>");
+                    $(".error_top").append("<p>{{ trans('lang.enter_default_country_error') }}</p>");
                     window.scrollTo(0, 0);
                 } else if (api_secure_key == '') {
                     $(".error_top").show();
@@ -1042,7 +1042,7 @@
             if (!allowedExtensions.exec(audioValue)) {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Error: Invalid audio type</p>");
+                $(".error_top").append("<p>{{ trans('lang.invalid_audio_type') }}</p>");
                 window.scrollTo(0, 0);
                 isAudio.value = '';
                 return false;

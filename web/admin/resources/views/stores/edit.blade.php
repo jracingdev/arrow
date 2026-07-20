@@ -1865,7 +1865,7 @@
             if (!allowedExtensions.exec(videoValue)) {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Error: Invalid video type</p>");
+                $(".error_top").append("<p>{{ trans('lang.invalid_video_type') }}</p>");
                 window.scrollTo(0, 0);
                 isVideo.value = '';
                 return false;
@@ -1884,7 +1884,7 @@
                 if (videoDurationTime > storevideoDuration) {
                     $(".error_top").show();
                     $(".error_top").html("");
-                    $(".error_top").append("<p>Error: Story video duration maximum allow to " + storevideoDuration + " seconds</p>");
+                    $(".error_top").append("<p>" + ("{{ trans('lang.story_video_duration_max') }}").replace(":seconds", storevideoDuration) + "</p>");
                     window.scrollTo(0, 0);
                     evt.target.value = '';
                     return false;
@@ -2017,7 +2017,7 @@
             if (!allowedExtensions.exec(filePath)) {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Error: Invalid File type</p>");
+                $(".error_top").append("<p>{{ trans('lang.invalid_file_type') }}</p>");
                 window.scrollTo(0, 0);
                 fileInput.value = '';
                 return false;
@@ -2255,27 +2255,27 @@
             if (openTime == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Please enter special offer start time</p>");
+                $(".error_top").append("<p>{{ trans('lang.please_enter_special_offer_start_time') }}</p>");
                 window.scrollTo(0, 0);
             } else if (closeTime == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Please enter special offer close time</p>");
+                $(".error_top").append("<p>{{ trans('lang.please_enter_special_offer_close_time') }}</p>");
                 window.scrollTo(0, 0);
             } else if (openTime > closeTime) {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Close time can not be less than Open time</p>");
+                $(".error_top").append("<p>{{ trans('lang.close_time_can_not_be_less_than_open_time') }}</p>");
                 window.scrollTo(0, 0);
             } else if (discount == "") {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Please Enter discount</p>");
+                $(".error_top").append("<p>{{ trans('lang.please_enter_discount') }}</p>");
                 window.scrollTo(0, 0);
             } else if (discount > 100 || discount == 0) {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Please Enter valid discount</p>");
+                $(".error_top").append("<p>{{ trans('lang.please_enter_valid_discount') }}</p>");
                 window.scrollTo(0, 0);
             } else {
 
@@ -2331,7 +2331,7 @@
                 if (isDuplicate) {
                     $(".error_top").show();
                     $(".error_top").html("");
-                    $(".error_top").append("<p>This time slot for " + type + " already exists. Please select a different time slot.</p>");
+                    $(".error_top").append("<p>" + ("{{ trans('lang.time_slot_already_exists') }}").replace(":type", type) + "</p>");
                     window.scrollTo(0, 0);
                 } else {
 
@@ -2379,27 +2379,27 @@
             if (openTime == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Please enter special offer start time</p>");
+                $(".error_top").append("<p>{{ trans('lang.please_enter_special_offer_start_time') }}</p>");
                 window.scrollTo(0, 0);
             } else if (closeTime == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Please enter special offer close time</p>");
+                $(".error_top").append("<p>{{ trans('lang.please_enter_special_offer_close_time') }}</p>");
                 window.scrollTo(0, 0);
             } else if (openTime > closeTime) {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Close time can not be less than Open time</p>");
+                $(".error_top").append("<p>{{ trans('lang.close_time_can_not_be_less_than_open_time') }}</p>");
                 window.scrollTo(0, 0);
             } else if (discount == "") {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Please Enter valid discount</p>");
+                $(".error_top").append("<p>{{ trans('lang.please_enter_valid_discount') }}</p>");
                 window.scrollTo(0, 0);
             } else if (discount > 100 || discount == 0) {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Please Enter valid discount</p>");
+                $(".error_top").append("<p>{{ trans('lang.please_enter_valid_discount') }}</p>");
                 window.scrollTo(0, 0);
             } else {
 
@@ -2463,7 +2463,7 @@
                 if (isDuplicate) {
                     $(".error_top").show();
                     $(".error_top").html("");
-                    $(".error_top").append("<p>This time slot for " + type + " already exists. Please select a different time slot.</p>");
+                    $(".error_top").append("<p>" + ("{{ trans('lang.time_slot_already_exists') }}").replace(":type", type) + "</p>");
                     window.scrollTo(0, 0);
                 } else {
                     var timeslotVar = {
@@ -2647,7 +2647,7 @@
             } else if (from > to) {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>To time can not be less than From time</p>");
+                $(".error_top").append("<p>{{ trans('lang.to_time_can_not_be_less_than_from_time') }}</p>");
                 window.scrollTo(0, 0);
 
             } else {

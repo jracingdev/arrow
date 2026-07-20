@@ -1153,4 +1153,11 @@ return [
     'menu' => 'Menu',
     'Permission' => 'Permissão',
     'permissions' => 'Permissões',
+    'please_select_your_address' => 'Selecione seu endereço',
+    'please_select_your_section' => 'Selecione sua seção',
+    'email_address_already_exist' => 'Este endereço de e-mail já existe',
+    'only_formats_are_allowed' => 'Somente estes formatos são permitidos: :formats',
+    'file_size_not_allowed_more_than_2mb' => 'Tamanho de arquivo não permitido acima de 2 MB',
+    'you_dont_have_sufficient_balance' => 'Você não possui saldo suficiente',
+    'please_select_payment_method_exclaim' => 'Selecione o método de pagamento!',
 ];

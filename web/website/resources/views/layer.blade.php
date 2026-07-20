@@ -34,11 +34,11 @@
             var element = $('.cat-slider .cat-item.section-selected');
             var section_id = element.attr('data-id');
             if ($('#user_locationnew').val() == '') {
-                alert('Please select your address');
+                alert("{{ trans('lang.please_select_your_address') }}");
                 return false;
             }
             if (!section_id) {
-                alert('Please select your section');
+                alert("{{ trans('lang.please_select_your_section') }}");
                 return false;
             }
             var section_name = element.attr('data-name');

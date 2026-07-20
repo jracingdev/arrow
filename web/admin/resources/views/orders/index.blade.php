@@ -1204,7 +1204,7 @@
 
             } catch (error) {
                 console.error("Error deleting orders:", error);
-                alert("Failed to delete some orders. Check console for details.");
+                alert("{{ trans('lang.failed_to_delete_some_orders') }}");
             }
         }
 
@@ -1443,7 +1443,7 @@
                     dropdown.append(`<option value="${driver.id}">${driver.name}</option>`);
                 });
             } else {
-                dropdown.append('<option value="">No drivers found</option>');
+                dropdown.append('<option value="">{{ trans('lang.no_drivers_found') }}</option>');
             }
             
             $("#assignDriverModal").modal('show');

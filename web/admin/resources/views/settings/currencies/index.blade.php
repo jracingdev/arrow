@@ -381,7 +381,7 @@
 
                 if (snapshots.docs.length == 1 && activeCurrencyId == id) {
 
-                    alert('Can not disable all currency');
+                    alert("{{ trans('lang.cannot_disable_all_currency') }}");
 
                     $("#" + id).prop('checked', true);
 

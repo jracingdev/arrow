@@ -373,7 +373,7 @@
         const routeUrl = "<?php echo route('wallet-proccessing'); ?>";
         const redirectUrl = "<?php echo route('pay-wallet'); ?>";
 
-        if (!paymentMethod) return Swal.fire({ text: "Please select a payment method.", icon: "error" });
+        if (!paymentMethod) return Swal.fire({ text: "{{ trans('lang.please_select_a_payment_method') }}", icon: "error" });
 
         const ajaxData = {
             _token: '<?php echo csrf_token(); ?>',
@@ -434,7 +434,7 @@
             });
         } else if (paymentMethod === "xendit") {
             if (!['IDR', 'PHP', 'USD', 'VND', 'THB', 'MYR', 'SGD'].includes(currencyData.code)) {
-                alert("Currency restriction");
+                alert("{{ trans('lang.currency_restriction') }}");
                 return false;
             }
             Object.assign(ajaxData, {

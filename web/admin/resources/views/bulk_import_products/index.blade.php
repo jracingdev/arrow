@@ -193,7 +193,7 @@
             });
             copyBtn.on('click', function() {
                 navigator.clipboard.writeText(title).then(function() {
-                    alert('Copied: ' + title);
+                    alert("{{ trans('lang.copied') }}: " + title);
                 });
             });
             attrItem.append(attrText).append(copyBtn);
