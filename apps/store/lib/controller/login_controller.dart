@@ -88,7 +88,7 @@ class LoginController extends GetxController {
           }
         } else {
           await FirebaseAuth.instance.signOut();
-          ShowToastDialog.showToast("This user is not created in store application.".tr);
+          ShowToastDialog.showToast("This user is not created in Store application.".tr);
         }
       }
     } on FirebaseAuthException catch (e) {

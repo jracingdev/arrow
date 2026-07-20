@@ -406,4 +406,15 @@ const Map<String, String> ptPO = {
   'Platform fee': 'Taxa da plataforma',
   'Search place...': 'Buscar local...',
   'Please select a car model': 'Selecione um modelo de carro',
+  'Let’s Get Started': 'Vamos começar',
+  "Let's Get Started": 'Vamos começar',
+  'This user is not created in driver application.': 'Este usuário não foi criado no app do entregador.',
+  'Wrong password provided for that user.': 'Senha incorreta para este usuário.',
+  'Invalid Email.': 'E-mail inválido.',
+  'Enter Kilometer Reading': 'Informe a quilometragem',
+  'Enter Current Kilometer reading': 'Informe a quilometragem atual',
+  'Current Kilometer reading': 'Quilometragem atual',
+  'Confirm Cash Collection': 'Confirmar recebimento em dinheiro',
+  'Please confirm that you have received the full cash amount from the customer before continuing.':
+      'Confirme que você recebeu o valor total em dinheiro do cliente antes de continuar.',
 };

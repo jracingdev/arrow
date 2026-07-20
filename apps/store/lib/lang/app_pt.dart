@@ -794,4 +794,6 @@ const Map<String, String> ptPO = {
       "Informe o e-mail cadastrado e enviaremos um link seguro para redefinir sua senha. Abra o link na sua caixa de entrada e siga os passos para criar uma nova senha.",
   "Uploading image...": "Enviando imagem...",
   "Uploading video...": "Enviando vídeo...",
+  'Owner Login': 'Login do proprietário',
+  'Employee Login': 'Login do funcionário',
 };

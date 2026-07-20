@@ -56,7 +56,7 @@ class LoginScreen extends StatelessWidget {
                     unselectedLabelStyle: TextStyle(fontFamily: AppThemeData.medium, fontSize: 16),
                     indicatorWeight: 2,
                     indicatorSize: TabBarIndicatorSize.label,
-                    tabs: Constant.isEmployeeManagement == true ? const [Tab(text: "Owner Login"), Tab(text: "Employee Login")] : const [Tab(text: "Owner Login")],
+                    tabs: Constant.isEmployeeManagement == true ? [Tab(text: "Owner Login".tr), Tab(text: "Employee Login".tr)] : [Tab(text: "Owner Login".tr)],
                   ),
                   const SizedBox(height: 40),
                   Expanded(

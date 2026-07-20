@@ -741,7 +741,7 @@ class RentalHomeScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text("Enter Kilometer Reading", style: AppThemeData.boldTextStyle(fontSize: 22, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900))),
+                    Expanded(child: Text("Enter Kilometer Reading".tr, style: AppThemeData.boldTextStyle(fontSize: 22, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900))),
                     InkWell(
                       onTap: () {
                         Get.back();
@@ -753,8 +753,8 @@ class RentalHomeScreen extends StatelessWidget {
                 SizedBox(height: 8),
                 TextFieldWidget(
                   controller: controller.completeKilometerController.value,
-                  hintText: 'Enter Current Kilometer reading',
-                  title: ' Current Kilometer reading',
+                  hintText: 'Enter Current Kilometer reading'.tr,
+                  title: 'Current Kilometer reading'.tr,
                   inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                 ),
                 SizedBox(height: 20),
@@ -808,7 +808,7 @@ class RentalHomeScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text("Confirm Cash Collection", style: AppThemeData.boldTextStyle(fontSize: 20, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900))),
+                    Expanded(child: Text("Confirm Cash Collection".tr, style: AppThemeData.boldTextStyle(fontSize: 20, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900))),
                     InkWell(
                       onTap: () {
                         Get.back();
@@ -822,7 +822,7 @@ class RentalHomeScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  "Please confirm that you have received the full cash amount from the customer before continuing.",
+                  "Please confirm that you have received the full cash amount from the customer before continuing.".tr,
                   textAlign: TextAlign.start,
                   style: AppThemeData.mediumTextStyle(color: isDark ? AppThemeData.greyDark500 : AppThemeData.grey500, fontSize: 14),
                 ),
