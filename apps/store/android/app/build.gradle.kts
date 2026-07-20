@@ -19,7 +19,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.emart.store"
+    namespace = "br.app.arrow.store"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -30,7 +30,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.emart.store"
+        applicationId = "br.app.arrow.store"
         minSdk = 26
         targetSdk = 36
         versionCode = flutter.versionCode

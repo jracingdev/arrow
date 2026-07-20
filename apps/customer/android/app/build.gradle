@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace 'com.emart.customer'
+    namespace 'br.app.arrow.customer'
     compileSdkVersion 36
 
     compileOptions {
@@ -42,7 +42,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.emart.customer"
+        applicationId "br.app.arrow.customer"
         minSdkVersion 26
         multiDexEnabled = true
         targetSdkVersion 36
