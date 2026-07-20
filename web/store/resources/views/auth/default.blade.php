@@ -6,10 +6,8 @@
 <meta name="description" content="Arrow">
 <meta name="author" content="Arrow">
 <meta name="csrf-token" content="{{ csrf_token() }}" />
-<link rel="icon" type="image/png" href="{{asset('img/fav.png')}}">
 <title>Arrow Store</title>
-
-<link rel="icon" type="image/x-icon" href="{{ asset('images/logo-light-icon.png') }}">
+<link rel="icon" type="image/png" href="{{ asset('images/logo-light-icon.png') }}">
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
