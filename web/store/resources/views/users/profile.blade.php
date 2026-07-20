@@ -2503,7 +2503,7 @@
                     
                     const extension = fileName.split('.').pop().toLowerCase();
                     if (!validExtensions.includes(extension)) {
-                        throw new Error(`Invalid file type (${extension}). Only JPG, JPEG, PNG, GIF allowed.`);
+                        throw new Error(`{{trans('lang.only_jpg_jpeg_png_gif_allowed')}} (${extension})`);
                     }
                     
                     if (!resPhoto || !resPhoto.startsWith("data:image/")) {

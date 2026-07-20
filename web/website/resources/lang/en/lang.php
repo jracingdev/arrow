@@ -921,5 +921,13 @@ return [
     'file_size_not_allowed_more_than_2mb' => 'File size not allowed more than 2 MB',
     'you_dont_have_sufficient_balance' => "You don't have sufficient balance",
     'please_select_payment_method_exclaim' => 'Please Select Payment Method!',
+    'search_for_vendors_or_dishes' => 'Search for vendors or dishes',
+    'enter_referral_code' => 'Enter Referral Code',
+    'enter_coupon_code' => 'Enter Coupon code',
+    'payment_done' => 'Done',
+    'order_booking_id' => 'Order Booking Id: ',
+    'enter_first_name' => 'Enter FirstName',
+    'enter_last_name' => 'Enter LastName',
+    'enter_email' => 'Enter Email',
 ];
 

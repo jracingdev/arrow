@@ -153,31 +153,31 @@
                         <div class="col-md-12 form-group">
                             <label class="form-label">{{trans('lang.first_name')}}</label>
                             <div class="input-group">
-                                <input placeholder="Name" type="text" id="user_name"
+                                <input placeholder="{{trans('lang.name_placeholder')}}" type="text" id="user_name"
                                         class="form-control">
                             </div>
                         </div>
                         <div class="col-md-12 form-group">
                             <label class="form-label">{{trans('lang.last_name')}}</label>
                             <div class="input-group">
-                                <input placeholder="Name" type="text" id="user_last_name"
+                                <input placeholder="{{trans('lang.name_placeholder')}}" type="text" id="user_last_name"
                                         class="form-control">
                             </div>
                         </div>
                         <div class="col-md-12 form-group">
                             <label class="form-label">{{trans('lang.vendor_title')}}</label>
                             <div class="input-group">
-                                <input placeholder="Vendor Title" type="text" id="vendor_title"
+                                <input placeholder="{{trans('lang.vendor_title_placeholder')}}" type="text" id="vendor_title"
                                         class="form-control">
                             </div>
                         </div>
                         <div class="col-md-12 form-group"><label
                                 class="form-label">{{trans('lang.email')}}</label><input
-                                placeholder="Email" value="" id="user_email" type="text"
+                                placeholder="{{trans('lang.email_placeholder')}}" value="" id="user_email" type="text"
                                 class="form-control"></div>
                         <div class="col-md-12 form-group"><label
                                 class="form-label">{{trans('lang.password')}}</label><input
-                                placeholder="Password" id="user_password" type="password"
+                                placeholder="{{trans('lang.password_placeholder')}}" id="user_password" type="password"
                                 class="form-control">
                         </div>
                     </div>

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 
@@ -212,8 +212,8 @@ ref.get().then( async function(snapshots){
 
     $(".orderId").text(id);
    
-    var date =  order.createdAt.toDate().toDateString();
-    var time = order.createdAt.toDate().toLocaleTimeString('en-US');
+    var date = ArrowDateTime.formatDate(order.createdAt.toDate());
+    var time = order.createdAt.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false });
     $(".orderDate").text(date + " "+time);
 
     if(order.address.hasOwnProperty('line1')){
@@ -248,13 +248,8 @@ ref.get().then( async function(snapshots){
     }
    
     if (order.createdAt) {
-        var date1 = order.createdAt.toDate().toDateString();
-        var date = new Date(date1);
-        var dd = String(date.getDate()).padStart(2, '0');
-        var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
-        var yyyy = date.getFullYear();
-        var createdAt_val = yyyy + '-' + mm + '-' + dd;
-        var time = order.createdAt.toDate().toLocaleTimeString('en-US');
+        var createdAt_val = ArrowDateTime.formatDate(order.createdAt.toDate());
+        var time = order.createdAt.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false });
       $('#createdAt').text(createdAt_val+' '+time);
     }
 

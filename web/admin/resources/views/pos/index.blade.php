@@ -258,7 +258,7 @@
     var config = {
         pageSize: 12,
         decimal_degits: 2,
-        currentCurrency: '$',
+        currentCurrency: 'R$',
         currencyAtRight: false,
         placeholderImage: '/images/default-placeholder.png',
         isCommissionEnabled: false,
@@ -407,7 +407,7 @@
         state.deliveryChargemain = settings[1].data() || state.deliveryChargemain;
         
         currencyData = settings[2].docs[0]?.data() || {};
-        config.currentCurrency = currencyData.symbol || '$';
+        config.currentCurrency = currencyData.symbol || 'R$';
         config.currencyAtRight = currencyData.symbolAtRight || false;
         config.decimal_degits = currencyData.decimal_degits || 2;
         
@@ -1631,7 +1631,11 @@
             $('#user_detail_name').text(user.name);
             $('#user_detail_email').text(user.email);
             $('#user_detail_phone').text(user.phone);
-            $('#user_detail_wallet').text('$ ' + parseFloat(user.wallet).toFixed(2));
+            $('#user_detail_wallet').text(
+                config.currencyAtRight
+                    ? (parseFloat(user.wallet).toFixed(config.decimal_degits) + ' ' + config.currentCurrency)
+                    : (config.currentCurrency + ' ' + parseFloat(user.wallet).toFixed(config.decimal_degits))
+            );
             $('#user_detail_block').removeClass('d-none');
         } else {
             $('#user_detail_block').addClass('d-none');

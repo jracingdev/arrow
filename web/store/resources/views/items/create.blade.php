@@ -1245,7 +1245,7 @@
                 html += '</div>';
                 html += '<div class="col-lg-9">';
                 html += '<input type="text" class="form-control" id="attribute_options_' + $(this).val() +
-                    '" placeholder="Add attribute values" data-role="tagsinput" onchange="variants_update()">';
+                    '" placeholder="{{trans('lang.add_attribute_values')}}" data-role="tagsinput" onchange="variants_update()">';
                 html += '</div>';
                 html += '</div>';
             });

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('content')
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
     <div class="page-wrapper">
@@ -125,15 +125,13 @@
                     const dateObj = data.createdAt.toDate();
                     
                     const day = String(dateObj.getDate()).padStart(2, "0");
-                    const month = dateObj.toLocaleString("en-US", { month: "short" });
+                    const month = dateObj.toLocaleString("pt-BR", { month: "short" });
                     const year = dateObj.getFullYear();
                     currentDateStr = `${day} ${month} ${year}`;
                     
-                    let hours = dateObj.getHours();
+                    const hours = String(dateObj.getHours()).padStart(2, "0");
                     const minutes = String(dateObj.getMinutes()).padStart(2, "0");
-                    const ampm = hours >= 12 ? "PM" : "AM";
-                    hours = hours % 12 || 12;
-                    timeText = `${hours}:${minutes} ${ampm}`;
+                    timeText = `${hours}:${minutes}`;
                 }
 
                 if (currentDateStr && currentDateStr !== lastMessageDate) {

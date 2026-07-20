@@ -398,11 +398,11 @@
 
                     if (subscription_model) {
 
-                        Swal.fire('Update Complete!', `Subscription model enabled.`, 'success');
+                        Swal.fire(@json(trans('lang.update_complete')), @json(trans('lang.subscription_model_enabled')), 'success');
 
                     } else {
 
-                        Swal.fire('Update Complete!', `Subscription model disabled.`, 'success');
+                        Swal.fire(@json(trans('lang.update_complete')), @json(trans('lang.subscription_model_disabled')), 'success');
 
                     }
 
@@ -568,7 +568,7 @@
 
 
 
-                            Swal.fire('Update Complete!', `${total} users updated.`, 'success');
+                            Swal.fire(@json(trans('lang.update_complete')), `${total} {{ trans('lang.users_updated') }}`, 'success');
 
                         } else {
 
@@ -578,7 +578,7 @@
 
                     } catch (error) {
 
-                        Swal.fire('Error', 'An error occurred during the update process.', 'error');
+                        Swal.fire(@json(trans('lang.error')), @json(trans('lang.update_process_error')), 'error');
 
                         console.error('Error:', error);
 

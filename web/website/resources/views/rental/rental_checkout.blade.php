@@ -539,13 +539,9 @@
         let year = dateObj.getFullYear();
         let formattedDate = `${day}-${month}-${year}`;
 
-        let hours = dateObj.getHours();
+        let hours = String(dateObj.getHours()).padStart(2, '0');
         let minutes = String(dateObj.getMinutes()).padStart(2, '0');
-        let ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12; // 0 becomes 12
-        hours = String(hours).padStart(2, '0');
-        let time = `${hours}:${minutes} ${ampm}`;
+        let time = `${hours}:${minutes}`;
 
         userName = userName || '';
         passengerName = passengerName || '';

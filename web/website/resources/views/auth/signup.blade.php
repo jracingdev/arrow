@@ -88,7 +88,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                     <div class="form-group" id="referral_div">
                         <label for="referral_code" class="text-dark">{{trans('lang.referral_code')}}
                             ({{trans('lang.optional')}})</label>
-                        <input type="text" placeholder="Enter Referral Code" class="form-control" id="referral_code">
+                        <input type="text" placeholder="{{trans('lang.enter_referral_code')}}" class="form-control" id="referral_code">
                         <input type="hidden" id="hidden_referral"/>
                     </div>
                     <div class="form-group">

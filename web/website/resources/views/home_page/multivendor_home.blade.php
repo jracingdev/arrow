@@ -9,7 +9,7 @@
                         <i class="feather-search"></i>
                     </button>
                 </div>
-                <input type="text" class="shadow-none border-0 form-control" placeholder="Search for vendors or dishes">
+                <input type="text" class="shadow-none border-0 form-control" placeholder="{{trans('lang.search_for_vendors_or_dishes')}}">
             </div>
             <div class="text-white col-md-3 col-sm-3">
                 <div class="title d-flex align-items-center">

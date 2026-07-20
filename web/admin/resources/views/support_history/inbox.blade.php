@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 <style>
    #plist {
     overflow: hidden; /* no scrolling here */
@@ -363,16 +363,14 @@
             const dateObj = data.createdAt.toDate();
 
             const day = String(dateObj.getDate()).padStart(2, "0");
-            const month = dateObj.toLocaleString("en-US", { month: "short" });
+            const month = dateObj.toLocaleString("pt-BR", { month: "short" });
             const year = dateObj.getFullYear();
 
-            let hours = dateObj.getHours();
+            const hours = String(dateObj.getHours()).padStart(2, "0");
             const minutes = String(dateObj.getMinutes()).padStart(2, "0");
-            const ampm = hours >= 12 ? "PM" : "AM";
-            hours = hours % 12 || 12;
 
             currentDateStr = `${day} ${month} ${year}`;
-            timeText = `<span class="message-data-time">${hours}:${minutes} ${ampm}</span>`;
+            timeText = `<span class="message-data-time">${hours}:${minutes}</span>`;
         }
 
         // Add date separator if day changed
@@ -612,10 +610,7 @@
                         : `[${data.lastMessageType}]`;
 
                 const time = data.createdAt?.toDate
-                    ? data.createdAt.toDate().toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    })
+                    ? data.createdAt.toDate().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", hour12: false })
                     : "";
 
                 chatLi.find(".status").html(

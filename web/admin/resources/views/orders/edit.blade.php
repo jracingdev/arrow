@@ -514,7 +514,7 @@
                                                 +<?php echo $valuecy->phoneCode; ?> {{ $valuecy->countryName }}</option>
                                             <?php } ?>
                                         </select>
-                                        <input class="form-control user_phone" placeholder="Phone" id="phone" type="phone" name="phone" value="{{ old('phone') }}" required autocomplete="phone" autofocus>
+                                        <input class="form-control user_phone" placeholder="{{trans('lang.user_phone')}}" id="phone" type="phone" name="phone" value="{{ old('phone') }}" required autocomplete="phone" autofocus>
                                         <div id="mobilenumber_err" class="text-danger err"></div>
                                     </div>
                                 </div>

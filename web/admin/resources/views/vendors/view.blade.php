@@ -851,7 +851,7 @@
                                             $(".vendor_avtive").html("{{ trans('lang.open') }}");
                                             $(".vendor_avtive").removeClass('close');
                                             $(".vendor_avtive").addClass('open');
-                                            $(".vendor_avtive").append(" (" + timeslot[`from`] + ' ' + from + ' - ' + timeslot[`to`] + ' ' + to + ")");
+                                            $(".vendor_avtive").append(" (" + timeslot[`from`] + ' - ' + timeslot[`to`] + ")");
 
                                         }
 

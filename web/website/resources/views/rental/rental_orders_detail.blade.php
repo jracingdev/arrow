@@ -291,7 +291,7 @@
                             <div class="form-group row text-center">
                                 <div class="col-sm-12">
                                     <textarea class="form-control review_comment" id="review_comment"
-                                              name="review_comment" placeholder="Type Comment..." value=""></textarea>
+                                              name="review_comment" placeholder="{{trans('lang.type_comment')}}" value=""></textarea>
                                 </div>
                             </div>
                          
@@ -564,7 +564,7 @@
             var rentalPackageDetail = '';
             rentalPackageDetail += `<h3>{{trans("lang.package_info")}}</h3>`;
             rentalPackageDetail += `<ul class="package_list">`;
-                rentalPackageDetail += `<li><label>Order Booking Id: </label>${order.rentalPackageModel.id}</li>`;
+                rentalPackageDetail += `<li><label>{{trans("lang.order_booking_id")}} </label>${order.rentalPackageModel.id}</li>`;
                 rentalPackageDetail += `<li><label>{{trans("lang.package_name")}}: </label>${order.rentalPackageModel.name}</li>`;
                 rentalPackageDetail += `<li><label>{{trans("lang.package_description")}}: </label>${order.rentalPackageModel.description}</li>`;
                 rentalPackageDetail += `<li><label>{{trans("lang.package_basefare_price")}}: </label>${getFormattedPrice(parseFloat(order.rentalPackageModel.baseFare))}</li>`;
@@ -692,7 +692,7 @@
                 hour12: false
             }))
             $('.pickup_address').html(order.sourceLocationName);
-            $('.payment_').html(`${order.paymentStatus ? "Done" : "Pending"}`);
+            $('.payment_').html(`${order.paymentStatus ? "{{trans('lang.payment_done')}}" : "{{trans('lang.pending')}}"}`);
             
             var showOTP = false;
             loadcurrency();

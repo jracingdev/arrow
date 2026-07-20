@@ -1160,4 +1160,12 @@ return [
     'file_size_not_allowed_more_than_2mb' => 'Tamanho de arquivo não permitido acima de 2 MB',
     'you_dont_have_sufficient_balance' => 'Você não possui saldo suficiente',
     'please_select_payment_method_exclaim' => 'Selecione o método de pagamento!',
+    'search_for_vendors_or_dishes' => 'Buscar lojas ou pratos',
+    'enter_referral_code' => 'Informe o código de indicação',
+    'enter_coupon_code' => 'Informe o código do cupom',
+    'payment_done' => 'Concluído',
+    'order_booking_id' => 'ID da reserva do pedido:',
+    'enter_first_name' => 'Informe o nome',
+    'enter_last_name' => 'Informe o sobrenome',
+    'enter_email' => 'Informe o e-mail',
 ];

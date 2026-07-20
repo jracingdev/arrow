@@ -309,7 +309,7 @@ function selectAttribute(item_attribute=''){
 				html += '<label>'+$this.text()+'</label>';
 			html += '</div>';
 			html += '<div class="col-lg-9">';
-				html += '<input type="text" class="form-control" id="attribute_options_'+$this.val()+'" value="'+selected_options+'" placeholder="Add attribute values" data-role="tagsinput" onchange="variants_update(\''+btoa(JSON.stringify(item_attribute))+'\')">';
+				html += '<input type="text" class="form-control" id="attribute_options_'+$this.val()+'" value="'+selected_options+'" placeholder="{{trans('lang.add_attribute_values')}}" data-role="tagsinput" onchange="variants_update(\''+btoa(JSON.stringify(item_attribute))+'\')">';
 			html += '</div>';
 		html += '</div>';	
 	});

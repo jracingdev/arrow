@@ -927,7 +927,7 @@
 
         function chkAlphabets3(event, msg) {
             if ((event.which != 46 || $(this).val().indexOf('.') != -1) && (event.which < 48 || event.which > 57)) {
-                document.getElementById(msg).innerHTML = "Accept only Number and Dot(.)";
+                document.getElementById(msg).innerHTML = "{{trans('lang.accept_number')}}";
                 return false;
             } else {
                 document.getElementById(msg).innerHTML = "";

@@ -592,7 +592,7 @@
                                     <div class="carbook-summary-box mb-4 col-md-4">
                                         <h3>{{trans("lang.payment")}}</h3>
                                         <p>
-                                            <img src="../img/done-icon.png"> ${val.paymentStatus ? "Done" : "Pending"}
+                                            <img src="../img/done-icon.png"> ${val.paymentStatus ? "{{trans('lang.payment_done')}}" : "{{trans('lang.pending')}}"}
                                         </p>
                                        ${buildOtpHtml(val)}
                                     </div>
@@ -796,7 +796,7 @@
                                     <div class="carbook-summary-box mb-4 col-md-4">
                                         <h3>{{trans("lang.payment")}}</h3>
                                         <p>
-                                            <img src="../img/done-icon.png"> ${val.paymentStatus ? "Done" : "Pending"}
+                                            <img src="../img/done-icon.png"> ${val.paymentStatus ? "{{trans('lang.payment_done')}}" : "{{trans('lang.pending')}}"}
                                         </p>
                                        ${buildOtpHtml(val)}
                                     </div>
@@ -988,7 +988,7 @@
                                     <div class="carbook-summary-box mb-4 col-md-4">
                                         <h3>{{trans("lang.payment")}}</h3>
                                         <p>
-                                            <img src="../img/done-icon.png"> ${val.paymentStatus ? "Done" : "Pending"}
+                                            <img src="../img/done-icon.png"> ${val.paymentStatus ? "{{trans('lang.payment_done')}}" : "{{trans('lang.pending')}}"}
                                         </p>
                                        ${buildOtpHtml(val)}
                                     </div>

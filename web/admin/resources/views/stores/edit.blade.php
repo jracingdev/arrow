@@ -2677,7 +2677,7 @@
 
         function chkAlphabets(event, msg) {
             if (!(event.which >= 97 && event.which <= 122) && !(event.which >= 65 && event.which <= 90)) {
-                document.getElementById(msg).innerHTML = "Accept only Alphabets";
+                document.getElementById(msg).innerHTML = "{{trans('lang.accept_only_alphabets')}}";
                 return false;
             } else {
                 document.getElementById(msg).innerHTML = "";
@@ -2687,7 +2687,7 @@
 
         function chkAlphabets2(event, msg) {
             if (!(event.which >= 48 && event.which <= 57)) {
-                document.getElementById(msg).innerHTML = "Accept only Number";
+                document.getElementById(msg).innerHTML = "{{trans('lang.accept_only_number')}}";
                 return false;
             } else {
                 document.getElementById(msg).innerHTML = "";
@@ -2697,7 +2697,7 @@
 
         function chkAlphabets3(event, msg) {
             if ((event.which != 46 || $(this).val().indexOf('.') != -1) && (event.which < 48 || event.which > 57)) {
-                document.getElementById(msg).innerHTML = "Accept only Number and Dot(.)";
+                document.getElementById(msg).innerHTML = "{{trans('lang.accept_number')}}";
                 return false;
             } else {
                 document.getElementById(msg).innerHTML = "";

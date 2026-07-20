@@ -908,8 +908,7 @@
                         if (vendor.subscriptionExpiryDate != null && vendor
                             .subscriptionExpiryDate != '') {
                             date = ArrowDateTime.formatDate(vendor.subscriptionExpiryDate.toDate());
-                            time = vendor.subscriptionExpiryDate.toDate().toLocaleTimeString(
-                                'en-US');
+                            time = ArrowDateTime.formatTime(vendor.subscriptionExpiryDate.toDate());
                             $(".plan_expire_at").html(date + ' ' + time);
                             $(".plan_expire_date").html(date);
                         } else {
@@ -993,12 +992,7 @@
                                             'closeingType': timeslot[`closeingType`]
                                         };
                                         var [h, m] = timeslot[`from`].split(":");
-                                        var from = ((h % 12 ? h % 12 : 12) + ":" + m, h >= 12 ?
-                                            'PM' : 'AM');
-
                                         var [h2, m2] = timeslot[`to`].split(":");
-                                        var to = ((h2 % 12 ? h2 % 12 : 12) + ":" + m2, h2 >= 12 ?
-                                            'PM' : 'AM');
 
                                         if (currentHours >= timeslot[`from`] && currentHours <=
                                             timeslot[`to`]) {
@@ -1006,8 +1000,7 @@
                                             $(".vendor_avtive").removeClass('close');
                                             $(".vendor_avtive").addClass('open');
                                             $(".vendor_avtive").append(" (" + timeslot[`from`] +
-                                                ' ' + from + ' - ' + timeslot[`to`] + ' ' + to +
-                                                ")");
+                                                ' - ' + timeslot[`to`] + ")");
 
                                         }
 

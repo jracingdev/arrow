@@ -172,7 +172,7 @@
 
                                     <label for="firstName" class="text-dark">{{ trans('lang.first_name') }}</label>
 
-                                    <input type="text" placeholder="Enter FirstName" class="form-control"
+                                    <input type="text" placeholder="{{trans('lang.enter_first_name')}}" class="form-control"
                                         id="firstName" required>
                                     <input type="hidden" id="hidden_fName" />
                                 </div>
@@ -181,14 +181,14 @@
 
                                     <label for="lastName" class="text-dark">{{ trans('lang.last_name') }}</label>
 
-                                    <input type="text" placeholder="Enter LastName" class="form-control"
+                                    <input type="text" placeholder="{{trans('lang.enter_last_name')}}" class="form-control"
                                         id="lastName" required>
                                     <input type="hidden" id="hidden_lName" />
                                 </div>
 
                                 <div class="form-group" id="email_div">
                                     <label class="text-dark">{{trans('lang.email')}}</label>                                    
-                                        <input type="email" placeholder="Enter Email" class="form-control user_email" id="email" required>
+                                        <input type="email" placeholder="{{trans('lang.enter_email')}}" class="form-control user_email" id="email" required>
                                         <input type="hidden" id="hidden_email" />
                                 </div>
 
@@ -202,7 +202,7 @@
                                                 +<?php echo $valuecy->phoneCode; ?> {{ $valuecy->countryName }}</option>
                                             <?php } ?>
                                         </select>
-                                        <input class="form-control" placeholder="Phone" id="phone" type="text"
+                                        <input class="form-control" placeholder="{{trans('lang.user_phone')}}" id="phone" type="text"
                                             class="form-control" name="phone" value="{{ old('phone') }}" required
                                             autocomplete="phone" autofocus>
                                     </div>

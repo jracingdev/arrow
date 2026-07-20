@@ -382,7 +382,7 @@ const Map<String, String> ptPO = {
   "Enter Price": "Informe o preço",
   "Enter price": "Informe o preço",
   "Expires at": "Expira em",
-  "MMM dd,yyyy": "MMM dd,yyyy",
+  "MMM dd,yyyy": "dd MMM yyyy",
   "Select date": "Selecione a data",
   "Public": "Público",
   "Save Coupon": "Salvar Cupom",

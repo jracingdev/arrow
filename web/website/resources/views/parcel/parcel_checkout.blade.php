@@ -11,7 +11,7 @@ session_start();
                     <button class="border-0 btn btn-outline-secondary text-dark bg-white btn-block"><i
                                 class="feather-search"></i></button>
                 </div>
-                <input type="text" class="shadow-none border-0 form-control" placeholder="Search for vendors or dishes">
+                <input type="text" class="shadow-none border-0 form-control" placeholder="{{trans('lang.search_for_vendors_or_dishes')}}">
             </div>
             <div class="text-white col-md-3 col-sm-3">
                 <div class="title d-flex align-items-center">
@@ -147,7 +147,7 @@ session_start();
                                value="<?php echo $parcel_cart['receiverPickupDateTime']; ?>">
                         <div class="search-box">
                             <div class="search-box-inner">
-                                <input type="text" id="parcel_coupon_code" placeholder="Enter Coupon code">
+                                <input type="text" id="parcel_coupon_code" placeholder="{{trans('lang.enter_coupon_code')}}">
                                 <a href="#" id="apply-coupon-code">{{trans('lang.apply')}}</a>
                             </div>
                         </div>

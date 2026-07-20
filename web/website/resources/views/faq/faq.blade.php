@@ -64,7 +64,7 @@
                                         <input type="radio" id="customRadio2" name="location"
                                                class="custom-control-input" checked="">
                                         <label class="custom-control-label py-3 w-100 px-3"
-                                               for="customRadio2">India</label>
+                                               for="customRadio2">Brasil</label>
                                     </div>
                                     <div class="custom-control  border-bottom px-0 custom-radio">
                                         <input type="radio" id="customRadio3" name="location"
@@ -557,7 +557,7 @@
             <div class="row">
                 <aside class="col-sm-2 col-md-2 text-white">
                     <ul class="list-unstyled hov_footer">
-                        <li><a href="#" class="text-muted">India</a></li>
+                        <li><a href="#" class="text-muted">Brasil</a></li>
                         <li><a href="#" class="text-muted">Indonesia</a></li>
                         <li><a href="#" class="text-muted">Ireland</a></li>
                         <li><a href="#" class="text-muted">Italy</a></li>

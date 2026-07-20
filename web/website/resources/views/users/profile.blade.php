@@ -70,7 +70,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                                                 </option>
                                             <?php } ?>
                                         </select>
-                                        <input class="form-control user_phone" disabled placeholder="Phone" id="phone" type="phone"
+                                        <input class="form-control user_phone" disabled placeholder="{{trans('lang.user_phone')}}" id="phone" type="phone"
                                             name="phone" value="{{ old('phone') }}" required autocomplete="phone" autofocus>
                                         <div id="error2" class="err"></div>
                                     </div>

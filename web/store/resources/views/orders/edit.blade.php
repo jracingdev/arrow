@@ -375,7 +375,7 @@
                                                 +<?php echo $valuecy->phoneCode; ?> {{ $valuecy->countryName }}</option>
                                             <?php } ?>
                                         </select>
-                                        {{-- <input class="form-control user_phone" placeholder="Phone" id="phone" type="phone" name="phone" value="{{ old('phone') }}" required autocomplete="phone" autofocus> --}}
+                                        {{-- <input class="form-control user_phone" placeholder="{{trans('lang.user_phone')}}" id="phone" type="phone" name="phone" value="{{ old('phone') }}" required autocomplete="phone" autofocus> --}}
                                          <input type="text" class="form-control user_phone"  onkeypress="return chkAlphabets2(event,'phone_err')">
                                         <div id="phone_err" class="text-danger err"></div>
                                     </div>
@@ -2304,7 +2304,7 @@
         function chkAlphabets2(event,msg){
             if(!(event.which>=48  && event.which<=57))
             {
-                document.getElementById(msg).innerHTML="Accept only Number";
+                document.getElementById(msg).innerHTML="{{trans('lang.accept_only_number')}}";
                 return false;
             }
             else

@@ -966,7 +966,7 @@
                         ticks: $.extend({
                             beginAtZero: true,
                             callback: function (value, index, values) {
-                                return '$' + value;
+                                return (currentCurrency || 'R$') + value;
                             }
 
 

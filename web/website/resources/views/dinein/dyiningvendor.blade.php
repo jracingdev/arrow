@@ -111,7 +111,7 @@
                 <div class="form-group row col-12 mt-3">
                     <label for="special_request" class="font-weight-bold">{{trans('lang.additional_request')}}</label>
                     <input class="form-control special_request" id="date" type="text"
-                           placeholder="Type your request here">
+                           placeholder="{{trans('lang.type_your_request_here')}}">
                 </div>
             </div>
             <div class="modal-footer">
