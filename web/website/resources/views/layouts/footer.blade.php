@@ -790,6 +790,58 @@
         });
     }
 
+    function setAddressCookies(place, shouldReload) {
+        if (!place || !place.geometry) {
+            return;
+        }
+        var formatted = place.formatted_address || place.name || '';
+        address_name = place.name || formatted;
+        address_lat = place.geometry.location.lat();
+        address_lng = place.geometry.location.lng();
+        address_name1 = '';
+        address_name2 = '';
+        address_zip = '';
+        address_city = '';
+        address_state = '';
+        address_country = '';
+        if (place.address_components) {
+            $.each(place.address_components, function(i, address_component) {
+                var type0 = address_component.types[0];
+                if (type0 == "route" || type0 == "premise" || type0 == "street_address") {
+                    if (address_name1 == '') {
+                        address_name1 = address_component.long_name;
+                    } else if (address_name2 == '') {
+                        address_name2 = address_component.long_name;
+                    }
+                } else if (type0 == "postal_code") {
+                    address_zip = address_component.long_name;
+                } else if (type0 == "locality") {
+                    address_city = address_component.long_name;
+                } else if (type0 == "administrative_area_level_1") {
+                    address_state = address_component.long_name;
+                } else if (type0 == "country") {
+                    address_country = address_component.long_name;
+                }
+            });
+        }
+        if (address_name1 == '' && place.name) {
+            address_name1 = place.name;
+        }
+        setLocationValue('value', formatted || address_name);
+        setCookie('address_name1', address_name1, 365);
+        setCookie('address_name2', address_name2, 365);
+        setCookie('address_name', address_name, 365);
+        setCookie('address_lat', address_lat, 365);
+        setCookie('address_lng', address_lng, 365);
+        setCookie('address_zip', address_zip, 365);
+        setCookie('address_city', address_city, 365);
+        setCookie('address_state', address_state, 365);
+        setCookie('address_country', address_country, 365);
+        if (shouldReload !== false) {
+            window.location.reload(true);
+        }
+    }
+
     async function getCurrentLocationAddress1() {
         var geocoder = new google.maps.Geocoder();
         if (navigator.geolocation) {
