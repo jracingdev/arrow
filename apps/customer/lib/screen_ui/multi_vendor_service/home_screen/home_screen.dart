@@ -1803,7 +1803,7 @@ class MapView extends StatelessWidget {
                     initialZoom: 10,
                   ),
                   children: [
-                    flutterMap.TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'com.emart.customer'),
+                    flutterMap.TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'br.app.arrow.customer'),
                     flutterMap.MarkerLayer(markers: controller.osmMarker),
                   ],
                 )

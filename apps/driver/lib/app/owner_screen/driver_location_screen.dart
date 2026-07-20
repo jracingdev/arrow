@@ -52,7 +52,7 @@ class DriverLocationScreen extends StatelessWidget {
                             flutterMap.TileLayer(
                               urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                               subdomains: const ['a', 'b', 'c'],
-                              userAgentPackageName: 'com.emart.app',
+                              userAgentPackageName: 'br.app.arrow.driver',
                             ),
                             flutterMap.MarkerLayer(markers: controller.osmMarkers),
                           ],

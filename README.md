@@ -188,9 +188,9 @@ cd apps/driver   && flutter build appbundle
 
 | App | Package Android | API (`Constant.globalUrl`) |
 |-----|-----------------|-------------------|
-| Cliente | `com.emart.customer` | `https://admin.arrow.app.br/` |
-| Lojista | `com.emart.store` | `https://admin.arrow.app.br/` |
-| Entregador | `com.emart.driver` | `https://admin.arrow.app.br/` |
+| Cliente | `br.app.arrow.customer` | `https://admin.arrow.app.br/` |
+| Lojista | `br.app.arrow.store` | `https://admin.arrow.app.br/` |
+| Entregador | `br.app.arrow.driver` | `https://admin.arrow.app.br/` |
 
 Config compartilhada: pacote `apps/shared` (`arrow_shared`).
 

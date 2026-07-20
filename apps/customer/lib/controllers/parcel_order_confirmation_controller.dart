@@ -392,8 +392,8 @@ class ParcelOrderConfirmationController extends GetxController {
               sandboxMode: payPalModel.value.isLive == true ? false : true,
               clientId: payPalModel.value.paypalClient ?? '',
               secretKey: payPalModel.value.paypalSecret ?? '',
-              returnURL: "com.emart.customer://paypalpay",
-              cancelURL: "com.emart.customer://paypalcancel",
+              returnURL: "br.app.arrow.customer://paypalpay",
+              cancelURL: "br.app.arrow.customer://paypalcancel",
 
               transactions: [
                 {
@@ -435,8 +435,8 @@ class ParcelOrderConfirmationController extends GetxController {
   //             secretKey: payPalModel.value.paypalSecret ?? '',
   //             returnURL: "https://success.emart.com/return",
   //             cancelURL: "https://cancel.emart.com/cancel",
-  //             // returnURL: "com.emart.customer://paypalpay",
-  //             // cancelURL: "com.emart.customer://paypalpay",
+  //             // returnURL: "br.app.arrow.customer://paypalpay",
+  //             // cancelURL: "br.app.arrow.customer://paypalpay",
   //             transactions: [
   //               {
   //                 "amount": {

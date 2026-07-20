@@ -43,7 +43,7 @@ class MapPickerPage extends StatelessWidget {
                 },
               ),
               children: [
-                TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'com.emart.driver'),
+                TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'br.app.arrow.driver'),
                 MarkerLayer(
                   markers:
                       controller.pickedPlace.value != null

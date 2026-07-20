@@ -41,7 +41,7 @@ class ParcelTrackingScreen extends StatelessWidget {
                       children: [
                         flutterMap.TileLayer(
                           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: Platform.isAndroid ? 'com.emart.driver' : 'com.emart.driver',
+                          userAgentPackageName: Platform.isAndroid ? 'br.app.arrow.driver' : 'br.app.arrow.driver',
                         ),
                         flutterMap.MarkerLayer(markers: controller.osmMarkers),
                         if (controller.routePoints.isNotEmpty)

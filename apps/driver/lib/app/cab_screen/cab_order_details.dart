@@ -175,7 +175,7 @@ class CabOrderDetails extends StatelessWidget {
                                     initialZoom: 13,
                                   ),
                                   children: [
-                                    fm.TileLayer(urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", userAgentPackageName: 'com.emart.driver'),
+                                    fm.TileLayer(urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", userAgentPackageName: 'br.app.arrow.driver'),
 
                                     // Only show polyline if points exist
                                     if (controller.osmPolyline.isNotEmpty)

@@ -149,7 +149,7 @@ class HomeScreen extends StatelessWidget {
                                               children: [
                                                 flutterMap.TileLayer(
                                                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                                  userAgentPackageName: 'com.emart.driver',
+                                                  userAgentPackageName: 'br.app.arrow.driver',
                                                 ),
                                                 // GetBuilder works inside flutter_map's LayoutBuilder; Obx does not
                                                 GetBuilder<HomeController>(
