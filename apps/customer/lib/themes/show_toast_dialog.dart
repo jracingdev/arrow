@@ -7,7 +7,15 @@ class ShowToastDialog {
     EasyLoadingToastPosition position = EasyLoadingToastPosition.top,
   }) {
     if (message == null || message.isEmpty) return;
-    EasyLoading.showToast(message, toastPosition: position);
+    // Dismiss any loader first — otherwise toasts are often invisible.
+    if (EasyLoading.isShow) {
+      EasyLoading.dismiss();
+    }
+    EasyLoading.showToast(
+      message,
+      toastPosition: position,
+      duration: const Duration(seconds: 5),
+    );
   }
 
   /// Show a loading indicator with a status message.

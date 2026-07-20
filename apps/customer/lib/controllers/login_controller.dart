@@ -1,10 +1,9 @@
 import 'dart:convert';
-import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_google_auth.dart';
 import 'package:customer/screen_ui/location_enable_screens/location_permission_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../constant/constant.dart';
 import '../models/user_model.dart';
@@ -92,62 +91,66 @@ class LoginController extends GetxController {
 
   Future<void> loginWithGoogle() async {
     ShowToastDialog.showLoader("please wait...".tr);
-    await signInWithGoogle().then((value) async {
+    try {
+      final value = await signInWithGoogle();
       ShowToastDialog.closeLoader();
-      if (value != null) {
-        if (value.additionalUserInfo!.isNewUser) {
-          UserModel userModel = UserModel();
-          userModel.id = value.user!.uid;
-          userModel.email = value.user!.email;
-          userModel.firstName = value.user!.displayName?.split(' ').first;
-          userModel.lastName = value.user!.displayName?.split(' ').last;
-          userModel.provider = 'google';
+      if (value == null) {
+        ShowToastDialog.showToast(ArrowGoogleAuth.developerErrorToast);
+        return;
+      }
+      if (value.additionalUserInfo!.isNewUser) {
+        UserModel userModel = UserModel();
+        userModel.id = value.user!.uid;
+        userModel.email = value.user!.email;
+        userModel.firstName = value.user!.displayName?.split(' ').first;
+        userModel.lastName = value.user!.displayName?.split(' ').last;
+        userModel.provider = 'google';
 
-          ShowToastDialog.closeLoader();
-          Get.off(const SignUpScreen(), arguments: {"userModel": userModel, "type": "google"});
-        } else {
-          await FireStoreUtils.userExistOrNot(value.user!.uid).then((userExit) async {
-            ShowToastDialog.closeLoader();
-            if (userExit == true) {
-              UserModel? userModel = await FireStoreUtils.getUserProfile(value.user!.uid);
-              if (userModel != null && userModel.role == Constant.userRoleCustomer) {
-                if (userModel.active == true) {
-                  userModel.fcmToken = await NotificationService.getToken();
-                  await FireStoreUtils.updateUser(userModel);
+        Get.off(const SignUpScreen(), arguments: {"userModel": userModel, "type": "google"});
+      } else {
+        await FireStoreUtils.userExistOrNot(value.user!.uid).then((userExit) async {
+          if (userExit == true) {
+            UserModel? userModel = await FireStoreUtils.getUserProfile(value.user!.uid);
+            if (userModel != null && userModel.role == Constant.userRoleCustomer) {
+              if (userModel.active == true) {
+                userModel.fcmToken = await NotificationService.getToken();
+                await FireStoreUtils.updateUser(userModel);
 
-                  if (userModel.shippingAddress != null && userModel.shippingAddress!.isNotEmpty) {
-                    final defaultAddress = userModel.shippingAddress!.firstWhere((e) => e.isDefault == true, orElse: () => userModel.shippingAddress!.first);
+                if (userModel.shippingAddress != null && userModel.shippingAddress!.isNotEmpty) {
+                  final defaultAddress = userModel.shippingAddress!.firstWhere((e) => e.isDefault == true, orElse: () => userModel.shippingAddress!.first);
 
-                    Constant.selectedLocation = defaultAddress;
+                  Constant.selectedLocation = defaultAddress;
 
-                    Get.offAll(() => const ServiceListScreen());
-                  } else {
-                    Get.offAll(() => const LocationPermissionScreen());
-                  }
+                  Get.offAll(() => const ServiceListScreen());
                 } else {
-                  await FirebaseAuth.instance.signOut();
-                  ShowToastDialog.showToast("This user is disabled. Please contact admin.".tr);
-                  Get.offAll(() => const LoginScreen());
+                  Get.offAll(() => const LocationPermissionScreen());
                 }
               } else {
                 await FirebaseAuth.instance.signOut();
-                ShowToastDialog.showToast("This user does not exist in the customer app.".tr);
+                ShowToastDialog.showToast("This user is disabled. Please contact admin.".tr);
                 Get.offAll(() => const LoginScreen());
               }
             } else {
-              UserModel userModel = UserModel();
-              userModel.id = value.user!.uid;
-              userModel.email = value.user!.email;
-              userModel.firstName = value.user!.displayName?.split(' ').first;
-              userModel.lastName = value.user!.displayName?.split(' ').last;
-              userModel.provider = 'google';
-
-              Get.off(const SignUpScreen(), arguments: {"userModel": userModel, "type": "google"});
+              await FirebaseAuth.instance.signOut();
+              ShowToastDialog.showToast("This user does not exist in the customer app.".tr);
+              Get.offAll(() => const LoginScreen());
             }
-          });
-        }
+          } else {
+            UserModel userModel = UserModel();
+            userModel.id = value.user!.uid;
+            userModel.email = value.user!.email;
+            userModel.firstName = value.user!.displayName?.split(' ').first;
+            userModel.lastName = value.user!.displayName?.split(' ').last;
+            userModel.provider = 'google';
+
+            Get.off(const SignUpScreen(), arguments: {"userModel": userModel, "type": "google"});
+          }
+        });
       }
-    });
+    } catch (e) {
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast(ArrowGoogleAuth.userMessage(e));
+    }
   }
 
   Future<void> loginWithApple() async {
@@ -217,34 +220,7 @@ class LoginController extends GetxController {
   }
 
   Future<UserCredential?> signInWithGoogle() async {
-    try {
-      final GoogleSignIn googleSignIn = GoogleSignIn.instance;
-
-      await googleSignIn.initialize(
-        serverClientId: kGoogleSignInWebClientId.isEmpty ? null : kGoogleSignInWebClientId,
-      );
-
-      final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
-      if (googleUser.id.isEmpty) return null;
-
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-      final idToken = googleAuth.idToken;
-      if (idToken == null || idToken.isEmpty) {
-        debugPrint(
-          'Google Sign-In: idToken ausente. Cadastre SHA-1 no Firebase j-arrow '
-          'para br.app.arrow.customer e defina kGoogleSignInWebClientId.',
-        );
-        return null;
-      }
-
-      final credential = GoogleAuthProvider.credential(idToken: idToken);
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-
-      return userCredential;
-    } catch (e) {
-      print("Google Sign-In Error: $e");
-      return null;
-    }
+    return ArrowGoogleAuth.signIn();
   }
 
   String sha256ofString(String input) {
