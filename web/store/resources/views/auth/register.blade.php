@@ -512,6 +512,7 @@
                             $(".error_top").show().html("<p>" + error.message + "</p>");
                         });
                 }
+            }
 
         } catch (registerErr) {
             console.error('create_vendor_btn:', registerErr);
@@ -629,6 +630,11 @@
             return true;
         }
     }
+
+    // Inline onkeypress handlers need globals even if script scope changes
+    window.chkAlphabets = chkAlphabets;
+    window.chkAlphabets2 = chkAlphabets2;
+    window.chkAlphabets3 = chkAlphabets3;
     async function storeImageData() {
         var newPhoto = [];
         newPhoto['ownerImage'] = '';
