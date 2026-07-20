@@ -81,6 +81,8 @@ function parseArgs(argv = process.argv.slice(2)) {
             'activate-br',
             'deactivate-others',
             'deactivate-usd',
+            'force',
+            'list',
             'help',
             'h',
           ].includes(key)

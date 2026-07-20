@@ -39,8 +39,35 @@ npm run cms:all:br
 | `scripts/backfill-sections-br.js` | Backfill `order` 0..n; `--activate-br` |
 | `scripts/seed-terms-privacy-lgpd.js` | `settings/termsAndConditions` + `privacyPolicy` (HTML pt-BR LGPD, placeholders `[RAZAO_SOCIAL]` `[EMAIL_CONTATO]` `[CNPJ]`) |
 | `scripts/seed-contact-payments-br.js` | ContactUs Brazil, `defaultCountryCode=+55`, desliga Razorpay/PayStack/Xendit/Stripe demo, Mercado Pago enableável, currency BRL |
+| `scripts/seed-document-verification-settings.js` | Cria `settings/document_verification_settings` (defaults eMart/`collections.json`: store/driver/owner = false). Só cria se ausente; `--force` sobrescreve |
 | `scripts/update-onboarding-ptbr.js` | Onboarding residual pt-BR (inclui 6 títulos EN) |
 | `scripts/list-sections.js` | Diagnóstico das seções |
+
+### Document verification settings
+
+```bash
+node ../../scripts/seed-document-verification-settings.js
+# node ../../scripts/seed-document-verification-settings.js --dry-run
+# node ../../scripts/seed-document-verification-settings.js --force
+```
+
+Remove o log `document_verification_settings document does not exist` no login/register da store.
+
+## Firebase Auth — Authorized domains
+
+O erro `auth/unauthorized-domain` (ex.: login em `store.arrow.app.br`) ocorre porque o domínio **não está** na lista de Authorized domains do projeto Firebase.
+
+No [Firebase Console](https://console.firebase.google.com/) → projeto Arrow → **Authentication** → **Settings** → **Authorized domains**, adicione:
+
+| Domínio | Uso |
+|---------|-----|
+| `arrow.app.br` | site / app web principal |
+| `store.arrow.app.br` | painel loja (store) |
+| `admin.arrow.app.br` | painel admin |
+| `lp.arrow.app.br` | landing (se usar Firebase Auth) |
+| `localhost` | dev local (costuma já existir) |
+
+Não é necessário alterar código nem fazer `firebase login` para isso — só a lista no Console.
 
 ### Termos com dados reais (opcional)
 

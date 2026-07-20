@@ -46,3 +46,9 @@ Link direto (substitua `PROJECT_ID`):
 - `ArrowFirestore.fetchActiveSectionsOrdered()` — `isActive` + `orderBy('order')` com fallback
 - `ArrowFirestore.isValidDocId()` / `safeDocGet()` — evita `FirebaseError: Invalid document reference. Document references must have an even number of segments` / empty path
 - `ArrowFirestore.applyGlobalOrBrCountry()` — DDI padrão `+55`
+
+## Nota: Auth Authorized domains (não é índice)
+
+Se o deploy de índices terminou sem mensagem clara de **Success**, confira no Console se os índices estão **Enabled** (não só Building).
+
+Separado de índices: login OAuth com `auth/unauthorized-domain` exige domínios em **Authentication → Settings → Authorized domains**. Lista e passos: ver [`README-CMS-BR.md`](./README-CMS-BR.md#firebase-auth--authorized-domains) (`arrow.app.br`, `store.arrow.app.br`, `admin.arrow.app.br`, `lp.arrow.app.br`, `localhost`).

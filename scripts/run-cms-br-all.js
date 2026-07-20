@@ -7,6 +7,7 @@
  *   3) contato/país + pagamentos + BRL
  *   4) onboarding pt-BR residual
  *   5) notificações + email templates pt-BR
+ *   6) document_verification_settings (se ausente)
  *
  * Uso:
  *   cd firebase/import-export && npm i
@@ -37,5 +38,6 @@ run('seed-terms-privacy-lgpd.js');
 run('seed-contact-payments-br.js');
 run('update-onboarding-ptbr.js');
 run('seed-notifications-ptbr.js');
+run('seed-document-verification-settings.js');
 
 console.log(dry ? '\nCMS BR dry-run finalizado.' : '\nCMS BR concluído.');
