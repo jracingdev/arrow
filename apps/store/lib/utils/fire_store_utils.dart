@@ -277,52 +277,54 @@ class FireStoreUtils {
 
       fireStore.collection(CollectionName.settings).doc("DriverNearBy").get().then((event) {
         if (event.exists) {
-          Constant.selectedMapType = event.data()!["selectedMapType"];
-          Constant.singleOrderReceive = event.data()!['singleOrderReceive'];
-          Constant.distanceType = event.data()!["distanceType"];
+          final data = event.data() ?? {};
+          Constant.selectedMapType = data["selectedMapType"];
+          Constant.singleOrderReceive = data['singleOrderReceive'] == true;
+          Constant.distanceType = data["distanceType"];
         }
       });
 
       fireStore.collection(CollectionName.settings).doc("scheduleOrderNotification").get().then((time) {
         if (time.exists) {
-          Constant.scheduleOrderTime = time.data()!["notifyTime"];
-          Constant.scheduleOrderTimeType = time.data()!["timeUnit"];
+          Constant.scheduleOrderTime = time.data()?["notifyTime"];
+          Constant.scheduleOrderTimeType = time.data()?["timeUnit"];
         }
       });
 
       await fireStore.collection(CollectionName.settings).doc('vendor').get().then((value) {
-        Constant.autoApproveVendor = value.data()!['auto_approve_vendor'];
-        Constant.autoApproveStore = value.data()!['auto_approve_store'];
-        Constant.isSubscriptionModelApplied = value.data()!['subscription_model'];
-        Constant.isEmployeeManagement = value.data()!['isEmployeeManagement'];
+        final data = value.data() ?? {};
+        Constant.autoApproveVendor = data['auto_approve_vendor'] == true;
+        Constant.autoApproveStore = data['auto_approve_store'] == true;
+        Constant.isSubscriptionModelApplied = data['subscription_model'] == true;
+        Constant.isEmployeeManagement = data['isEmployeeManagement'] == true;
       });
 
       fireStore.collection(CollectionName.settings).doc("googleMapKey").snapshots().listen((event) {
         if (event.exists) {
-          Constant.mapAPIKey = event.data()!["key"];
+          Constant.mapAPIKey = event.data()?["key"];
         }
       });
 
       fireStore.collection(CollectionName.settings).doc('story').get().then((value) {
-        Constant.storyEnable = value.data()!['isEnabled'];
+        Constant.storyEnable = value.data()?['isEnabled'] == true;
       });
 
       fireStore.collection(CollectionName.settings).doc('placeHolderImage').get().then((value) {
-        Constant.placeholderImage = value.data()!['image'];
+        Constant.placeholderImage = value.data()?['image'];
       });
 
       fireStore.collection(CollectionName.settings).doc("Version").snapshots().listen((event) {
         if (event.exists) {
-          Constant.googlePlayLink = event.data()!["googlePlayLink"] ?? '';
-          Constant.appStoreLink = event.data()!["appStoreLink"] ?? '';
-          Constant.appVersion = event.data()!["app_version"] ?? '';
-          Constant.storeUrl = event.data()!["storeUrl"] ?? '';
+          Constant.googlePlayLink = event.data()?["googlePlayLink"] ?? '';
+          Constant.appStoreLink = event.data()?["appStoreLink"] ?? '';
+          Constant.appVersion = event.data()?["app_version"] ?? '';
+          Constant.storeUrl = event.data()?["storeUrl"] ?? '';
         }
       });
 
       fireStore.collection(CollectionName.settings).doc("specialDiscountOffer").get().then((dineinresult) {
         if (dineinresult.exists) {
-          Constant.specialDiscountOfferEnable = dineinresult.data()!["isEnable"];
+          Constant.specialDiscountOfferEnable = dineinresult.data()?["isEnable"] == true;
         }
       });
 
@@ -346,18 +348,18 @@ class FireStoreUtils {
       });
 
       await fireStore.collection(CollectionName.settings).doc("document_verification_settings").get().then((value) {
-        Constant.isStoreVerification = value.data()!['isStoreVerification'];
+        Constant.isStoreVerification = value.data()?['isStoreVerification'] == true;
       });
 
       fireStore.collection(CollectionName.settings).doc("privacyPolicy").get().then((event) {
         if (event.exists) {
-          Constant.privacyPolicy = event.data()!["privacy_policy"];
+          Constant.privacyPolicy = event.data()?["privacy_policy"];
         }
       });
 
       fireStore.collection(CollectionName.settings).doc("openai_settings").get().then((event) {
         if (event.exists) {
-          Constant.openAIStatus = event.data()!["status"];
+          Constant.openAIStatus = event.data()?["status"] == true;
         }
       });
 

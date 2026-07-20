@@ -272,11 +272,14 @@ class FireStoreUtils {
     try {
       await fireStore.collection(CollectionName.settings).doc("globalSettings").get().then((value) async {
         Constant.orderRingtoneUrl = value.data()?['order_ringtone_url'] ?? '';
-        Constant.isSelfDeliveryFeature = value.data()!['isSelfDelivery'] ?? false;
+        Constant.isSelfDeliveryFeature = value.data()?['isSelfDelivery'] == true;
         Constant.defaultCountryCode = value.data()?['defaultCountryCode'] ?? '';
 
         Preferences.setString(Preferences.orderRingtone, Constant.orderRingtoneUrl);
-        AppThemeData.primary300 = Color(int.parse(value.data()!['app_driver_color'].replaceFirst("#", "0xff")));
+        final driverColor = value.data()?['app_driver_color'];
+        if (driverColor is String && driverColor.isNotEmpty) {
+          AppThemeData.primary300 = Color(int.parse(driverColor.replaceFirst("#", "0xff")));
+        }
         if (Constant.orderRingtoneUrl.isNotEmpty) {
           await AudioPlayerService.initAudio();
         }
@@ -336,23 +339,25 @@ class FireStoreUtils {
       });
 
       await fireStore.collection(CollectionName.settings).doc("document_verification_settings").get().then((value) {
-        Constant.isDriverVerification = value.data()!['isDriverVerification'];
-        Constant.isOwnerVerification = value.data()!['isOwnerVerification'];
+        final data = value.data();
+        Constant.isDriverVerification = data?['isDriverVerification'] == true;
+        Constant.isOwnerVerification = data?['isOwnerVerification'] == true;
       });
 
       await fireStore.collection(CollectionName.settings).doc("DriverNearBy").get().then((value) {
-        Constant.minimumDepositToRideAccept = value.data()!['minimumDepositToRideAccept'];
-        Constant.ownerMinimumDepositToRideAccept = value.data()!['ownerMinimumDepositToRideAccept'];
-        Constant.minimumAmountToWithdrawal = value.data()!['minimumAmountToWithdrawal'];
-        Constant.driverLocationUpdate = value.data()!['driverLocationUpdate'];
-        Constant.singleOrderReceive = value.data()!['singleOrderReceive'];
-        Constant.selectedMapType = value.data()!["selectedMapType"];
-        Constant.mapType = value.data()!["mapType"];
-        Constant.autoApproveDriver = value.data()!["auto_approve_driver"];
-        Constant.enableOTPTripStart = value.data()!["enableOTPTripStart"];
-        Constant.enableOTPTripStartForRental = value.data()!["enableOTPTripStartForRental"];
-        Constant.parcelRadius = value.data()!["parcelRadius"];
-        Constant.rentalRadius = value.data()!["rentalRadius"];
+        final data = value.data() ?? {};
+        Constant.minimumDepositToRideAccept = data['minimumDepositToRideAccept'];
+        Constant.ownerMinimumDepositToRideAccept = data['ownerMinimumDepositToRideAccept'];
+        Constant.minimumAmountToWithdrawal = data['minimumAmountToWithdrawal'];
+        Constant.driverLocationUpdate = data['driverLocationUpdate'];
+        Constant.singleOrderReceive = data['singleOrderReceive'] == true;
+        Constant.selectedMapType = data["selectedMapType"];
+        Constant.mapType = data["mapType"];
+        Constant.autoApproveDriver = data["auto_approve_driver"] == true;
+        Constant.enableOTPTripStart = data["enableOTPTripStart"] == true;
+        Constant.enableOTPTripStartForRental = data["enableOTPTripStartForRental"] != false;
+        Constant.parcelRadius = data["parcelRadius"];
+        Constant.rentalRadius = data["rentalRadius"];
         log("Constant.singleOrderReceive :: ${Constant.singleOrderReceive}");
       });
     } catch (e) {
