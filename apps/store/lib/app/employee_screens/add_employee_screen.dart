@@ -160,15 +160,14 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             },
                             enabled: true,
                             onChanged: (value) {
-                              controller.countryCodeEditingController.value.text = value.dialCode.toString();
+                              controller.countryCodeEditingController.value.text = value.dialCode ?? Constant.defaultCountryCode;
                               controller.countryISOCodeEditingController.value.text = value.code ?? Constant.defaultCountryISOCode;
                             },
                             dialogTextStyle: TextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontWeight: FontWeight.w500, fontFamily: AppThemeData.medium),
                             dialogBackgroundColor: isDark ? AppThemeData.grey800 : AppThemeData.grey100,
-                            initialSelection: Constant.defaultCountryISOCode,
+                            initialSelection: BrazilPhone.pickerInitialSelection,
                             favorite: const ['BR', '+55'],
                             countryFilter: const ['BR'],
-                            comparator: (a, b) => b.name!.compareTo(a.name.toString()),
                             textStyle: TextStyle(fontSize: 14, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontFamily: AppThemeData.medium),
                             searchDecoration: InputDecoration(iconColor: isDark ? AppThemeData.grey50 : AppThemeData.grey900),
                             searchStyle: TextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontWeight: FontWeight.w500, fontFamily: AppThemeData.medium),

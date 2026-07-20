@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/models/vendor_model.dart';
 import 'package:customer/widget/geoflutterfire/src/geoflutterfire.dart';
@@ -28,7 +29,7 @@ class BookParcelController extends GetxController {
   final Rx<SingleValueDropDownController> senderWeightController = SingleValueDropDownController().obs;
   final Rx<TextEditingController> senderNoteController = TextEditingController().obs;
   final Rx<TextEditingController> senderCountryCodeController = TextEditingController(text: Constant.defaultCountryCode).obs;
-  final Rx<TextEditingController> senderCountryISOCodeController = TextEditingController(text: Constant.defaultCountryCode).obs;
+  final Rx<TextEditingController> senderCountryISOCodeController = TextEditingController(text: Constant.defaultCountryISOCode).obs;
 
   // Receiver details
   final Rx<TextEditingController> receiverLocationController = TextEditingController().obs;
@@ -36,7 +37,7 @@ class BookParcelController extends GetxController {
   final Rx<TextEditingController> receiverMobileController = TextEditingController().obs;
   final Rx<TextEditingController> receiverNoteController = TextEditingController().obs;
   final Rx<TextEditingController> receiverCountryCodeController = TextEditingController(text: Constant.defaultCountryCode).obs;
-  final Rx<TextEditingController> receiverISOCountryCodeController = TextEditingController(text: Constant.defaultCountryCode).obs;
+  final Rx<TextEditingController> receiverISOCountryCodeController = TextEditingController(text: Constant.defaultCountryISOCode).obs;
 
   // Delivery type
   final RxString selectedDeliveryType = 'now'.obs;
@@ -151,8 +152,8 @@ class BookParcelController extends GetxController {
     if (senderNameController.value.text.isEmpty) {
       ShowToastDialog.showToast("Please enter sender name".tr);
       return false;
-    } else if (senderMobileController.value.text.isEmpty) {
-      ShowToastDialog.showToast("Please enter sender mobile".tr);
+    } else if (!BrazilPhone.isValidForDialCode(senderMobileController.value.text, senderCountryCodeController.value.text)) {
+      ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
       return false;
     } else if (senderLocationController.value.text.isEmpty) {
       ShowToastDialog.showToast("Please enter sender address".tr);
@@ -160,8 +161,8 @@ class BookParcelController extends GetxController {
     } else if (receiverNameController.value.text.isEmpty) {
       ShowToastDialog.showToast("Please enter receiver name".tr);
       return false;
-    } else if (receiverMobileController.value.text.isEmpty) {
-      ShowToastDialog.showToast("Please enter receiver mobile".tr);
+    } else if (!BrazilPhone.isValidForDialCode(receiverMobileController.value.text, receiverCountryCodeController.value.text)) {
+      ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
       return false;
     } else if (receiverLocationController.value.text.isEmpty) {
       ShowToastDialog.showToast("Please enter receiver address".tr);
@@ -247,12 +248,12 @@ class BookParcelController extends GetxController {
       sender: LocationInformation(
         address: senderLocationController.value.text,
         name: senderNameController.value.text,
-        phone: "(${senderCountryCodeController.value.text}) ${senderMobileController.value.text}",
+        phone: "${BrazilPhone.normalizeDialCode(senderCountryCodeController.value.text)} ${BrazilPhone.digitsOnly(senderMobileController.value.text)}",
       ),
       receiver: LocationInformation(
         address: receiverLocationController.value.text,
         name: receiverNameController.value.text,
-        phone: "(${receiverCountryCodeController.value.text}) ${receiverMobileController.value.text}",
+        phone: "${BrazilPhone.normalizeDialCode(receiverCountryCodeController.value.text)} ${BrazilPhone.digitsOnly(receiverMobileController.value.text)}",
       ),
       receiverLatLong: receiverLocation.value,
       senderLatLong: senderLocation.value,

@@ -92,8 +92,8 @@ class _PayFastScreenState extends State<PayFastScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Cancel Payment'.tr),
-          content: const SingleChildScrollView(
-            child: Text("cancelPayment?"),
+          content: SingleChildScrollView(
+            child: Text('Cancel Payment?'.tr),
           ),
           actions: <Widget>[
             TextButton(

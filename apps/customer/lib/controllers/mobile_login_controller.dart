@@ -2,6 +2,7 @@ import 'package:customer/themes/show_toast_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:arrow_shared/brazil_phone.dart';
 
 import '../constant/constant.dart';
 import '../screen_ui/auth_screens/otp_verification_screen.dart';
@@ -9,18 +10,18 @@ import '../screen_ui/auth_screens/otp_verification_screen.dart';
 class MobileLoginController extends GetxController {
   final Rx<TextEditingController> mobileController = TextEditingController().obs;
   final Rx<TextEditingController> countryCodeController = TextEditingController(text: Constant.defaultCountryCode).obs;
-  final Rx<TextEditingController> countryISOCodeController = TextEditingController(text: Constant.defaultCountryCode).obs;
+  final Rx<TextEditingController> countryISOCodeController = TextEditingController(text: Constant.defaultCountryISOCode).obs;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Send OTP to the entered phone number
   Future<void> sendOtp() async {
-    final mobile = mobileController.value.text.trim();
-    final countryCode = countryCodeController.value.text.trim();
-    final countryISOCode = countryISOCodeController.value.text.trim();
+    final mobileDigits = BrazilPhone.digitsOnly(mobileController.value.text);
+    final countryCode = BrazilPhone.normalizeDialCode(countryCodeController.value.text.trim());
+    final countryISOCode = BrazilPhone.normalizeIsoCode(countryISOCodeController.value.text.trim());
 
-    if (mobile.isEmpty || mobile.length != 10) {
-      ShowToastDialog.showToast("Please enter a valid 10-digit mobile number".tr);
+    if (!BrazilPhone.isValidForDialCode(mobileDigits, countryCode)) {
+      ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
       return;
     }
 
@@ -28,7 +29,7 @@ class MobileLoginController extends GetxController {
       ShowToastDialog.showLoader("Sending OTP...".tr);
 
       await _auth.verifyPhoneNumber(
-        phoneNumber: '$countryCode$mobile',
+        phoneNumber: '$countryCode$mobileDigits',
         verificationCompleted: (PhoneAuthCredential credential) {
           // Optionally handle auto-verification
         },
@@ -42,12 +43,16 @@ class MobileLoginController extends GetxController {
         },
         codeSent: (String verificationId, int? resendToken) {
           ShowToastDialog.closeLoader();
-          Get.to(() => const OtpVerificationScreen(), arguments: {'countryCode': countryCode, 'countryISOCode': countryISOCode, 'phoneNumber': mobile, 'verificationId': verificationId});
+          Get.to(() => const OtpVerificationScreen(), arguments: {
+            'countryCode': countryCode,
+            'countryISOCode': countryISOCode,
+            'phoneNumber': mobileDigits,
+            'verificationId': verificationId,
+          });
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           ShowToastDialog.closeLoader();
           ShowToastDialog.showToast("OTP timed out. Please try again.".tr);
-          // Optional: Handle timeout
         },
       );
     } catch (e) {

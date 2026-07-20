@@ -1,6 +1,7 @@
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:customer/screen_ui/auth_screens/sign_up_screen.dart';
 import 'package:customer/screen_ui/location_enable_screens/location_permission_screen.dart';
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -68,24 +69,26 @@ class MobileLoginScreen extends StatelessWidget {
                           const SizedBox(height: 25),
                           TextFieldWidget(
                             title: "Mobile Number*".tr,
-                            hintText: "Enter Mobile number".tr,
+                            hintText: BrazilPhone.hint,
                             controller: controller.mobileController.value,
-                            textInputType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+                            textInputType: TextInputType.phone,
                             textInputAction: TextInputAction.done,
-                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9]')), LengthLimitingTextInputFormatter(10)],
+                            inputFormatters: BrazilPhone.inputFormatters(),
                             prefix: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 CountryCodePicker(
                                   onInit: (value) {
                                     controller.countryCodeController.value.text = value?.dialCode ?? Constant.defaultCountryCode;
-                                    controller.countryISOCodeController.value.text = value?.code ?? Constant.defaultCountryCode;
+                                    controller.countryISOCodeController.value.text = value?.code ?? Constant.defaultCountryISOCode;
                                   },
                                   onChanged: (value) {
                                     controller.countryCodeController.value.text = value.dialCode ?? Constant.defaultCountryCode;
-                                    controller.countryISOCodeController.value.text = value.code ?? Constant.defaultCountryCode;
+                                    controller.countryISOCodeController.value.text = value.code ?? Constant.defaultCountryISOCode;
                                   },
-                                  initialSelection: controller.countryISOCodeController.value.text.isNotEmpty ? controller.countryISOCodeController.value.text : Constant.defaultCountryCode,
+                                  initialSelection: BrazilPhone.pickerInitialSelection,
+                                  favorite: const ['BR', '+55'],
+                                  countryFilter: const ['BR'],
                                   showCountryOnly: false,
                                   showOnlyCountryWhenClosed: false,
                                   alignLeft: false,

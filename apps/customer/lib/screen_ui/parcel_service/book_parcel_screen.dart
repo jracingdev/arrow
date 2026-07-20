@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:customer/themes/show_toast_dialog.dart';
 import 'package:customer/utils/utils.dart';
@@ -392,10 +393,10 @@ class BookParcelScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           TextFieldWidget(
-            hintText: "Enter Mobile number".tr,
+            hintText: BrazilPhone.hint,
             controller: mobileController,
-            textInputType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9]')), LengthLimitingTextInputFormatter(10)],
+            textInputType: TextInputType.phone,
+            inputFormatters: BrazilPhone.inputFormatters(),
             backgroundColor: isDark ? AppThemeData.surfaceDark : AppThemeData.surface,
             borderColor: isDark ? AppThemeData.greyDark200 : AppThemeData.grey200,
             prefix: Row(
@@ -404,13 +405,15 @@ class BookParcelScreen extends StatelessWidget {
                 CountryCodePicker(
                   onInit: (value) {
                     countryCodeController.text = value?.dialCode ?? Constant.defaultCountryCode;
-                    countryISOCodeController.text = value?.code ?? Constant.defaultCountryCode;
+                    countryISOCodeController.text = value?.code ?? Constant.defaultCountryISOCode;
                   },
                   onChanged: (value) {
                     countryCodeController.text = value.dialCode ?? Constant.defaultCountryCode;
-                    countryISOCodeController.text = value.code ?? Constant.defaultCountryCode;
+                    countryISOCodeController.text = value.code ?? Constant.defaultCountryISOCode;
                   },
-                  initialSelection: countryISOCodeController.text.isNotEmpty ? countryISOCodeController.text : Constant.defaultCountryCode,
+                  initialSelection: BrazilPhone.pickerInitialSelection,
+                  favorite: const ['BR', '+55'],
+                  countryFilter: const ['BR'],
                   showCountryOnly: false,
                   showOnlyCountryWhenClosed: false,
                   alignLeft: false,

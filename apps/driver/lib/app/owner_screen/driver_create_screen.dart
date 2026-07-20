@@ -258,11 +258,9 @@ class DriverCreateScreen extends StatelessWidget {
                                     ? AppThemeData.grey800
                                     : AppThemeData.grey100,
                                 initialSelection:
-                                    Constant.defaultCountryISOCode,
+                                    BrazilPhone.pickerInitialSelection,
                                 favorite: const ['BR', '+55'],
                                 countryFilter: const ['BR'],
-                                comparator: (a, b) =>
-                                    b.name!.compareTo(a.name.toString()),
                                 textStyle: TextStyle(
                                   fontSize: 14,
                                   color: isDark

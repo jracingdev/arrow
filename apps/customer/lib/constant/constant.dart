@@ -1,4 +1,5 @@
 import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/brazil_phone.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -108,7 +109,10 @@ class Constant {
 
   static String mapAPIKey = "";
   static String placeHolderImage = "";
-  static String defaultCountryCode = "";
+  /// DDI padrão BR (+55). Sobrescrito por Firestore quando configurado.
+  static String defaultCountryCode = BrazilPhone.dialCode;
+  /// ISO do país padrão (BR).
+  static String defaultCountryISOCode = BrazilPhone.isoCode;
 
   static bool isCashbackActive = false;
   static bool isEnableOTPTripStart = false;

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/models/user_model.dart';
 import 'package:customer/screen_ui/location_enable_screens/location_permission_screen.dart';
@@ -19,8 +20,8 @@ class SignUpController extends GetxController {
   Rx<TextEditingController> lastNameEditingController = TextEditingController().obs;
   Rx<TextEditingController> emailEditingController = TextEditingController().obs;
   Rx<TextEditingController> phoneNUmberEditingController = TextEditingController().obs;
-  Rx<TextEditingController> countryCodeEditingController = TextEditingController().obs;
-  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController().obs;
+  Rx<TextEditingController> countryCodeEditingController = TextEditingController(text: Constant.defaultCountryCode).obs;
+  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController(text: Constant.defaultCountryISOCode).obs;
   Rx<TextEditingController> passwordEditingController = TextEditingController().obs;
   Rx<TextEditingController> conformPasswordEditingController = TextEditingController().obs;
   Rx<TextEditingController> referralCodeEditingController = TextEditingController().obs;
@@ -50,9 +51,9 @@ class SignUpController extends GetxController {
       type.value = argumentData['type'];
       userModel.value = argumentData['userModel'];
       if (type.value == "mobileNumber") {
-        phoneNUmberEditingController.value.text = userModel.value.phoneNumber.toString();
-        countryCodeEditingController.value.text = userModel.value.countryCode.toString();
-        countryISOCodeEditingController.value.text = userModel.value.countryISOCode.toString();
+        phoneNUmberEditingController.value.text = BrazilPhone.format(userModel.value.phoneNumber);
+        countryCodeEditingController.value.text = BrazilPhone.normalizeDialCode(userModel.value.countryCode);
+        countryISOCodeEditingController.value.text = BrazilPhone.normalizeIsoCode(userModel.value.countryISOCode);
       } else if (type.value == "google" || type.value == "apple") {
         emailEditingController.value.text = userModel.value.email ?? "";
         firstNameEditingController.value.text = userModel.value.firstName ?? "";
@@ -76,17 +77,24 @@ class SignUpController extends GetxController {
   }
 
   Future<void> signUp() async {
+    final phoneDigits = BrazilPhone.digitsOnly(phoneNUmberEditingController.value.text);
+    final dial = BrazilPhone.normalizeDialCode(countryCodeEditingController.value.text);
+    if (!BrazilPhone.isValidForDialCode(phoneDigits, dial)) {
+      ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
+      return;
+    }
+
     ShowToastDialog.showLoader("Please wait".tr);
     if (type.value == "google" || type.value == "apple" || type.value == "mobileNumber") {
       userModel.value.firstName = firstNameEditingController.value.text.toString();
       userModel.value.lastName = lastNameEditingController.value.text.toString();
       userModel.value.email = emailEditingController.value.text.toString().toLowerCase();
-      userModel.value.phoneNumber = phoneNUmberEditingController.value.text.toString();
+      userModel.value.phoneNumber = phoneDigits;
       userModel.value.role = Constant.userRoleCustomer;
       userModel.value.fcmToken = await NotificationService.getToken();
       userModel.value.active = true;
-      userModel.value.countryCode = countryCodeEditingController.value.text;
-      userModel.value.countryISOCode = countryISOCodeEditingController.value.text;
+      userModel.value.countryCode = dial;
+      userModel.value.countryISOCode = BrazilPhone.normalizeIsoCode(countryISOCodeEditingController.value.text);
       userModel.value.createdAt = Timestamp.now();
       userModel.value.appIdentifier = Platform.isAndroid ? 'android' : 'ios';
 
@@ -121,12 +129,12 @@ class SignUpController extends GetxController {
           userModel.value.firstName = firstNameEditingController.value.text.toString();
           userModel.value.lastName = lastNameEditingController.value.text.toString();
           userModel.value.email = emailEditingController.value.text.toString().toLowerCase();
-          userModel.value.phoneNumber = phoneNUmberEditingController.value.text.toString();
+          userModel.value.phoneNumber = phoneDigits;
           userModel.value.role = Constant.userRoleCustomer;
           userModel.value.fcmToken = await NotificationService.getToken();
           userModel.value.active = true;
-          userModel.value.countryCode = countryCodeEditingController.value.text;
-          userModel.value.countryISOCode = countryISOCodeEditingController.value.text;
+          userModel.value.countryCode = dial;
+          userModel.value.countryISOCode = BrazilPhone.normalizeIsoCode(countryISOCodeEditingController.value.text);
           userModel.value.createdAt = Timestamp.now();
           userModel.value.appIdentifier = Platform.isAndroid ? 'android' : 'ios';
           userModel.value.provider = 'email';

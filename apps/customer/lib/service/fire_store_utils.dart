@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/collection_name.dart';
 import 'package:customer/firebase_options.dart';
@@ -726,7 +727,8 @@ class FireStoreUtils {
       if (globalSettingsSnap.exists && globalSettingsSnap.data() != null) {
         Constant.isEnableAdsFeature = globalSettingsSnap.data()?['isEnableAdsFeature'] ?? false;
         Constant.isSelfDeliveryFeature = globalSettingsSnap.data()?['isSelfDelivery'] ?? false;
-        Constant.defaultCountryCode = globalSettingsSnap.data()?['defaultCountryCode'] ?? '';
+        Constant.defaultCountryCode = BrazilPhone.normalizeDialCode(globalSettingsSnap.data()?['defaultCountryCode']);
+        Constant.defaultCountryISOCode = BrazilPhone.normalizeIsoCode(globalSettingsSnap.data()?['defaultCountryCode']);
         Constant.taxScope = globalSettingsSnap.data()?['taxScope'] ?? "";
         String? colorStr = globalSettingsSnap.data()?['app_customer_color'];
         if (colorStr != null && colorStr.isNotEmpty) {
