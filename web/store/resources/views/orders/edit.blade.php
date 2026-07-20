@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('content')
     <?php
     $countries = file_get_contents(public_path('countriesdata.json'));
@@ -491,7 +491,7 @@
         jQuery("#country_selector").select2({
 			templateResult: formatState,
 			templateSelection: formatState2,
-			placeholder: "Select Country",
+			placeholder: "{{ trans('lang.select_country') }}",
 			allowClear: true
 		});
     });
@@ -1741,7 +1741,7 @@
                 html = html + '</div></div></td>';
                 html = html + '<td class="d-btn" data-pid="' + product.id + '" style="display:none;"></td>';
                 html = html + '<td class="text-green text-center"><span class="item-price">' + price_val +
-                    '</span><br><span class="base-price-' + product_id + ' text-muted"></span></td><td> × ' + val
+                    '</span><br><span class="base-price-' + product_id + ' text-muted"></span></td><td> Ã— ' + val
                     .quantity + '</td><td class="text-green"> + ' + extras_price_val +
                     '</td><td class="text-green">  ' + totalProductPrice_val + '</td>';
                 html = html + '</tr>';

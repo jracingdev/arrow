@@ -214,7 +214,7 @@
                                 </div>
 
                                 <div class="form-group " id="otp-box" style="display:none;">
-                                    <input class="form-control" placeholder="OTP" id="verificationcode" type="text"
+                                    <input class="form-control" placeholder="Código OTP" id="verificationcode" type="text"
                                         class="form-control" name="otp" value="{{ old('otp') }}" required
                                         autocomplete="otp" autofocus>
                                     <div class="otp_error">

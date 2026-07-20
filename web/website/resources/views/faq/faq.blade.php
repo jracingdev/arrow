@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <!-- Mirrored from askbootstrap.com/preview/swiggiweb/faq.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 04 Jan 2022 10:58:46 GMT -->
 <head>
     <meta charset="utf-8">
@@ -44,7 +44,7 @@
                                                 <i class="feather-search"></i></button>
                                         </div>
                                         <input type="text" class="shadow-none border-0 form-control"
-                                               placeholder="Enter Your Location">
+                                               placeholder="Digite sua localização">
                                     </div>
                                 </div>
                                 <div class="p-3 border-bottom">
@@ -738,7 +738,7 @@
                         <div class="col-md-12 form-group">
                             <label class="form-label font-weight-bold small">{{trans('lang.card_number')}}</label>
                             <div class="input-group">
-                                <input placeholder="Card number" type="number" class="form-control">
+                                <input placeholder="Número do cartão" type="number" class="form-control">
                                 <div class="input-group-append">
                                     <button type="button" class="btn btn-outline-secondary"><i
                                                 class="feather-credit-card"></i></button>
@@ -747,13 +747,13 @@
                         </div>
                         <div class="col-md-8 form-group"><label
                                     class="form-label font-weight-bold small">{{trans('lang.valid_through_mm_yy')}}</label><input
-                                    placeholder="Enter Valid through(MM/YY)" type="number" class="form-control"></div>
+                                    placeholder="Validade (MM/AA)" type="number" class="form-control"></div>
                         <div class="col-md-4 form-group"><label
                                     class="form-label font-weight-bold small">{{trans('lang.cvv')}}</label><input
-                                    placeholder="Enter CVV Number" type="number" class="form-control"></div>
+                                    placeholder="CVV" type="number" class="form-control"></div>
                         <div class="col-md-12 form-group"><label
                                     class="form-label font-weight-bold small">{{trans('lang.name_on_card')}}</label><input
-                                    placeholder="Enter Card number" type="text" class="form-control"></div>
+                                    placeholder="Número do cartão" type="text" class="form-control"></div>
                         <div class="col-md-12 form-group mb-0">
                             <div class="custom-control custom-checkbox"><input type="checkbox" id="custom-checkbox1"
                                                                                class="custom-control-input"><label
@@ -793,7 +793,7 @@
                         <div class="col-md-12 form-group">
                             <label class="form-label">{{trans('lang.delivery_area')}}</label>
                             <div class="input-group">
-                                <input placeholder="Delivery Area" type="text" class="form-control">
+                                <input placeholder="Área de entrega" type="text" class="form-control">
                                 <div class="input-group-append">
                                     <button type="button" class="btn btn-outline-secondary"><i
                                                 class="feather-map-pin"></i></button>
@@ -802,11 +802,11 @@
                         </div>
                         <div class="col-md-12 form-group"><label
                                     class="form-label">{{trans('lang.complete_address')}}</label><input
-                                    placeholder="Complete Address e.g. house number, street name, landmark" type="text"
+                                    placeholder="Endereço completo, ex.: número, rua, ponto de referência" type="text"
                                     class="form-control"></div>
                         <div class="col-md-12 form-group"><label
                                     class="form-label">{{trans('lang.delivery_instructions')}}</label><input
-                                    placeholder="Delivery Instructions e.g. Opposite Gold Souk Mall" type="text"
+                                    placeholder="Instruções de entrega, ex.: em frente ao shopping" type="text"
                                     class="form-control"></div>
                         <div class="mb-0 col-md-12 form-group">
                             <label class="form-label">{{trans('lang.nick_name')}}</label>

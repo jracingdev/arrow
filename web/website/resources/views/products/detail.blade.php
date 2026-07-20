@@ -1157,7 +1157,7 @@
             html = html + '<div class="store mt-2 mb-3">';
             
             html = html + '<h3>{{trans("lang.store")}} | <span class="vendor_name" id="vendor_name_loading">' + 
-              (vendorProduct.vendorName || vendorProduct.vendor_title || 'Loading...') + 
+              (vendorProduct.vendorName || vendorProduct.vendor_title || '{{ trans('lang.loading') }}') + 
               '</span></h3>';
             html = html + '</div>';
             html = html + '<div class="description mt-2 mb-3">';

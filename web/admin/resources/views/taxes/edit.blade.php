@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('content')
     <div class="page-wrapper">
         <div class="row page-titles">
@@ -194,7 +194,7 @@
         jQuery("#country").select2({
             templateResult: formatState,
             templateSelection: formatState2,
-            placeholder: "Select Country",
+            placeholder: "{{ trans('lang.select_country') }}",
             allowClear: true
         });
         ref.get().then(async function (snapshots) {
@@ -210,7 +210,7 @@
             jQuery("#country").select2({
                 templateResult: formatState,
                 templateSelection: formatState2,
-                placeholder: "Select Country",
+                placeholder: "{{ trans('lang.select_country') }}",
                 allowClear: true
             });
             $('.tax_amount').val(data.tax);

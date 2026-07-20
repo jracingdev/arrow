@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $countries = file_get_contents(public_path('countriesdata.json'));
 $countries = json_decode($countries);
 $countries = (array) $countries;
@@ -191,7 +191,7 @@ foreach ($countries as $keycountry => $valuecountry) {
         jQuery("#country_selector").select2({
             templateResult: formatState,
             templateSelection: formatState2,
-            placeholder: "Select Country",
+            placeholder: "{{ trans('lang.select_country') }}",
             allowClear: true
         });
         // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---

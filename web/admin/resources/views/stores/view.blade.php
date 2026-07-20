@@ -1121,7 +1121,7 @@
                                     var zoneTitle = zoneData.name || 'Unknown Zone';
                                     $(".zone_name").text(zoneTitle);
                                 } else {
-                                    $(".zone_name").text("Not found Zone");
+                                    $(".zone_name").text("{{ trans('lang.zone_not_found') }}");
                                 }
                             }).catch(function(error) {
                             console.log("Error fetching zone:", error);

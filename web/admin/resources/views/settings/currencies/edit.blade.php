@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 
 
@@ -308,7 +308,7 @@ $(document).ready(function () {
 
         templateSelection: formatState2,
 
-        placeholder: "Select Country",
+        placeholder: "{{ trans('lang.select_country') }}",
 
         allowClear: true
 
@@ -362,7 +362,7 @@ $(document).ready(function () {
 
                 templateSelection: formatState2,
 
-                placeholder: "Select Country",
+                placeholder: "{{ trans('lang.select_country') }}",
 
                 allowClear: true
 

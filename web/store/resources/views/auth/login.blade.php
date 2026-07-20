@@ -281,7 +281,7 @@
                                 @enderror
                             </div>
                             <div class="form-group " id="otp-box" style="display:none;">
-                                <input class="form-control" placeholder="OTP" id="verificationcode" type="text"
+                                <input class="form-control" placeholder="Código OTP" id="verificationcode" type="text"
                                     class="form-control" name="otp" value="{{ old('otp') }}" required
                                     autocomplete="otp" autofocus>
                             </div>
@@ -541,11 +541,11 @@
                                                 if (data.access) {
                                                     window.location = "{{ route('dashboard') }}";   // or employee-specific dashboard
                                                 } else {
-                                                    $("#password_required").html("Login failed - token issue");
+                                                    $("#password_required").html("Falha no login — problema de token");
                                                 }
                                             },
                                             error: function() {
-                                                $("#password_required").html("Server error during login");
+                                                $("#password_required").html("Erro no servidor durante o login");
                                             }
                                         });
                                     });

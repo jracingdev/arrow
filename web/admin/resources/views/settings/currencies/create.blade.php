@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 
 
@@ -278,7 +278,7 @@
 
             templateSelection: formatState2,
 
-            placeholder: "Select Country",
+            placeholder: "{{ trans('lang.select_country') }}",
 
             allowClear: true
 

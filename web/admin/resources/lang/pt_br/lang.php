@@ -2610,5 +2610,14 @@ return [
     'name_placeholder' => 'Nome',
     'email_placeholder' => 'E-mail',
     'password_placeholder' => 'Senha',
+    'select_country' => 'Selecionar país',
+    'forgot_password' => 'Esqueceu sua senha?',
+    'send_password_reset_link' => 'Enviar link de redefinição de senha',
+    'verify_your_email_address' => 'Verifique seu endereço de e-mail',
+    'a_fresh_verification_link_has_been_sent_to_your_email_address' => 'Um novo link de verificação foi enviado para seu e-mail.',
+    'before_proceeding_please_check_your_email_for_a_verification_link' => 'Antes de continuar, verifique seu e-mail para o link de verificação.',
+    'if_you_did_not_receive_the_email' => 'Se você não recebeu o e-mail',
+    'click_here_to_request_another' => 'clique aqui para solicitar outro',
+    'zone_not_found' => 'Zona não encontrada',
 ];
 ?>

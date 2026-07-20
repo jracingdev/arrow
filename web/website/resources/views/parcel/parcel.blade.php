@@ -1,4 +1,4 @@
-@include('layouts.app')
+﻿@include('layouts.app')
 @include('layouts.header')
 @php
     $countries = file_get_contents(public_path('countriesdata.json'));
@@ -628,7 +628,7 @@
     jQuery(".country_selector").select2({
         templateResult: formatState,
         templateSelection: formatState2,
-        placeholder: "Select Country",
+        placeholder: "{{ trans('lang.select_country') }}",
         allowClear: true
     });
     // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---

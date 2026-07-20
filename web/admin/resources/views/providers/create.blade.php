@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <?php
@@ -242,7 +242,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                 jQuery("#country_selector").select2({
                     templateResult: formatState,
                     templateSelection: formatState2,
-                    placeholder: "Select Country",
+                    placeholder: "{{ trans('lang.select_country') }}",
                     allowClear: true
                 });
 

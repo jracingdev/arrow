@@ -458,7 +458,7 @@
             append_listrecent_order.innerHTML = html;
 
             const append_listtop_drivers = document.getElementById('append_list_top_drivers');
-            append_listtop_drivers.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+            append_listtop_drivers.innerHTML = '<tr><td colspan="3">{{ trans('lang.loading') }}</td></tr>';
 
             ref = db.collection('users').where('role', '==', 'driver').where('isOwner','==',false);
 

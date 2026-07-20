@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
     <?php
@@ -1025,7 +1025,7 @@
             jQuery("#country_selector").select2({
                 templateResult: formatState,
                 templateSelection: formatState2,
-                placeholder: "Select Country",
+                placeholder: "{{ trans('lang.select_country') }}",
                 allowClear: true
             });
 
@@ -1705,7 +1705,7 @@
             if (to == '' && from == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
-                $(".error_top").append("<p>Digite um horário válido</p>");
+                $(".error_top").append("<p>Digite um horÃ¡rio vÃ¡lido</p>");
                 window.scrollTo(0, 0);
 
             } else if (from > to) {

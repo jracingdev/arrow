@@ -475,7 +475,7 @@
 
 
             const append_list_top_providers = document.getElementById('append_list_top_providers');
-            append_list_top_providers.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+            append_list_top_providers.innerHTML = '<tr><td colspan="3">{{ trans('lang.loading') }}</td></tr>';
 
             ref = db.collection('users').where('role', '==', 'provider').where('section_id', '==', active_id);
            

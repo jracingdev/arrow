@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('content')
 <?php
 $countries = file_get_contents(public_path('countriesdata.json'));
@@ -187,7 +187,7 @@ foreach ($countries as $keycountry => $valuecountry) {
         $("#country_selector").select2({
             templateResult: formatState,
             templateSelection: formatState2,
-            placeholder: "Select Country",
+            placeholder: "{{ trans('lang.select_country') }}",
             allowClear: true
         });
 

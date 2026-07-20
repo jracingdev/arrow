@@ -323,7 +323,7 @@ foreach ($countries as $keycountry => $valuecountry) {
         jQuery("#country_selector").select2({
             templateResult: formatState,
             templateSelection: formatState2,
-            placeholder: "Select Country",
+            placeholder: "{{ trans('lang.select_country') }}",
             allowClear: true
         });
         
@@ -418,7 +418,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                     $(".password_error").show();
                     $(".password_error").html("");
                     window.scrollTo(0,0);
-                    $(".password_error").append("<p class='error'>User is not active or not found</p>");
+                    $(".password_error").append("<p class='error'>Usuário inativo ou não encontrado</p>");
                 }
 
             } else {

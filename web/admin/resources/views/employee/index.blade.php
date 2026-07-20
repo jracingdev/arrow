@@ -141,7 +141,7 @@
             </div>
             <div class="modal-body">
                 <div id="permissionsLoading" class="text-center py-4">
-                    <i class="fa fa-spinner fa-spin fa-2x"></i><br>Loading...
+                    <i class="fa fa-spinner fa-spin fa-2x"></i><br>{{ trans('lang.loading') }}
                 </div>
                 <ul id="permissionsList" class="list-group list-group-flush d-none"></ul>
                 <div id="noPermissions" class="text-center text-muted py-4 d-none">

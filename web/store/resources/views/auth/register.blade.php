@@ -240,7 +240,7 @@
         jQuery("#country_selector").select2({
             templateResult: formatState,
             templateSelection: formatState2,
-            placeholder: "Select Country",
+            placeholder: "{{ trans('lang.select_country') }}",
             allowClear: true
         });
         
