@@ -55,14 +55,17 @@
                 <div class="col-3 d-flex align-items-center m-none head-search">
                     <div class="dropdown ml-4">
                         <a class="text-dark dropdown-toggle d-flex align-items-center p-0" href="#" id="navbarDropdown"
-                           role="button" aria-haspopup="true" aria-expanded="false">
-                            <div class="head-loc" onclick="getCurrentLocation('reload')">
-                           
+                           role="button" aria-haspopup="true" aria-expanded="false"
+                           onclick="event.preventDefault();" title="{{ trans('lang.select_location') }}">
+                            <div class="head-loc" onclick="event.preventDefault(); event.stopPropagation(); getCurrentLocation('reload');"
+                                 title="{{ trans('lang.enter_location') }}">
                                 <i class="feather-map-pin mr-2 bg-light rounded-pill p-2 icofont-size"></i>
                             </div>
                             <div>
-                                <input id="user_locationnew" type="text" size="50" class="pac-target-input">
-
+                                <input id="user_locationnew" type="text" size="50" class="pac-target-input"
+                                       placeholder="{{ trans('lang.enter_location') }}"
+                                       aria-label="{{ trans('lang.select_location') }}"
+                                       onclick="event.stopPropagation();">
                             </div>
                         </a>
                     </div>
@@ -244,12 +247,18 @@
         
         <div class="mobile-set-location d-flex align-items-center head-search pt-1 mt-3">
             <div class="dropdown">
-                <a class="text-dark dropdown-toggle d-flex align-items-center p-0" href="#" id="navbarDropdown"
-                   role="button" aria-haspopup="true" aria-expanded="false">
-                    <div class="head-loc" onclick="getCurrentLocation('reload')">
-                        <i class="feather-map-pin mr-2 bg-light rounded-pill p-2 icofont-size"></i></div>
+                <a class="text-dark dropdown-toggle d-flex align-items-center p-0" href="#" id="navbarDropdownMobile"
+                   role="button" aria-haspopup="true" aria-expanded="false"
+                   onclick="event.preventDefault();" title="{{ trans('lang.select_location') }}">
+                    <div class="head-loc" onclick="event.preventDefault(); event.stopPropagation(); getCurrentLocation('reload');"
+                         title="{{ trans('lang.enter_location') }}">
+                        <i class="feather-map-pin mr-2 bg-light rounded-pill p-2 icofont-size"></i>
+                    </div>
                     <div>
-                        <input id="user_locationnew_mobile" type="text" size="50" class="user_locationnew pac-target-input">
+                        <input id="user_locationnew_mobile" type="text" size="50" class="user_locationnew pac-target-input"
+                               placeholder="{{ trans('lang.enter_location') }}"
+                               aria-label="{{ trans('lang.select_location') }}"
+                               onclick="event.stopPropagation();">
                     </div>
                 </a>
             </div>

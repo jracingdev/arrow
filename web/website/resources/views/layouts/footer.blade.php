@@ -726,20 +726,17 @@
                 });
             },
             select: function(event, ui) {
-                window.location.reload(true);
                 var address_name = ui.item.label;
                 var address_lat = ui.item.lat;
                 var address_lng = ui.item.lon;
-                var address = ui.item.address || {}; // Default to empty object if address is undefined
-                // Extract address components from the selected place
-                var address_name1 = ui.item.address.road || '';
-                var address_name2 = ui.item.address.neighbourhood || ui.item.address.suburb || '';
-                var address_zip = ui.item.address.postcode || '';
-                var address_city = ui.item.address.city || ui.item.address.town || ui.item.address
-                    .village || '';
-                var address_state = ui.item.address.state || '';
-                var address_country = ui.item.address.country || '';
-                // Set the cookies for the selected address details
+                var address = ui.item.address || {};
+                var address_name1 = address.road || '';
+                var address_name2 = address.neighbourhood || address.suburb || '';
+                var address_zip = address.postcode || '';
+                var address_city = address.city || address.town || address.village || '';
+                var address_state = address.state || '';
+                var address_country = address.country || '';
+                // Persist address before reload so the header keeps the selection
                 setCookie('address_name1', address_name1, 365);
                 setCookie('address_name2', address_name2, 365);
                 setCookie('address_name', address_name, 365);
@@ -749,6 +746,7 @@
                 setCookie('address_city', address_city, 365);
                 setCookie('address_state', address_state, 365);
                 setCookie('address_country', address_country, 365);
+                window.location.reload(true);
             }
         });
     }
@@ -1440,9 +1438,9 @@
         }
     <?php } ?>
 
-    async function getCurrentLocation(type = '') {
-        var is_map = '';
-        is_map = "<?php echo env('IS_MAP'); ?>";
+    async function getCurrentLocation(reloadType = '') {
+        // Keep global `type` in sync for OSM reverse-geocode reload after async GPS
+        type = reloadType;
         if (mapType == 'google') {
             var geocoder = new google.maps.Geocoder();
             if (navigator.geolocation) {
@@ -1462,7 +1460,7 @@
                         }, async function(results, status) {
                             if (status == google.maps.GeocoderStatus.OK) {
                                 if (results.length > 0) {
-                                    document.getElementById('user_locationnew').value = results[0].formatted_address;
+                                    setLocationValue('value', results[0].formatted_address);
                                     address_name1 = '';
                                     $.each(results[0].address_components, async function(i, address_component) {
                                         address_name1 = '';
@@ -1477,9 +1475,9 @@
                                         } else if (address_component.types[0] == "locality") {
                                             address_city = address_component.long_name;
                                         } else if (address_component.types[0] == "administrative_area_level_1") {
-                                            var address_state = address_component.long_name;
+                                            address_state = address_component.long_name;
                                         } else if (address_component.types[0] == "country") {
-                                            var address_country = address_component.long_name;
+                                            address_country = address_component.long_name;
                                         }
                                     });
                                     address_name = results[0].formatted_address;
@@ -1494,7 +1492,7 @@
                                     setCookie('address_city', address_city, 365);
                                     setCookie('address_state', address_state, 365);
                                     setCookie('address_country', address_country, 365);
-                                    if (type == 'reload') {
+                                    if (reloadType == 'reload') {
                                         window.location.reload(true);
                                     }
                                 }
@@ -1506,18 +1504,16 @@
                             }
                         } catch (err) {}
                     },
-                    function() {});
+                    showError);
             } else {
-                // Browser doesn't support Geolocation
+                setLocationValue('value', "{{ trans('lang.geolocation_is_not_supported_by_this_browser') }}");
             }
         } else {
             if (navigator.geolocation) {
+                // Do NOT reload here — wait for reverse geocode + cookies in fetchNearbyPlaces
                 navigator.geolocation.getCurrentPosition(showPosition, showError);
             } else {
-                document.getElementById('user_locationnew').innerHTML = "Geolocation is not supported by this browser.";
-            }
-            if (type == 'reload') {
-                window.location.reload(true);
+                setLocationValue('value', "{{ trans('lang.geolocation_is_not_supported_by_this_browser') }}");
             }
         }
     }
@@ -1533,12 +1529,10 @@
         $.getJSON(url, async function(data) {
             if (data && data.address) {
                 const placeName = data.display_name;
-                $('#user_locationnew').val(placeName);
+                setLocationValue('value', placeName);
                 var address_name = placeName;
                 var address_lat = lat1;
                 var address_lng = lon1;
-                var address = placeName || {}; // Default to empty object if address is undefined
-                // Extract address components from the selected place
                 var address = data.address;
                 var address_city = address.city || address.town || address.village || '';
                 var address_state = address.state || '';
@@ -1546,7 +1540,6 @@
                 var address_zip = address.postcode || '';
                 var address_name1 = address.road || '';
                 var address_name2 = address.neighbourhood || address.suburb || '';
-                // Set the cookies for the selected address details
                 setCookie('address_name1', address_name1, 365);
                 setCookie('address_name2', address_name2, 365);
                 setCookie('address_name', address_name, 365);
@@ -1568,20 +1561,22 @@
         });
     }
     function showError(error) {
+        var message = "{{ trans('lang.an_unknown_error_occurred') }}";
         switch (error.code) {
             case error.PERMISSION_DENIED:
-                document.getElementById('user_locationnew').innerHTML = "User denied the request for Geolocation.";
+                message = "{{ trans('lang.user_denied_the_request_for_geolocation') }}";
                 break;
             case error.POSITION_UNAVAILABLE:
-                document.getElementById('user_locationnew').innerHTML = "Location information is unavailable.";
+                message = "{{ trans('lang.location_information_is_unavailable') }}";
                 break;
             case error.TIMEOUT:
-                document.getElementById('user_locationnew').innerHTML = "The request to get user location timed out.";
+                message = "{{ trans('lang.the_request_to_get_user_location_timed_out') }}";
                 break;
             case error.UNKNOWN_ERROR:
-                document.getElementById('user_locationnew').innerHTML = "An unknown error occurred.";
+                message = "{{ trans('lang.an_unknown_error_occurred') }}";
                 break;
         }
+        setLocationValue('value', message);
     }
     function saveShippingAddress() {
         var line1 = $("#address_line1").val();
