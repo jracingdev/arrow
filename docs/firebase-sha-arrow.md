@@ -29,27 +29,32 @@ keytool -list -v -keystore %USERPROFILE%\.android\debug.keystore -alias androidd
 
 ## Packages a cadastrar (um app Android cada)
 
-| App | Package (`applicationId`) |
-|-----|---------------------------|
-| Customer | `br.app.arrow.customer` |
-| Store | `br.app.arrow.store` |
-| Driver | `br.app.arrow.driver` |
+Instalados nos devices agora: `br.app.arrow.*` (Motorola/Honor). Não há `com.emart.*` nos aparelhos.
 
-## Passos no Firebase Console
+| App | Package (`applicationId`) | App ID local (google-services) |
+|-----|---------------------------|--------------------------------|
+| Customer | `br.app.arrow.customer` | `1:661081769489:android:7eea7bece5a655cfa4d3b1` |
+| Store | `br.app.arrow.store` | `1:661081769489:android:7eea7bece5a655cfa4d3b2` |
+| Driver | `br.app.arrow.driver` | `1:661081769489:android:7eea7bece5a655cfa4d3b3` |
 
-1. Abra [Firebase Console](https://console.firebase.google.com/) → projeto **j-arrow**.
-2. ⚙️ Project settings → **Your apps**.
-3. Para cada package acima (adicione o app Android se ainda não existir):
-   - **Add fingerprint**
-   - Cole o **SHA-1** e o **SHA-256** desta página.
-4. Authentication → Sign-in method → **Google** → Enable (se ainda não estiver).
-5. Baixe o novo `google-services.json` de **cada** app (deve conter `oauth_client` **não vazio**) e substitua:
-   - `apps/customer/android/app/google-services.json`
-   - `apps/store/android/app/google-services.json`
-   - `apps/driver/android/app/google-services.json`
-6. Em Google Cloud → APIs & Services → Credentials, copie o client ID tipo **Web application** (`….apps.googleusercontent.com`) para:
-   - `apps/shared/lib/arrow_production_config.dart` → `kGoogleSignInWebClientId`
-7. Rebuild release + reinstall nos devices.
+**Cole em cada um destes 3 apps:**
+
+```
+SHA-1:   4D:D8:33:1F:75:F0:8E:64:2E:19:67:12:54:F5:94:53:70:EC:2A:85
+SHA-256: D6:37:B2:99:45:28:39:1E:55:4D:6D:83:22:0D:33:EB:32:ED:B6:90:06:90:1D:51:18:63:5A:69:B3:8F:2C:F0
+```
+
+## Passos no Firebase Console (obrigatório — CLI sem login neste ambiente)
+
+1. Abra: https://console.firebase.google.com/project/j-arrow/settings/general
+2. Em **Your apps**, selecione cada Android app (`br.app.arrow.customer` / `store` / `driver`).
+   - Se o app não existir: **Add app** → Android → package acima.
+3. **Add fingerprint** → cole SHA-1 e SHA-256.
+4. Authentication → Sign-in method → **Google** → Enable.
+5. Aguarde 2–5 minutos (propagação OAuth).
+6. Baixe `google-services.json` (deve ter `oauth_client` **não vazio**) e substitua nos 3 apps.
+7. (Opcional) Copie o Web client ID para `kGoogleSignInWebClientId` em `apps/shared/lib/arrow_production_config.dart`.
+8. Rebuild + reinstall e reteste “Continuar com o Google”.
 
 ## CLI (se autenticado)
 
