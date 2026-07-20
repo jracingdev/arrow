@@ -259,9 +259,14 @@ foreach ($countries as $keycountry => $valuecountry) {
             setDefaultCountryCode('55');
         });
 
-        let documentVerify = await database.collection('settings').doc('document_verification_settings').get();
-        let documentSettings = documentVerify.data();
-        if(documentSettings.isDriverVerification === false){
+        try {
+            let documentVerify = await database.collection('settings').doc('document_verification_settings').get();
+            let documentSettings = documentVerify.exists ? (documentVerify.data() || {}) : {};
+            if (documentSettings.isDriverVerification === false || documentSettings.isDriverVerification == null) {
+                isAutoVerify = true;
+            }
+        } catch (settingsError) {
+            console.error("Error loading document_verification_settings:", settingsError);
             isAutoVerify = true;
         }
     

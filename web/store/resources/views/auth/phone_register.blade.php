@@ -297,10 +297,12 @@
             var vendor_active = false;
             var autoAprroveVendor = database.collection('settings').doc("vendor");
             autoAprroveVendor.get().then(async function(snapshots) {
-                var vendordata = snapshots.data();
+                var vendordata = snapshots.exists ? (snapshots.data() || {}) : {};
                 if (vendordata.auto_approve_vendor == true) {
                     vendor_active = true;
                 }
+            }).catch(function (autoApproveError) {
+                console.error("Error loading auto_approve_vendor:", autoApproveError);
             });
 
             var adminEmail = '';
@@ -345,9 +347,17 @@
 
             jQuery(document).ready(async function() {
 
-                let docRef = await database.collection('settings').doc('document_verification_settings').get();
-                let docData =  docRef.data();
-                isStoreVerification = docData.isStoreVerification;
+                try {
+                    let docRef = await database.collection('settings').doc('document_verification_settings').get();
+                    let docData = docRef.exists ? (docRef.data() || {}) : {};
+                    isStoreVerification = docData.isStoreVerification === true;
+                } catch (settingsError) {
+                    console.error("Error loading document_verification_settings:", settingsError);
+                    isStoreVerification = false;
+                    $(".error_top").show();
+                    $(".error_top").html("");
+                    $(".error_top").append("<p>Não foi possível carregar as configurações. Tente novamente em instantes.</p>");
+                }
 
                 await email_templates.get().then(async function(snapshots) {
                     emailTemplatesData = snapshots.docs[0].data();

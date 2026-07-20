@@ -257,9 +257,14 @@ foreach ($countries as $keycountry => $valuecountry) {
             applyDefaultPhoneCode('55');
         });
 
-        let documentVerify = await database.collection('settings').doc('document_verification_settings').get();
-        let documentSettings = documentVerify.data();
-        if(documentSettings.isOwnerVerification === false){
+        try {
+            let documentVerify = await database.collection('settings').doc('document_verification_settings').get();
+            let documentSettings = documentVerify.exists ? (documentVerify.data() || {}) : {};
+            if (documentSettings.isOwnerVerification === false || documentSettings.isOwnerVerification == null) {
+                isAutoVerify = true;
+            }
+        } catch (settingsError) {
+            console.error("Error loading document_verification_settings:", settingsError);
             isAutoVerify = true;
         }
 

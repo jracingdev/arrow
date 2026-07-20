@@ -47,21 +47,18 @@
     $(document).ready(function(){
         jQuery("#data-table_processing").show();
         ref.get().then( async function(snapshots){
-          var documentVerification = snapshots.data();
-          if(documentVerification == undefined){
+          var documentVerification = snapshots.exists ? (snapshots.data() || {}) : {};
+          if (!snapshots.exists) {
               database.collection('settings').doc('document_verification_settings').set({});
           }
-          try{
-              if(documentVerification.isDriverVerification){
-                  $("#enable_driver").prop('checked',true);
-              }
-              if (documentVerification.isStoreVerification) {
-                  $("#enable_store").prop('checked', true);
-              }
-              if (documentVerification.isOwnerVerification) {
-                  $("#enable_owner").prop('checked', true);
-              }
-          }catch (error){
+          if (documentVerification.isDriverVerification) {
+              $("#enable_driver").prop('checked', true);
+          }
+          if (documentVerification.isStoreVerification) {
+              $("#enable_store").prop('checked', true);
+          }
+          if (documentVerification.isOwnerVerification) {
+              $("#enable_owner").prop('checked', true);
           }
           jQuery("#data-table_processing").hide();
         })

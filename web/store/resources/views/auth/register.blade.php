@@ -283,9 +283,18 @@
     $(".create_vendor_btn").click(async function () {
         $(".error_top").hide();
 
-        let docRef = await database.collection('settings').doc('document_verification_settings').get();
-        let docData =  docRef.data();
-        isStoreVerification = docData.isStoreVerification;
+        try {
+            let docRef = await database.collection('settings').doc('document_verification_settings').get();
+            let docData = docRef.exists ? (docRef.data() || {}) : {};
+            isStoreVerification = docData.isStoreVerification === true;
+        } catch (settingsError) {
+            console.error("Error loading document_verification_settings:", settingsError);
+            $(".error_top").show();
+            $(".error_top").html("");
+            $(".error_top").append("<p>Não foi possível carregar as configurações. Tente novamente em instantes.</p>");
+            window.scrollTo(0, 0);
+            return;
+        }
 
         var userFirstName = $(".user_first_name").val();
         var userLastName = $(".user_last_name").val();
@@ -298,10 +307,12 @@
        
         var vendor_active = false;
         await autoAprroveVendor.get().then(async function (snapshots) {
-            var vendordata = snapshots.data();
+            var vendordata = snapshots.exists ? (snapshots.data() || {}) : {};
             if (vendordata.auto_approve_vendor == true) {
                 vendor_active = true;
             }
+        }).catch(function (autoApproveError) {
+            console.error("Error loading auto_approve_vendor:", autoApproveError);
         });
 
         var user_name = userFirstName + " " + userLastName;        
