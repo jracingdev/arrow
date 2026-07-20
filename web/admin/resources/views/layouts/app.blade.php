@@ -364,8 +364,11 @@
                         .orderBy('order')
                         .get();
                 } catch (indexErr) {
-                    // Índice composto ausente ou campo order inválido — fallback sem orderBy
-                    console.warn('sections orderBy falhou, usando fallback:', indexErr && indexErr.message);
+                    // Índice composto ausente — fallback sem orderBy (warn só 1x por sessão)
+                    if (!window.__sectionsOrderByWarned) {
+                        window.__sectionsOrderByWarned = true;
+                        console.warn('sections orderBy falhou (índice ausente?). Usando fallback. Deploy: firebase deploy --only firestore:indexes');
+                    }
                     snapshot = await database.collection('sections')
                         .where('isActive', '==', true)
                         .get();

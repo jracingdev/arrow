@@ -174,9 +174,11 @@ foreach ($countries as $keycountry => $valuecountry) {
 
         jQuery("#data-table_processing").show();
 
-        let sectionRef = await database.collection('sections').doc(section_id).get();
-        let sectionData = sectionRef.data();
-
+        let sectionData = null;
+        if (section_id) {
+            let sectionRef = await database.collection('sections').doc(section_id).get();
+            sectionData = sectionRef.exists ? sectionRef.data() : null;
+        }
         if(service_type == "cab-service" && sectionData.rideType != ''){
             $("#div_ride_type").show();
             if(sectionData.rideType == "ride"){
@@ -200,26 +202,29 @@ foreach ($countries as $keycountry => $valuecountry) {
 			allowClear: true
 		});
 
-        // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
+        // Padrão Brasil (+55); sobrescreve com globalSettings.defaultCountryCode se existir
+        function applyDefaultPhoneCode(phoneCode) {
+            var code = (phoneCode || '55').toString().replace('+', '').trim() || '55';
+            var $option = $("#country_selector option").filter(function() {
+                return $(this).val() === code;
+            });
+            if ($option.length > 0) {
+                $("#country_selector").val(code).trigger('change');
+            } else if ($("#country_selector option[value='55']").length) {
+                $("#country_selector").val('55').trigger('change');
+            }
+        }
+        applyDefaultPhoneCode('55');
         var globalSettingsRef = database.collection('settings').doc('globalSettings');
         globalSettingsRef.get().then(async function (snapshot) {
             var globalSettings = snapshot.data();
             if (globalSettings && globalSettings.defaultCountryCode) {
-                var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
-                // Find the option with matching phoneCode
-                var $option = $("#country_selector option").filter(function() {
-                    return $(this).val() === defaultPhoneCode;
-                });
-                if ($option.length > 0) {
-                    $("#country_selector").val(defaultPhoneCode).trigger('change');
-                } else {
-                    console.warn("Default country code not found in list:", defaultPhoneCode);
-                }
+                applyDefaultPhoneCode(globalSettings.defaultCountryCode);
             }
         }).catch(function (error) {
             console.error("Error fetching global settings: ", error);
+            applyDefaultPhoneCode('55');
         });
-        // --- END OF DEFAULT COUNTRY LOGIC ---
 
         refZone.orderBy('name', 'asc').get().then(async function(snapshots) {
             snapshots.docs.forEach((listval) => {

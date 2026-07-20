@@ -139,7 +139,16 @@ firebase deploy --only functions
 
 ### Índices Firestore (`firebase/indexes`)
 
-Importe `firestore_indexes.json` no Console Firebase ou via CLI.
+Arquivo: `firestore.indexes.json` (espelho de `firestore_indexes.json`).
+
+```bash
+cd firebase/indexes
+firebase login
+firebase use <PROJECT_ID>
+firebase deploy --only firestore:indexes
+```
+
+Ou abra o link “create index” do console do browser **uma vez**. Índices `sections` (`isActive`+`order`) e `users` (`isOwner`+`role`+`sectionId`/`sectionIds`+`createdAt`) já estão no JSON.
 
 ### Import/Export de coleções (`firebase/import-export`)
 

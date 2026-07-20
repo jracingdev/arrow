@@ -500,8 +500,11 @@
 
                     let vehicleOptions = `<option value="">{{trans('lang.select')}} {{trans('lang.vehicle_type')}}</option>`;
                     if (serviceType === "cab-service") {
-                        let sectionRef = await database.collection('sections').doc(sectionId).get();
-                        let sectionData = sectionRef.data();
+                        let sectionData = {};
+                        if (sectionId) {
+                            let sectionRef = await database.collection('sections').doc(sectionId).get();
+                            sectionData = sectionRef.exists ? (sectionRef.data() || {}) : {};
+                        }
                         const snap = await refCabVehicle.where("sectionId", "==", sectionId).get();
                         snap.forEach((doc) => {
                             const v = doc.data();
@@ -666,8 +669,11 @@
                     vehicle_type.html(`<option value="">{{trans('lang.select')}} {{trans('lang.vehicle_type')}}</option>`);
                     
                     if (serviceType === "cab-service") {
-                        let sectionRef = await database.collection('sections').doc(sectionId).get();
-                        let sectionData = sectionRef.data();
+                        let sectionData = {};
+                        if (sectionId) {
+                            let sectionRef = await database.collection('sections').doc(sectionId).get();
+                            sectionData = sectionRef.exists ? (sectionRef.data() || {}) : {};
+                        }
                         const snap = await refCabVehicle.where("sectionId", "==", sectionId).get();
                         snap.docs.forEach((doc) => {
                             const v = doc.data();

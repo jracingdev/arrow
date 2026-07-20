@@ -233,26 +233,29 @@ foreach ($countries as $keycountry => $valuecountry) {
 			allowClear: true
 		});
 
-        // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
+        // Padrão Brasil (+55); sobrescreve com globalSettings.defaultCountryCode se existir
+        function applyDefaultPhoneCode(phoneCode) {
+            var code = (phoneCode || '55').toString().replace('+', '').trim() || '55';
+            var $option = $("#country_selector option").filter(function() {
+                return $(this).val() === code;
+            });
+            if ($option.length > 0) {
+                $("#country_selector").val(code).trigger('change');
+            } else if ($("#country_selector option[value='55']").length) {
+                $("#country_selector").val('55').trigger('change');
+            }
+        }
+        applyDefaultPhoneCode('55');
         var globalSettingsRef = database.collection('settings').doc('globalSettings');
         globalSettingsRef.get().then(async function (snapshot) {
             var globalSettings = snapshot.data();
             if (globalSettings && globalSettings.defaultCountryCode) {
-                var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
-                // Find the option with matching phoneCode
-                var $option = $("#country_selector option").filter(function() {
-                    return $(this).val() === defaultPhoneCode;
-                });
-                if ($option.length > 0) {
-                    $("#country_selector").val(defaultPhoneCode).trigger('change');
-                } else {
-                    console.warn("Default country code not found in list:", defaultPhoneCode);
-                }
+                applyDefaultPhoneCode(globalSettings.defaultCountryCode);
             }
         }).catch(function (error) {
             console.error("Error fetching global settings: ", error);
+            applyDefaultPhoneCode('55');
         });
-        // --- END OF DEFAULT COUNTRY LOGIC ---
 
         let documentVerify = await database.collection('settings').doc('document_verification_settings').get();
         let documentSettings = documentVerify.data();

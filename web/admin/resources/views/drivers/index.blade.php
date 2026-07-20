@@ -121,6 +121,38 @@
             if ($.inArray('drivers.chat', user_permissions) >= 0) {
                 checkChatPermission = true;
             }
+
+            function buildDriversQuery(useSectionIdsArray) {
+                var q = database.collection('users')
+                    .where("role", "==", "driver")
+                    .where('isOwner', '==', false);
+                if (section_id) {
+                    if (useSectionIdsArray) {
+                        q = q.where('sectionIds', 'array-contains', section_id);
+                    } else {
+                        q = q.where('sectionId', '==', section_id);
+                    }
+                }
+                return q;
+            }
+
+            async function fetchDriversSnapshot(baseQuery) {
+                try {
+                    return await baseQuery.orderBy('createdAt', 'desc').get();
+                } catch (indexErr) {
+                    // Índice composto ausente — fallback sem orderBy; ordena no cliente
+                    console.warn('drivers query orderBy falhou (índice ausente?). Fallback sem orderBy.');
+                    var snap = await baseQuery.get();
+                    var docs = snap.docs.slice().sort(function (a, b) {
+                        var at = a.data().createdAt;
+                        var bt = b.data().createdAt;
+                        var av = at && at.toMillis ? at.toMillis() : 0;
+                        var bv = bt && bt.toMillis ? bt.toMillis() : 0;
+                        return bv - av;
+                    });
+                    return { docs: docs, empty: docs.length === 0 };
+                }
+            }
             $('.status_selector').select2({
                 placeholder: '{{ trans('lang.status') }}',
                 minimumResultsForSearch: Infinity,
@@ -158,7 +190,7 @@
 
                 var status = $('.status_selector').val();
                 var daterangepicker = $('#daterange').data('daterangepicker');
-                ref = database.collection('users').where("role", "==", "driver").where('isOwner','==',false).where('sectionId', '==', section_id);               
+                ref = buildDriversQuery(false);
                 if (status) {
                     ref = (status == "active") ? ref.where('active', '==', true) : ref.where('active', '==', false);
                 }
@@ -175,11 +207,8 @@
                 $('#driverTable').DataTable().ajax.reload();
             });
 
-            var ref = database.collection('users').where("role", "==", "driver").where('isOwner','==',false);
-            ref = ref.where('sectionIds', 'array-contains', section_id).orderBy('createdAt', 'desc');
-            
-            var alldriver = database.collection('users').where("role", "==", "driver").where('isOwner','==',false).where('sectionId', '==', section_id).orderBy('createdAt', 'desc');
-            
+            var ref = buildDriversQuery(true);
+            var alldriver = buildDriversQuery(false);
             var placeholderImage = '';
             var placeholder = database.collection('settings').doc('placeHolderImage');
             placeholder.get().then(async function(snapshotsimage) {
@@ -251,7 +280,7 @@
                             $('#data-table_processing').show();
                         }
 
-                        ref.get().then(async function(querySnapshot) {
+                        fetchDriversSnapshot(ref).then(async function(querySnapshot) {
                             if (querySnapshot.empty) {
                                 $('.total_count').text(0);
                                 $('#data-table_processing').hide(); // Hide loader

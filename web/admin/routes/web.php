@@ -609,8 +609,11 @@ Route::get('email-templates/delete/{id}', [App\Http\Controllers\SettingsControll
 
 Route::post('send-email', [App\Http\Controllers\SendEmailController::class, 'sendMail'])->name('sendMail');
 
-Route::middleware(['permission:report,' . ((str_contains(Request::url(), 'report/')) ? explode("report/", Request::url())[1] : Request::url())])->group(function () {
-    Route::get('report/{type}', [App\Http\Controllers\ReportController::class, 'index'])->name('report.index');
+// permission:report resolve o {type} em runtime no PermissionMiddleware (não usar Request::url() aqui — quebra com route:cache)
+Route::middleware(['permission:report'])->group(function () {
+    Route::get('report/{type}', [App\Http\Controllers\ReportController::class, 'index'])
+        ->where('type', 'sales|tax')
+        ->name('report.index');
 });
 
 Route::middleware(['permission:gift-cards,gift-card.index'])->group(function () {

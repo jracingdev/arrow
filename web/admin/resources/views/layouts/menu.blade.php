@@ -309,7 +309,7 @@ $service_type = @$_COOKIE['service_type'];
         @endif
         @endif
         
-        @if (in_array('report', $role_has_permission))
+        @if (in_array('report', $role_has_permission) || (int) $user->role_id === 1)
         <li><a class="waves-effect waves-dark" href="{!! url('/report/sales') !!}" aria-expanded="false">
                 <i class="mdi mdi-calendar-check"></i>
                 <span class="hide-menu">{{ trans('lang.reports_sale') }}</span>

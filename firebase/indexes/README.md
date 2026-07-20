@@ -1,33 +1,33 @@
+# Índices Firestore
 
-# To perform Firebase indexing, follow these straightforward steps:
-------------------------------------------------------------------
+Arquivo canônico: `firestore_indexes.json` (espelhado em `firestore.indexes.json` para o CLI).
 
-1. To set up NPM on your computer, download Node.js from the following link: https://nodejs.org/en/download/
+## Índices relevantes (admin `/drivers`, seções)
 
-2. Unzip the source code file named "Firebase Indexing.zip" here.
+Já incluídos no JSON:
 
-3. Navigate to the extracted directory of "Firebase Indexing" zip file. Press and hold the ctrl+shift buttons, then right-click the mouse button. From the context menu, select "Open PowerShell window here" to launch Windows PowerShell and execute import/export commands.
+| Collection | Campos |
+|---|---|
+| `sections` | `isActive` ASC, `order` ASC |
+| `users` | `isOwner`, `role`, `sectionId`, `createdAt` DESC |
+| `users` | `sectionIds` CONTAINS, `isOwner`, `role`, `createdAt` DESC |
 
-4. Execute the command "firebase login" to log in to Firebase, if you haven't already done so.
+Se o console Firebase mostrar o link “create index”, abra **uma vez** e confirme, **ou** faça deploy:
 
-5. Execute the command "firebase init"
+```bash
+cd firebase/indexes
+firebase login
+firebase use <SEU_PROJECT_ID>
+firebase deploy --only firestore:indexes
+```
 
-6.  Proceed with Y and press the enter button.
+A criação de índices compostos pode levar alguns minutos. Até lá, o admin usa fallback sem `orderBy` (lista funciona; o warn some após o índice ficar Ready).
 
-7. Choose the Option > Firestore: Configure security rules and indexes files for Firestore. 
+## Setup inicial (se ainda não inicializou)
 
-Please Note: Choose the arrow down key to navigate and select options, and press the space button to confirm your selection.
-
-8. Choose the Option > Use an existing project 
-
-9. Choose your project
-
-10. Press Enter > ? What file should be used for Firestore Rules? firestore.rules
-
-11. Press Enter > ? What file should be used for Firestore indexes? (firestore.indexes.json)
-
-12. Now, the firestore.indexes.json file will be downloaded. Open this file and copy all the code from firestore_indexes.json file, then paste it into firestore.indexes.json file.
-
-13. Now execute the command "firebase deploy --only firestore:indexes" to import indexing in firestore.
- 
-# Refer to this video for assistance: https://youtu.be/DeWVR5sNaFg
+```bash
+cd firebase/indexes
+firebase init firestore
+# Use firestore.indexes.json como arquivo de índices
+firebase deploy --only firestore:indexes
+```

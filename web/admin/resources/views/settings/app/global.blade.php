@@ -542,6 +542,17 @@
                     return $(this).data('phonecode') === globalSettings.defaultCountryCode;
                     }).val();
                     $('.defaultCountryCode').val(selectedCountry).trigger('change');
+                } else {
+                    // Padrão Brasil (+55)
+                    var brCountry = $('.defaultCountryCode option').filter(function() {
+                        return $(this).data('phonecode') === '+55' || $(this).data('code') === 'BR';
+                    }).val();
+                    if (brCountry) {
+                        $('.defaultCountryCode').val(brCountry).trigger('change');
+                    }
+                    database.collection('settings').doc('globalSettings').set({
+                        defaultCountryCode: '+55'
+                    }, { merge: true });
                 }
 
                 photo = globalSettings.appLogo;

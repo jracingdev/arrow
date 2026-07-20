@@ -67,7 +67,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                                     <div class="phone-box position-relative" id="phone-box">
                                         <select name="country" id="country_selector">
                                             <?php foreach ($newcountries as $keycy => $valuecy) { ?>
-                                                <?php $selected = ""; ?>
+                                                <?php $selected = ($valuecy->code === 'BR' || $keycy == '55') ? 'selected' : ''; ?>
                                                 <option <?php echo $selected; ?> code="<?php echo $valuecy->code; ?>" value="<?php echo $keycy; ?>">+<?php echo $valuecy->phoneCode; ?> {{$valuecy->countryName}}</option>
                                             <?php } ?>
                                         </select>
@@ -208,16 +208,31 @@ foreach ($countries as $keycountry => $valuecountry) {
     var refCarModel = database.collection('car_model');
     var refCabVehicle = database.collection('vehicle_type');
     var refRentalVehicle = database.collection('rental_vehicle_type');
-    var refSection = database.collection('sections').where('isActive', '==', true).orderBy('order');;
+    var refSection = database.collection('sections').where('isActive', '==', true);
 
     let isAutoVerify = false;
+
+    function setDefaultCountryCode(phoneCode) {
+        var code = (phoneCode || '55').toString().replace('+', '').trim() || '55';
+        var $option = $("#country_selector option").filter(function() {
+            return $(this).val() === code;
+        });
+        if ($option.length > 0) {
+            $("#country_selector").val(code).trigger('change');
+        } else if ($("#country_selector option[value='55']").length) {
+            $("#country_selector").val('55').trigger('change');
+        }
+    }
     
     $(document).ready(async function () {
 
         jQuery("#data-table_processing").show();
 
-        let sectionRef = await database.collection('sections').doc(section_id).get();
-        let sectionData = sectionRef.data();
+        let sectionData = null;
+        if (section_id) {
+            let sectionRef = await database.collection('sections').doc(section_id).get();
+            sectionData = sectionRef.exists ? sectionRef.data() : null;
+        }
         
         jQuery("#country_selector").select2({
 			templateResult: formatState,
@@ -226,26 +241,23 @@ foreach ($countries as $keycountry => $valuecountry) {
 			allowClear: true
 		});
 
-        // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
+        // Padrão Brasil (+55); usa globalSettings.defaultCountryCode se existir
+        setDefaultCountryCode('55');
         var globalSettingsRef = database.collection('settings').doc('globalSettings');
         globalSettingsRef.get().then(async function (snapshot) {
             var globalSettings = snapshot.data();
             if (globalSettings && globalSettings.defaultCountryCode) {
-                var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
-                // Find the option with matching phoneCode
-                var $option = $("#country_selector option").filter(function() {
-                    return $(this).val() === defaultPhoneCode;
-                });
-                if ($option.length > 0) {
-                    $("#country_selector").val(defaultPhoneCode).trigger('change');
-                } else {
-                    console.warn("Default country code not found in list:", defaultPhoneCode);
-                }
+                setDefaultCountryCode(globalSettings.defaultCountryCode);
+            } else {
+                // Garante BR no Firestore se ainda não configurado
+                database.collection('settings').doc('globalSettings').set({
+                    defaultCountryCode: '+55'
+                }, { merge: true }).catch(function () {});
             }
         }).catch(function (error) {
             console.error("Error fetching global settings: ", error);
+            setDefaultCountryCode('55');
         });
-        // --- END OF DEFAULT COUNTRY LOGIC ---
 
         let documentVerify = await database.collection('settings').doc('document_verification_settings').get();
         let documentSettings = documentVerify.data();
@@ -266,7 +278,15 @@ foreach ($countries as $keycountry => $valuecountry) {
             })
         });
         
-        refSection.get().then((snapshots) => {
+        async function loadActiveSections() {
+            try {
+                return await refSection.orderBy('order').get();
+            } catch (e) {
+                return await refSection.get();
+            }
+        }
+
+        loadActiveSections().then((snapshots) => {
             const groups = {
                 "cab-service": "Cab Service",
                 "delivery-service": "Multivendor Delivery Service",
@@ -358,8 +378,11 @@ foreach ($countries as $keycountry => $valuecountry) {
                 vehicle_type.html(`<option value="">{{trans('lang.select')}} {{trans('lang.vehicle_type')}}</option>`);
                 
                 if (serviceType === "cab-service") {
-                    let sectionRef = await database.collection('sections').doc(sectionId).get();
-                    let sectionData = sectionRef.data();
+                    let sectionData = {};
+                    if (sectionId) {
+                        let sectionRef = await database.collection('sections').doc(sectionId).get();
+                        sectionData = sectionRef.exists ? (sectionRef.data() || {}) : {};
+                    }
                     const snap = await refCabVehicle.where("sectionId", "==", sectionId).get();
                     snap.docs.forEach((doc) => {
                         const v = doc.data();
