@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:arrow_shared/arrow_production_config.dart';
 import 'package:crypto/crypto.dart';
 import 'package:driver/app/auth_screen/signup_screen.dart';
 import 'package:driver/app/cab_screen/cab_dashboard_screen.dart';
@@ -180,14 +181,24 @@ class LoginController extends GetxController {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn.instance;
 
-      await googleSignIn.initialize();
+      await googleSignIn.initialize(
+        serverClientId: kGoogleSignInWebClientId.isEmpty ? null : kGoogleSignInWebClientId,
+      );
 
       final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
       if (googleUser.id.isEmpty) return null;
 
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        debugPrint(
+          'Google Sign-In: idToken ausente. Cadastre SHA-1 no Firebase j-arrow '
+          'para br.app.arrow.driver e defina kGoogleSignInWebClientId.',
+        );
+        return null;
+      }
 
-      final credential = GoogleAuthProvider.credential(idToken: googleAuth.idToken);
+      final credential = GoogleAuthProvider.credential(idToken: idToken);
       final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
 
       return userCredential;

@@ -26,3 +26,17 @@ abstract final class ArrowIosBundleIds {
   static const store = 'br.app.arrow.store';
   static const driver = 'br.app.arrow.driver';
 }
+
+/// Web OAuth client ID from Firebase/Google Cloud (type "Web application").
+///
+/// Required as `GoogleSignIn.initialize(serverClientId: …)` so Android returns
+/// an `idToken` for `FirebaseAuth.signInWithCredential`.
+///
+/// After registering SHA-1/SHA-256 on each Android app in project **j-arrow**,
+/// open Google Cloud → APIs & Services → Credentials (or Firebase → Project
+/// settings → Your apps → download a fresh `google-services.json`) and paste
+/// the Web client ID here (ends with `.apps.googleusercontent.com`).
+///
+/// Debug keystore SHA-1: `4D:D8:33:1F:75:F0:8E:64:2E:19:67:12:54:F5:94:53:70:EC:2A:85`
+/// Debug keystore SHA-256: `D6:37:B2:99:45:28:39:1E:55:4D:6D:83:22:0D:33:EB:32:ED:B6:90:06:90:1D:51:18:63:5A:69:B3:8F:2C:F0`
+const String kGoogleSignInWebClientId = '';
