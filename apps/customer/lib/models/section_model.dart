@@ -50,7 +50,8 @@ class SectionModel {
     sectionImage = json['sectionImage'];
     markerIcon = json['markerIcon'];
     id = json['id'];
-    adminCommision = json.containsKey('adminCommision') ? AdminCommission.fromJson(json['adminCommision']) : null;
+    final rawAdmin = json['adminCommision'];
+    adminCommision = rawAdmin is Map ? AdminCommission.fromJson(Map<String, dynamic>.from(rawAdmin)) : null;
     isActive = json['isActive'];
     theme = json['theme'] ?? "theme_2";
     dineInActive = json['dine_in_active'] ?? false;
@@ -66,7 +67,8 @@ class SectionModel {
     } else {
       nearByRadius = rawRadius.toInt();
     }
-    platformFee = PlatformFeeModel.fromJson(json['platformFee']);
+    final rawPlatformFee = json['platformFee'];
+    platformFee = rawPlatformFee is Map ? PlatformFeeModel.fromJson(Map<String, dynamic>.from(rawPlatformFee)) : null;
     packagingChargeEnable = json['packagingChargeEnable'] ?? false;
   }
 
