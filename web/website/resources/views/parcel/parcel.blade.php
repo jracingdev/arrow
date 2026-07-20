@@ -1,4 +1,4 @@
-﻿@include('layouts.app')
+@include('layouts.app')
 @include('layouts.header')
 @php
     $countries = file_get_contents(public_path('countriesdata.json'));
