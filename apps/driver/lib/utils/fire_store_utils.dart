@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:driver/app/chat_screens/chat_video_container.dart';
 import 'package:driver/constant/collection_name.dart';
@@ -273,7 +274,8 @@ class FireStoreUtils {
       await fireStore.collection(CollectionName.settings).doc("globalSettings").get().then((value) async {
         Constant.orderRingtoneUrl = value.data()?['order_ringtone_url'] ?? '';
         Constant.isSelfDeliveryFeature = value.data()?['isSelfDelivery'] == true;
-        Constant.defaultCountryCode = value.data()?['defaultCountryCode'] ?? '';
+        Constant.defaultCountryCode = BrazilPhone.normalizeDialCode(value.data()?['defaultCountryCode']);
+        Constant.defaultCountryISOCode = BrazilPhone.normalizeIsoCode(value.data()?['defaultCountryCode']);
 
         Preferences.setString(Preferences.orderRingtone, Constant.orderRingtoneUrl);
         final driverColor = value.data()?['app_driver_color'];

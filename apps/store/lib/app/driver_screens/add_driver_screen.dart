@@ -1,6 +1,6 @@
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:vendor/themes/theme_controller.dart';
@@ -129,16 +129,11 @@ class _AddDriverScreenState extends State<AddDriverScreen> {
                           title: 'Phone Number'.tr,
                           controller: controller
                               .phoneNUmberEditingController.value,
-                          hintText: 'Enter Phone Number'.tr,
+                          hintText: BrazilPhone.hint,
                           enable: true,
-                          textInputType:
-                              const TextInputType.numberWithOptions(
-                                  signed: true, decimal: true),
+                          textInputType: TextInputType.phone,
                           textInputAction: TextInputAction.done,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp('[0-9]'))
-                          ],
+                          inputFormatters: BrazilPhone.inputFormatters(),
                           prefix: CountryCodePicker(
                             onInit: (value) {
                               controller
@@ -152,7 +147,7 @@ class _AddDriverScreenState extends State<AddDriverScreen> {
                                       .value
                                       .text =
                                   value?.code ??
-                                      Constant.defaultCountryCode;
+                                      Constant.defaultCountryISOCode;
                             },
                             enabled: true,
                             onChanged: (value) {
@@ -167,7 +162,7 @@ class _AddDriverScreenState extends State<AddDriverScreen> {
                                       .value
                                       .text =
                                   value.code ??
-                                      Constant.defaultCountryCode;
+                                      Constant.defaultCountryISOCode;
                             },
                             dialogTextStyle: TextStyle(
                                 color: isDark
@@ -178,10 +173,10 @@ class _AddDriverScreenState extends State<AddDriverScreen> {
                             dialogBackgroundColor: isDark
                                 ? AppThemeData.grey800
                                 : AppThemeData.grey100,
-                            initialSelection: controller
-                                .countryISOCodeEditingController
-                                .value
-                                .text,
+                            initialSelection:
+                                Constant.defaultCountryISOCode,
+                            favorite: const ['BR', '+55'],
+                            countryFilter: const ['BR'],
                             comparator: (a, b) =>
                                 b.name!.compareTo(a.name.toString()),
                             textStyle: TextStyle(
@@ -399,13 +394,14 @@ class _AddDriverScreenState extends State<AddDriverScreen> {
                             .isEmpty) {
                           ShowToastDialog.showToast(
                               "Please enter valid email".tr);
-                        } else if (controller
-                            .phoneNUmberEditingController
-                            .value
-                            .text
-                            .isEmpty) {
+                        } else if (!BrazilPhone.isValidForDialCode(
+                            controller.phoneNUmberEditingController
+                                .value.text,
+                            controller.countryCodeEditingController
+                                .value.text)) {
                           ShowToastDialog.showToast(
-                              "Please enter Phone number".tr);
+                              "Please enter a valid Brazilian mobile number"
+                                  .tr);
                         } else if (controller
                                 .passwordEditingController
                                 .value

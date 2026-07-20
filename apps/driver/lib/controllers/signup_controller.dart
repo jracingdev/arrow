@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:driver/app/auth_screen/login_screen.dart';
 import 'package:driver/app/cab_screen/cab_dashboard_screen.dart';
@@ -28,7 +29,7 @@ class SignupController extends GetxController {
   Rx<TextEditingController> emailEditingController = TextEditingController().obs;
   Rx<TextEditingController> phoneNUmberEditingController = TextEditingController().obs;
   Rx<TextEditingController> countryCodeEditingController = TextEditingController(text: Constant.defaultCountryCode).obs;
-  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController(text: Constant.defaultCountryCode).obs;
+  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController(text: Constant.defaultCountryISOCode).obs;
   Rx<TextEditingController> passwordEditingController = TextEditingController().obs;
   Rx<TextEditingController> conformPasswordEditingController = TextEditingController().obs;
   Rx<TextEditingController> carPlatNumberEditingController = TextEditingController().obs;
@@ -122,9 +123,9 @@ class SignupController extends GetxController {
       type.value = argumentData['type'];
       userModel.value = argumentData['userModel'];
       if (type.value == "mobileNumber") {
-        phoneNUmberEditingController.value.text = userModel.value.phoneNumber ?? "";
-        countryCodeEditingController.value.text = userModel.value.countryCode ?? Constant.defaultCountryCode;
-        countryISOCodeEditingController.value.text = userModel.value.countryISOCode ?? Constant.defaultCountryCode;
+        phoneNUmberEditingController.value.text = BrazilPhone.format(userModel.value.phoneNumber);
+        countryCodeEditingController.value.text = BrazilPhone.normalizeDialCode(userModel.value.countryCode);
+        countryISOCodeEditingController.value.text = BrazilPhone.normalizeIsoCode(userModel.value.countryISOCode);
       } else if (type.value == "google" || type.value == "apple") {
         emailEditingController.value.text = userModel.value.email ?? "";
         firstNameEditingController.value.text = userModel.value.firstName ?? "";
@@ -208,6 +209,12 @@ class SignupController extends GetxController {
       ShowToastDialog.showToast("Please select at least one section.".tr);
       return;
     }
+    final phoneDigits = BrazilPhone.digitsOnly(phoneNUmberEditingController.value.text);
+    final dial = BrazilPhone.normalizeDialCode(countryCodeEditingController.value.text);
+    if (!BrazilPhone.isValidForDialCode(phoneDigits, dial)) {
+      ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
+      return;
+    }
     ShowToastDialog.showLoader("Please wait".tr);
 
     if (type.value == "google" || type.value == "apple" || type.value == "mobileNumber") {
@@ -245,10 +252,13 @@ class SignupController extends GetxController {
   }
 
   void _populateUserModel() {
+    final phoneDigits = BrazilPhone.digitsOnly(phoneNUmberEditingController.value.text);
+    final dial = BrazilPhone.normalizeDialCode(countryCodeEditingController.value.text);
+
     userModel.value.firstName = firstNameEditingController.value.text;
     userModel.value.lastName = lastNameEditingController.value.text;
     userModel.value.email = emailEditingController.value.text.toLowerCase();
-    userModel.value.phoneNumber = phoneNUmberEditingController.value.text;
+    userModel.value.phoneNumber = phoneDigits;
     userModel.value.role = Constant.userRoleDriver;
     userModel.value.isActive = false;
     userModel.value.active = Constant.autoApproveDriver == true ? true : false;
@@ -259,8 +269,8 @@ class SignupController extends GetxController {
         : Constant.isDriverVerification == true
             ? false
             : true;
-    userModel.value.countryCode = countryCodeEditingController.value.text;
-    userModel.value.countryISOCode = countryISOCodeEditingController.value.text;
+    userModel.value.countryCode = dial;
+    userModel.value.countryISOCode = BrazilPhone.normalizeIsoCode(countryISOCodeEditingController.value.text);
     userModel.value.createdAt = Timestamp.now();
     userModel.value.zoneId = selectedZone.value.id;
     userModel.value.appIdentifier = Platform.isAndroid ? 'android' : 'ios';

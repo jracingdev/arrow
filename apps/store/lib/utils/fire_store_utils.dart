@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -259,7 +260,8 @@ class FireStoreUtils {
     try {
       await fireStore.collection(CollectionName.settings).doc("globalSettings").get().then((value) async {
         Constant.orderRingtoneUrl = value.data()?['order_ringtone_url'] ?? '';
-        Constant.defaultCountryCode = value.data()?['defaultCountryCode'] ?? '';
+        Constant.defaultCountryCode = BrazilPhone.normalizeDialCode(value.data()?['defaultCountryCode']);
+        Constant.defaultCountryISOCode = BrazilPhone.normalizeIsoCode(value.data()?['defaultCountryCode']);
         Preferences.setString(Preferences.orderRingtone, Constant.orderRingtoneUrl);
         AppThemeData.primary300 = Color(int.parse(value.data()!['app_store_color'].replaceFirst("#", "0xff")));
         Constant.isEnableAdsFeature = value.data()?['isEnableAdsFeature'] ?? false;

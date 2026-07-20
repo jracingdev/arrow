@@ -61,6 +61,7 @@ const Map<String, String> enUS = {
   'Please enter first name': 'Please enter first name',
   'Please enter last name': 'Please enter last name',
   'Please enter Phone number': 'Please enter Phone number',
+  'Please enter a valid Brazilian mobile number': 'Please enter a valid Brazilian phone number (10 or 11 digits with area code)',
   'Please select zone': 'Please select zone',
   'Please enter password': 'Please enter password',
   'Please enter Confirm password': 'Please enter Confirm password',

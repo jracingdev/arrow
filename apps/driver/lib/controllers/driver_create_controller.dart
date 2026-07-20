@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
@@ -30,7 +31,7 @@ class DriverCreateController extends GetxController {
   Rx<TextEditingController> emailEditingController = TextEditingController().obs;
   Rx<TextEditingController> phoneNUmberEditingController = TextEditingController().obs;
   Rx<TextEditingController> countryCodeEditingController = TextEditingController(text: Constant.defaultCountryCode).obs;
-  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController(text: Constant.defaultCountryCode).obs;
+  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController(text: Constant.defaultCountryISOCode).obs;
   Rx<TextEditingController> passwordEditingController = TextEditingController().obs;
   Rx<TextEditingController> conformPasswordEditingController = TextEditingController().obs;
 
@@ -119,9 +120,9 @@ class DriverCreateController extends GetxController {
         firstNameEditingController.value.text = driverModel.value.firstName ?? '';
         lastNameEditingController.value.text = driverModel.value.lastName ?? '';
         emailEditingController.value.text = driverModel.value.email ?? '';
-        phoneNUmberEditingController.value.text = driverModel.value.phoneNumber ?? '';
-        countryCodeEditingController.value.text = driverModel.value.countryCode ?? Constant.defaultCountryCode;
-        countryISOCodeEditingController.value.text = driverModel.value.countryISOCode ?? Constant.defaultCountryCode;
+        phoneNUmberEditingController.value.text = BrazilPhone.format(driverModel.value.phoneNumber);
+        countryCodeEditingController.value.text = BrazilPhone.normalizeDialCode(driverModel.value.countryCode);
+        countryISOCodeEditingController.value.text = BrazilPhone.normalizeIsoCode(driverModel.value.countryISOCode);
 
         for (final z in zoneList) {
           if (z.id == driverModel.value.zoneId) {
@@ -260,6 +261,13 @@ class DriverCreateController extends GetxController {
   // ── Save ───────────────────────────────────────────────────────────────────
 
   Future<void> signUp() async {
+    final phoneDigits = BrazilPhone.digitsOnly(phoneNUmberEditingController.value.text);
+    final dial = BrazilPhone.normalizeDialCode(countryCodeEditingController.value.text);
+    if (!BrazilPhone.isValidForDialCode(phoneDigits, dial)) {
+      ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
+      return;
+    }
+
     try {
       ShowToastDialog.showLoader("Please wait".tr);
       FirebaseApp secondaryApp = await Firebase.initializeApp(
@@ -274,7 +282,7 @@ class DriverCreateController extends GetxController {
       );
       if (credential.user != null) {
         driverModel.value.id = credential.user!.uid;
-        _applyCommonFields();
+        _applyCommonFields(phoneDigits, dial);
         driverModel.value.vehicleDetails = _buildVehicleDetails({});
 
         await FireStoreUtils.updateUser(driverModel.value).then((_) {
@@ -296,8 +304,15 @@ class DriverCreateController extends GetxController {
   }
 
   Future<void> updateDriver() async {
+    final phoneDigits = BrazilPhone.digitsOnly(phoneNUmberEditingController.value.text);
+    final dial = BrazilPhone.normalizeDialCode(countryCodeEditingController.value.text);
+    if (!BrazilPhone.isValidForDialCode(phoneDigits, dial)) {
+      ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
+      return;
+    }
+
     ShowToastDialog.showLoader("Please wait".tr);
-    _applyCommonFields();
+    _applyCommonFields(phoneDigits, dial);
     // Start fresh — drop any vehicleDetails entries for deselected sections.
     driverModel.value.vehicleDetails = _buildVehicleDetails({});
     await FireStoreUtils.updateUser(driverModel.value).then((_) {
@@ -306,17 +321,17 @@ class DriverCreateController extends GetxController {
     });
   }
 
-  void _applyCommonFields() {
+  void _applyCommonFields(String phoneDigits, String dial) {
     driverModel.value.firstName = firstNameEditingController.value.text;
     driverModel.value.lastName = lastNameEditingController.value.text;
     driverModel.value.email = emailEditingController.value.text.trim().toLowerCase();
-    driverModel.value.phoneNumber = phoneNUmberEditingController.value.text;
+    driverModel.value.phoneNumber = phoneDigits;
     driverModel.value.role = Constant.userRoleDriver;
     driverModel.value.active = true;
     driverModel.value.isActive = false;
     driverModel.value.isDocumentVerify = true;
-    driverModel.value.countryCode = countryCodeEditingController.value.text;
-    driverModel.value.countryISOCode = countryISOCodeEditingController.value.text;
+    driverModel.value.countryCode = dial;
+    driverModel.value.countryISOCode = BrazilPhone.normalizeIsoCode(countryISOCodeEditingController.value.text);
     driverModel.value.createdAt ??= Timestamp.now();
     driverModel.value.zoneId = selectedZone.value.id;
     driverModel.value.appIdentifier = Platform.isAndroid ? 'android' : 'ios';

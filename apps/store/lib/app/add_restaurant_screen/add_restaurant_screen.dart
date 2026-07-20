@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/cupertino.dart';
@@ -193,10 +194,10 @@ class AddRestaurantScreen extends StatelessWidget {
                         TextFieldWidget(
                           title: 'Phone Number'.tr,
                           controller: controller.mobileNumberController.value,
-                          hintText: 'Phone Number'.tr,
-                          textInputType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+                          hintText: BrazilPhone.hint,
+                          textInputType: TextInputType.phone,
                           textInputAction: TextInputAction.done,
-                          inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9]'))],
+                          inputFormatters: BrazilPhone.inputFormatters(),
                         ),
                         InkWell(
                           onTap: () {

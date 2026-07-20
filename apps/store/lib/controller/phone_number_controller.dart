@@ -1,3 +1,4 @@
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,13 +10,22 @@ import '../constant/constant.dart';
 class PhoneNumberController extends GetxController {
   Rx<TextEditingController> phoneNUmberEditingController = TextEditingController().obs;
   Rx<TextEditingController> countryCodeEditingController = TextEditingController(text: Constant.defaultCountryCode).obs;
-  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController(text: Constant.defaultCountryCode).obs;
+  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController(text: Constant.defaultCountryISOCode).obs;
 
   Future<void> sendCode() async {
+    final phoneDigits = BrazilPhone.digitsOnly(phoneNUmberEditingController.value.text);
+    final dial = BrazilPhone.normalizeDialCode(countryCodeEditingController.value.text);
+    final countryISOCode = BrazilPhone.normalizeIsoCode(countryISOCodeEditingController.value.text);
+
+    if (!BrazilPhone.isValidForDialCode(phoneDigits, dial)) {
+      ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
+      return;
+    }
+
     ShowToastDialog.showLoader("please wait...".tr);
     await FirebaseAuth.instance
         .verifyPhoneNumber(
-          phoneNumber: countryCodeEditingController.value.text + phoneNUmberEditingController.value.text,
+          phoneNumber: '$dial$phoneDigits',
           verificationCompleted: (PhoneAuthCredential credential) {},
           verificationFailed: (FirebaseAuthException e) {
             debugPrint("FirebaseAuthException--->${e.message}");
@@ -31,9 +41,9 @@ class PhoneNumberController extends GetxController {
             Get.to(
               const OtpScreen(),
               arguments: {
-                "countryCode": countryCodeEditingController.value.text,
-                "countryISOCode": countryISOCodeEditingController.value.text,
-                "phoneNumber": phoneNUmberEditingController.value.text,
+                "countryCode": dial,
+                "countryISOCode": countryISOCode,
+                "phoneNumber": phoneDigits,
                 "verificationId": verificationId,
               },
             );

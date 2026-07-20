@@ -1,6 +1,6 @@
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:vendor/themes/theme_controller.dart';
@@ -80,24 +80,26 @@ class SignupScreen extends StatelessWidget {
                   TextFieldWidget(
                     title: 'Phone Number'.tr,
                     controller: controller.phoneNUmberEditingController.value,
-                    hintText: 'Enter Phone Number'.tr,
+                    hintText: BrazilPhone.hint,
                     enable: controller.type.value == "mobileNumber" ? false : true,
-                    textInputType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+                    textInputType: TextInputType.phone,
                     textInputAction: TextInputAction.done,
-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9]'))],
+                    inputFormatters: BrazilPhone.inputFormatters(),
                     prefix: CountryCodePicker(
                       onInit: (value) {
                         controller.countryCodeEditingController.value.text = value?.dialCode ?? Constant.defaultCountryCode;
-                        controller.countryISOCodeEditingController.value.text = value?.code ?? Constant.defaultCountryCode;
+                        controller.countryISOCodeEditingController.value.text = value?.code ?? Constant.defaultCountryISOCode;
                       },
                       enabled: controller.type.value == "mobileNumber" ? false : true,
                       onChanged: (value) {
                         controller.countryCodeEditingController.value.text = value.dialCode ?? Constant.defaultCountryCode;
-                        controller.countryISOCodeEditingController.value.text = value.code ?? Constant.defaultCountryCode;
+                        controller.countryISOCodeEditingController.value.text = value.code ?? Constant.defaultCountryISOCode;
                       },
                       dialogTextStyle: TextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontWeight: FontWeight.w500, fontFamily: AppThemeData.medium),
                       dialogBackgroundColor: isDark ? AppThemeData.grey800 : AppThemeData.grey100,
-                      initialSelection: controller.countryISOCodeEditingController.value.text,
+                      initialSelection: Constant.defaultCountryISOCode,
+                      favorite: const ['BR', '+55'],
+                      countryFilter: const ['BR'],
                       comparator: (a, b) => b.name!.compareTo(a.name.toString()),
                       textStyle: TextStyle(fontSize: 14, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontFamily: AppThemeData.medium),
                       searchDecoration: InputDecoration(iconColor: isDark ? AppThemeData.grey50 : AppThemeData.grey900),
@@ -164,8 +166,11 @@ class SignupScreen extends StatelessWidget {
                           ShowToastDialog.showToast("Please enter last name".tr);
                         } else if (controller.emailEditingController.value.text.trim().isEmpty) {
                           ShowToastDialog.showToast("Please enter valid email".tr);
-                        } else if (controller.phoneNUmberEditingController.value.text.trim().isEmpty) {
-                          ShowToastDialog.showToast("Please enter phone number".tr);
+                        } else if (!BrazilPhone.isValidForDialCode(
+                          controller.phoneNUmberEditingController.value.text,
+                          controller.countryCodeEditingController.value.text,
+                        )) {
+                          ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
                         } else {
                           controller.signUpWithEmailAndPassword();
                         }
@@ -176,8 +181,11 @@ class SignupScreen extends StatelessWidget {
                           ShowToastDialog.showToast("Please enter last name".tr);
                         } else if (controller.emailEditingController.value.text.trim().isEmpty) {
                           ShowToastDialog.showToast("Please enter valid email".tr);
-                        } else if (controller.phoneNUmberEditingController.value.text.trim().isEmpty) {
-                          ShowToastDialog.showToast("Please enter Phone number".tr);
+                        } else if (!BrazilPhone.isValidForDialCode(
+                          controller.phoneNUmberEditingController.value.text,
+                          controller.countryCodeEditingController.value.text,
+                        )) {
+                          ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
                         } else if (controller.passwordEditingController.value.text.trim().isEmpty) {
                           ShowToastDialog.showToast("Please enter password".tr);
                         } else if (controller.conformPasswordEditingController.value.text.trim().isEmpty) {

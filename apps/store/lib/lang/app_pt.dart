@@ -186,6 +186,7 @@ const Map<String, String> ptPO = {
   "Login": "Entrar",
   'Please enter phone number': 'Informe o número de celular',
   'Please enter Phone number': 'Informe o número de celular',
+  'Please enter a valid Brazilian mobile number': 'Informe um telefone válido com DDD (10 ou 11 dígitos)',
   "Please enter valid email": "Informe um e-mail válido",
   "Please enter valid password": "Informe uma senha válida",
   'Continue with Mobile Number': 'Continuar com celular',

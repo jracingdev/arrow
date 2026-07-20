@@ -1,3 +1,4 @@
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
@@ -10,7 +11,6 @@ import 'package:driver/themes/app_them_data.dart';
 import 'package:driver/themes/text_field_widget.dart';
 import 'package:driver/themes/theme_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
@@ -218,15 +218,10 @@ class DriverCreateScreen extends StatelessWidget {
                               title: 'Phone Number'.tr,
                               controller:
                                   controller.phoneNUmberEditingController.value,
-                              hintText: 'Enter Phone Number'.tr,
-                              textInputType:
-                                  const TextInputType.numberWithOptions(
-                                      signed: true, decimal: true),
+                              hintText: BrazilPhone.hint,
+                              textInputType: TextInputType.phone,
                               textInputAction: TextInputAction.done,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                    RegExp('[0-9]')),
-                              ],
+                              inputFormatters: BrazilPhone.inputFormatters(),
                               prefix: CountryCodePicker(
                                 onInit: (value) {
                                   controller
@@ -238,7 +233,7 @@ class DriverCreateScreen extends StatelessWidget {
                                       .countryISOCodeEditingController
                                       .value
                                       .text = value?.code ??
-                                      Constant.defaultCountryCode;
+                                      Constant.defaultCountryISOCode;
                                 },
                                 onChanged: (value) {
                                   controller
@@ -250,7 +245,7 @@ class DriverCreateScreen extends StatelessWidget {
                                       .countryISOCodeEditingController
                                       .value
                                       .text = value.code ??
-                                      Constant.defaultCountryCode;
+                                      Constant.defaultCountryISOCode;
                                 },
                                 dialogTextStyle: TextStyle(
                                   color: isDark
@@ -262,8 +257,10 @@ class DriverCreateScreen extends StatelessWidget {
                                 dialogBackgroundColor: isDark
                                     ? AppThemeData.grey800
                                     : AppThemeData.grey100,
-                                initialSelection: controller
-                                    .countryISOCodeEditingController.value.text,
+                                initialSelection:
+                                    Constant.defaultCountryISOCode,
+                                favorite: const ['BR', '+55'],
+                                countryFilter: const ['BR'],
                                 comparator: (a, b) =>
                                     b.name!.compareTo(a.name.toString()),
                                 textStyle: TextStyle(
@@ -373,8 +370,11 @@ class DriverCreateScreen extends StatelessWidget {
     } else if (!GetUtils.isEmail(controller.emailEditingController.value.text)) {
       ShowToastDialog.showToast("Please enter valid email address".tr);
       return;
-    } else if (controller.phoneNUmberEditingController.value.text.isEmpty) {
-      ShowToastDialog.showToast("Please enter phone number".tr);
+    } else if (!BrazilPhone.isValidForDialCode(
+      controller.phoneNUmberEditingController.value.text,
+      controller.countryCodeEditingController.value.text,
+    )) {
+      ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
       return;
     } else if (controller.selectedZone.value.id == null) {
       ShowToastDialog.showToast("Please select zone".tr);

@@ -61,6 +61,7 @@ const Map<String, String> ptPO = {
   'Please enter first name': 'Informe o nome',
   'Please enter last name': 'Informe o sobrenome',
   'Please enter Phone number': 'Informe o número de celular',
+  'Please enter a valid Brazilian mobile number': 'Informe um telefone válido com DDD (10 ou 11 dígitos)',
   'Please select zone': 'Selecione a zona',
   'Please enter password': 'Informe a senha',
   'Please enter Confirm password': 'Informe a confirmação de senha',

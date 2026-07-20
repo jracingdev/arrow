@@ -186,6 +186,7 @@ const Map<String, String> enUS = {
   "Login": "Login",
   'Please enter phone number': 'Please enter phone number',
   'Please enter Phone number': 'Please enter Phone number',
+  'Please enter a valid Brazilian mobile number': 'Please enter a valid Brazilian phone number (10 or 11 digits with area code)',
   "Please enter valid email": "Please enter valid email",
   "Please enter valid password": "Please enter valid password",
   'Continue with Mobile Number': 'Continue with Mobile Number',

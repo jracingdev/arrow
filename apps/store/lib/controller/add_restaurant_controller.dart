@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
@@ -27,8 +28,8 @@ class AddRestaurantController extends GetxController {
   Rx<TextEditingController> restaurantNameController = TextEditingController().obs;
   Rx<TextEditingController> restaurantDescriptionController = TextEditingController().obs;
   Rx<TextEditingController> mobileNumberController = TextEditingController().obs;
-  Rx<TextEditingController> countryCodeEditingController = TextEditingController().obs;
-  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController().obs;
+  Rx<TextEditingController> countryCodeEditingController = TextEditingController(text: Constant.defaultCountryCode).obs;
+  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController(text: Constant.defaultCountryISOCode).obs;
   Rx<TextEditingController> addressController = TextEditingController().obs;
 
   Rx<TextEditingController> chargePerKmController = TextEditingController().obs;
@@ -103,7 +104,7 @@ class AddRestaurantController extends GetxController {
 
             restaurantNameController.value.text = vendorModel.value.title.toString();
             restaurantDescriptionController.value.text = vendorModel.value.description.toString();
-            mobileNumberController.value.text = vendorModel.value.phonenumber.toString();
+            mobileNumberController.value.text = BrazilPhone.format(vendorModel.value.phonenumber);
             addressController.value.text = vendorModel.value.location.toString();
             isSelfDelivery.value = vendorModel.value.isSelfDelivery ?? false;
 
@@ -165,8 +166,13 @@ class AddRestaurantController extends GetxController {
       ShowToastDialog.showToast("Please enter store name".tr);
     } else if (restaurantDescriptionController.value.text.isEmpty) {
       ShowToastDialog.showToast("Please enter Description".tr);
-    } else if (mobileNumberController.value.text.isEmpty) {
-      ShowToastDialog.showToast("Please enter phone number".tr);
+    } else if (!BrazilPhone.isValidForDialCode(
+      mobileNumberController.value.text,
+      countryCodeEditingController.value.text.isNotEmpty
+          ? countryCodeEditingController.value.text
+          : Constant.defaultCountryCode,
+    )) {
+      ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
     } else if (addressController.value.text.isEmpty) {
       ShowToastDialog.showToast("Please enter address".tr);
     } else if (selectedZone.value.id == null) {
@@ -208,7 +214,7 @@ class AddRestaurantController extends GetxController {
           geopoint: GeoPoint(selectedLocation!.latitude, selectedLocation!.longitude),
         );
         vendorModel.value.description = restaurantDescriptionController.value.text;
-        vendorModel.value.phonenumber = mobileNumberController.value.text;
+        vendorModel.value.phonenumber = BrazilPhone.digitsOnly(mobileNumberController.value.text);
         vendorModel.value.filters = Filters.fromJson(filters);
         vendorModel.value.location = addressController.value.text;
         vendorModel.value.latitude = selectedLocation!.latitude;

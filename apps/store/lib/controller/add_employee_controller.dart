@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -17,7 +18,7 @@ class AddEmployeeController extends GetxController {
   Rx<TextEditingController> emailEditingController = TextEditingController().obs;
   Rx<TextEditingController> phoneNUmberEditingController = TextEditingController().obs;
   Rx<TextEditingController> countryCodeEditingController = TextEditingController(text: Constant.defaultCountryCode).obs;
-  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController(text: Constant.defaultCountryCode).obs;
+  Rx<TextEditingController> countryISOCodeEditingController = TextEditingController(text: Constant.defaultCountryISOCode).obs;
   Rx<TextEditingController> passwordEditingController = TextEditingController().obs;
   RxBool passwordVisible = true.obs;
   Rx<TextEditingController> conformPasswordEditingController = TextEditingController().obs;
@@ -50,9 +51,9 @@ class AddEmployeeController extends GetxController {
         firstNameEditingController.value.text = employeeModel.value.firstName ?? '';
         lastNameEditingController.value.text = employeeModel.value.lastName ?? '';
         emailEditingController.value.text = employeeModel.value.email ?? '';
-        phoneNUmberEditingController.value.text = employeeModel.value.phoneNumber ?? '';
-        countryCodeEditingController.value.text = employeeModel.value.countryCode ?? '';
-        countryISOCodeEditingController.value.text = employeeModel.value.countryISOCode ?? '';
+        phoneNUmberEditingController.value.text = BrazilPhone.format(employeeModel.value.phoneNumber);
+        countryCodeEditingController.value.text = BrazilPhone.normalizeDialCode(employeeModel.value.countryCode);
+        countryISOCodeEditingController.value.text = BrazilPhone.normalizeIsoCode(employeeModel.value.countryISOCode);
         selectEmployeeRole.value = employeeRolelList.firstWhere((role) => role.id == employeeModel.value.employeePermissionId, orElse: () => EmployeeRoleModel());
       }
     }
@@ -65,6 +66,13 @@ class AddEmployeeController extends GetxController {
 
   Rx<UserModel> employeeModel = UserModel().obs;
   Future<Null> signUp() async {
+    final phoneDigits = BrazilPhone.digitsOnly(phoneNUmberEditingController.value.text);
+    final dial = BrazilPhone.normalizeDialCode(countryCodeEditingController.value.text);
+    if (!BrazilPhone.isValidForDialCode(phoneDigits, dial)) {
+      ShowToastDialog.showToast("Please enter a valid Brazilian mobile number".tr);
+      return null;
+    }
+
     ShowToastDialog.showLoader("Please wait".tr);
 
     try {
@@ -73,9 +81,9 @@ class AddEmployeeController extends GetxController {
         employeeModel.value.lastName = lastNameEditingController.value.text.trim();
         employeeModel.value.employeePermissionId = selectEmployeeRole.value.id;
         employeeModel.value.email = emailEditingController.value.text.trim();
-        employeeModel.value.phoneNumber = phoneNUmberEditingController.value.text.trim();
-        employeeModel.value.countryCode = countryCodeEditingController.value.text.trim();
-        employeeModel.value.countryISOCode = countryISOCodeEditingController.value.text.trim();
+        employeeModel.value.phoneNumber = phoneDigits;
+        employeeModel.value.countryCode = dial;
+        employeeModel.value.countryISOCode = BrazilPhone.normalizeIsoCode(countryISOCodeEditingController.value.text);
         employeeModel.value.sectionId = Constant.userModel?.sectionId;
       } else {
         FirebaseApp secondaryApp = await Firebase.initializeApp(name: 'SecondaryApp', options: Firebase.app().options);
@@ -89,7 +97,7 @@ class AddEmployeeController extends GetxController {
           employeeModel.value.lastName = lastNameEditingController.value.text.trim();
           employeeModel.value.employeePermissionId = selectEmployeeRole.value.id;
           employeeModel.value.email = emailEditingController.value.text.trim().toLowerCase();
-          employeeModel.value.phoneNumber = phoneNUmberEditingController.value.text.trim();
+          employeeModel.value.phoneNumber = phoneDigits;
           employeeModel.value.role = Constant.userRoleEmployee;
           employeeModel.value.fcmToken = '';
           employeeModel.value.active = true;
@@ -98,8 +106,8 @@ class AddEmployeeController extends GetxController {
               : Constant.userModel?.isDocumentVerify == true
               ? true
               : false;
-          employeeModel.value.countryCode = countryCodeEditingController.value.text.trim();
-          employeeModel.value.countryISOCode = countryISOCodeEditingController.value.text.trim();
+          employeeModel.value.countryCode = dial;
+          employeeModel.value.countryISOCode = BrazilPhone.normalizeIsoCode(countryISOCodeEditingController.value.text);
           employeeModel.value.createdAt = Timestamp.now();
           employeeModel.value.appIdentifier = Platform.isAndroid ? 'android' : 'ios';
           employeeModel.value.provider = 'email';
