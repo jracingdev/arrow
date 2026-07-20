@@ -6,6 +6,7 @@
  *   2) terms + privacy LGPD
  *   3) contato/país + pagamentos + BRL
  *   4) onboarding pt-BR residual
+ *   5) notificações + email templates pt-BR
  *
  * Uso:
  *   cd firebase/import-export && npm i
@@ -35,5 +36,6 @@ run('backfill-sections-br.js');
 run('seed-terms-privacy-lgpd.js');
 run('seed-contact-payments-br.js');
 run('update-onboarding-ptbr.js');
+run('seed-notifications-ptbr.js');
 
 console.log(dry ? '\nCMS BR dry-run finalizado.' : '\nCMS BR concluído.');

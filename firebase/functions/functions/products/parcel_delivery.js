@@ -84,8 +84,8 @@ exports.dispatch = functions.firestore
                                     var time = Math.floor(orderAcceptRejectDuration / 60) + ":" + (orderAcceptRejectDuration % 60 ? orderAcceptRejectDuration % 60 : '00');
                                     var message = {
                                         notification:{
-                                          title: 'New order received',
-                                          body: 'You have a new order, please accept the order in '+time+' mins'
+                                          title: 'Novo pedido recebido',
+                                          body: 'Você tem um novo pedido; aceite em '+time+' min'
                                         },
                                         token: driver.fcmToken
                                     };

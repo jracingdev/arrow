@@ -1,0 +1,202 @@
+{
+  "_comment": "Seed/patch pt-BR para dynamic_notification (por type) e email_templates (subjects). Aplicar com seed-notifications-ptbr.js",
+  "dynamic_notification": {
+    "rental_rejected": {
+      "subject": "Reserva de carro recusada",
+      "message": "Sua solicitação de reserva foi recusada."
+    },
+    "start_ride": {
+      "subject": "Corrida iniciada",
+      "message": "Sua corrida foi iniciada"
+    },
+    "driver_completed": {
+      "subject": "Pedido concluído",
+      "message": "O entregador entregou o pedido com sucesso"
+    },
+    "cab_accepted": {
+      "subject": "Corrida aceita",
+      "message": "Nosso motorista irá buscá-lo o mais rápido possível."
+    },
+    "provider_rejected": {
+      "subject": "Reserva recusada",
+      "message": "Sua reserva de serviço foi recusada."
+    },
+    "driver_accepted": {
+      "subject": "Pedido aceito",
+      "message": "O entregador aceitou seu pedido"
+    },
+    "restaurant_cancelled": {
+      "subject": "Pedido cancelado",
+      "message": "Seu pedido foi cancelado pelo restaurante"
+    },
+    "dinein_accepted": {
+      "subject": "Pedido no local aceito",
+      "message": "Seu pedido no local foi aceito pelo restaurante"
+    },
+    "service_intransit": {
+      "subject": "Serviço a caminho",
+      "message": "Seu serviço está a caminho"
+    },
+    "stop_time": {
+      "subject": "Cronômetro da reserva parado",
+      "message": "O prestador parou o cronômetro da sua reserva"
+    },
+    "rental_completed": {
+      "subject": "Corrida concluída",
+      "message": "Sua corrida foi concluída."
+    },
+    "store_intransit": {
+      "subject": "Pedido a caminho",
+      "message": "Seu pedido está a caminho"
+    },
+    "parcel_completed": {
+      "subject": "Encomenda entregue",
+      "message": "Nosso entregador entregou a encomenda."
+    },
+    "advertisement_cancelled": {
+      "subject": "Anúncio cancelado",
+      "message": "Seu anúncio foi cancelado pelo administrador"
+    },
+    "parcel_accepted": {
+      "subject": "Encomenda aceita",
+      "message": "Sua encomenda será coletada o mais rápido possível."
+    },
+    "takeaway_completed": {
+      "subject": "Pedido para viagem concluído",
+      "message": "Seu pedido para viagem foi concluído"
+    },
+    "store_accepted": {
+      "subject": "Pedido aceito",
+      "message": "Seu pedido foi aceito."
+    },
+    "provider_accepted": {
+      "subject": "Reserva aceita",
+      "message": "Sua reserva foi aceita."
+    },
+    "schedule_order": {
+      "subject": "Pedido agendado",
+      "message": "Você tem um novo pedido agendado"
+    },
+    "worker_assigned": {
+      "subject": "Nova reserva atribuída",
+      "message": "Uma nova reserva foi atribuída a você"
+    },
+    "advertisement_approved": {
+      "subject": "Anúncio aprovado",
+      "message": "Seu anúncio foi aprovado pelo administrador"
+    },
+    "service_cancelled": {
+      "subject": "Reserva cancelada",
+      "message": "Reserva cancelada pelo cliente"
+    },
+    "rental_booked": {
+      "subject": "Carro alugado",
+      "message": "Você recebeu uma nova reserva de carro"
+    },
+    "dinein_canceled": {
+      "subject": "Pedido no local cancelado",
+      "message": "Seu pedido no local foi cancelado"
+    },
+    "customer_cancelled": {
+      "subject": "Pedido cancelado",
+      "message": "O pedido foi cancelado pelo cliente"
+    },
+    "booking_placed": {
+      "subject": "Nova reserva recebida",
+      "message": "Você recebeu uma nova reserva"
+    },
+    "store_completed": {
+      "subject": "Pedido concluído",
+      "message": "Seu pedido foi concluído"
+    },
+    "new_delivery_order": {
+      "subject": "Novo pedido de entrega",
+      "message": "Você recebeu um novo pedido de entrega"
+    },
+    "dinein_rejected": {
+      "subject": "Pedido no local recusado",
+      "message": "Seu pedido no local foi recusado pela loja"
+    },
+    "driver_cancelled": {
+      "subject": "Pedido de entrega cancelado",
+      "message": "Seu pedido de entrega foi rejeitado pelo restaurante"
+    },
+    "dinein_placed": {
+      "subject": "Reserva para consumo no local",
+      "message": "Você recebeu uma nova reserva para consumo no local"
+    },
+    "order_placed": {
+      "subject": "Novo pedido recebido",
+      "message": "Você recebeu um novo pedido"
+    },
+    "cab_completed": {
+      "subject": "Corrida concluída",
+      "message": "Nosso motorista concluiu a corrida."
+    },
+    "parcel_rejected": {
+      "subject": "Encomenda recusada",
+      "message": "Sua encomenda foi recusada"
+    },
+    "assign_order": {
+      "subject": "Pedido atribuído",
+      "message": "Um novo pedido foi atribuído a você"
+    },
+    "advertisement_resumed": {
+      "subject": "Anúncio retomado",
+      "message": "Seu anúncio foi retomado pelo administrador"
+    },
+    "advertisement_paused": {
+      "subject": "Anúncio pausado",
+      "message": "Seu anúncio foi pausado pelo administrador"
+    },
+    "service_charges": {
+      "subject": "Taxas extras na reserva",
+      "message": "Taxas extras foram adicionadas ao seu serviço"
+    },
+    "service_completed": {
+      "subject": "Reserva concluída",
+      "message": "Sua reserva de serviço foi concluída"
+    },
+    "restaurant_rejected": {
+      "subject": "Pedido recusado",
+      "message": "Seu pedido foi recusado."
+    },
+    "restaurant_accepted": {
+      "subject": "Pedido aceito pela loja",
+      "message": "Seu pedido foi aceito"
+    },
+    "rental_accepted": {
+      "subject": "Reserva de carro aceita",
+      "message": "Sua solicitação de reserva foi aceita"
+    }
+  },
+  "email_templates": {
+    "payout_request_status": {
+      "subject": "Status da solicitação de saque - {requestid}"
+    },
+    "new_order_placed": {
+      "subject": "Confirmação do seu pedido - {orderid}"
+    },
+    "new_ride_book": {
+      "subject": "Sua nova corrida foi reservada!"
+    },
+    "new_car_book": {
+      "subject": "Confirmação — sua reserva de carro"
+    },
+    "payout_request": {
+      "subject": "Solicitação de saque - {userid}"
+    },
+    "new_vendor_signup": {
+      "subject": "Notificação de novo cadastro"
+    },
+    "new_parcel_book": {
+      "subject": "Detalhes da sua reserva de encomenda"
+    },
+    "wallet_topup": {
+      "subject": "Confirmação de recarga da carteira"
+    },
+    "new_ondemand_book": {
+      "subject": "Novo pedido sob demanda"
+    }
+  }
+}

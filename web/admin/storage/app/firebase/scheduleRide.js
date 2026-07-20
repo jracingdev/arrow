@@ -91,8 +91,8 @@ async function scheduleRide() {
                                             var time = Math.floor(orderAcceptRejectDuration / 60) + ":" + (orderAcceptRejectDuration % 60 ? orderAcceptRejectDuration % 60 : '00');
                                             var message = {
                                                 notification:{
-                                                  title: 'New ride request received',
-                                                  body: 'You have a new ride request, please accept the ride request in '+time+' mins'
+                                                  title: 'Nova solicitação de corrida',
+                                                  body: 'Você tem uma nova solicitação de corrida; aceite em '+time+' min'
                                                 },
                                                 token: driver.fcmToken
                                             };

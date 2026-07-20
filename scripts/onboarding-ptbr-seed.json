@@ -1,19 +1,6 @@
 {
-  "_comment": "Seed/patch para Firestore collection on_boarding. Aplicar com update-onboarding-ptbr.js",
-  "updates_by_doc_id": {
-    "2Sok90G7kj1bafzj6T3n": {
-      "title": "App multi-serviço completo",
-      "description": "Peça comida, compras, corridas, entregas e muito mais — tudo em um só lugar com a Arrow."
-    },
-    "Rp6vPipSOp8kRix5pIGb": {
-      "title": "Experiência conveniente e envolvente",
-      "description": "Interface simples, rápida e agradável para pedir e acompanhar tudo com facilidade."
-    },
-    "mQstHpQeXQTeyOTJldZe": {
-      "title": "Das compras às corridas, a Arrow cobre você",
-      "description": "Gerencie lojas, pedidos, reservas e transações com uma interface fácil de usar."
-    }
-  },
+  "_comment": "Seed/patch para Firestore collection on_boarding. Aplicar com update-onboarding-ptbr.js. updates_by_doc_id vazio: IDs antigos mapeavam títulos errados e sobrescreviam pt-BR correto.",
+  "updates_by_doc_id": {},
   "updates_by_english_title": {
     "Your All-in-One Work App.": {
       "title": "Seu app de trabalho completo",
@@ -28,6 +15,10 @@
       "description": "Peça comida, compras, corridas, entregas e muito mais — tudo em um só lugar com a Arrow."
     },
     "Convenient & Captivating User Experience": {
+      "title": "Experiência conveniente e envolvente",
+      "description": "Interface simples, rápida e agradável para pedir e acompanhar tudo com facilidade."
+    },
+    "Convenient and Captivating User Experience": {
       "title": "Experiência conveniente e envolvente",
       "description": "Interface simples, rápida e agradável para pedir e acompanhar tudo com facilidade."
     },
@@ -96,6 +87,10 @@
       "description": "Adicione e gerencie profissionais, atribua tarefas e impulsione a colaboração."
     },
     "All Your Needs in One App!": {
+      "title": "Tudo o que você precisa em um só app!",
+      "description": "De compras a corridas, aluguéis e entregas, o Arrow facilita sua vida."
+    },
+    "All Your Needs in One App": {
       "title": "Tudo o que você precisa em um só app!",
       "description": "De compras a corridas, aluguéis e entregas, o Arrow facilita sua vida."
     }

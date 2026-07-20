@@ -148,8 +148,8 @@ exports.dispatch = onDocumentWritten({
                         const timeLabel = Math.floor(orderAcceptRejectDuration / 60) + ":" + (orderAcceptRejectDuration % 60 || '00');
                         const message = {
                             notification: {
-                                title: 'New order received',
-                                body: 'You have a new order, please accept in ' + timeLabel + ' mins'
+                                title: 'Novo pedido recebido',
+                                body: 'Você tem um novo pedido; aceite em ' + timeLabel + ' min'
                             },
                             token: driver.fcmToken
                         };
