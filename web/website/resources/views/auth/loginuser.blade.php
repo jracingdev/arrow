@@ -356,16 +356,20 @@ foreach ($countries as $keycountry => $valuecountry) {
         }
         // --- END OF DEFAULT COUNTRY LOGIC ---
     });
+    // COOP (Cross-Origin-Opener-Policy: same-origin) bloqueia signInWithPopup
+    // (window.closed/close). Usar redirect + getRedirectResult.
     function googleAuth() {
-        var provider=new firebase.auth.GoogleAuthProvider();
-        firebase.auth().signInWithPopup(provider)
-            .then(function(result) {
-                var user=result.user;
-                saveUserData(user);
-            }).catch(function(error) {
-                console.error("Google Sign-In Error:",error.message);
-
-            });
+        jQuery('#data-table_processing').show();
+        var provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithRedirect(provider).catch(function(error) {
+            jQuery('#data-table_processing').hide();
+            console.error("Google Sign-In Error:", error.message);
+            $(".email_error").hide();
+            $(".password_error").show();
+            $(".password_error").html("");
+            window.scrollTo(0, 0);
+            $(".password_error").append("<p>" + error.message + "</p>");
+        });
     }
 
     function saveUserData(user) {
@@ -453,5 +457,21 @@ foreach ($countries as $keycountry => $valuecountry) {
 
         });
     }
+
+    firebase.auth().getRedirectResult().then(function(result) {
+        if (result && result.user) {
+            saveUserData(result.user);
+        }
+    }).catch(function(error) {
+        console.error("Google Sign-In Error:", error.message);
+        if (error.code === 'auth/redirect-cancelled-by-user') {
+            return;
+        }
+        $(".email_error").hide();
+        $(".password_error").show();
+        $(".password_error").html("");
+        window.scrollTo(0, 0);
+        $(".password_error").append("<p>" + error.message + "</p>");
+    });
 
 </script>

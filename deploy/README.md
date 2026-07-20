@@ -388,6 +388,38 @@ No browser (F12 → Console), após corrigir o `.env` e limpar cache, **não** d
 | `Firestore: permission-denied` / billing | **GCP / Firebase (não é código)** | Ative faturamento no projeto **j-arrow**: [Enable billing](https://console.developers.google.com/billing/enable?project=j-arrow). Sem billing, Firestore recusa leituras mesmo com `initializeApp` OK. |
 | `[ROCKET LOADER] Activator script doesn't have settings` | **Artefato legado Cloudflare no HTML** | O `rocket-loader.min.js` era **hardcoded** em `footer.blade.php` e páginas estáticas (signup/terms/faq), copiado de um export Cloudflare — **não** vem do aaPanel. Foi removido do monorepo. Se ainda aparecer, o deploy não sincronizou ou há cache. |
 | `CollectionReference.doc() empty path` em `/set-location` | **Cookie `section_id` vazio** | Na página de localização o usuário ainda não escolheu seção; `footer.blade.php` agora só chama `.doc(section_id)` quando o cookie existe. |
+| `Cross-Origin-Opener-Policy policy would block the window.closed/close call` (popup.ts Firebase) | **Header COOP `same-origin` + `signInWithPopup`** | Login Google migrou para `signInWithRedirect` + `getRedirectResult` (store + website). Opcional no nginx/aaPanel: `Cross-Origin-Opener-Policy: same-origin-allow-popups` — ver seção abaixo. |
+
+### Google Auth (login) e Cross-Origin-Opener-Policy (COOP)
+
+O aaPanel (ou um módulo de segurança) pode enviar:
+
+```
+Cross-Origin-Opener-Policy: same-origin
+```
+
+Isso **quebra** o Firebase `signInWithPopup` (o SDK não consegue ler `window.closed` / chamar `window.close` no popup do Google). Sintoma típico no console:
+
+```
+Cross-Origin-Opener-Policy policy would block the window.closed call.
+Cross-Origin-Opener-Policy policy would block the window.close call.
+```
+
+**Fix no código (já aplicado):** store (`auth/login.blade.php`) e website (`auth/loginuser.blade.php`) usam `signInWithRedirect` + `getRedirectResult` — não dependem de popup.
+
+**Fix opcional no aaPanel / nginx** (recomendado se ainda houver aviso ou outro fluxo com popup):
+
+1. aaPanel → **Website** → domínio (`store.arrow.app.br` / `arrow.app.br`) → **Config** (nginx).
+2. Procure `Cross-Origin-Opener-Policy` / `same-origin`.
+3. Remova a linha **ou** altere para:
+   ```nginx
+   add_header Cross-Origin-Opener-Policy "same-origin-allow-popups" always;
+   ```
+4. `nginx -t && nginx -s reload`
+
+Snippets de referência: `deploy/nginx-snippets/store.arrow.app.br.conf` e `arrow.app.br.conf`.
+
+No Console Firebase → Authentication → Settings → **Authorized domains**, confirme `store.arrow.app.br` e `arrow.app.br`.
 
 #### Verificar Firebase init no servidor
 
