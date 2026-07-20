@@ -65,6 +65,6 @@ class DefaultFirebaseOptions {
     projectId: 'j-arrow',
     databaseURL: 'https://j-arrow-default-rtdb.firebaseio.com',
     storageBucket: 'j-arrow.firebasestorage.app',
-    iosBundleId: 'com.emart.store',
+    iosBundleId: 'br.app.arrow.store',
   );
 }

@@ -13,9 +13,16 @@ const String kStorePanelBaseUrl = 'https://store.arrow.app.br';
 /// Firebase / GCP project ID.
 const String kFirebaseProjectId = 'j-arrow';
 
-/// Android `applicationId` values — must match Play Console and `google-services.json`.
+/// Android `applicationId` / iOS bundle ID — must match Play/App Store and Firebase apps.
 abstract final class ArrowAndroidPackages {
-  static const customer = 'com.emart.customer';
-  static const store = 'com.emart.store';
-  static const driver = 'com.emart.driver';
+  static const customer = 'br.app.arrow.customer';
+  static const store = 'br.app.arrow.store';
+  static const driver = 'br.app.arrow.driver';
+}
+
+/// iOS `PRODUCT_BUNDLE_IDENTIFIER` (same values as Android applicationId).
+abstract final class ArrowIosBundleIds {
+  static const customer = 'br.app.arrow.customer';
+  static const store = 'br.app.arrow.store';
+  static const driver = 'br.app.arrow.driver';
 }
