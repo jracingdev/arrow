@@ -737,6 +737,7 @@ const Map<String, String> arAR = {
   'Please add rate for food item.': 'يرجى إضافة تقييم للعنصر الغذائي',
   'Placing booking...': 'جارٍ تنفيذ الحجز...',
   'Unable to fetch current location': 'تعذر الحصول على الموقع الحالي',
+  'Could not open this service. Try again.': 'تعذر فتح هذه الخدمة. حاول مرة أخرى.',
   'Failed to calculate total:': 'فشل حساب الإجمالي:',
   'Rental Amount debited': 'تم خصم مبلغ الإيجار',
   'Refund for cancelled booking': 'استرداد المبلغ للحجز الملغي',

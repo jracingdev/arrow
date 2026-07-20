@@ -734,6 +734,7 @@ const Map<String, String> enUS = {
   'Please add rate for food item.': 'Please add rate for food item.',
   'Placing booking...': 'Placing booking...',
   'Unable to fetch current location': 'Unable to fetch current location',
+  'Could not open this service. Try again.': 'Could not open this service. Try again.',
   'Failed to calculate total:': 'Failed to calculate total:',
   'Rental Amount debited': 'Rental Amount debited',
   'Refund for cancelled booking': 'Refund for cancelled booking',

@@ -439,22 +439,50 @@ class FireStoreUtils {
 
   static Future<List<TaxModel>?> getTaxList(String? sectionId) async {
     List<TaxModel> taxList = [];
-    List<Placemark> placeMarks = await placemarkFromCoordinates(Constant.selectedLocation.location!.latitude ?? 0.0, Constant.selectedLocation.location!.longitude ?? 0.0);
-    await fireStore
-        .collection(CollectionName.tax)
-        .where('sectionId', isEqualTo: sectionId)
-        .where('country', isEqualTo: placeMarks.first.country)
-        .where('enable', isEqualTo: true)
-        .get()
-        .then((value) {
-          for (var element in value.docs) {
-            TaxModel taxModel = TaxModel.fromJson(element.data());
-            taxList.add(taxModel);
+    try {
+      String? country;
+      final lat = Constant.selectedLocation.location?.latitude;
+      final lng = Constant.selectedLocation.location?.longitude;
+      if (lat != null && lng != null) {
+        try {
+          final placeMarks = await placemarkFromCoordinates(lat, lng).timeout(const Duration(seconds: 8));
+          if (placeMarks.isNotEmpty) {
+            country = placeMarks.first.country;
           }
-        })
-        .catchError((error) {
-          log(error.toString());
-        });
+        } catch (e) {
+          log("getTaxList geocode error: $e");
+        }
+      }
+      country ??= Constant.country;
+      final resolvedCountry = (country == null || country.isEmpty) ? "Brazil" : country;
+
+      Query<Map<String, dynamic>> query = fireStore
+          .collection(CollectionName.tax)
+          .where('sectionId', isEqualTo: sectionId)
+          .where('enable', isEqualTo: true)
+          .where('country', isEqualTo: resolvedCountry);
+
+      final value = await query.get().timeout(const Duration(seconds: 15));
+      for (var element in value.docs) {
+        taxList.add(TaxModel.fromJson(element.data()));
+      }
+    } catch (e) {
+      log("getTaxList error: $e");
+      // Fallback: section taxes without country filter (avoids index / geocode hangs).
+      try {
+        final value = await fireStore
+            .collection(CollectionName.tax)
+            .where('sectionId', isEqualTo: sectionId)
+            .where('enable', isEqualTo: true)
+            .get()
+            .timeout(const Duration(seconds: 10));
+        for (var element in value.docs) {
+          taxList.add(TaxModel.fromJson(element.data()));
+        }
+      } catch (e2) {
+        log("getTaxList fallback error: $e2");
+      }
+    }
 
     return taxList;
   }

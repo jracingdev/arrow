@@ -72,33 +72,43 @@ class ServiceListController extends GetxController {
       ShowToastDialog.showLoader("Please wait...".tr);
       Constant.sectionConstantModel = sectionModel;
       AppThemeData.primary300 = Color(int.tryParse(sectionModel.color?.replaceFirst("#", "0xff") ?? '') ?? 0xff2196F3);
-      if (auth.FirebaseAuth.instance.currentUser != null) {
-        String uid = auth.FirebaseAuth.instance.currentUser!.uid;
-        UserModel? user = await FireStoreUtils.getUserProfile(uid);
-        if (user != null && user.role == Constant.userRoleCustomer) {
-          user.fcmToken = await NotificationService.getToken();
-          await FireStoreUtils.updateUser(user);
-          ShowToastDialog.closeLoader();
-          if (sectionModel.serviceType == 'Ecommerce Service') {
-            await Preferences.setString(Preferences.foodDeliveryType, 'Delivery');
+
+      final currentUser = auth.FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        try {
+          UserModel? user = await FireStoreUtils.getUserProfile(currentUser.uid).timeout(const Duration(seconds: 12));
+          if (user != null && user.role == Constant.userRoleCustomer) {
+            // FCM must never block opening a section.
+            try {
+              user.fcmToken = await NotificationService.getToken().timeout(const Duration(seconds: 5));
+              // ignore: unawaited_futures
+              FireStoreUtils.updateUser(user);
+            } catch (_) {}
+            if (sectionModel.serviceType == 'Ecommerce Service') {
+              await Preferences.setString(Preferences.foodDeliveryType, 'Delivery');
+            }
+          } else if (user != null && user.role != Constant.userRoleCustomer) {
+            ShowToastDialog.closeLoader();
+            Get.offAll(() => const LoginScreen());
+            return;
           }
-          await _navigate(sectionModel);
-        } else {
-          ShowToastDialog.closeLoader();
-          Get.offAll(() => const LoginScreen());
+        } catch (e) {
+          print("onServiceTap profile/token error: $e");
         }
-      } else {
-        ShowToastDialog.closeLoader();
-        await _navigate(sectionModel);
       }
+
+      await _navigate(sectionModel);
     } catch (e) {
       print("Error during service tap: $e");
+      ShowToastDialog.showToast("Could not open this service. Try again.".tr);
+    } finally {
       ShowToastDialog.closeLoader();
     }
   }
 
   Future<void> _navigate(SectionModel sectionModel) async {
-    await FireStoreUtils.getTaxList(Constant.sectionConstantModel!.id).then((value) {
+    try {
+      final value = await FireStoreUtils.getTaxList(Constant.sectionConstantModel?.id).timeout(const Duration(seconds: 12));
       if (value != null) {
         Constant.taxProductList = value.where((TaxModel taxModel) => taxModel.scope == "product").toList();
         Constant.orderProductTaxList = value.where((TaxModel taxModel) => taxModel.scope == "order").toList();
@@ -112,40 +122,30 @@ class ServiceListController extends GetxController {
           Constant.platformTaxList = value.where((TaxModel taxModel) => taxModel.scope == "platform").toList();
         }
       }
-    });
+    } catch (e) {
+      print("_navigate getTaxList error: $e");
+    }
 
-    if (sectionModel.serviceTypeFlag == "ecommerce-service" || sectionModel.serviceTypeFlag == "delivery-service") {
+    final flag = sectionModel.serviceTypeFlag;
+    if (flag == "ecommerce-service" || flag == "delivery-service") {
       if (cartItem.isNotEmpty) {
         showAlertDialog(Get.context!, UserModel(), sectionModel);
-      } else {
-        if (sectionModel.serviceTypeFlag == "ecommerce-service") {
-          Get.to(DashBoardEcommerceScreen());
-        } else if (sectionModel.serviceTypeFlag == "cab-service") {
-          Get.to(CabDashboardScreen());
-        } else if (sectionModel.serviceTypeFlag == "rental-service") {
-          Get.to(RentalDashboardScreen());
-        } else if (sectionModel.serviceTypeFlag == "parcel_delivery") {
-          Get.to(ParcelDashboardScreen());
-        } else if (sectionModel.serviceTypeFlag == "ondemand-service") {
-          Get.to(OnDemandDashboardScreen());
-        } else {
-          Get.to(() => DashBoardScreen());
-        }
+        return;
       }
+    }
+
+    if (flag == "ecommerce-service") {
+      Get.to(() => DashBoardEcommerceScreen());
+    } else if (flag == "cab-service") {
+      Get.to(() => CabDashboardScreen());
+    } else if (flag == "rental-service") {
+      Get.to(() => RentalDashboardScreen());
+    } else if (flag == "parcel_delivery") {
+      Get.to(() => ParcelDashboardScreen());
+    } else if (flag == "ondemand-service") {
+      Get.to(() => OnDemandDashboardScreen());
     } else {
-      if (sectionModel.serviceTypeFlag == "ecommerce-service") {
-        Get.to(DashBoardEcommerceScreen());
-      } else if (sectionModel.serviceTypeFlag == "cab-service") {
-        Get.to(CabDashboardScreen());
-      } else if (sectionModel.serviceTypeFlag == "rental-service") {
-        Get.to(RentalDashboardScreen());
-      } else if (sectionModel.serviceTypeFlag == "parcel_delivery") {
-        Get.to(ParcelDashboardScreen());
-      } else if (sectionModel.serviceTypeFlag == "ondemand-service") {
-        Get.to(OnDemandDashboardScreen());
-      } else {
-        Get.to(() => DashBoardScreen());
-      }
+      Get.to(() => DashBoardScreen());
     }
   }
 
