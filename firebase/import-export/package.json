@@ -1,0 +1,17 @@
+{
+  "name": "arrow-firestore-import-export",
+  "private": true,
+  "description": "Dependências para import/export e scripts CMS BR do monorepo Arrow. Credenciais em credentials.json (não versionar valores reais).",
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  },
+  "scripts": {
+    "cms:sections": "node ../../scripts/backfill-sections-br.js",
+    "cms:sections:br": "node ../../scripts/backfill-sections-br.js --activate-br",
+    "cms:terms": "node ../../scripts/seed-terms-privacy-lgpd.js",
+    "cms:payments": "node ../../scripts/seed-contact-payments-br.js",
+    "cms:onboarding": "node ../../scripts/update-onboarding-ptbr.js",
+    "cms:all": "node ../../scripts/run-cms-br-all.js",
+    "cms:all:br": "node ../../scripts/run-cms-br-all.js --activate-br"
+  }
+}

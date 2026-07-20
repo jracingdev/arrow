@@ -1,8 +1,12 @@
 /**
  * Lista seções do Firestore (diagnóstico do dropdown "Selecionar seção").
  * Uso:
- *   export NODE_PATH=/www/wwwroot/arrow-repo/firebase/import-export/node_modules
- *   node scripts/list-sections.js
+ *   cd firebase/import-export && npm i
+ *   node ../../scripts/list-sections.js
+ *
+ * Para backfill de `order` / ativar módulos BR, use:
+ *   node ../../scripts/backfill-sections-br.js --activate-br
+ *   (ver scripts/README-CMS-BR.md)
  */
 const path = require('path');
 const fs = require('fs');

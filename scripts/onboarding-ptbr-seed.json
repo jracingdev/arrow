@@ -67,6 +67,36 @@
       "_note": "Mesmo texto-base de 'Start Serving Customers', porém com o typo 'Rack' (em vez de 'Track') encontrado em um dos documentos on_boarding com título já em PT."
     }
   },
+  "updates_by_english_description": {
+    "Add services, assign tasks, and track progress effortlessly.": {
+      "title": "Simplifique seu fluxo de trabalho",
+      "description": "Adicione serviços, atribua tarefas e acompanhe o progresso com facilidade."
+    },
+    "Add your products and manage orders with ease from our dashboard.": {
+      "title": "Configuração simples do negócio",
+      "description": "Adicione seus produtos e gerencie pedidos com facilidade pelo nosso painel."
+    },
+    "Browse and buy from top vendors, and get your orders delivered fast.": {
+      "title": "Compre nas suas lojas favoritas",
+      "description": "Navegue e compre dos melhores vendedores, e receba seus pedidos rapidamente."
+    },
+    "Send packages anywhere with trusted delivery partners.": {
+      "title": "Entrega de encomendas rápida e confiável",
+      "description": "Envie pacotes para qualquer lugar com parceiros de entrega confiáveis."
+    },
+    "Add & manage workers, assign tasks, and boost collaboration.": {
+      "title": "Monte a equipe dos seus sonhos",
+      "description": "Adicione e gerencie profissionais, atribua tarefas e impulsione a colaboração."
+    },
+    "From shopping and rides to rentals and deliveries, eMart makes life easier.": {
+      "title": "Tudo o que você precisa em um só app!",
+      "description": "De compras a corridas, aluguéis e entregas, o Arrow facilita sua vida."
+    },
+    "Rack orders, manage inventory, and grow your revenue right from day one.": {
+      "title": "Comece a atender clientes",
+      "description": "Acompanhe pedidos, gerencie o estoque e aumente seu faturamento desde o primeiro dia."
+    }
+  },
   "settings_patch": {
     "Version": {
       "app_version": "6.8",

@@ -1,4 +1,16 @@
 
+# CMS BR (Arrow) — patches no Firestore sem reimportar o dump
+-----------------------------------------------------------------------------------
+Scripts prontos para o servidor (credentials.json com service account real):
+
+```bash
+cd firebase/import-export
+npm i
+node ../../scripts/run-cms-br-all.js --activate-br
+```
+
+Detalhes: `scripts/README-CMS-BR.md`
+
 # To perform Firebase Collection Import Export, follow these straightforward steps:
 -----------------------------------------------------------------------------------
 
