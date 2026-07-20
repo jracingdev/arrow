@@ -10,7 +10,6 @@ import 'package:customer/widget/osm_map/map_picker_page.dart';
 import 'package:customer/widget/place_picker/location_picker_screen.dart';
 import 'package:customer/widget/place_picker/selected_location_model.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
@@ -19,6 +18,38 @@ import '../../utils/utils.dart';
 
 class LocationPermissionScreen extends StatelessWidget {
   const LocationPermissionScreen({super.key});
+
+  Future<void> _openMapPicker(BuildContext context, ShippingAddress addressModel) async {
+    final useOsm = (Constant.selectedMapType ?? 'osm').isEmpty || Constant.selectedMapType == 'osm';
+    if (useOsm) {
+      final result = await Get.to(() => MapPickerPage());
+      if (result != null) {
+        final firstPlace = result;
+        addressModel.addressAs = "Home";
+        addressModel.locality = firstPlace.address.toString();
+        addressModel.location = UserLocation(
+          latitude: firstPlace.coordinates.latitude,
+          longitude: firstPlace.coordinates.longitude,
+        );
+        Constant.selectedLocation = addressModel;
+        Get.offAll(const ServiceListScreen());
+      }
+      return;
+    }
+
+    final value = await Get.to(LocationPickerScreen());
+    if (value != null) {
+      SelectedLocationModel selectedLocationModel = value;
+      addressModel.addressAs = "Home";
+      addressModel.locality = Utils.formatAddress(selectedLocation: selectedLocationModel);
+      addressModel.location = UserLocation(
+        latitude: selectedLocationModel.latLng!.latitude,
+        longitude: selectedLocationModel.latLng!.longitude,
+      );
+      Constant.selectedLocation = addressModel;
+      Get.offAll(const ServiceListScreen());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,41 +91,37 @@ class LocationPermissionScreen extends StatelessWidget {
                       context: context,
                       onTap: () async {
                         ShowToastDialog.showLoader("Please wait...".tr);
-                        ShippingAddress addressModel = ShippingAddress();
                         try {
-                          await Geolocator.requestPermission();
-                          Position newLocalData = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-                          await placemarkFromCoordinates(newLocalData.latitude, newLocalData.longitude).then((valuePlaceMaker) {
-                            Placemark placeMark = valuePlaceMaker[0];
-                            addressModel.addressAs = "Home";
-                            addressModel.location = UserLocation(latitude: newLocalData.latitude, longitude: newLocalData.longitude);
-                            String currentLocation =
-                                "${placeMark.name}, ${placeMark.subLocality}, ${placeMark.locality}, ${placeMark.administrativeArea}, ${placeMark.postalCode}, ${placeMark.country}";
-                            addressModel.locality = currentLocation;
-                          });
-
-                          Constant.selectedLocation = addressModel;
-                          Constant.currentLocation = await Utils.getCurrentLocation();
-
+                          final addressModel = await Utils.buildAddressFromCurrentPosition();
                           ShowToastDialog.closeLoader();
-
+                          if (addressModel == null) {
+                            ShowToastDialog.showToast(
+                              "Could not get your location. Enable GPS and try again, or set from map.".tr,
+                            );
+                            return;
+                          }
+                          Constant.selectedLocation = addressModel;
+                          // Reuse GPS from address build — avoid a second hang on getCurrentPosition.
+                          if (addressModel.location?.latitude != null && addressModel.location?.longitude != null) {
+                            Constant.currentLocation = Position(
+                              latitude: addressModel.location!.latitude!,
+                              longitude: addressModel.location!.longitude!,
+                              timestamp: DateTime.now(),
+                              accuracy: 0,
+                              altitude: 0,
+                              altitudeAccuracy: 0,
+                              heading: 0,
+                              headingAccuracy: 0,
+                              speed: 0,
+                              speedAccuracy: 0,
+                            );
+                          }
                           Get.offAll(const ServiceListScreen());
                         } catch (e) {
-                          await placemarkFromCoordinates(19.228825, 72.854118).then((valuePlaceMaker) {
-                            Placemark placeMark = valuePlaceMaker[0];
-                            addressModel.addressAs = "Home";
-                            addressModel.location = UserLocation(latitude: 19.228825, longitude: 72.854118);
-                            String currentLocation =
-                                "${placeMark.name}, ${placeMark.subLocality}, ${placeMark.locality}, ${placeMark.administrativeArea}, ${placeMark.postalCode}, ${placeMark.country}";
-                            addressModel.locality = currentLocation;
-                          });
-
-                          Constant.selectedLocation = addressModel;
-                          Constant.currentLocation = await Utils.getCurrentLocation();
-
                           ShowToastDialog.closeLoader();
-
-                          Get.offAll(const ServiceListScreen());
+                          ShowToastDialog.showToast(
+                            "Could not get your location. Enable GPS and try again, or set from map.".tr,
+                          );
                         }
                       },
                     );
@@ -112,51 +139,13 @@ class LocationPermissionScreen extends StatelessWidget {
                         ShowToastDialog.showLoader("Please wait...".tr);
                         ShippingAddress addressModel = ShippingAddress();
                         try {
-                          await Geolocator.requestPermission();
-                          await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+                          // Warm up GPS when possible; still open the map if it fails.
+                          await Utils.getCurrentLocation();
                           ShowToastDialog.closeLoader();
-                          if (Constant.selectedMapType == 'osm') {
-                            final result = await Get.to(() => MapPickerPage());
-                            if (result != null) {
-                              final firstPlace = result;
-                              final lat = firstPlace.coordinates.latitude;
-                              final lng = firstPlace.coordinates.longitude;
-                              final address = firstPlace.address;
-
-                              addressModel.addressAs = "Home";
-                              addressModel.locality = address.toString();
-                              addressModel.location = UserLocation(latitude: lat, longitude: lng);
-                              Constant.selectedLocation = addressModel;
-                              Get.offAll(const ServiceListScreen());
-                            }
-                          } else {
-                            Get.to(LocationPickerScreen())!.then((value) async {
-                              if (value != null) {
-                                SelectedLocationModel selectedLocationModel = value;
-
-                                addressModel.addressAs = "Home";
-                                addressModel.locality = Utils.formatAddress(selectedLocation: selectedLocationModel);
-                                addressModel.location = UserLocation(latitude: selectedLocationModel.latLng!.latitude, longitude: selectedLocationModel.latLng!.longitude);
-                                Constant.selectedLocation = addressModel;
-
-                                Get.offAll(const ServiceListScreen());
-                              }
-                            });
-                          }
+                          await _openMapPicker(context, addressModel);
                         } catch (e) {
-                          await placemarkFromCoordinates(19.228825, 72.854118).then((valuePlaceMaker) {
-                            Placemark placeMark = valuePlaceMaker[0];
-                            addressModel.addressAs = "Home";
-                            addressModel.location = UserLocation(latitude: 19.228825, longitude: 72.854118);
-                            String currentLocation =
-                                "${placeMark.name}, ${placeMark.subLocality}, ${placeMark.locality}, ${placeMark.administrativeArea}, ${placeMark.postalCode}, ${placeMark.country}";
-                            addressModel.locality = currentLocation;
-                          });
-
-                          Constant.selectedLocation = addressModel;
                           ShowToastDialog.closeLoader();
-
-                          Get.offAll(const ServiceListScreen());
+                          await _openMapPicker(context, addressModel);
                         }
                       },
                     );

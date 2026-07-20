@@ -79,10 +79,12 @@ class OSMMapController extends GetxController {
 
   Future<void> getCurrentLocation() async {
     Position? location = await Utils.getCurrentLocation();
-    LatLng latlng =
-        LatLng(location?.latitude ?? 0.0, location?.longitude ?? 0.0);
-    addLatLngOnly(
-        LatLng(location?.latitude ?? 0.0, location?.longitude ?? 0.0));
+    if (location == null) {
+      // Keep the default map view; never snap to 0,0 (Gulf of Guinea).
+      return;
+    }
+    final latlng = LatLng(location.latitude, location.longitude);
+    addLatLngOnly(latlng);
     mapController.move(latlng, mapController.camera.zoom);
   }
 }

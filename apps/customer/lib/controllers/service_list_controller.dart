@@ -36,23 +36,27 @@ class ServiceListController extends GetxController {
 
   Future<void> loadData() async {
     isLoading.value = true;
+    try {
+      // fetch currency
+      CurrencyModel? currency = await FireStoreUtils.getCurrency();
 
-    // fetch currency
-    CurrencyModel? currency = await FireStoreUtils.getCurrency();
+      currencyData.value = currency ?? CurrencyModel(id: "", code: "BRL", decimal: 2, isactive: true, name: "Real Brasileiro", symbol: "R\$", symbolatright: false);
 
-    currencyData.value = currency ?? CurrencyModel(id: "", code: "BRL", decimal: 2, isactive: true, name: "Real Brasileiro", symbol: "R\$", symbolatright: false);
+      // Load sections
+      List<SectionModel> sections = await FireStoreUtils.getSections();
 
-    // Load sections
-    List<SectionModel> sections = await FireStoreUtils.getSections();
+      sectionList.assignAll(sections);
 
-    sectionList.assignAll(sections);
+      await FireStoreUtils.getSectionBannerList().then((value) {
+        serviceListBanner.assignAll(value);
+      });
 
-    await FireStoreUtils.getSectionBannerList().then((value) {
-      serviceListBanner.assignAll(value);
-    });
-
-    await getZone();
-    isLoading.value = false;
+      await getZone();
+    } catch (e) {
+      print("ServiceListController.loadData error: $e");
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> getZone() async {

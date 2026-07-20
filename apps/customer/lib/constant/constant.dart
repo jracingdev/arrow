@@ -47,7 +47,7 @@ class Constant {
   static String jsonNotificationFileURL = '';
   static String appVersion = '';
   static String? country = "";
-  static String? selectedMapType = "";
+  static String? selectedMapType = "osm";
   static String? websiteUrl = '';
   static MailSettings? mailSettings;
   static bool isSubscriptionModelApplied = false;
@@ -211,12 +211,19 @@ class Constant {
   }
 
   static Future<void> checkPermission({required BuildContext context, required Function() onTap}) async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ShowToastDialog.showToast("Please enable location services to continue".tr);
+      await Geolocator.openLocationSettings();
+      return;
+    }
+
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
     }
     if (permission == LocationPermission.denied) {
-      ShowToastDialog.showToast("You have to allow location permission to use your location");
+      ShowToastDialog.showToast("You have to allow location permission to use your location".tr);
     } else if (permission == LocationPermission.deniedForever) {
       showDialog(
         context: context,

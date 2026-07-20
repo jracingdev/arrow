@@ -1,4 +1,5 @@
 import 'package:customer/constant/constant.dart';
+import 'package:customer/models/user_model.dart';
 import 'package:customer/widget/place_picker/selected_location_model.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get_utils/src/extensions/internacionalization.dart';
@@ -8,40 +9,74 @@ import 'package:geocoding/geocoding.dart';
 import 'package:location/location.dart' as loc;
 
 class Utils {
-  static Future<Position?> getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+  static const LocationSettings locationSettings = LocationSettings(
+    accuracy: LocationAccuracy.high,
+    distanceFilter: 0,
+    timeLimit: Duration(seconds: 15),
+  );
 
-    // Test if location services are enabled.
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  /// Ensures GPS is on and permission is granted. Returns false if the user
+  /// refuses location services or permission.
+  static Future<bool> ensureLocationReady() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      // Location services are not enabled don't continue
-      // accessing the position and request users of the
-      // App to enable the location services.
       await loc.Location().requestService();
-      return null;
-    }
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        // Permissions are denied, next time you could try
-        // requesting permissions again (this is also where
-        // Android's shouldShowRequestPermissionRationale
-        // returned true. According to Android guidelines
-        // your App should show an explanatory UI now.
-        return null;
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        return false;
       }
     }
 
-    if (permission == LocationPermission.deniedForever) {
-      // Permissions are denied forever, handle appropriately.
-      return Future.error('Location permissions are permanently denied, we cannot request permissions.');
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      return false;
+    }
+    return true;
+  }
+
+  static Future<Position?> getCurrentLocation() async {
+    final ready = await ensureLocationReady();
+    if (!ready) {
+      return null;
     }
 
-    // When we reach here, permissions are granted and we can
-    // continue accessing the position of the device.
-    return await Geolocator.getCurrentPosition();
+    try {
+      return await Geolocator.getCurrentPosition(locationSettings: locationSettings);
+    } catch (_) {
+      // Indoor / slow GPS: last known is better than a fake overseas fallback.
+      return await Geolocator.getLastKnownPosition();
+    }
+  }
+
+  /// Builds a [ShippingAddress] from the device GPS. Returns null on failure
+  /// (never invents coordinates from another country).
+  static Future<ShippingAddress?> buildAddressFromCurrentPosition({String addressAs = "Home"}) async {
+    final position = await getCurrentLocation();
+    if (position == null) {
+      return null;
+    }
+
+    String locality = "${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}";
+    try {
+      final placeMarks = await placemarkFromCoordinates(position.latitude, position.longitude)
+          .timeout(const Duration(seconds: 10));
+      if (placeMarks.isNotEmpty) {
+        final placeMark = placeMarks.first;
+        locality =
+            "${placeMark.name}, ${placeMark.subLocality}, ${placeMark.locality}, ${placeMark.administrativeArea}, ${placeMark.postalCode}, ${placeMark.country}";
+      }
+    } catch (_) {
+      // Keep coordinate fallback locality (geocoder can hang or fail offline).
+    }
+
+    return ShippingAddress(
+      addressAs: addressAs,
+      locality: locality,
+      location: UserLocation(latitude: position.latitude, longitude: position.longitude),
+    );
   }
 
   static Future<String> getAddressFromCoordinates(double lat, double lng) async {

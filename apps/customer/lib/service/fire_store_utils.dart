@@ -267,15 +267,34 @@ class FireStoreUtils {
 
   static Future<List<SectionModel>> getSections() async {
     List<SectionModel> sections = [];
-    QuerySnapshot<Map<String, dynamic>> productsQuery = await fireStore.collection(CollectionName.sections).where("isActive", isEqualTo: true).orderBy("order", descending: false).get();
+    try {
+      // Avoid composite index (isActive + orderBy order) which is missing on j-arrow
+      // and leaves the home spinner stuck forever when the query throws.
+      final productsQuery = await fireStore
+          .collection(CollectionName.sections)
+          .where("isActive", isEqualTo: true)
+          .get()
+          .timeout(const Duration(seconds: 20));
 
-    await Future.forEach(productsQuery.docs, (QueryDocumentSnapshot<Map<String, dynamic>> document) {
-      try {
-        sections.add(SectionModel.fromJson(document.data()));
-      } catch (e) {
-        print('**-FireStoreUtils.getSection Parse error $e');
+      final docs = productsQuery.docs.toList()
+        ..sort((a, b) {
+          final ao = a.data()['order'];
+          final bo = b.data()['order'];
+          final ai = ao is num ? ao.toInt() : 0;
+          final bi = bo is num ? bo.toInt() : 0;
+          return ai.compareTo(bi);
+        });
+
+      for (final document in docs) {
+        try {
+          sections.add(SectionModel.fromJson(document.data()));
+        } catch (e) {
+          print('**-FireStoreUtils.getSection Parse error $e');
+        }
       }
-    });
+    } catch (e) {
+      log("getSections error: $e");
+    }
     return sections;
   }
 
@@ -716,8 +735,11 @@ class FireStoreUtils {
       final driverNearBySnap = await fireStore.collection(CollectionName.settings).doc("DriverNearBy").get();
 
       if (driverNearBySnap.exists && driverNearBySnap.data() != null) {
-        Constant.selectedMapType = driverNearBySnap.data()?["selectedMapType"] ?? "";
+        final mapType = driverNearBySnap.data()?["selectedMapType"]?.toString().trim() ?? "";
+        Constant.selectedMapType = mapType.isEmpty ? "osm" : mapType;
         Constant.mapType = driverNearBySnap.data()?["mapType"] ?? "";
+      } else {
+        Constant.selectedMapType = "osm";
       }
 
       fireStore.collection(CollectionName.settings).doc("privacyPolicy").snapshots().listen((event) {

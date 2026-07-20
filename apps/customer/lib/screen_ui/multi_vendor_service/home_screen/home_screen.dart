@@ -210,17 +210,10 @@ class HomeScreen extends StatelessWidget {
                                                                 });
                                                               }
                                                             } catch (e) {
-                                                              await placemarkFromCoordinates(19.228825, 72.854118).then((valuePlaceMaker) {
-                                                                Placemark placeMark = valuePlaceMaker[0];
-                                                                shippingAddress.location = UserLocation(latitude: 19.228825, longitude: 72.854118);
-                                                                String currentLocation =
-                                                                    "${placeMark.name}, ${placeMark.subLocality}, ${placeMark.locality}, ${placeMark.administrativeArea}, ${placeMark.postalCode}, ${placeMark.country}";
-                                                                shippingAddress.locality = currentLocation;
-                                                              });
-
-                                                              Constant.selectedLocation = shippingAddress;
                                                               ShowToastDialog.closeLoader();
-                                                              controller.getData();
+                                                              ShowToastDialog.showToast(
+                                                                "Could not get your location. Enable GPS and try again, or set from map.".tr,
+                                                              );
                                                             }
                                                           },
                                                           context: context,

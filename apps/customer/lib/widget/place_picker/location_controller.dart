@@ -34,7 +34,12 @@ class LocationController extends GetxController {
 
   Future<void> getCurrentLocation() async {
     try {
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 15),
+        ),
+      );
       selectedLocation.value = LatLng(position.latitude, position.longitude);
 
       if (mapController != null) {
@@ -43,7 +48,16 @@ class LocationController extends GetxController {
 
       await getAddressFromLatLng(selectedLocation.value!);
     } catch (e) {
-      print("Error fetching current location: $e");
+      try {
+        final last = await Geolocator.getLastKnownPosition();
+        if (last != null) {
+          selectedLocation.value = LatLng(last.latitude, last.longitude);
+          if (mapController != null) {
+            mapController!.animateCamera(CameraUpdate.newLatLngZoom(selectedLocation.value!, 15));
+          }
+          await getAddressFromLatLng(selectedLocation.value!);
+        }
+      } catch (_) {}
     }
   }
 

@@ -10,10 +10,10 @@ import 'package:flutter_google_places_hoc081098/google_maps_webservice_places.da
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-final GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: Constant.mapAPIKey);
-
 class LocationPickerScreen extends StatelessWidget {
   const LocationPickerScreen({super.key});
+
+  GoogleMapsPlaces get _places => GoogleMapsPlaces(apiKey: Constant.mapAPIKey);
 
   @override
   Widget build(BuildContext context) {
