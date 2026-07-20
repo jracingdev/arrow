@@ -48,10 +48,10 @@ class DefaultFirebaseOptions {
     }
   }
 
-  // Client config from Firebase project j-arrow (same public web keys used by arrow.app.br).
+  // Android app from google-services.json (br.app.arrow.customer).
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDCjWM-AAnyO_quYy6_NnMcysURH2SSogw',
-    appId: '1:661081769489:web:7eea7bece5a655cfa4d3b0',
+    appId: '1:661081769489:android:7eea7bece5a655cfa4d3b1',
     messagingSenderId: '661081769489',
     projectId: 'j-arrow',
     databaseURL: 'https://j-arrow-default-rtdb.firebaseio.com',
