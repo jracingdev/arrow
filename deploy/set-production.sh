@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Ajusta .env para produção nos 3 painéis Laravel.
 # Uso: ./set-production.sh [WWW_ROOT]
+#
+# Define: APP_ENV=production, APP_DEBUG=false,
+#         APP_TIMEZONE=America/Sao_Paulo, LOCALE=pt_br
+# Depois: php artisan config:cache em cada site.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,6 +19,17 @@ else
   PHP_BIN="${PHP_BIN:-php}"
 fi
 
+upsert_env() {
+  local file="$1"
+  local key="$2"
+  local value="$3"
+  if grep -q "^${key}=" "$file" 2>/dev/null; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+  else
+    printf '\n%s=%s\n' "$key" "$value" >> "$file"
+  fi
+}
+
 echo "==> Ajustando .env para produção"
 echo ""
 
@@ -25,11 +40,14 @@ for site in "${LARAVEL_SITES[@]}"; do
     continue
   fi
 
-  sed -i 's/^APP_ENV=.*/APP_ENV=production/' "$ENV_FILE"
-  sed -i 's/^APP_DEBUG=.*/APP_DEBUG=false/' "$ENV_FILE"
+  upsert_env "$ENV_FILE" APP_ENV production
+  upsert_env "$ENV_FILE" APP_DEBUG false
+  upsert_env "$ENV_FILE" APP_TIMEZONE America/Sao_Paulo
+  upsert_env "$ENV_FILE" LOCALE pt_br
 
   echo "---- $site ----"
-  echo "    APP_ENV=production, APP_DEBUG=false"
+  echo "    APP_ENV=production APP_DEBUG=false"
+  echo "    APP_TIMEZONE=America/Sao_Paulo LOCALE=pt_br"
 
   if [[ -f "$WWW_ROOT/$site/artisan" ]]; then
     (cd "$WWW_ROOT/$site" && $PHP_BIN artisan config:cache)
@@ -39,3 +57,4 @@ for site in "${LARAVEL_SITES[@]}"; do
 done
 
 echo "==> Produção configurada."
+echo "    Valide com: ./check-env.sh"

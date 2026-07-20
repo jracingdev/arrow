@@ -58,13 +58,19 @@
     });
 
     async function getSections() {
-        database.collection('sections').where('isActive', '==', true).orderBy('order').get().then(async function (sectionsSnapshot) {
-            sections = document.getElementById('sections');
-            sections.innerHTML = '';
-            sectionshtml = buildHTMLSections(sectionsSnapshot);
-            sections.innerHTML = sectionshtml;
-            slickcatCarousel();
-        })
+        var base = database.collection('sections').where('isActive', '==', true);
+        var sectionsSnapshot;
+        try {
+            sectionsSnapshot = await base.orderBy('order').get();
+        } catch (indexErr) {
+            console.warn('sections orderBy falhou, usando fallback:', indexErr && indexErr.message);
+            sectionsSnapshot = await base.get();
+        }
+        sections = document.getElementById('sections');
+        sections.innerHTML = '';
+        sectionshtml = buildHTMLSections(sectionsSnapshot);
+        sections.innerHTML = sectionshtml;
+        slickcatCarousel();
     }
 
     function buildHTMLSections(sectionsSnapshot) {
@@ -74,6 +80,11 @@
             var datas = listval.data();
             datas.id = listval.id;
             alldata.push(datas);
+        });
+        alldata.sort(function (a, b) {
+            var ao = Number(a.order);
+            var bo = Number(b.order);
+            return (Number.isFinite(ao) ? ao : 9999) - (Number.isFinite(bo) ? bo : 9999);
         });
         alldata.forEach((listval) => {
             var val = listval;

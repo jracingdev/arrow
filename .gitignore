@@ -43,13 +43,21 @@ build/
 *.aab
 *.ipa
 
-# Firebase / credenciais
+# Firebase / credenciais (nunca versionar)
 credentials.json
-serviceAccountKey.json
+**/credentials.json
+*credentials*.json
+serviceAccount*.json
+**/serviceAccount*.json
 **/google-services.json
+**/GoogleService-Info.plist
 firebase-debug.log
 firebase-debug.*.log
 .runtimeconfig.json
+
+# Service account Firebase nos painéis Laravel (storage/app/firebase/)
+**/storage/app/firebase/**
+!**/storage/app/firebase/.gitignore
 
 # Sistema operacional
 .DS_Store

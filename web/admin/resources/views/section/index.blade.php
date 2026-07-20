@@ -82,7 +82,6 @@
         var endarray = [];
         var start = null;
         var user_number = [];
-        var ref = database.collection('sections').orderBy('order');
         var append_list = '';
         var placeholderImage = '';
         var user_permissions = '<?php echo @session('user_permissions') ?>';
@@ -90,6 +89,15 @@
         var checkDeletePermission = false;
         if ($.inArray('section.service.delete', user_permissions) >= 0) {
             checkDeletePermission = true;
+        }
+
+        async function fetchSectionsOrdered() {
+            try {
+                return await database.collection('sections').orderBy('order').get();
+            } catch (indexErr) {
+                console.warn('sections orderBy falhou, usando fallback:', indexErr && indexErr.message);
+                return await database.collection('sections').get();
+            }
         }
 
         var placeholder = database.collection('settings').doc('placeHolderImage');
@@ -104,7 +112,7 @@
             
             append_list = document.getElementById('append_list1');
             append_list.innerHTML = '';
-            ref.get().then(async function (snapshots) {
+            fetchSectionsOrdered().then(async function (snapshots) {
                 html = '';
                 if (snapshots.docs.length > 0) {
                     $('.total_count').text(snapshots.docs.length); 

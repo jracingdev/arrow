@@ -2,9 +2,12 @@
 /public/hot
 /public/storage
 /storage/*.key
+/storage/app/firebase/**
+!/storage/app/firebase/.gitignore
 /vendor
 .env
 .env.backup
+.env.*.local
 .phpunit.result.cache
 docker-compose.override.yml
 Homestead.json
@@ -13,3 +16,12 @@ npm-debug.log
 yarn-error.log
 /.idea
 /.vscode
+
+# Credenciais Firebase / GCP
+credentials.json
+**/credentials.json
+*credentials*.json
+serviceAccount*.json
+**/serviceAccount*.json
+**/google-services.json
+**/GoogleService-Info.plist

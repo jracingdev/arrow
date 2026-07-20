@@ -26,13 +26,17 @@ chmod +x *.sh
 ./full-deploy.sh
 ```
 
-Depois configure as senhas MySQL nos `.env` (se ainda não existirem no servidor) e rode:
+Depois configure as senhas MySQL nos `.env` (se ainda não existirem no servidor) e rode o **comando único pós-deploy**:
 
 ```bash
-./check-env.sh
+cd /www/wwwroot/arrow-repo/deploy
+sudo chmod +x *.sh
+sudo ./set-production.sh && sudo ./check-env.sh
 ```
 
-Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` + sync + cache).
+Isso força `APP_ENV=production`, `APP_DEBUG=false`, `APP_TIMEZONE=America/Sao_Paulo`, `LOCALE=pt_br`, roda `config:cache` e valida os três `.env` (sem expor senhas).
+
+Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` + sync + cache) e, em seguida, o comando único acima se alguém tiver alterado o `.env`.
 
 ### Scripts disponíveis
 
@@ -41,7 +45,9 @@ Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` 
 | `full-deploy.sh` | Clone/pull + sync + composer + cache (tudo) |
 | `deploy.sh` | Só copia arquivos para as pastas dos sites |
 | `post-deploy.sh` | Composer, permissões e cache Laravel |
-| `check-env.sh` | Valida `.env` sem expor senhas |
+| `check-env.sh` | Valida `.env`: DEBUG=false, timezone, LOCALE=pt_br, Firebase, credentials chmod |
+| `set-production.sh` | **Pós-deploy:** production + DEBUG=false + timezone/locale + config:cache |
+| `backup-mysql.sh` | Dump gzip dos 3 DBs `arrow_*` (ver `scripts/BACKUP.md`) |
 | `fix-php-aapanel.sh` | Habilita fileinfo no PHP 8.2 do aaPanel |
 | `fix-open-basedir.sh` | Corrige open_basedir nos vhosts aaPanel (Laravel precisa da raiz do site) |
 | `fix-user-ini.sh` | Corrige `.user.ini` imutáveis (`chattr -i` → sed → `chattr +i`) |
@@ -55,7 +61,13 @@ Para atualizações futuras, basta `./full-deploy.sh` novamente (faz `git pull` 
 | `fix-firebase-config.sh` | Valida `FIREBASE_*` nos `.env`, gera `firebase-messaging-sw.js`, limpa cache config |
 | `prepare-android-apps.sh` | `flutter pub get` / analyze nos 3 apps Flutter; opcional `--build-debug` / `--build-release` |
 | `update-repo.sh` | `git fetch` + `reset --hard origin/main` (resolve conflitos de pull) |
-| `set-production.sh` | APP_ENV=production e APP_DEBUG=false |
+
+### Docs de ops / segurança
+
+| Doc | Conteúdo |
+|-----|----------|
+| [`scripts/BACKUP.md`](../scripts/BACKUP.md) | Backup/restore MySQL dos 3 bancos + cron |
+| [`scripts/harden-reminders.md`](../scripts/harden-reminders.md) | Rotacionar senhas DB / service account Firebase, chmod 600, reboot, disco |
 
 ## Mapeamento domínio → pasta no servidor
 
@@ -429,12 +441,19 @@ firebase deploy --only functions
 
 ## Checklist pós-deploy
 
+```bash
+cd /www/wwwroot/arrow-repo/deploy && sudo ./set-production.sh && sudo ./check-env.sh
+```
+
 - [ ] https://arrow.app.br carrega o painel website
 - [ ] https://lp.arrow.app.br carrega a landing
 - [ ] https://store.arrow.app.br carrega o painel lojista
 - [ ] https://admin.arrow.app.br carrega o painel admin
 - [ ] Login funciona em cada painel Laravel
-- [ ] `APP_DEBUG=false` em todos os `.env` de produção
+- [ ] `APP_DEBUG=false`, `APP_TIMEZONE=America/Sao_Paulo`, `LOCALE=pt_br` (via `check-env.sh`)
+- [ ] `chmod 600` em `storage/app/firebase/credentials.json` (se existir)
+- [ ] Backup MySQL: `./backup-mysql.sh` (ver `scripts/BACKUP.md`)
+- [ ] Hardening se senhas vazaram: `scripts/harden-reminders.md`
 - [ ] Uploads em `storage/app/public` acessíveis (symlink `public/storage` se necessário)
 
 ## open_basedir — ERRO CRÍTICO

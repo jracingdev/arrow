@@ -615,6 +615,49 @@
     if (typeof is_layer != "undefined") {
         $(".select-sec-btn").hide();
     }
+
+    /** Carrega sections ativas; se índice orderBy('order') faltar, faz fallback sem orderBy. */
+    async function fetchActiveSectionsOrdered() {
+        var base = database.collection('sections').where('isActive', '==', true);
+        try {
+            return await base.orderBy('order').get();
+        } catch (indexErr) {
+            console.warn('sections orderBy falhou, usando fallback:', indexErr && indexErr.message);
+            return await base.get();
+        }
+    }
+
+    function appendSectionListHtml(snapshots, active_section_id) {
+        var docs = snapshots.docs.slice();
+        docs.sort(function (a, b) {
+            var ao = Number((a.data() || {}).order);
+            var bo = Number((b.data() || {}).order);
+            return (Number.isFinite(ao) ? ao : 9999) - (Number.isFinite(bo) ? bo : 9999);
+        });
+        docs.forEach(function (section) {
+            var datas = section.data();
+            var section_image = (datas.sectionImage != '' && datas.sectionImage != undefined)
+                ? datas.sectionImage
+                : placeholderImage;
+            var active_section = '';
+            if (active_section_id != undefined && active_section_id != null && active_section_id !== '' && active_section_id == datas.id) {
+                active_section = 'section-selected';
+            }
+            var html;
+            if (datas.serviceType == "On Demand Service") {
+                html = '<div class="section-list-inner col-md-3 mb-4 select_section ' + active_section + '" service_type="' + datas.serviceType + '" data-color="' + datas.color + '" data-name="' + datas.name + '" data-id="' + datas.id + '" data-dine_in="false">' +
+                    '<div class="section-block bg-white rounded d-block py-3 px-2 text-center shadow-lg">' +
+                    '<span class="section-img"><img alt="#" src="' + section_image + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="img-fluid item-img w-100"></span>' +
+                    '<span class="section-name mt-2 d-block">' + datas.name + '</span></div></div>';
+            } else {
+                html = '<div class="section-list-inner col-md-3 mb-4 select_section ' + active_section + '" service_type="' + datas.serviceType + '" data-color="' + datas.color + '" data-name="' + datas.name + '" data-id="' + datas.id + '" data-dine_in="' + datas.dine_in_active + '">' +
+                    '<div class="section-block bg-white rounded d-block py-3 px-2 text-center shadow-lg">' +
+                    '<span class="section-img"><img alt="#" src="' + section_image + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="img-fluid item-img w-100"></span>' +
+                    '<span class="section-name mt-2 d-block">' + datas.name + '</span></div></div>';
+            }
+            $("#section_lists").append(html);
+        });
+    }
     
     if (address_name == "" || address_name == null) {
         <?php if (Request::path() !== 'terms' && Request::path() !== 'privacy' && Request::path() !== 'contact-us' && Request::path() !== 'faq') { ?>
@@ -631,31 +674,8 @@
             }
             <?php } ?>
             if ($("#section_lists").html() == '') {
-                var sectionsRef = database.collection('sections').where('isActive', '==', true).orderBy('order');
-                sectionsRef.get().then(async function(snapshots) {
-                    var sections = [];
-                    snapshots.docs.forEach((section) => {
-                        var datas = section.data();
-                        if (datas.sectionImage != '' && datas.sectionImage != undefined) {
-                            section_image = datas.sectionImage;
-                        } else {
-                            section_image = placeholderImage;
-                        }
-                        var queryParams = new URLSearchParams(window.location.search);
-                        if (datas.serviceType == "On Demand Service") {
-                            html = '<div class="section-list-inner col-md-3 mb-4 select_section" data-color="' + datas.color + '" service_type="' + datas.serviceType + '" data-name="' + datas.name + '" data-dine_in="false" data-id="' + datas.id + '">' +
-                                '<div class="section-block bg-white rounded d-block py-3 px-2 text-center shadow-lg">' +
-                                '<span class="section-img"><img alt="#" src="' + section_image + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="img-fluid item-img w-100"></span>' +
-                                '<span class="section-name mt-2 d-block">' + datas.name + '</span></div></div>';
-                        } else {
-                            html = '<div class="section-list-inner col-md-3 mb-4 select_section" data-color="' + datas.color + '" service_type="' + datas.serviceType + '" data-name="' + datas.name + '" data-dine_in="' + datas.dine_in_active + '" data-id="' + datas.id + '">' +
-                                '<div class="section-block bg-white rounded d-block py-3 px-2 text-center shadow-lg">' +
-                                '<span class="section-img"><img alt="#" src="' + section_image + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="img-fluid item-img w-100"></span>' +
-                                '<span class="section-name mt-2 d-block">' + datas.name + '</span></div></div>';
-                        }
-                        $("#section_lists").append(html);
-                        sections.push(datas);
-                    });
+                fetchActiveSectionsOrdered().then(function(snapshots) {
+                    appendSectionListHtml(snapshots, null);
                 });
             }
         }
@@ -667,32 +687,9 @@
     
     $('#select_store_model_call').bind('click', function() {
         if ($("#section_lists").html() == '') {
-            var sectionsRef = database.collection('sections').where('isActive', '==', true).orderBy('order');
             var active_section_id = "<?php echo @$_COOKIE['section_id']; ?>";
-            sectionsRef.get().then(async function(snapshots) {
-                var sections = [];
-                snapshots.docs.forEach((section) => {
-                    var datas = section.data();
-                    if (datas.sectionImage != '' && datas.sectionImage != undefined) {
-                        section_image = datas.sectionImage;
-                    } else {
-                        section_image = placeholderImage;
-                    }
-                    var active_section = '';
-                    if (active_section_id != undefined && active_section_id == datas.id) {
-                        active_section = 'section-selected';
-                    }
-                    var queryParams = new URLSearchParams(window.location.search);
-                    if (datas.serviceType == "On Demand Service") {
-                        html = '<div class="section-list-inner col-md-3 mb-4 select_section ' + active_section + '" service_type="' + datas.serviceType + '"data-color="' + datas.color + '" data-name="' + datas.name + '" data-id="' + datas.id + '" data-dine_in="' + datas.dine_in_active + '"><div class="section-block bg-white rounded d-block py-3 px-2 text-center shadow-lg"><span class="section-img"><img alt="#" src="' + section_image +
-                            '" class="img-fluid item-img w-100"></span><span class="section-name mt-2 d-block">' + datas.name + '</span></div></div>';
-                    } else {
-                        html = '<div class="section-list-inner col-md-3 mb-4 select_section ' + active_section + '" service_type="' + datas.serviceType + '"data-color="' + datas.color + '" data-name="' + datas.name + '" data-id="' + datas.id + '" data-dine_in="' + datas.dine_in_active + '"><div class="section-block bg-white rounded d-block py-3 px-2 text-center shadow-lg"><span class="section-img"><img alt="#" src="' + section_image +
-                            '" class="img-fluid item-img w-100"></span><span class="section-name mt-2 d-block">' + datas.name + '</span></div></div>';
-                    }
-                    $("#section_lists").append(html);
-                    sections.push(datas);
-                });
+            fetchActiveSectionsOrdered().then(function(snapshots) {
+                appendSectionListHtml(snapshots, active_section_id);
             });
         }
     });
