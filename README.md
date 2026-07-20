@@ -186,13 +186,15 @@ cd apps/store    && flutter build appbundle
 cd apps/driver   && flutter build appbundle
 ```
 
-| App | Package Android | API (`Constant.globalUrl`) |
-|-----|-----------------|-------------------|
+| App | Package Android / iOS bundle ID | API (`Constant.globalUrl`) |
+|-----|--------------------------------|-------------------|
 | Cliente | `br.app.arrow.customer` | `https://admin.arrow.app.br/` |
 | Lojista | `br.app.arrow.store` | `https://admin.arrow.app.br/` |
 | Entregador | `br.app.arrow.driver` | `https://admin.arrow.app.br/` |
 
 Config compartilhada: pacote `apps/shared` (`arrow_shared`).
+
+**Firebase após rename:** re-registre os três apps no Console (projeto `j-arrow`) com os IDs acima, baixe novos `google-services.json` / `GoogleService-Info.plist` (não commitados — `.gitignore`) e regenere `firebase_options.dart`. Detalhes: `apps/shared/README.md`.
 
 ## Deploy em produção
 
