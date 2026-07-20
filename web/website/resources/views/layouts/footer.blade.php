@@ -131,6 +131,7 @@
 <script src="{{ asset('js/crypto-js.js') }}"></script>
 <script src="{{ asset('js/jquery.cookie.js') }}"></script>
 @include('partials.firebase-init')
+<script src="{{ asset('js/firestore-safe.js') }}"></script>
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
 
 <script type="text/javascript">
@@ -1724,21 +1725,27 @@
     }
     var ref = database.collection('settings').doc("globalSettings");
     ref.get().then(async function(snapshots) {
-        var globalSettings = snapshots.data();
-        $("#logo_web").attr('src', globalSettings.appLogo);
-        $("#footer_logo_web").attr('src', globalSettings.appLogo);
+        var globalSettings = snapshots.exists ? (snapshots.data() || {}) : {};
+        if (globalSettings.appLogo) {
+            $("#logo_web").attr('src', globalSettings.appLogo);
+            $("#footer_logo_web").attr('src', globalSettings.appLogo);
+        }
+    }).catch(function (err) {
+        console.error('globalSettings:', err);
     });
 
     $(document).ready(async function() {
 
         jQuery("#data-table_processing").show();
 
-         if(getCookie('section_id')){
+         if(getCookie('section_id') && window.ArrowFirestore && ArrowFirestore.isValidDocId(getCookie('section_id'))){
             let sectionRef = await database.collection('sections').doc(getCookie('section_id')).get();
-            var adminCommissionSettings = sectionRef.data();
-            localStorage.setItem('adminCommissionSettings', JSON.stringify(adminCommissionSettings.adminCommision));
-            localStorage.setItem('platformFeeSettings', JSON.stringify(adminCommissionSettings.platformFee));
-            localStorage.setItem('packagingChargeEnable', adminCommissionSettings.packagingChargeEnable);
+            var adminCommissionSettings = sectionRef.exists ? sectionRef.data() : null;
+            if (adminCommissionSettings) {
+                localStorage.setItem('adminCommissionSettings', JSON.stringify(adminCommissionSettings.adminCommision || null));
+                localStorage.setItem('platformFeeSettings', JSON.stringify(adminCommissionSettings.platformFee || null));
+                localStorage.setItem('packagingChargeEnable', adminCommissionSettings.packagingChargeEnable);
+            }
         }
         
         if (user_ref != '') {

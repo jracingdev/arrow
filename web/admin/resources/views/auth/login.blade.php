@@ -220,6 +220,7 @@
     <script src="{{ asset('js/crypto-js.js') }}"></script>
     <script src="{{ asset('js/jquery.cookie.js') }}"></script>
     @include('partials.firebase-init')
+    <script src="{{ asset('js/firestore-safe.js') }}"></script>
     <script src="{{ asset('js/jquery.validate.js') }}"></script>
 
     <script type="text/javascript">
@@ -228,21 +229,33 @@
         $(document).ready(function() {
 
             database.collection('settings').doc("globalSettings").get().then(async function(snapshots) {
-                var globalSettings = snapshots.data();
-                admin_panel_color = globalSettings.admin_panel_color;
-                setCookie('admin_panel_color', admin_panel_color, 365);
-                $('.login-register').css({
-                    'background-color': admin_panel_color
-                });
-            })
-
-            database.collection('sections').where('isActive', '==', true).orderBy('order').get().then(async function(snapshots) {
-                const firstSection = snapshots.docs[0].data();
-                const firstSectionId = snapshots.docs[0].id;
-                const firstServiceType = firstSection.serviceTypeFlag;
-                setCookie('section_id', firstSectionId, 1);
-                setCookie('service_type', firstServiceType, 1);
+                var globalSettings = snapshots.exists ? (snapshots.data() || {}) : {};
+                if (globalSettings.admin_panel_color) {
+                    admin_panel_color = globalSettings.admin_panel_color;
+                    setCookie('admin_panel_color', admin_panel_color, 365);
+                    $('.login-register').css({
+                        'background-color': admin_panel_color
+                    });
+                }
+            }).catch(function (err) {
+                console.error('globalSettings:', err);
             });
+
+            (async function loadFirstSection() {
+                try {
+                    var snapshots = (window.ArrowFirestore && ArrowFirestore.fetchActiveSectionsOrdered)
+                        ? await ArrowFirestore.fetchActiveSectionsOrdered(database)
+                        : await database.collection('sections').where('isActive', '==', true).get();
+                    if (!snapshots.docs.length) return;
+                    const firstSection = snapshots.docs[0].data();
+                    const firstSectionId = snapshots.docs[0].id;
+                    const firstServiceType = firstSection.serviceTypeFlag;
+                    setCookie('section_id', firstSectionId, 1);
+                    setCookie('service_type', firstServiceType, 1);
+                } catch (err) {
+                    console.error('sections load:', err);
+                }
+            })();
         });
 
         function setCookie(cname, cvalue, exdays) {

@@ -246,6 +246,10 @@
 <script>
 
     var section_id = getCookie('section_id') || '';
+    if (!section_id || (window.ArrowFirestore && !ArrowFirestore.isValidDocId(section_id))) {
+        console.warn('POS: section_id cookie ausente ou inválido — selecione uma seção no admin.');
+        section_id = '';
+    }
 
     // ========== GLOBAL CACHES ==========
     var productCache = new Map();
@@ -268,9 +272,16 @@
     
     // ========== FIREBASE REFERENCES ==========
     var database = firebase.firestore();
-    var refProducts = database.collection('vendor_products').where('section_id', '==', section_id).where('publish', '==', true);
-    var refCategories = database.collection('vendor_categories').where('section_id', '==', section_id);
-    var refVendor = database.collection('vendors').where('section_id', '==', section_id);
+    // Queries compostas só com section_id válido (evita path/filtro vazio)
+    var refProducts = section_id
+        ? database.collection('vendor_products').where('section_id', '==', section_id).where('publish', '==', true)
+        : null;
+    var refCategories = section_id
+        ? database.collection('vendor_categories').where('section_id', '==', section_id)
+        : null;
+    var refVendor = section_id
+        ? database.collection('vendors').where('section_id', '==', section_id)
+        : null;
     var refUsers = database.collection('users');
     
     // ========== STATE MANAGEMENT ==========
@@ -325,9 +336,24 @@
     $(document).ready(async function () {
         // Show loading indicator
         $('#data-table_processing').show();
+        if (!section_id) {
+            $('#data-table_processing').hide();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Seção não selecionada',
+                    text: 'Selecione uma seção no menu superior antes de usar o POS.'
+                });
+            }
+            return;
+        }
         await database.collection('sections').doc(section_id).get().then(snapshot => {
-            var vendor_data = snapshot.data();
-            packagingChargeEnable = vendor_data.packagingChargeEnable;
+            var vendor_data = snapshot.exists ? snapshot.data() : null;
+            if (vendor_data) {
+                packagingChargeEnable = vendor_data.packagingChargeEnable;
+            }
+        }).catch(function (err) {
+            console.error('sections.doc:', err);
         });
         
         // Clear cart if has items
@@ -434,6 +460,10 @@
     }
     
     async function loadVendor() {
+        if (!refVendor || !refProducts) {
+            console.warn('POS: section_id ausente — vendors não carregados');
+            return;
+        }
         if (vendorCache.size > 0) {
             renderVendorOptions();
             return;
@@ -484,6 +514,10 @@
     }
     
     async function loadCategories() {
+        if (!refCategories) {
+            console.warn('POS: section_id ausente — categorias não carregadas');
+            return;
+        }
         if (categoryCache.size > 0) {
             renderCategoryOptions();
             return;
@@ -559,6 +593,12 @@
     
     async function loadProducts(page = 1) {
         if (state.isProcessing) return;
+        if (!refProducts) {
+            console.warn('POS: section_id ausente — produtos não carregados');
+            state.isProcessing = false;
+            $('#data-table_processing').hide();
+            return;
+        }
         if (!state.selectedVendorId) {
             showNoVendorMessage();
             state.isProcessing = false;

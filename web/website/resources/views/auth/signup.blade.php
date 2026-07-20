@@ -154,6 +154,7 @@ foreach ($countries as $keycountry => $valuecountry) {
 <script src="{{ asset('js/crypto-js.js') }}"></script>
 <script src="{{ asset('js/jquery.cookie.js') }}"></script>
 @include('partials.firebase-init')
+<script src="{{ asset('js/firestore-safe.js') }}"></script>
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
 <script type="text/javascript">
     var createdAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -377,13 +378,17 @@ foreach ($countries as $keycountry => $valuecountry) {
             allowClear: true
         });
         
-         // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
-        var globalSettingsRef = database.collection('settings').doc('globalSettings');
-        globalSettingsRef.get().then(async function (snapshot) {
-            var globalSettings = snapshot.data();
-            if (globalSettings && globalSettings.defaultCountryCode) {
-                var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
-                // Find the option with matching phoneCode
+         // --- DEFAULT COUNTRY: BR (+55) ---
+        if (window.ArrowFirestore && ArrowFirestore.applyGlobalOrBrCountry) {
+            ArrowFirestore.applyGlobalOrBrCountry('#country_selector');
+        } else {
+            var globalSettingsRef = database.collection('settings').doc('globalSettings');
+            globalSettingsRef.get().then(async function (snapshot) {
+                var globalSettings = snapshot.exists ? snapshot.data() : null;
+                var defaultPhoneCode = '55';
+                if (globalSettings && globalSettings.defaultCountryCode) {
+                    defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim() || '55';
+                }
                 var $option = $("#country_selector option").filter(function() {
                     return $(this).val() === defaultPhoneCode;
                 });
@@ -391,13 +396,18 @@ foreach ($countries as $keycountry => $valuecountry) {
                     setTimeout(() => {
                         $("#country_selector").val(defaultPhoneCode).trigger("change.select2");
                     }, 500);
-                } else {
-                    console.warn("Default country code not found in list:", defaultPhoneCode);
+                } else if ($("#country_selector option[value='55']").length) {
+                    setTimeout(() => {
+                        $("#country_selector").val('55').trigger("change.select2");
+                    }, 500);
                 }
-            }
-        }).catch(function (error) {
-            console.error("Error fetching global settings: ", error);
-        });
+            }).catch(function (error) {
+                console.error("Error fetching global settings: ", error);
+                if ($("#country_selector option[value='55']").length) {
+                    $("#country_selector").val('55').trigger("change.select2");
+                }
+            });
+        }
         // --- END OF DEFAULT COUNTRY LOGIC ---
 
         const urlParams = new URLSearchParams(window.location.search);          
@@ -429,27 +439,12 @@ foreach ($countries as $keycountry => $valuecountry) {
             $('#pass_div').show();
         }
     });
-    // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
-    var globalSettingsRef = database.collection('settings').doc('globalSettings');
-    globalSettingsRef.get().then(async function (snapshot) {
-        var globalSettings = snapshot.data();
-        if (globalSettings && globalSettings.defaultCountryCode) {
-            var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
-
-            // Find the option with matching phoneCode
-            var $option = $("#country_selector option").filter(function() {
-                return $(this).val() === defaultPhoneCode;
-            });
-
-            if ($option.length > 0) {
-                $("#country_selector").val(defaultPhoneCode).trigger('change');
-            } else {
-                console.warn("Default country code not found in list:", defaultPhoneCode);
-            }
-        }
-    }).catch(function (error) {
-        console.error("Error fetching global settings: ", error);
-    });
+    // --- DEFAULT COUNTRY: BR (+55) ---
+    if (window.ArrowFirestore && ArrowFirestore.applyGlobalOrBrCountry) {
+        ArrowFirestore.applyGlobalOrBrCountry('#country_selector');
+    } else if ($("#country_selector option[value='55']").length) {
+        $("#country_selector").val('55').trigger('change');
+    }
     // --- END OF DEFAULT COUNTRY LOGIC ---
 
     function signupWithPhone() {

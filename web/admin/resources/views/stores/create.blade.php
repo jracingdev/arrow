@@ -835,7 +835,7 @@
         var story_thumbnail = '';
         var story_thumbnail_filename = '';
 
-        var ref_sections = database.collection('sections').where('isActive', '==', true).orderBy('order');
+        var ref_sections_base = database.collection('sections').where('isActive', '==', true);
         var createdAt = firebase.firestore.FieldValue.serverTimestamp();
         var sections_list = [];
         var categories_list = [];
@@ -890,9 +890,10 @@
             }
         })
 
+        if (section_id) {
         var sectionRef = database.collection('sections').doc(section_id);
         sectionRef.get().then(async function(sectionSnapshots) {
-            if (sectionSnapshots.data()) {
+            if (sectionSnapshots.exists && sectionSnapshots.data()) {
                 sectionData = sectionSnapshots.data();
                 adminCommission = sectionData.adminCommision;
                 if (service_type == "ecommerce-service") {
@@ -919,7 +920,8 @@
                     $("#is_dine_in_feature").hide();
                 }
             }
-        });
+        }).catch(function (err) { console.error('sectionRef:', err); });
+        }
 
         driverNearBy.get().then(async function (snapshots) {
             var driverNearByData = snapshots.data(); 
@@ -952,10 +954,11 @@
         });
 
         var packagingChargeEnable = false;
-        var sectionRef = database.collection('sections').doc(section_id);
-        sectionRef.get().then(async function(snapshots) {
-            var sectionData = snapshots.data();
-            if (sectionData.packagingChargeEnable) {
+        if (section_id) {
+        var sectionRefPack = database.collection('sections').doc(section_id);
+        sectionRefPack.get().then(async function(snapshots) {
+            var sectionDataPack = snapshots.exists ? snapshots.data() : null;
+            if (sectionDataPack && sectionDataPack.packagingChargeEnable) {
                 packagingChargeEnable = true;
                 $('.packagingChargeEnable').removeClass('d-none');
                 $('#packagingChargeDiv').show();
@@ -964,28 +967,50 @@
                 $('#packagingChargeDiv').hide();
                 packagingChargeEnable = false;
             }
-        });
+        }).catch(function (err) { console.error('section packaging:', err); });
+        }
 
-        ref_sections.get().then(async function(snapshots) {
-            snapshots.docs.forEach((listval) => {
-                var data = listval.data();
-                if (data.serviceTypeFlag == "delivery-service" || data.serviceTypeFlag == "ecommerce-service") {
-                    sections_list.push(data);
+        (async function loadSectionsList() {
+            try {
+                var snapshots = (window.ArrowFirestore && ArrowFirestore.fetchActiveSectionsOrdered)
+                    ? await ArrowFirestore.fetchActiveSectionsOrdered(database)
+                    : await ref_sections_base.get();
+                snapshots.docs.forEach((listval) => {
+                    var data = listval.data();
+                    if (data.serviceTypeFlag == "delivery-service" || data.serviceTypeFlag == "ecommerce-service") {
+                        sections_list.push(data);
+                    }
+                });
+            } catch (err) {
+                console.error('sections list:', err);
+            }
+        })();
+        if (section_id) {
+        (async function loadVendorsForSection() {
+            try {
+                var snapshots;
+                try {
+                    snapshots = await database.collection('users').where('role', '==', 'vendor').where('sectionId', '==', section_id).orderBy('firstName', 'asc').get();
+                } catch (indexErr) {
+                    console.warn('users role+sectionId+firstName fallback:', indexErr && indexErr.message);
+                    snapshots = await database.collection('users').where('role', '==', 'vendor').where('sectionId', '==', section_id).get();
                 }
-            })
-        })
-        database.collection('users').where('role', '==', 'vendor').where('sectionId', '==', section_id).orderBy('firstName', 'asc').get().then(async function(snapshots) {
-            snapshots.docs.forEach((listval) => {
-                var data = listval.data();
-                if ((data.vendorID == "" || data.vendorID == null) && data.firstName != "") {
-                    $('#store_vendors').append($("<option></option>")
-                        .attr("value", data.id)
-                        .text(data.firstName + " " + data.lastName));
-                }
-            })
-        });
+                snapshots.docs.forEach((listval) => {
+                    var data = listval.data();
+                    if ((data.vendorID == "" || data.vendorID == null) && data.firstName != "") {
+                        $('#store_vendors').append($("<option></option>")
+                            .attr("value", data.id)
+                            .text(data.firstName + " " + data.lastName));
+                    }
+                });
+            } catch (err) {
+                console.error('vendors for section:', err);
+            }
+        })();
+        }
 
         $('#vendor_cuisines').empty();
+        if (section_id) {
         database.collection('vendor_categories').where('publish', '==', true).where('section_id', '==', section_id).get().then(async function(snapshots) {
             snapshots.docs.forEach((listval) => {
                 var data = listval.data();
@@ -997,8 +1022,8 @@
             $("#vendor_cuisines").show().chosen({
                 "placeholder_text": "{{ trans('lang.select_cuisines') }}"
             });
-        });
-        
+        }).catch(function (err) { console.error('vendor_categories:', err); });
+        } 
         $('#store_vendors').on('change', function() {
             ownerId = $(this).val();
             database.collection('users').where('id', '==', ownerId).get().then(async function(snapshot) {
@@ -1029,27 +1054,32 @@
                 allowClear: true
             });
 
-            // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
-            var globalSettingsRef = database.collection('settings').doc('globalSettings');
-            globalSettingsRef.get().then(async function (snapshot) {
-                var globalSettings = snapshot.data();
-                if (globalSettings && globalSettings.defaultCountryCode) {
-                    var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
-
-                    // Find the option with matching phoneCode
+            // --- DEFAULT COUNTRY: BR (+55) ---
+            if (window.ArrowFirestore && ArrowFirestore.applyGlobalOrBrCountry) {
+                ArrowFirestore.applyGlobalOrBrCountry('#country_selector');
+            } else {
+                var globalSettingsRef = database.collection('settings').doc('globalSettings');
+                globalSettingsRef.get().then(async function (snapshot) {
+                    var globalSettings = snapshot.exists ? snapshot.data() : null;
+                    var defaultPhoneCode = '55';
+                    if (globalSettings && globalSettings.defaultCountryCode) {
+                        defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim() || '55';
+                    }
                     var $option = $("#country_selector option").filter(function() {
                         return $(this).val() === defaultPhoneCode;
                     });
-
                     if ($option.length > 0) {
                         $("#country_selector").val(defaultPhoneCode).trigger('change');
-                    } else {
-                        console.warn("Default country code not found in list:", defaultPhoneCode);
+                    } else if ($("#country_selector option[value='55']").length) {
+                        $("#country_selector").val('55').trigger('change');
                     }
-                }
-            }).catch(function (error) {
-                console.error("Error fetching global settings: ", error);
-            });
+                }).catch(function (error) {
+                    console.error("Error fetching global settings: ", error);
+                    if ($("#country_selector option[value='55']").length) {
+                        $("#country_selector").val('55').trigger('change');
+                    }
+                });
+            }
             // --- END OF DEFAULT COUNTRY LOGIC ---
 
             await email_templates.get().then(async function(snapshots) {

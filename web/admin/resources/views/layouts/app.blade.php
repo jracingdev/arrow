@@ -135,6 +135,7 @@
     <script src="{{ asset('js/crypto-js.js') }}"></script>
     <script src="{{ asset('js/jquery.cookie.js') }}"></script>
     @include('partials.firebase-init')
+    <script src="{{ asset('js/firestore-safe.js') }}"></script>
     <script src="{{ asset('js/jquery.validate.js') }}"></script>
     <script src="{{ asset('assets/plugins/select2/dist/js/select2.min.js') }}"></script>
     <script src="{{ asset('js/jquery.masking.js') }}"></script>
@@ -244,18 +245,28 @@
         
         var ref = database.collection('settings').doc("globalSettings");
         ref.get().then(async function (snapshots) {
-            var globalSettings = snapshots.data();
-            $("#app_name").html(globalSettings.applicationName);
-            $("#logo_web").attr('src', globalSettings.appLogo);
-            document.documentElement.style.setProperty('--admin-panel-color', globalSettings.admin_panel_color);
+            var globalSettings = snapshots.exists ? (snapshots.data() || {}) : {};
+            if (globalSettings.applicationName) {
+                $("#app_name").html(globalSettings.applicationName);
+            }
+            if (globalSettings.appLogo) {
+                $("#logo_web").attr('src', globalSettings.appLogo);
+            }
+            if (globalSettings.admin_panel_color) {
+                document.documentElement.style.setProperty('--admin-panel-color', globalSettings.admin_panel_color);
+            }
+        }).catch(function (err) {
+            console.error('globalSettings load failed:', err);
         });
         
         var placeholderImage = '';
         var placeholder = database.collection('settings').doc('placeHolderImage');
         placeholder.get().then(async function (snapshotsimage) {
-            var placeholderImageData = snapshotsimage.data();
-            placeholderImage = placeholderImageData.image;
-        })
+            var placeholderImageData = snapshotsimage.exists ? snapshotsimage.data() : null;
+            if (placeholderImageData && placeholderImageData.image) {
+                placeholderImage = placeholderImageData.image;
+            }
+        }).catch(function () {});
         
         $(document).ready(async function () {
             getServiceSections();

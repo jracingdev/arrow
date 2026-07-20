@@ -1002,7 +1002,21 @@
             })
 
             async function getDeliverymanList(vendorID) {
-                database.collection('users').where('role', '==', 'driver').where('vendorID', '==', vendorID).where('isActive', '==', true).get().then(async function(snapshot) {
+                if (!vendorID) return;
+                try {
+                    var snapshot;
+                    try {
+                        snapshot = await database.collection('users').where('role', '==', 'driver').where('vendorID', '==', vendorID).where('isActive', '==', true).get();
+                    } catch (indexErr) {
+                        console.warn('drivers role+vendorID+isActive fallback:', indexErr && indexErr.message);
+                        var raw = await database.collection('users').where('role', '==', 'driver').where('vendorID', '==', vendorID).get();
+                        snapshot = {
+                            docs: raw.docs.filter(function (d) {
+                                var data = d.data() || {};
+                                return data.isActive === true;
+                            })
+                        };
+                    }
                     if (snapshot.docs.length > 0) {
                         snapshot.docs.forEach((listval) => {
                             var data = listval.data();
@@ -1029,7 +1043,9 @@
                         });
                         $('#deliveryman_list').select2();
                     }
-                })
+                } catch (err) {
+                    console.error('getDeliverymanList:', err);
+                }
             }
 
             $('#deliveryman_list').on('select2:open', function() {

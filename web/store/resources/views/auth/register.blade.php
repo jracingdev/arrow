@@ -163,6 +163,7 @@
 <script src="{{ asset('js/crypto-js.js') }}"></script>
 <script src="{{ asset('js/jquery.cookie.js') }}"></script>
 @include('partials.firebase-init')
+<script src="{{ asset('js/firestore-safe.js') }}"></script>
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
 
 <script>
@@ -244,27 +245,32 @@
             allowClear: true
         });
         
-        // --- ADD THIS BLOCK TO SET DEFAULT COUNTRY CODE ---
-        var globalSettingsRef = database.collection('settings').doc('globalSettings');
-        globalSettingsRef.get().then(async function (snapshot) {
-            var globalSettings = snapshot.data();
-            if (globalSettings && globalSettings.defaultCountryCode) {
-                var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
-
-                // Find the option with matching phoneCode
+        // --- DEFAULT COUNTRY: BR (+55), sobrescreve com globalSettings se existir ---
+        if (window.ArrowFirestore && ArrowFirestore.applyGlobalOrBrCountry) {
+            ArrowFirestore.applyGlobalOrBrCountry('#country_selector');
+        } else {
+            var globalSettingsRef = database.collection('settings').doc('globalSettings');
+            globalSettingsRef.get().then(async function (snapshot) {
+                var globalSettings = snapshot.exists ? snapshot.data() : null;
+                var defaultPhoneCode = '55';
+                if (globalSettings && globalSettings.defaultCountryCode) {
+                    defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim() || '55';
+                }
                 var $option = $("#country_selector option").filter(function() {
                     return $(this).val() === defaultPhoneCode;
                 });
-
                 if ($option.length > 0) {
                     $("#country_selector").val(defaultPhoneCode).trigger('change');
-                } else {
-                    console.warn("Default country code not found in list:", defaultPhoneCode);
+                } else if ($("#country_selector option[value='55']").length) {
+                    $("#country_selector").val('55').trigger('change');
                 }
-            }
-        }).catch(function (error) {
-            console.error("Error fetching global settings: ", error);
-        });
+            }).catch(function (error) {
+                console.error("Error fetching global settings: ", error);
+                if ($("#country_selector option[value='55']").length) {
+                    $("#country_selector").val('55').trigger('change');
+                }
+            });
+        }
         // --- END OF DEFAULT COUNTRY LOGIC ---
 
         await email_templates.get().then(async function (snapshots) {
@@ -272,9 +278,10 @@
         });
 
         await emailSetting.get().then(async function (snapshots) {
-            var emailSettingData = snapshots.data();
-
-            adminEmail = emailSettingData.userName;
+            var emailSettingData = snapshots.exists ? (snapshots.data() || {}) : {};
+            adminEmail = emailSettingData.userName || '';
+        }).catch(function (err) {
+            console.error('emailSetting:', err);
         });
        
         jQuery("#data-table_processing").hide();
@@ -296,6 +303,7 @@
             return;
         }
 
+        try {
         var userFirstName = $(".user_first_name").val();
         var userLastName = $(".user_last_name").val();
         // var email = $(".user_email").val();
@@ -505,6 +513,11 @@
                         });
                 }
 
+        } catch (registerErr) {
+            console.error('create_vendor_btn:', registerErr);
+            jQuery("#data-table_processing").hide();
+            $(".error_top").show().html("<p>" + ((registerErr && registerErr.message) ? registerErr.message : "Erro ao registrar. Tente novamente.") + "</p>");
+            window.scrollTo(0, 0);
         }
 
     })
