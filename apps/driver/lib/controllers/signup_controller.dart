@@ -45,6 +45,8 @@ class SignupController extends GetxController {
 
   /// All active sections loaded from Firestore (no service filter)
   RxList<SectionModel> allSections = <SectionModel>[].obs;
+  RxBool sectionsLoading = true.obs;
+  RxBool zonesLoading = true.obs;
 
   /// Sections the driver has selected during registration
   RxList<SectionModel> selectedSections = <SectionModel>[].obs;
@@ -136,9 +138,9 @@ class SignupController extends GetxController {
     await Future.wait([
       FireStoreUtils.getZone().then((v) {
         if (v != null) zoneList.value = v;
-      }),
+      }).whenComplete(() => zonesLoading.value = false),
       FireStoreUtils.getCarMakes().then((v) => carMakesList.value = v),
-      FireStoreUtils.getAllActiveSections().then((v) => allSections.value = v),
+      FireStoreUtils.getAllActiveSections().then((v) => allSections.value = v).whenComplete(() => sectionsLoading.value = false),
     ]);
   }
 

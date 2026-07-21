@@ -18,11 +18,13 @@ class ZoneModel {
       });
     }
 
-    publish = json['publish'];
-    latitude = json['latitude'];
-    name = json['name'];
-    id = json['id'];
-    longitude = json['longitude'];
+    publish = json['publish'] == true;
+    final lat = json['latitude'];
+    latitude = lat is num ? lat.toDouble() : null;
+    name = json['name']?.toString();
+    id = json['id']?.toString();
+    final lng = json['longitude'];
+    longitude = lng is num ? lng.toDouble() : null;
   }
 
   Map<String, dynamic> toJson() {

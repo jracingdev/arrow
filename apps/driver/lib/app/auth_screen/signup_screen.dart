@@ -111,7 +111,12 @@ class SignupScreen extends StatelessWidget {
                         ? Center(
                             child: Padding(
                               padding: const EdgeInsets.all(16),
-                              child: Text(controller.allSections.isEmpty ? "Loading sections...".tr : "No sections available".tr, style: TextStyle(color: isDark ? AppThemeData.grey400 : AppThemeData.grey600)),
+                              child: Text(
+                                controller.sectionsLoading.value
+                                    ? "Loading sections...".tr
+                                    : "No sections available".tr,
+                                style: TextStyle(color: isDark ? AppThemeData.grey400 : AppThemeData.grey600),
+                              ),
                             ),
                           )
                         : Container(

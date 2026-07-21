@@ -2,6 +2,7 @@ import 'package:customer/themes/show_toast_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:arrow_shared/arrow_phone_auth.dart';
 import 'package:arrow_shared/brazil_phone.dart';
 
 import '../constant/constant.dart';
@@ -35,11 +36,7 @@ class MobileLoginController extends GetxController {
         },
         verificationFailed: (FirebaseAuthException e) {
           ShowToastDialog.closeLoader();
-          if (e.code == 'invalid-phone-number') {
-            ShowToastDialog.showToast("Invalid phone number".tr);
-          } else {
-            ShowToastDialog.showToast(e.message ?? "OTP verification failed".tr);
-          }
+          ShowToastDialog.showToast(ArrowPhoneAuth.toastFor(e));
         },
         codeSent: (String verificationId, int? resendToken) {
           ShowToastDialog.closeLoader();
@@ -57,7 +54,7 @@ class MobileLoginController extends GetxController {
       );
     } catch (e) {
       ShowToastDialog.closeLoader();
-      ShowToastDialog.showToast("Something went wrong. Please try again.".tr);
+      ShowToastDialog.showToast(ArrowPhoneAuth.toastForError(e));
     }
   }
 

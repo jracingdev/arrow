@@ -1,3 +1,4 @@
+import 'package:arrow_shared/arrow_phone_auth.dart';
 import 'package:arrow_shared/brazil_phone.dart';
 import 'package:driver/app/auth_screen/otp_screen.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
@@ -28,13 +29,9 @@ class PhoneNumberController extends GetxController {
             phoneNumber: '$dial$phoneDigits',
             verificationCompleted: (PhoneAuthCredential credential) {},
             verificationFailed: (FirebaseAuthException e) {
-              debugPrint("FirebaseAuthException--->${e.message}");
+              debugPrint("FirebaseAuthException--->${e.code} ${e.message}");
               ShowToastDialog.closeLoader();
-              if (e.code == 'invalid-phone-number') {
-                ShowToastDialog.showToast("invalid_phone_number".tr);
-              } else {
-                ShowToastDialog.showToast(e.message);
-              }
+              ShowToastDialog.showToast(ArrowPhoneAuth.toastFor(e));
             },
             codeSent: (String verificationId, int? resendToken) {
               ShowToastDialog.closeLoader();
@@ -49,7 +46,7 @@ class PhoneNumberController extends GetxController {
         .catchError((error) {
       debugPrint("catchError--->$error");
       ShowToastDialog.closeLoader();
-      ShowToastDialog.showToast("multiple_time_request".tr);
+      ShowToastDialog.showToast(ArrowPhoneAuth.toastForError(error));
     });
   }
 }

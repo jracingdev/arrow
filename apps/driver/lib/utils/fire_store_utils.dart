@@ -371,8 +371,12 @@ class FireStoreUtils {
     List<ZoneModel> airPortList = [];
     await fireStore.collection(CollectionName.zone).where('publish', isEqualTo: true).get().then((value) {
       for (var element in value.docs) {
-        ZoneModel ariPortModel = ZoneModel.fromJson(element.data());
-        airPortList.add(ariPortModel);
+        try {
+          ZoneModel ariPortModel = ZoneModel.fromJson(element.data());
+          airPortList.add(ariPortModel);
+        } catch (e) {
+          print('**-FireStoreUtils.getZone Parse error $e');
+        }
       }
     }).catchError((error) {
       log(error.toString());

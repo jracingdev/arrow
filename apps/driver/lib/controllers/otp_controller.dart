@@ -1,3 +1,4 @@
+import 'package:arrow_shared/arrow_phone_auth.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -35,7 +36,9 @@ class OtpController extends GetxController {
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: countryCode.value + phoneNumber.value,
       verificationCompleted: (PhoneAuthCredential credential) {},
-      verificationFailed: (FirebaseAuthException e) {},
+      verificationFailed: (FirebaseAuthException e) {
+        ShowToastDialog.showToast(ArrowPhoneAuth.toastFor(e));
+      },
       codeSent: (String verificationId0, int? resendToken0) async {
         verificationId.value = verificationId0;
         resendToken.value = resendToken0!;
