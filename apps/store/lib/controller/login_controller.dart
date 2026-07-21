@@ -45,34 +45,30 @@ class LoginController extends GetxController {
       if (userModel != null) {
         if (userModel.role == Constant.userRoleVendor) {
           if (userModel.active == true) {
-            userModel.fcmToken = await NotificationService.getToken();
+            try {
+              userModel.fcmToken = await NotificationService.getToken();
+            } catch (_) {}
             await FireStoreUtils.updateUser(userModel);
             bool isPlanExpire = false;
             if (userModel.subscriptionPlan?.id != null) {
               if (userModel.subscriptionExpiryDate == null) {
-                if (userModel.subscriptionPlan?.expiryDay == '-1') {
-                  isPlanExpire = false;
-                } else {
-                  isPlanExpire = true;
-                }
+                isPlanExpire = userModel.subscriptionPlan?.expiryDay != '-1';
               } else {
-                DateTime expiryDate = userModel.subscriptionExpiryDate!.toDate();
-                isPlanExpire = expiryDate.isBefore(DateTime.now());
+                isPlanExpire = userModel.subscriptionExpiryDate!.toDate().isBefore(DateTime.now());
               }
             } else {
               isPlanExpire = true;
             }
 
-            if (userModel.sectionId != null) {
-              await FireStoreUtils.getSectionById(userModel.sectionId.toString()).then((value) {
-                if (value != null) {
-                  Constant.selectedSection = value;
-                }
-              });
+            if (userModel.sectionId != null && userModel.sectionId!.isNotEmpty) {
+              final section = await FireStoreUtils.getSectionById(userModel.sectionId.toString());
+              if (section != null) {
+                Constant.selectedSection = section;
+              }
             }
 
             if (userModel.subscriptionPlanId == null || isPlanExpire == true) {
-              if (userModel.sectionId!.isEmpty && Constant.isSubscriptionModelApplied == false) {
+              if ((userModel.sectionId ?? '').isEmpty && Constant.isSubscriptionModelApplied == false) {
                 Get.offAll(const DashBoardScreen());
               } else {
                 Get.offAll(const SubscriptionPlanScreen());
@@ -99,9 +95,15 @@ class LoginController extends GetxController {
         ShowToastDialog.showToast("Wrong password provided for that user.".tr);
       } else if (e.code == 'invalid-email') {
         ShowToastDialog.showToast("Invalid Email.".tr);
+      } else {
+        ShowToastDialog.showToast(e.message ?? e.code);
       }
+    } catch (e) {
+      debugPrint('owner email login error: $e');
+      ShowToastDialog.showToast("Something went wrong, please contact admin.".tr);
+    } finally {
+      ShowToastDialog.closeLoader();
     }
-    ShowToastDialog.closeLoader();
   }
 
   Future<void> employeeloginWithEmailAndPassword() async {
@@ -115,35 +117,33 @@ class LoginController extends GetxController {
       if (userModel != null) {
         if (userModel.role == Constant.userRoleEmployee) {
           if (userModel.active == true) {
-            userModel.fcmToken = await NotificationService.getToken();
+            try {
+              userModel.fcmToken = await NotificationService.getToken();
+            } catch (_) {}
             await FireStoreUtils.updateUser(userModel);
             VendorModel? vendor = await FireStoreUtils.getVendorById(userModel.vendorID!);
             bool isPlanExpire = false;
             if (vendor?.subscriptionPlan?.id != null) {
               if (vendor?.subscriptionExpiryDate == null) {
-                if (vendor?.subscriptionPlan?.expiryDay == '-1') {
-                  isPlanExpire = false;
-                } else {
-                  isPlanExpire = true;
-                }
+                isPlanExpire = vendor?.subscriptionPlan?.expiryDay != '-1';
               } else {
-                DateTime expiryDate = vendor!.subscriptionExpiryDate!.toDate();
-                isPlanExpire = expiryDate.isBefore(DateTime.now());
+                isPlanExpire = vendor!.subscriptionExpiryDate!.toDate().isBefore(DateTime.now());
               }
             } else {
               isPlanExpire = true;
             }
-            if (vendor?.sectionId != null) {
-              await FireStoreUtils.getSectionById(vendor!.sectionId.toString()).then((value) {
-                if (value != null) {
-                  Constant.selectedSection = value;
-                }
-              });
+            if (vendor?.sectionId != null && vendor!.sectionId!.isNotEmpty) {
+              final section = await FireStoreUtils.getSectionById(vendor.sectionId.toString());
+              if (section != null) {
+                Constant.selectedSection = section;
+              }
             }
 
             if (vendor?.subscriptionPlanId == null || isPlanExpire == true) {
-              if (userModel.sectionId!.isEmpty && Constant.isSubscriptionModelApplied == false) {
+              if ((vendor?.sectionId ?? userModel.sectionId ?? '').isEmpty && Constant.isSubscriptionModelApplied == false) {
                 Get.offAll(const DashBoardScreen());
+              } else {
+                Get.offAll(const SubscriptionPlanScreen());
               }
             } else if (vendor?.subscriptionPlan?.features?.ownerMobileApp == true) {
               Get.offAll(const DashBoardScreen());
@@ -167,9 +167,15 @@ class LoginController extends GetxController {
         ShowToastDialog.showToast("Wrong password provided for that user.".tr);
       } else if (e.code == 'invalid-email') {
         ShowToastDialog.showToast("Invalid Email.".tr);
+      } else {
+        ShowToastDialog.showToast(e.message ?? e.code);
       }
+    } catch (e) {
+      debugPrint('employee email login error: $e');
+      ShowToastDialog.showToast("Something went wrong, please contact admin.".tr);
+    } finally {
+      ShowToastDialog.closeLoader();
     }
-    ShowToastDialog.closeLoader();
   }
 
   Future<void> loginWithGoogle() async {
@@ -313,7 +319,7 @@ class LoginController extends GetxController {
                   }
 
                   if (userModel.subscriptionPlanId == null || isPlanExpire == true) {
-                    if (userModel.sectionId!.isEmpty && Constant.isSubscriptionModelApplied == false) {
+                    if ((userModel.sectionId ?? '').isEmpty && Constant.isSubscriptionModelApplied == false) {
                       Get.offAll(const DashBoardScreen());
                     } else {
                       Get.offAll(const SubscriptionPlanScreen());
