@@ -562,6 +562,7 @@ const Map<String, String> enUS = {
   "Subscription Packages": "Subscription Packages",
   "Subscription History": "Subscription History",
   "Subscription plan not found.": "Subscription plan not found.",
+  "No sections found. Please contact administrator.": "No sections found. Please contact administrator.",
   "admin commission will be charged from customer billing orders and the admin charge will be earned after the order is accepted by the restaurant.":
       "admin commission will be charged from customer billing orders and the admin charge will be earned after the order is accepted by the restaurant.",
   'Add Delivery Man': 'Add Delivery Man',

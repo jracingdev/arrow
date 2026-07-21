@@ -49,37 +49,56 @@ class DashBoardController extends GetxController {
   }
 
   Future<void> getVendor() async {
-    if (Constant.userModel?.vendorID != null) {
-      await FireStoreUtils.getVendorById(Constant.userModel!.vendorID.toString()).then((value) async {
-        if (value != null) {
-          vendorModel.value = value;
-          Constant.vendorAdminCommission = value.adminCommission;
-          await FireStoreUtils.getSectionById(vendorModel.value.sectionId.toString()).then((value) {
+    try {
+      if (Constant.userModel?.vendorID != null) {
+        await FireStoreUtils.getVendorById(Constant.userModel!.vendorID.toString()).then((value) async {
+          if (value != null) {
+            vendorModel.value = value;
+            Constant.vendorAdminCommission = value.adminCommission;
+            if ((vendorModel.value.sectionId ?? '').isNotEmpty) {
+              await FireStoreUtils.getSectionById(vendorModel.value.sectionId.toString()).then((section) {
+                if (section != null) {
+                  sectionModel.value = section;
+                  Constant.selectedSection = sectionModel.value;
+                }
+              });
+            }
+          }
+        });
+        if (vendorModel.value.latitude != null && vendorModel.value.longitude != null) {
+          await FireStoreUtils.getTaxList(
+            double.parse("${vendorModel.value.latitude}"),
+            double.parse("${vendorModel.value.longitude}"),
+            vendorModel.value.sectionId.toString(),
+          ).then((value) {
             if (value != null) {
-              sectionModel.value = value;
-              Constant.selectedSection = sectionModel.value;
+              Constant.taxProductList = value.where((TaxModel taxModel) => taxModel.scope == "product").toList();
             }
           });
         }
-      });
-      if (vendorModel.value.latitude != null && vendorModel.value.longitude != null) {
-        await FireStoreUtils.getTaxList(double.parse("${vendorModel.value.latitude}"), double.parse("${vendorModel.value.longitude}"), vendorModel.value.sectionId.toString()).then((value) {
-          Constant.taxProductList = value!.where((TaxModel taxModel) => taxModel.scope == "product").toList();
-        });
       }
-    }
 
-    await FireStoreUtils.getSectionById(Constant.userModel!.sectionId.toString()).then((value) {
-      if (value != null) {
-        sectionModel.value = value;
-        Constant.selectedSection = sectionModel.value;
+      final sectionId = Constant.userModel?.sectionId;
+      if (sectionId != null && sectionId.isNotEmpty) {
+        await FireStoreUtils.getSectionById(sectionId).then((value) {
+          if (value != null) {
+            sectionModel.value = value;
+            Constant.selectedSection = sectionModel.value;
+          } else {
+            sectionModel.value = SectionModel();
+          }
+        });
       } else {
         sectionModel.value = SectionModel();
       }
-    });
-    setPage();
-
-    isLoading.value = false;
+      setPage();
+    } catch (e, s) {
+      log('DashBoardController.getVendor error: $e\n$s');
+      sectionModel.value = SectionModel();
+      setPage();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   DateTime? currentBackPressTime;

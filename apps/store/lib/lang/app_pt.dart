@@ -562,6 +562,7 @@ const Map<String, String> ptPO = {
   "Subscription Packages": "Pacotes de Assinatura",
   "Subscription History": "Histórico de Assinaturas",
   "Subscription plan not found.": "Plano de assinatura não encontrado.",
+  "No sections found. Please contact administrator.": "Nenhuma seção encontrada. Contate o administrador.",
   "admin commission will be charged from customer billing orders and the admin charge will be earned after the order is accepted by the restaurant.":
       "a comissão do administrador será cobrada dos pedidos de faturamento do cliente e será recebida após o pedido ser aceito pelo restaurante.",
   'Add Delivery Man': 'Adicionar Entregador',

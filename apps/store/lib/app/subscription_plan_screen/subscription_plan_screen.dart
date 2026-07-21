@@ -78,7 +78,10 @@ class SubscriptionPlanScreen extends StatelessWidget {
                                     style: TextStyle(fontFamily: AppThemeData.semiBold, fontSize: 14, color: isDark ? AppThemeData.grey100 : AppThemeData.grey800),
                                   ),
                                   SizedBox(height: 10),
-                                  DropdownButtonFormField<SectionModel>(
+                                  DropdownButtonFormField<String>(
+                                    key: ValueKey(
+                                      'section_dd_${controller.sectionsList.length}_${controller.selectedSectionModel.value.id}',
+                                    ),
                                     isExpanded: true,
                                     dropdownColor: isDark ? AppThemeData.grey600 : AppThemeData.grey50,
                                     decoration: InputDecoration(
@@ -107,23 +110,39 @@ class SubscriptionPlanScreen extends StatelessWidget {
                                         borderSide: BorderSide(color: isDark ? AppThemeData.grey900 : AppThemeData.grey50, width: 1),
                                       ),
                                     ),
-                                    validator: (value) => value == null ? 'field required' : null,
-                                    initialValue: controller.selectedSectionModel.value,
+                                    validator: (value) => value == null || value.isEmpty ? 'field required' : null,
+                                    initialValue: controller.sectionsList.any((s) => s.id == controller.selectedSectionModel.value.id)
+                                        ? controller.selectedSectionModel.value.id
+                                        : null,
                                     onChanged: (value) {
-                                      controller.selectedSectionModel.value = value!;
+                                      final selected = controller.sectionsList.firstWhereOrNull((s) => s.id == value);
+                                      if (selected == null) return;
+                                      controller.selectedSectionModel.value = selected;
                                       controller.subscriptionPlanList.clear();
                                       controller.getSubscriptionPlanList();
                                     },
                                     style: TextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey900),
                                     hint: Text('Select Section'.tr),
                                     items: controller.sectionsList.map((SectionModel item) {
-                                      return DropdownMenuItem<SectionModel>(value: item, child: Text("${item.name} (${item.serviceType})"));
+                                      return DropdownMenuItem<String>(
+                                        value: item.id,
+                                        child: Text("${item.name ?? ''} (${item.serviceType ?? item.serviceTypeFlag ?? ''})"),
+                                      );
                                     }).toList(),
                                   ),
                                 ],
                               ),
                         SizedBox(height: 10),
-                        controller.subscriptionPlanList.isEmpty
+                        controller.sectionsList.isEmpty
+                            ? SizedBox(
+                                width: Responsive.width(100, context),
+                                height: Responsive.height(50, context),
+                                child: Constant.showEmptyView(
+                                  message: "No sections found. Please contact administrator.".tr,
+                                  isDark: isDark,
+                                ),
+                              )
+                            : controller.subscriptionPlanList.isEmpty
                             ? SizedBox(
                                 width: Responsive.width(100, context),
                                 height: Responsive.height(50, context),

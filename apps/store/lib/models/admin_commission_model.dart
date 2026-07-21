@@ -6,9 +6,9 @@ class AdminCommission {
   AdminCommission({this.amount, this.isEnabled, this.commissionType});
 
   AdminCommission.fromJson(Map<String, dynamic> json) {
-    amount = json['commission'].toString();
-    isEnabled = json['enable'];
-    commissionType = json['type'];
+    amount = json['commission']?.toString();
+    isEnabled = json['enable'] == true;
+    commissionType = json['type']?.toString();
   }
 
   Map<String, dynamic> toJson() {

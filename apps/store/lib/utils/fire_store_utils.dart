@@ -259,18 +259,22 @@ class FireStoreUtils {
   static Future<void> getSettings() async {
     try {
       await fireStore.collection(CollectionName.settings).doc("globalSettings").get().then((value) async {
-        Constant.orderRingtoneUrl = value.data()?['order_ringtone_url'] ?? '';
-        Constant.defaultCountryCode = BrazilPhone.normalizeDialCode(value.data()?['defaultCountryCode']);
-        Constant.defaultCountryISOCode = BrazilPhone.normalizeIsoCode(value.data()?['defaultCountryCode']);
+        final data = value.data() ?? {};
+        Constant.orderRingtoneUrl = data['order_ringtone_url'] ?? '';
+        Constant.defaultCountryCode = BrazilPhone.normalizeDialCode(data['defaultCountryCode']);
+        Constant.defaultCountryISOCode = BrazilPhone.normalizeIsoCode(data['defaultCountryCode']);
         Preferences.setString(Preferences.orderRingtone, Constant.orderRingtoneUrl);
-        AppThemeData.primary300 = Color(int.parse(value.data()!['app_store_color'].replaceFirst("#", "0xff")));
-        Constant.isEnableAdsFeature = value.data()?['isEnableAdsFeature'] ?? false;
-        Constant.isSelfDeliveryFeature = value.data()?['isSelfDelivery'] ?? false;
+        final storeColor = data['app_store_color']?.toString();
+        if (storeColor != null && storeColor.isNotEmpty) {
+          AppThemeData.primary300 = Color(int.parse(storeColor.replaceFirst("#", "0xff")));
+        }
+        Constant.isEnableAdsFeature = data['isEnableAdsFeature'] == true;
+        Constant.isSelfDeliveryFeature = data['isSelfDelivery'] == true;
 
-        Constant.apiSecureKey = value.data()?['apiSecureKey'] ?? "";
-        Constant.apiBaseUrl = value.data()?['apiBaseUrl'] ?? "";
+        Constant.apiSecureKey = data['apiSecureKey'] ?? "";
+        Constant.apiBaseUrl = data['apiBaseUrl'] ?? "";
 
-        Constant.taxScope = value.data()?['taxScope'] ?? "";
+        Constant.taxScope = data['taxScope'] ?? "";
 
         if (Constant.orderRingtoneUrl.isNotEmpty) {
           await AudioPlayerService.initAudio();
@@ -787,21 +791,23 @@ class FireStoreUtils {
   }
 
   static Future<List<SectionModel>> getSection() async {
-    List<SectionModel> walletTransactionList = [];
-    await fireStore
-        .collection(CollectionName.sections)
-        .where('isActive', isEqualTo: true)
-        .get()
-        .then((value) {
-          for (var element in value.docs) {
-            SectionModel sectionModel = SectionModel.fromJson(element.data());
-            walletTransactionList.add(sectionModel);
-          }
-        })
-        .catchError((error) {
-          log(error.toString());
-        });
-    return walletTransactionList;
+    List<SectionModel> sections = [];
+    try {
+      // Evita índice composto (isActive + order) e parse que derruba a lista inteira.
+      final snap = await fireStore.collection(CollectionName.sections).where('isActive', isEqualTo: true).get();
+      for (final doc in snap.docs) {
+        try {
+          final data = Map<String, dynamic>.from(doc.data());
+          data['id'] ??= doc.id;
+          sections.add(SectionModel.fromJson(data));
+        } catch (e) {
+          log('FireStoreUtils.getSection parse error ${doc.id}: $e');
+        }
+      }
+    } catch (e) {
+      log('FireStoreUtils.getSection failed: $e');
+    }
+    return sections;
   }
 
   static Future<List<WalletTransactionModel>?> getFilterWalletTransaction(Timestamp startTime, Timestamp endTime) async {
@@ -1640,32 +1646,51 @@ class FireStoreUtils {
 
   static Future<List<SubscriptionPlanModel>> getAllSubscriptionPlans(String sectionId) async {
     List<SubscriptionPlanModel> subscriptionPlanModels = [];
-    await fireStore.collection(CollectionName.subscriptionPlans).where("isCommissionPlan", isEqualTo: false).where("sectionId", isEqualTo: sectionId).where('isEnable', isEqualTo: true).get().then((
-      value,
-    ) async {
-      if (value.docs.isNotEmpty) {
-        for (var element in value.docs) {
-          SubscriptionPlanModel subscriptionPlanModel = SubscriptionPlanModel.fromJson(element.data());
-          subscriptionPlanModels.add(subscriptionPlanModel);
+    if (sectionId.isEmpty) return subscriptionPlanModels;
+    try {
+      final value = await fireStore
+          .collection(CollectionName.subscriptionPlans)
+          .where("isCommissionPlan", isEqualTo: false)
+          .where("sectionId", isEqualTo: sectionId)
+          .where('isEnable', isEqualTo: true)
+          .get();
+      for (final element in value.docs) {
+        try {
+          final data = Map<String, dynamic>.from(element.data());
+          data['id'] ??= element.id;
+          subscriptionPlanModels.add(SubscriptionPlanModel.fromJson(data));
+        } catch (e) {
+          log('getAllSubscriptionPlans parse ${element.id}: $e');
         }
       }
-    });
+    } catch (e) {
+      log('getAllSubscriptionPlans failed: $e');
+    }
     return subscriptionPlanModels;
   }
 
   static Future<List<SubscriptionPlanModel>> getSubscriptionCommissionPlanById(String sectionId) async {
     List<SubscriptionPlanModel> subscriptionPlanModels = [];
-    await fireStore.collection(CollectionName.subscriptionPlans).where("isCommissionPlan", isEqualTo: true).where("sectionId", isEqualTo: sectionId).where('isEnable', isEqualTo: true).get().then((
-      value,
-    ) async {
-      if (value.docs.isNotEmpty) {
-        for (var element in value.docs) {
-          print(element.data());
-          SubscriptionPlanModel subscriptionPlanModel = SubscriptionPlanModel.fromJson(element.data());
-          subscriptionPlanModels.add(subscriptionPlanModel);
+    if (sectionId.isEmpty) return subscriptionPlanModels;
+    try {
+      final value = await fireStore
+          .collection(CollectionName.subscriptionPlans)
+          .where("isCommissionPlan", isEqualTo: true)
+          .where("sectionId", isEqualTo: sectionId)
+          .where('isEnable', isEqualTo: true)
+          .get();
+      for (final element in value.docs) {
+        try {
+          final data = Map<String, dynamic>.from(element.data());
+          data['id'] ??= element.id;
+          subscriptionPlanModels.add(SubscriptionPlanModel.fromJson(data));
+        } catch (e) {
+          log('getSubscriptionCommissionPlanById parse ${element.id}: $e');
         }
       }
-    });
+    } catch (e) {
+      log('getSubscriptionCommissionPlanById failed: $e');
+    }
     return subscriptionPlanModels;
   }
 

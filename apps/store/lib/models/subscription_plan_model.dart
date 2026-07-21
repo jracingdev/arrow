@@ -39,20 +39,23 @@ class SubscriptionPlanModel {
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionPlanModel(
       createdAt: json['createdAt'],
-      description: json['description'],
-      expiryDay: json['expiryDay'],
-      features: json['features'] == null ? null : Features.fromJson(json['features']),
-      id: json['id'],
-      isEnable: json['isEnable'],
-      isCommissionPlan: json['isCommissionPlan'],
-      itemLimit: json['itemLimit'],
-      orderLimit: json['orderLimit'],
-      name: json['name'],
-      price: double.parse(json['price'].toString()).toStringAsFixed(2),
-      // place: json['place'],
-      sectionId: json['sectionId'],
-      image: json['image'],
-      type: json['type'],
+      description: json['description']?.toString(),
+      expiryDay: json['expiryDay']?.toString(),
+      features: json['features'] == null ? null : Features.fromJson(Map<String, dynamic>.from(json['features'])),
+      id: json['id']?.toString(),
+      isEnable: json['isEnable'] == true,
+      isCommissionPlan: json['isCommissionPlan'] == true,
+      itemLimit: json['itemLimit']?.toString(),
+      orderLimit: json['orderLimit']?.toString(),
+      name: json['name']?.toString(),
+      price: () {
+        final raw = json['price'];
+        if (raw == null) return '0.00';
+        return (double.tryParse(raw.toString()) ?? 0).toStringAsFixed(2);
+      }(),
+      sectionId: json['sectionId']?.toString(),
+      image: json['image']?.toString(),
+      type: json['type']?.toString(),
       planPoints: json['plan_points'] == null ? [] : List<String>.from(json['plan_points']),
     );
   }

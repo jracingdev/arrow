@@ -63,16 +63,16 @@ class SplashController extends GetxController {
                 isPlanExpire = true;
               }
 
-              if (value.sectionId != null || value.sectionId!.isNotEmpty) {
-                await FireStoreUtils.getSectionById(value.sectionId.toString()).then((value) {
-                  if (value != null) {
-                    Constant.selectedSection = value;
+              if (value.sectionId != null && value.sectionId!.isNotEmpty) {
+                await FireStoreUtils.getSectionById(value.sectionId.toString()).then((section) {
+                  if (section != null) {
+                    Constant.selectedSection = section;
                   }
                 });
               }
 
               if (Constant.userModel?.subscriptionPlanId == null || isPlanExpire == true) {
-                if (Constant.userModel!.sectionId!.isEmpty && Constant.isSubscriptionModelApplied == false) {
+                if ((Constant.userModel?.sectionId ?? '').isEmpty && Constant.isSubscriptionModelApplied == false) {
                   Get.offAll(const DashBoardScreen());
                 } else {
                   Get.offAll(const SubscriptionPlanScreen());
@@ -109,19 +109,21 @@ class SplashController extends GetxController {
                 isPlanExpire = true;
               }
 
-              if (value.sectionId != null || value.sectionId!.isNotEmpty) {
-                await FireStoreUtils.getSectionById(value.sectionId.toString()).then((value) {
-                  if (value != null) {
-                    Constant.selectedSection = value;
+              if (value.sectionId != null && value.sectionId!.isNotEmpty) {
+                await FireStoreUtils.getSectionById(value.sectionId.toString()).then((section) {
+                  if (section != null) {
+                    Constant.selectedSection = section;
                   }
                 });
               }
 
               if (vendor?.subscriptionPlanId == null || isPlanExpire == true) {
-                if (vendor!.sectionId!.isEmpty && Constant.isSubscriptionModelApplied == false) {
+                if ((vendor?.sectionId ?? '').isEmpty && Constant.isSubscriptionModelApplied == false) {
                   Get.offAll(const DashBoardScreen());
+                } else {
+                  Get.offAll(const SubscriptionPlanScreen());
                 }
-              } else if (vendor!.subscriptionPlan?.features?.ownerMobileApp == true) {
+              } else if (vendor?.subscriptionPlan?.features?.ownerMobileApp == true) {
                 Get.offAll(const DashBoardScreen());
               } else {
                 Get.offAll(const AppNotAccessScreen());

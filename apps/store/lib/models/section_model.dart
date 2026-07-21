@@ -49,15 +49,16 @@ class SectionModel {
     name = json['name'];
     sectionImage = json['sectionImage'];
     markerIcon = json['markerIcon'];
-    id = json['id'];
-    adminCommision = json.containsKey('adminCommision') ? AdminCommission.fromJson(json['adminCommision']) : null;
-    isActive = json['isActive'];
+    id = json['id']?.toString() ?? json['Id']?.toString();
+    final rawAdminCommission = json['adminCommision'];
+    adminCommision = rawAdminCommission is Map ? AdminCommission.fromJson(Map<String, dynamic>.from(rawAdminCommission)) : null;
+    isActive = json['isActive'] == true;
     theme = json['theme'] ?? "theme_2";
-    dineInActive = json['dine_in_active'] ?? false;
-    isProductDetails = json['is_product_details'] ?? false;
-    serviceTypeFlag = json['serviceTypeFlag'] ?? '';
-    delivery_charge = json['delivery_charge'] ?? '';
-    rideType = json['rideType'] ?? 'ride';
+    dineInActive = json['dine_in_active'] == true;
+    isProductDetails = json['is_product_details'] == true;
+    serviceTypeFlag = json['serviceTypeFlag']?.toString() ?? '';
+    delivery_charge = json['delivery_charge']?.toString() ?? '';
+    rideType = json['rideType']?.toString() ?? 'ride';
 
     // 👇 Safe parsing for number (handles NaN, double, int)
     final rawRadius = json['nearByRadius'];
@@ -66,8 +67,9 @@ class SectionModel {
     } else {
       nearByRadius = rawRadius.toInt();
     }
-    platformFee = PlatformFeeModel.fromJson(json['platformFee']);
-    packagingChargeEnable = json['packagingChargeEnable'] ?? false;
+    final rawPlatformFee = json['platformFee'];
+    platformFee = rawPlatformFee is Map ? PlatformFeeModel.fromJson(Map<String, dynamic>.from(rawPlatformFee)) : null;
+    packagingChargeEnable = json['packagingChargeEnable'] == true;
   }
 
   Map<String, dynamic> toJson() {

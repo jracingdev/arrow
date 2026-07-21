@@ -176,84 +176,89 @@ class LoginController extends GetxController {
     ShowToastDialog.showLoader("please wait...".tr);
     try {
       final value = await signInWithGoogle();
-      ShowToastDialog.closeLoader();
       if (value == null) {
         ShowToastDialog.showToast(ArrowGoogleAuth.developerErrorToast);
         return;
       }
-      if (value.additionalUserInfo!.isNewUser) {
-          UserModel userModel = UserModel();
-          userModel.id = value.user!.uid;
-          userModel.email = value.user!.email;
-          userModel.firstName = value.user!.displayName?.split(' ').first;
-          userModel.lastName = value.user!.displayName?.split(' ').last;
-          userModel.provider = 'google';
+      if (value.additionalUserInfo?.isNewUser == true) {
+        UserModel userModel = UserModel();
+        userModel.id = value.user!.uid;
+        userModel.email = value.user!.email;
+        userModel.firstName = value.user!.displayName?.split(' ').first;
+        userModel.lastName = value.user!.displayName?.split(' ').last;
+        userModel.provider = 'google';
 
-          Get.off(const SignupScreen(), arguments: {"userModel": userModel, "type": "google"});
+        Get.off(const SignupScreen(), arguments: {"userModel": userModel, "type": "google"});
+        return;
+      }
+
+      final userExit = await FireStoreUtils.userExistOrNot(value.user!.uid);
+      if (userExit != true) {
+        UserModel userModel = UserModel();
+        userModel.id = value.user!.uid;
+        userModel.email = value.user!.email;
+        userModel.firstName = value.user!.displayName?.split(' ').first;
+        userModel.lastName = value.user!.displayName?.split(' ').last;
+        userModel.provider = 'google';
+
+        Get.off(const SignupScreen(), arguments: {"userModel": userModel, "type": "google"});
+        return;
+      }
+
+      UserModel? userModel = await FireStoreUtils.getUserProfile(value.user!.uid);
+      if (userModel == null || userModel.role != Constant.userRoleVendor) {
+        await FirebaseAuth.instance.signOut();
+        ShowToastDialog.showToast("This user is not created in Store application.".tr);
+        return;
+      }
+      if (userModel.active != true) {
+        await FirebaseAuth.instance.signOut();
+        ShowToastDialog.showToast("This user is disable please contact to administrator".tr);
+        return;
+      }
+
+      try {
+        userModel.fcmToken = await NotificationService.getToken();
+      } catch (_) {}
+      await FireStoreUtils.updateUser(userModel);
+      Constant.userModel = userModel;
+
+      bool isPlanExpire = false;
+      if (userModel.subscriptionPlan?.id != null) {
+        if (userModel.subscriptionExpiryDate == null) {
+          isPlanExpire = userModel.subscriptionPlan?.expiryDay != '-1';
         } else {
-          await FireStoreUtils.userExistOrNot(value.user!.uid).then((userExit) async {
-            if (userExit == true) {
-              UserModel? userModel = await FireStoreUtils.getUserProfile(value.user!.uid);
-              if (userModel!.role == Constant.userRoleVendor) {
-                if (userModel.active == true) {
-                  userModel.fcmToken = await NotificationService.getToken();
-                  await FireStoreUtils.updateUser(userModel);
-                  bool isPlanExpire = false;
-                  if (userModel.subscriptionPlan?.id != null) {
-                    if (userModel.subscriptionExpiryDate == null) {
-                      if (userModel.subscriptionPlan?.expiryDay == '-1') {
-                        isPlanExpire = false;
-                      } else {
-                        isPlanExpire = true;
-                      }
-                    } else {
-                      DateTime expiryDate = userModel.subscriptionExpiryDate!.toDate();
-                      isPlanExpire = expiryDate.isBefore(DateTime.now());
-                    }
-                  } else {
-                    isPlanExpire = true;
-                  }
-                  if (userModel.sectionId != null) {
-                    await FireStoreUtils.getSectionById(userModel.sectionId.toString()).then((value) {
-                      if (value != null) {
-                        Constant.selectedSection = value;
-                      }
-                    });
-                  }
-
-                  if (userModel.subscriptionPlanId == null || isPlanExpire == true) {
-                    if (userModel.sectionId!.isEmpty && Constant.isSubscriptionModelApplied == false) {
-                      Get.offAll(const DashBoardScreen());
-                    } else {
-                      Get.offAll(const SubscriptionPlanScreen());
-                    }
-                  } else if (userModel.subscriptionPlan?.features?.ownerMobileApp == true) {
-                    Get.offAll(const DashBoardScreen());
-                  } else {
-                    Get.offAll(const AppNotAccessScreen());
-                  }
-                } else {
-                  await FirebaseAuth.instance.signOut();
-                  ShowToastDialog.showToast("This user is disable please contact to administrator".tr);
-                }
-              } else {
-                await FirebaseAuth.instance.signOut();
-              }
-            } else {
-              UserModel userModel = UserModel();
-              userModel.id = value.user!.uid;
-              userModel.email = value.user!.email;
-              userModel.firstName = value.user!.displayName?.split(' ').first;
-              userModel.lastName = value.user!.displayName?.split(' ').last;
-              userModel.provider = 'google';
-
-              Get.off(const SignupScreen(), arguments: {"userModel": userModel, "type": "google"});
-            }
-          });
+          isPlanExpire = userModel.subscriptionExpiryDate!.toDate().isBefore(DateTime.now());
         }
+      } else {
+        isPlanExpire = true;
+      }
+
+      if (userModel.sectionId != null && userModel.sectionId!.isNotEmpty) {
+        final section = await FireStoreUtils.getSectionById(userModel.sectionId.toString());
+        if (section != null) {
+          Constant.selectedSection = section;
+        }
+      }
+
+      if (userModel.subscriptionPlanId == null || isPlanExpire == true) {
+        if ((userModel.sectionId ?? '').isEmpty && Constant.isSubscriptionModelApplied == false) {
+          Get.offAll(const DashBoardScreen());
+        } else {
+          Get.offAll(const SubscriptionPlanScreen());
+        }
+      } else if (userModel.subscriptionPlan?.features?.ownerMobileApp == true) {
+        Get.offAll(const DashBoardScreen());
+      } else {
+        Get.offAll(const AppNotAccessScreen());
+      }
     } catch (e) {
-      ShowToastDialog.closeLoader();
       ShowToastDialog.showToast(ArrowGoogleAuth.userMessage(e));
+      try {
+        await FirebaseAuth.instance.signOut();
+      } catch (_) {}
+    } finally {
+      ShowToastDialog.closeLoader();
     }
   }
 

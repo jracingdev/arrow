@@ -63,52 +63,78 @@ class SubscriptionController extends GetxController {
   Rx<VendorModel> vendorModel = VendorModel().obs;
 
   Future<void> getInitPlanSettings() async {
-    await FireStoreUtils.fireStore.collection(CollectionName.settings).doc('vendor').get().then((value) {
-      Constant.autoApproveVendor = value.data()!['auto_approve_vendor'];
-      Constant.autoApproveStore = value.data()!['auto_approve_store'];
-      Constant.isSubscriptionModelApplied = value.data()!['subscription_model'];
-    });
+    try {
+      final vendorDoc = await FireStoreUtils.fireStore.collection(CollectionName.settings).doc('vendor').get();
+      final vendorData = vendorDoc.data() ?? {};
+      Constant.autoApproveVendor = vendorData['auto_approve_vendor'] == true;
+      Constant.autoApproveStore = vendorData['auto_approve_store'] == true;
+      Constant.isSubscriptionModelApplied = vendorData['subscription_model'] == true;
 
-    userModel.value = await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid()) ?? UserModel();
-    await FireStoreUtils.getSection().then((value) async {
-      sectionsList.value = value.where((element) => element.serviceTypeFlag == "ecommerce-service" || element.serviceTypeFlag == "delivery-service").toList();
+      userModel.value = await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid()) ?? UserModel();
+      final sections = await FireStoreUtils.getSection();
+      debugPrint('SubscriptionInit sections=${sections.length} flags=${sections.map((e) => e.serviceTypeFlag).toList()}');
+      sectionsList.value = sections
+          .where((element) => element.serviceTypeFlag == "ecommerce-service" || element.serviceTypeFlag == "delivery-service")
+          .toList();
+      // Fallback: se o filtro não achar nada (flags diferentes no Firestore), usa todas as seções ativas.
+      if (sectionsList.isEmpty) {
+        sectionsList.value = sections;
+      }
 
       if (userModel.value.sectionId != null && userModel.value.sectionId!.isNotEmpty) {
-        selectedSectionModel.value = sectionsList.where((element) => element.id == userModel.value.sectionId).first;
-      } else {
+        selectedSectionModel.value = sectionsList.firstWhere(
+          (element) => element.id == userModel.value.sectionId,
+          orElse: () => sectionsList.isNotEmpty ? sectionsList.first : SectionModel(),
+        );
+      } else if (sectionsList.isNotEmpty) {
         selectedSectionModel.value = sectionsList.first;
+      } else {
+        selectedSectionModel.value = SectionModel();
       }
+      debugPrint(
+        'SubscriptionInit selectedSection=${selectedSectionModel.value.id} name=${selectedSectionModel.value.name} '
+        'subscription_model=${Constant.isSubscriptionModelApplied} list=${sectionsList.length}',
+      );
+
       if (userModel.value.vendorID != null && userModel.value.vendorID!.isNotEmpty) {
-        await FireStoreUtils.getVendorById(userModel.value.vendorID.toString()).then((value) {
-          if (value != null) {
-            vendorModel.value = value;
-          }
-        });
+        final vendor = await FireStoreUtils.getVendorById(userModel.value.vendorID.toString());
+        if (vendor != null) {
+          vendorModel.value = vendor;
+        }
       }
-    });
-    await getSubscriptionPlanList();
-    await getPaymentSettings();
-    isLoading.value = false;
+
+      await getSubscriptionPlanList();
+      await getPaymentSettings();
+    } catch (e, s) {
+      debugPrint('getInitPlanSettings error: $e\n$s');
+      ShowToastDialog.showToast("Something went wrong, please contact admin.".tr);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> getSubscriptionPlanList() async {
     subscriptionPlanList.clear();
-    await FireStoreUtils.getSubscriptionCommissionPlanById(selectedSectionModel.value.id ?? '').then((value) {
-      for (var element in value) {
-        if (selectedSectionModel.value.adminCommision?.isEnabled == true && element.name == 'Commission Base Plan') {
-          subscriptionPlanList.add(element);
-        }
-      }
-    });
-    if (Constant.isSubscriptionModelApplied && selectedSectionModel.value.id != null) {
-      await FireStoreUtils.getAllSubscriptionPlans(selectedSectionModel.value.id ?? '').then((value) {
-        for (var element in value) {
-          subscriptionPlanList.add(element);
-        }
-      });
+    final sectionId = selectedSectionModel.value.id;
+    if (sectionId == null || sectionId.isEmpty) {
+      return;
     }
-    if (userModel.value.subscriptionPlanId == null) {
-      selectedSubscriptionPlan.value = subscriptionPlanList.first;
+    try {
+      final commissionPlans = await FireStoreUtils.getSubscriptionCommissionPlanById(sectionId);
+      if (selectedSectionModel.value.adminCommision?.isEnabled == true) {
+        subscriptionPlanList.addAll(commissionPlans);
+      }
+      if (Constant.isSubscriptionModelApplied == true) {
+        final plans = await FireStoreUtils.getAllSubscriptionPlans(sectionId);
+        subscriptionPlanList.addAll(plans);
+      }
+      if (userModel.value.subscriptionPlanId == null && subscriptionPlanList.isNotEmpty) {
+        selectedSubscriptionPlan.value = subscriptionPlanList.first;
+        totalAmount.value = double.tryParse(selectedSubscriptionPlan.value.price ?? '0') ?? 0;
+      }
+      debugPrint('SubscriptionPlans section=$sectionId count=${subscriptionPlanList.length} names=${subscriptionPlanList.map((e) => e.name).toList()}');
+    } catch (e, s) {
+      debugPrint('getSubscriptionPlanList error: $e\n$s');
     }
   }
 
