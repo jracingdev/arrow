@@ -135,13 +135,21 @@ class SignupController extends GetxController {
       }
     }
 
-    await Future.wait([
-      FireStoreUtils.getZone().then((v) {
-        if (v != null) zoneList.value = v;
-      }).whenComplete(() => zonesLoading.value = false),
-      FireStoreUtils.getCarMakes().then((v) => carMakesList.value = v),
-      FireStoreUtils.getAllActiveSections().then((v) => allSections.value = v).whenComplete(() => sectionsLoading.value = false),
-    ]);
+    try {
+      await Future.wait([
+        FireStoreUtils.getZone().then((v) {
+          if (v != null) zoneList.value = v;
+        }),
+        FireStoreUtils.getCarMakes().then((v) => carMakesList.value = v),
+        FireStoreUtils.getAllActiveSections().then((v) => allSections.value = v),
+      ]).timeout(const Duration(seconds: 20));
+    } catch (e) {
+      log('SignupController.getArgument load error: $e');
+    } finally {
+      sectionsLoading.value = false;
+      zonesLoading.value = false;
+      update();
+    }
   }
 
   // ── Section toggle ─────────────────────────────────────────────────────────

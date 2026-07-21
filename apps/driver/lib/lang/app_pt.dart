@@ -42,7 +42,11 @@ const Map<String, String> ptPO = {
   'Select section': 'Selecionar seção',
   'Select Sections': 'Selecionar seções',
   'Loading sections...': 'Carregando seções...',
+  'Loading zones...': 'Carregando zonas...',
   'No sections available': 'Nenhuma seção disponível',
+  'No zones available. Ask admin to publish a zone.':
+      'Nenhuma zona cadastrada. Peça ao admin para publicar uma zona.',
+  'At least one section must be selected.': 'Selecione pelo menos uma seção.',
   'Select Vehicle Type': 'Selecionar tipo de veículo',
   'Vehicle Type': 'Tipo de veículo',
   'Select Car Brand': 'Selecionar Marca do Carro',

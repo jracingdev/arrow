@@ -319,28 +319,45 @@ class SignupScreen extends StatelessWidget {
                             children: [
                               Text("Zone".tr, style: TextStyle(fontFamily: AppThemeData.semiBold, fontSize: 14, color: isDark ? AppThemeData.grey100 : AppThemeData.grey800)),
                               const SizedBox(height: 5),
-                              DropdownButtonFormField<ZoneModel>(
-                                hint: Text('Select zone'.tr, style: TextStyle(fontSize: 14, color: isDark ? AppThemeData.grey700 : AppThemeData.grey700, fontFamily: AppThemeData.regular)),
-                                dropdownColor: isDark ? AppThemeData.grey900 : AppThemeData.grey50,
-                                decoration: InputDecoration(
-                                  errorStyle: const TextStyle(color: Colors.red),
-                                  isDense: true,
-                                  filled: true,
-                                  fillColor: isDark ? AppThemeData.grey900 : AppThemeData.grey50,
-                                  disabledBorder: UnderlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(10)), borderSide: BorderSide(color: isDark ? AppThemeData.grey900 : AppThemeData.grey50, width: 1)),
-                                  focusedBorder: OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(10)), borderSide: BorderSide(color: isDark ? AppThemeData.primary300 : AppThemeData.primary300, width: 1)),
-                                  enabledBorder: OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(10)), borderSide: BorderSide(color: isDark ? AppThemeData.grey900 : AppThemeData.grey50, width: 1)),
-                                  errorBorder: OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(10)), borderSide: BorderSide(color: isDark ? AppThemeData.grey900 : AppThemeData.grey50, width: 1)),
-                                  border: OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(10)), borderSide: BorderSide(color: isDark ? AppThemeData.grey900 : AppThemeData.grey50, width: 1)),
+                              if (controller.zonesLoading.value)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  child: Text(
+                                    "Loading zones...".tr,
+                                    style: TextStyle(color: isDark ? AppThemeData.grey400 : AppThemeData.grey600),
+                                  ),
+                                )
+                              else if (controller.zoneList.isEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  child: Text(
+                                    "No zones available. Ask admin to publish a zone.".tr,
+                                    style: TextStyle(color: isDark ? AppThemeData.grey400 : AppThemeData.grey600, fontSize: 13),
+                                  ),
+                                )
+                              else
+                                DropdownButtonFormField<ZoneModel>(
+                                  hint: Text('Select zone'.tr, style: TextStyle(fontSize: 14, color: isDark ? AppThemeData.grey700 : AppThemeData.grey700, fontFamily: AppThemeData.regular)),
+                                  dropdownColor: isDark ? AppThemeData.grey900 : AppThemeData.grey50,
+                                  decoration: InputDecoration(
+                                    errorStyle: const TextStyle(color: Colors.red),
+                                    isDense: true,
+                                    filled: true,
+                                    fillColor: isDark ? AppThemeData.grey900 : AppThemeData.grey50,
+                                    disabledBorder: UnderlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(10)), borderSide: BorderSide(color: isDark ? AppThemeData.grey900 : AppThemeData.grey50, width: 1)),
+                                    focusedBorder: OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(10)), borderSide: BorderSide(color: isDark ? AppThemeData.primary300 : AppThemeData.primary300, width: 1)),
+                                    enabledBorder: OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(10)), borderSide: BorderSide(color: isDark ? AppThemeData.grey900 : AppThemeData.grey50, width: 1)),
+                                    errorBorder: OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(10)), borderSide: BorderSide(color: isDark ? AppThemeData.grey900 : AppThemeData.grey50, width: 1)),
+                                    border: OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(10)), borderSide: BorderSide(color: isDark ? AppThemeData.grey900 : AppThemeData.grey50, width: 1)),
+                                  ),
+                                  initialValue: controller.selectedZone.value.id == null ? null : controller.selectedZone.value,
+                                  onChanged: (value) {
+                                    controller.selectedZone.value = value!;
+                                    controller.update();
+                                  },
+                                  style: TextStyle(fontSize: 14, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontFamily: AppThemeData.medium),
+                                  items: controller.zoneList.map((item) => DropdownMenuItem<ZoneModel>(value: item, child: Text(item.name.toString()))).toList(),
                                 ),
-                                initialValue: controller.selectedZone.value.id == null ? null : controller.selectedZone.value,
-                                onChanged: (value) {
-                                  controller.selectedZone.value = value!;
-                                  controller.update();
-                                },
-                                style: TextStyle(fontSize: 14, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontFamily: AppThemeData.medium),
-                                items: controller.zoneList.map((item) => DropdownMenuItem<ZoneModel>(value: item, child: Text(item.name.toString()))).toList(),
-                              ),
                             ],
                           ),
                     const SizedBox(height: 10),
@@ -452,8 +469,14 @@ class SignupScreen extends StatelessWidget {
                       ShowToastDialog.showToast("Please enter Confirm password".tr);
                     } else if (controller.type.value != "google" && controller.type.value != "apple" && controller.type.value != "mobileNumber" && controller.passwordEditingController.value.text != controller.conformPasswordEditingController.value.text) {
                       ShowToastDialog.showToast("Password and Confirm password doesn't match".tr);
+                    } else if (controller.selectedValue.value == "Individual" && controller.zoneList.isEmpty) {
+                      ShowToastDialog.showToast("No zones available. Ask admin to publish a zone.".tr);
                     } else if (controller.selectedValue.value == "Individual" && controller.selectedZone.value.id == null) {
                       ShowToastDialog.showToast("Please select zone".tr);
+                    } else if (controller.visibleSections.isEmpty) {
+                      ShowToastDialog.showToast("No sections available".tr);
+                    } else if (controller.selectedSections.isEmpty) {
+                      ShowToastDialog.showToast("At least one section must be selected.".tr);
                     } else {
                       controller.signUpWithEmailAndPassword();
                     }

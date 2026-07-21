@@ -11,11 +11,13 @@ class ZoneModel {
   ZoneModel({this.area, this.publish, this.latitude, this.name, this.id, this.longitude});
 
   ZoneModel.fromJson(Map<String, dynamic> json) {
-    if (json['area'] != null) {
+    if (json['area'] is List) {
       area = <GeoPoint>[];
-      json['area'].forEach((v) {
-        area!.add(v);
-      });
+      for (final v in json['area'] as List) {
+        if (v is GeoPoint) {
+          area!.add(v);
+        }
+      }
     }
 
     publish = json['publish'] == true;

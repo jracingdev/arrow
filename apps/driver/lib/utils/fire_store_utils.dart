@@ -243,10 +243,13 @@ class FireStoreUtils {
   static Future<List<SectionModel>> getAllActiveSections() async {
     const driverFlags = ['delivery-service', 'cab-service', 'parcel_delivery', 'rental-service'];
     List<SectionModel> sections = [];
-    await fireStore.collection(CollectionName.sections).where("isActive", isEqualTo: true).get().then((query) {
+    try {
+      final query = await fireStore.collection(CollectionName.sections).where("isActive", isEqualTo: true).get();
       for (var doc in query.docs) {
         try {
-          final section = SectionModel.fromJson(doc.data());
+          final data = Map<String, dynamic>.from(doc.data());
+          data['id'] ??= doc.id;
+          final section = SectionModel.fromJson(data);
           if (driverFlags.contains(section.serviceTypeFlag)) {
             sections.add(section);
           }
@@ -254,7 +257,9 @@ class FireStoreUtils {
           print('**-FireStoreUtils.getAllActiveSections Parse error $e');
         }
       }
-    });
+    } catch (e) {
+      print('**-FireStoreUtils.getAllActiveSections error $e');
+    }
     return sections;
   }
 
@@ -369,18 +374,20 @@ class FireStoreUtils {
 
   static Future<List<ZoneModel>?> getZone() async {
     List<ZoneModel> airPortList = [];
-    await fireStore.collection(CollectionName.zone).where('publish', isEqualTo: true).get().then((value) {
+    try {
+      final value = await fireStore.collection(CollectionName.zone).where('publish', isEqualTo: true).get();
       for (var element in value.docs) {
         try {
-          ZoneModel ariPortModel = ZoneModel.fromJson(element.data());
-          airPortList.add(ariPortModel);
+          final data = Map<String, dynamic>.from(element.data());
+          data['id'] ??= element.id;
+          airPortList.add(ZoneModel.fromJson(data));
         } catch (e) {
           print('**-FireStoreUtils.getZone Parse error $e');
         }
       }
-    }).catchError((error) {
+    } catch (error) {
       log(error.toString());
-    });
+    }
     return airPortList;
   }
 

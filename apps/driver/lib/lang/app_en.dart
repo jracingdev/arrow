@@ -42,7 +42,11 @@ const Map<String, String> enUS = {
   'Select section': 'Select section',
   'Select Sections': 'Select Sections',
   'Loading sections...': 'Loading sections...',
+  'Loading zones...': 'Loading zones...',
   'No sections available': 'No sections available',
+  'No zones available. Ask admin to publish a zone.':
+      'No zones available. Ask admin to publish a zone.',
+  'At least one section must be selected.': 'At least one section must be selected.',
   'Select Vehicle Type': 'Select Vehicle Type',
   'Vehicle Type': 'Vehicle Type',
   'Select Car Brand': 'Select Car Brand',
