@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:arrow_shared/hourly_service_billing.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +13,7 @@ import 'package:provider/models/provider_order_model.dart';
 import 'package:provider/models/worker_model.dart';
 import 'package:provider/service/fire_store_utils.dart';
 import 'package:provider/themes/app_theme.dart';
+import 'package:provider/widgets/hourly_timer_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -25,11 +28,27 @@ class OrderDetailScreen extends StatefulWidget {
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   String? assignWorkerId;
   final otpController = TextEditingController();
+  Timer? _tick;
+
+  @override
+  void initState() {
+    super.initState();
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   void dispose() {
+    _tick?.cancel();
     otpController.dispose();
     super.dispose();
+  }
+
+  bool _scheduleBlocksStart(ProviderOrderModel order) {
+    final when = order.newScheduleDateTime ?? order.scheduleDateTime;
+    if (when == null) return false;
+    return when.toDate().isAfter(DateTime.now());
   }
 
   Future<void> _accept(ProviderOrderModel order) async {
@@ -75,14 +94,46 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Future<void> _start(ProviderOrderModel order) async {
-    ShowToastDialog.showLoader('Iniciando...');
+    if (_scheduleBlocksStart(order)) {
+      final when = order.newScheduleDateTime ?? order.scheduleDateTime;
+      ShowToastDialog.showToast(
+        'O atendimento está agendado para ${DateFormat('dd/MM/yyyy HH:mm').format(when!.toDate())}.',
+      );
+      return;
+    }
+    ShowToastDialog.showLoader('Iniciando atendimento...');
     try {
+      final hourly = HourlyServiceBilling.isHourly(order.provider.priceUnit);
       await FireStoreUtils.updateOrder(order.id, {
         'status': Constant.orderOngoing,
         'startTime': FieldValue.serverTimestamp(),
+        if (hourly) 'endTime': null,
       });
       ShowToastDialog.closeLoader();
-      ShowToastDialog.showToast('Serviço em andamento.');
+      ShowToastDialog.showToast(
+        hourly ? 'Cronômetro iniciado. O tempo entra na cobrança por hora.' : 'Serviço em andamento.',
+      );
+    } catch (e) {
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast(e.toString());
+    }
+  }
+
+  Future<void> _stopTimer(ProviderOrderModel order) async {
+    final start = order.startTime?.toDate();
+    if (start == null) {
+      ShowToastDialog.showToast('O atendimento ainda não começou.');
+      return;
+    }
+    final hours = HourlyServiceBilling.billableHours(start, DateTime.now());
+    ShowToastDialog.showLoader('Parando cronômetro...');
+    try {
+      await FireStoreUtils.updateOrder(order.id, {
+        'endTime': FieldValue.serverTimestamp(),
+        'quantity': hours,
+      });
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast('Tempo registrado: ${hours.toStringAsFixed(2)} h.');
     } catch (e) {
       ShowToastDialog.closeLoader();
       ShowToastDialog.showToast(e.toString());
@@ -96,12 +147,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
     ShowToastDialog.showLoader('Concluindo...');
     try {
-      await FireStoreUtils.updateOrder(order.id, {
+      final hourly = HourlyServiceBilling.isHourly(order.provider.priceUnit);
+      final payload = <String, dynamic>{
         'status': Constant.orderCompleted,
-        'paymentStatus': true,
+        'paymentStatus': hourly ? (order.paymentStatus ?? false) : true,
         'extraPaymentStatus': true,
-        'endTime': FieldValue.serverTimestamp(),
-      });
+      };
+      if (hourly) {
+        final start = order.startTime?.toDate();
+        final end = order.endTime?.toDate() ?? DateTime.now();
+        if (start != null) {
+          payload['endTime'] = order.endTime ?? FieldValue.serverTimestamp();
+          payload['quantity'] = HourlyServiceBilling.billableHours(start, end);
+        }
+      } else {
+        payload['endTime'] = FieldValue.serverTimestamp();
+      }
+      await FireStoreUtils.updateOrder(order.id, payload);
       ShowToastDialog.closeLoader();
       ShowToastDialog.showToast('Pedido concluído.');
     } catch (e) {
@@ -177,6 +239,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               if (order.status == Constant.orderAssigned)
                 ElevatedButton(onPressed: () => _start(order), child: const Text('Iniciar serviço')),
               if (order.status == Constant.orderOngoing || order.status == Constant.inTransit) ...[
+                if (HourlyServiceBilling.isHourly(order.provider.priceUnit) && order.startTime != null) ...[
+                  HourlyTimerCard(
+                    elapsed: (order.endTime?.toDate() ?? DateTime.now()).difference(order.startTime!.toDate()),
+                    rate: double.tryParse(order.provider.disPrice != '0' && order.provider.disPrice.isNotEmpty ? order.provider.disPrice : order.provider.price) ?? 0,
+                    hours: HourlyServiceBilling.billableHours(
+                      order.startTime!.toDate(),
+                      order.endTime?.toDate() ?? DateTime.now(),
+                    ),
+                    running: order.endTime == null,
+                  ),
+                  if (order.endTime == null) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton(onPressed: () => _stopTimer(order), child: const Text('Parar cronômetro')),
+                  ],
+                  const SizedBox(height: 12),
+                ],
                 TextField(
                   controller: otpController,
                   keyboardType: TextInputType.number,
