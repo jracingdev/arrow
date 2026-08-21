@@ -102,7 +102,7 @@ class PhoneOtpController extends Controller
             return response()->json(['success' => false, 'message' => 'Falha ao criar sessão.'], 500);
         }
 
-        $customToken = FirebaseAuthAdmin::createCustomToken($uid, ['phone' => $e164]);
+        $customToken = FirebaseAuthAdmin::createCustomToken($uid);
         if (!$customToken) {
             return response()->json(['success' => false, 'message' => 'Credencial Firebase ausente no servidor.'], 500);
         }
