@@ -67,6 +67,8 @@ const Map<String, String> arAR = {
   'Resend OTP': 'إعادة إرسال الرمز',
   'Verify': 'تحقق',
   'OTP sent': 'تم إرسال الرمز',
+  'We sent the code as a notification on this device. It is not an SMS.': 'أرسلنا الرمز كإشعار على هذا الجهاز. ليس رسالة SMS.',
+  'Your verification code': 'رمز التحقق',
   'Enter valid 6-digit OTP': 'أدخل رمز تحقق صحيح مكون من 6 أرقام',
   'Verifying OTP...': 'جارٍ التحقق من الرمز...',
   'This user is disabled': 'تم تعطيل هذا المستخدم',

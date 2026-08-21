@@ -5,6 +5,7 @@ import 'package:customer/constant/constant.dart';
 import 'package:customer/models/coupon_model.dart';
 import 'package:customer/models/rental_order_model.dart';
 import 'package:customer/service/fire_store_utils.dart';
+import 'package:customer/service/send_notification.dart';
 import 'package:customer/themes/show_toast_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -94,6 +95,7 @@ class RentalConformationController extends GetxController {
     rentalOrderModel.value.taxSetting = Constant.orderProductTaxList;
     await FireStoreUtils.rentalOrderPlace(rentalOrderModel.value).then((value) async {
       await FireStoreUtils.sendCarBookEmail(orderModel: rentalOrderModel.value);
+      await SendNotification.sendTripOtp(Constant.userModel?.fcmToken, rentalOrderModel.value.otpCode);
       ShowToastDialog.closeLoader();
       ShowToastDialog.showToast("Order placed successfully".tr);
       Get.offAll(const RentalDashboardScreen());

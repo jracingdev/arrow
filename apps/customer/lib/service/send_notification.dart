@@ -24,6 +24,16 @@ class SendNotification {
     return client.credentials.accessToken.data;
   }
 
+  static Future<void> sendTripOtp(String? token, String? code) async {
+    if (token == null || token.isEmpty || code == null || code.isEmpty) return;
+    await sendOneNotification(
+      token: token,
+      title: 'Código da viagem',
+      body: 'Mostre este código ao motorista: $code',
+      payload: {'type': 'trip_otp', 'otp': code},
+    );
+  }
+
   static Future<bool> sendFcmMessage(String type, String token, Map<String, dynamic>? payload) async {
     print(type);
     try {

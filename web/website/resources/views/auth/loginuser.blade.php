@@ -104,6 +104,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                         <input class="form-control" placeholder="{{trans('lang.otp')}}" id="verificationcode"
                                type="text" class="form-control" name="otp" value="{{ old('otp') }}" required
                                autocomplete="otp" autofocus>
+                        <p id="arrow-otp-display" class="mt-2 mb-0 text-dark" style="display:none;"></p>
                     </div>
                     <div id="recaptcha-container" style="display:none;"></div>
                     <div class="error" id="password_required_new1"></div>
@@ -135,6 +136,7 @@ foreach ($countries as $keycountry => $valuecountry) {
 @include('partials.firebase-init')
 <script src="{{ asset('js/firestore-safe.js') }}"></script>
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
+<script src="{{ asset('js/arrow-phone-otp.js') }}"></script>
 <script type="text/javascript">
     var database = firebase.firestore();
 
@@ -228,15 +230,16 @@ foreach ($countries as $keycountry => $valuecountry) {
                 if (snapshots.docs.length) {
                     var userData = snapshots.docs[0].data();
                     if (userData.active == true) {
-                        firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
-                            .then(function (confirmationResult) {
-                                window.confirmationResult = confirmationResult;
-                                if (confirmationResult.verificationId) {
-                                    jQuery("#phone-box").hide();
-                                    jQuery("#recaptcha-container").hide();
-                                    jQuery("#otp-box").show();
-                                    jQuery("#verify_btn").show();
-                                }
+                        window.arrowOtpSession = ArrowPhoneOtp.newSessionId();
+                        ArrowPhoneOtp.send(phoneNumber, window.arrowOtpSession)
+                            .then(function () {
+                                jQuery("#phone-box").hide();
+                                jQuery("#recaptcha-container").hide();
+                                jQuery("#otp-box").show();
+                                jQuery("#verify_btn").show();
+                            })
+                            .catch(function (error) {
+                                $("#password_required_new1").html(error.message || error);
                             });
                     } else {
                         $("#password_required_new1").html("{{trans('lang.your_account_has_been_disabled_please_contact_to_admin')}}");
@@ -249,7 +252,12 @@ foreach ($countries as $keycountry => $valuecountry) {
     }
 
     function applicationVerifier() {
-        window.confirmationResult.confirm(document.getElementById("verificationcode").value)
+        var code = document.getElementById("verificationcode").value;
+        var phoneNumber = '+' + jQuery("#country_selector").val() + '' + jQuery("#phone").val();
+        ArrowPhoneOtp.verify(phoneNumber, window.arrowOtpSession, code)
+            .then(function (customToken) {
+                return firebase.auth().signInWithCustomToken(customToken);
+            })
             .then(function (result) {
                 database.collection("users").where('phoneNumber', '==', jQuery("#phone").val()).where("role", "==", 'customer').get().then(async function (snapshots_login) {
                     userData = snapshots_login.docs[0].data();

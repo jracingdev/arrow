@@ -197,6 +197,8 @@ const Map<String, String> lnAr = {
   "with Apple": "باستخدام آبل",
   "Verify Your Number 📱": "تحقق من رقمك 📱",
   "Enter the OTP sent to your mobile number.": "أدخل رمز التحقق المرسل إلى رقم هاتفك.",
+  "We sent the code as a notification on this device. It is not an SMS.": "أرسلنا الرمز كإشعار على هذا الجهاز. ليس رسالة SMS.",
+  "Your verification code": "رمز التحقق",
   "Verify & Next": "تحقق والمتابعة",
   "Verify otp": "تحقق من الرمز",
   "mobileNumber": "رقم الهاتف",

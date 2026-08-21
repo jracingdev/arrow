@@ -37,6 +37,7 @@ import 'package:customer/payment/stripe_failed_model.dart';
 import 'package:customer/payment/xendit_model.dart';
 import 'package:customer/payment/xendit_screen.dart';
 import 'package:customer/service/fire_store_utils.dart';
+import 'package:customer/service/send_notification.dart';
 import 'package:customer/themes/show_toast_dialog.dart';
 import 'package:customer/utils/preferences.dart';
 import 'package:flutter/material.dart';
@@ -517,6 +518,7 @@ class CabBookingController extends GetxController {
     ShowToastDialog.showLoader("Please wait".tr);
     await FireStoreUtils.cabOrderPlace(orderModel);
     await FireStoreUtils.sendCabBookEmail(orderModel: orderModel);
+    await SendNotification.sendTripOtp(userModel.value.fcmToken, orderModel.otpCode);
     userModel.value.inProgressOrderID!.add(orderModel.id);
     await FireStoreUtils.updateUser(userModel.value);
     ShowToastDialog.closeLoader();

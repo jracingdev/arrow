@@ -5,9 +5,8 @@ class ArrowPhoneAuth {
   ArrowPhoneAuth._();
 
   static const phoneProviderDisabledToast =
-      'Login por telefone desativado no Firebase. '
-      'Ative Phone em Authentication → Sign-in method '
-      '(projeto j-arrow).';
+      'Não foi possível enviar o código neste aparelho. '
+      'Tente de novo ou use e-mail / Google.';
 
   static const invalidPhoneToast = 'Número de telefone inválido.';
 

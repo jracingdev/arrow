@@ -1,4 +1,5 @@
-import 'package:arrow_shared/arrow_phone_auth.dart';
+import 'package:arrow_shared/arrow_phone_otp.dart';
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:customer/screen_ui/location_enable_screens/location_permission_screen.dart';
 import 'package:customer/themes/show_toast_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,10 +21,13 @@ class OtpVerifyController extends GetxController {
   final RxString countryCode = "".obs;
   final RxString countryISOCode = "".obs;
   final RxString phoneNumber = "".obs;
-  final RxString verificationId = "".obs;
-  RxInt resendToken = 0.obs;
+  final RxString sessionId = "".obs;
+  final RxString displayCode = "".obs;
+  final RxBool fcmDelivered = false.obs;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  String get e164 => BrazilPhone.toE164(phoneNumber.value, countryCode.value);
 
   @override
   void onInit() {
@@ -34,27 +38,27 @@ class OtpVerifyController extends GetxController {
     countryCode.value = args['countryCode'] ?? "";
     countryISOCode.value = args['countryISOCode'] ?? "";
     phoneNumber.value = args['phoneNumber'] ?? "";
-    verificationId.value = args['verificationId'] ?? "";
+    sessionId.value = args['sessionId'] ?? "";
+    displayCode.value = args['displayCode'] ?? "";
+    fcmDelivered.value = args['fcmDelivered'] == true;
   }
 
   Future<bool> sendOTP() async {
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: countryCode.value + phoneNumber.value,
-      verificationCompleted: (PhoneAuthCredential credential) {},
-      verificationFailed: (FirebaseAuthException e) {
-        ShowToastDialog.showToast(ArrowPhoneAuth.toastFor(e));
-      },
-      codeSent: (String verificationId0, int? resendToken0) async {
-        verificationId.value = verificationId0;
-        resendToken.value = resendToken0!;
-        ShowToastDialog.showToast("OTP sent".tr);
-      },
-      timeout: const Duration(seconds: 25),
-      forceResendingToken: resendToken.value,
-      codeAutoRetrievalTimeout: (String verificationId0) {
-        verificationId0 = verificationId.value;
-      },
-    );
+    try {
+      final nextSession = ArrowPhoneOtp.newSessionId();
+      final fcmToken = await NotificationService.getToken();
+      final result = await ArrowPhoneOtp.send(
+        e164: e164,
+        sessionId: nextSession,
+        fcmToken: fcmToken,
+      );
+      sessionId.value = nextSession;
+      displayCode.value = result.displayCode;
+      fcmDelivered.value = result.fcmDelivered;
+      ShowToastDialog.showToast("OTP sent".tr);
+    } catch (e) {
+      ShowToastDialog.showToast(e.toString());
+    }
     return true;
   }
 
@@ -67,10 +71,12 @@ class OtpVerifyController extends GetxController {
     try {
       ShowToastDialog.showLoader("Verifying OTP...".tr);
 
-      final credential = PhoneAuthProvider.credential(verificationId: verificationId.value, smsCode: otpController.value.text.trim());
-
       final fcmToken = await NotificationService.getToken();
-      final result = await _auth.signInWithCredential(credential);
+      final result = await ArrowPhoneOtp.signInWithCode(
+        e164: e164,
+        sessionId: sessionId.value,
+        code: otpController.value.text.trim(),
+      );
 
       if (result.additionalUserInfo?.isNewUser == true) {
         final userModel = UserModel(id: result.user!.uid, countryCode: countryCode.value, countryISOCode: countryISOCode.value, phoneNumber: phoneNumber.value, fcmToken: fcmToken, active: true);
@@ -115,7 +121,7 @@ class OtpVerifyController extends GetxController {
       }
     } catch (e) {
       ShowToastDialog.closeLoader();
-      ShowToastDialog.showToast("Invalid OTP or Verification Failed".tr);
+      ShowToastDialog.showToast(e is ArrowOtpException ? e.message : "Invalid OTP or Verification Failed".tr);
     }
   }
 

@@ -17,3 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::middleware('throttle:otp')->group(function () {
+    Route::post('/otp/send', [App\Http\Controllers\Api\PhoneOtpController::class, 'send']);
+    Route::post('/otp/verify', [App\Http\Controllers\Api\PhoneOtpController::class, 'verify']);
+});

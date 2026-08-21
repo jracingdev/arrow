@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:arrow_shared/arrow_phone_otp.dart';
 import 'package:driver/app/auth_screen/login_screen.dart';
 import 'package:driver/app/auth_screen/signup_screen.dart';
 import 'package:driver/app/cab_screen/cab_dashboard_screen.dart';
@@ -59,6 +60,36 @@ class OtpScreen extends StatelessWidget {
                               fontWeight: FontWeight.w400,
                             ),
                           ),
+                          Text(
+                            "We sent the code as a notification on this device. It is not an SMS.".tr,
+                            style: TextStyle(
+                              color: isDark ? AppThemeData.grey400 : AppThemeData.grey500,
+                              fontFamily: AppThemeData.regular,
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (controller.displayCode.value.length == 6) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: isDark ? AppThemeData.grey900 : AppThemeData.grey50,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Your verification code".tr, style: TextStyle(color: isDark ? AppThemeData.grey400 : AppThemeData.grey500, fontSize: 13)),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    controller.displayCode.value,
+                                    style: TextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontSize: 28, fontFamily: AppThemeData.semiBold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           const SizedBox(
                             height: 60,
                           ),
@@ -174,9 +205,13 @@ class OtpScreen extends StatelessWidget {
                     if (controller.otpController.value.text.length == 6) {
                       ShowToastDialog.showLoader("Verify otp".tr);
 
-                      PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: controller.verificationId.value, smsCode: controller.otpController.value.text);
                       String fcmToken = await NotificationService.getToken();
-                      await FirebaseAuth.instance.signInWithCredential(credential).then((value) async {
+                      try {
+                      final value = await ArrowPhoneOtp.signInWithCode(
+                        e164: controller.e164,
+                        sessionId: controller.sessionId.value,
+                        code: controller.otpController.value.text,
+                      );
                         if (value.additionalUserInfo!.isNewUser) {
                           UserModel userModel = UserModel();
                           userModel.id = value.user!.uid;
@@ -244,10 +279,10 @@ class OtpScreen extends StatelessWidget {
                             }
                           });
                         }
-                      }).catchError((error) {
+                      } catch (error) {
                         ShowToastDialog.closeLoader();
-                        ShowToastDialog.showToast("Invalid Code".tr);
-                      });
+                        ShowToastDialog.showToast(error is ArrowOtpException ? error.message : "Invalid Code".tr);
+                      }
                     } else {
                       ShowToastDialog.showToast("Enter Valid otp".tr);
                     }

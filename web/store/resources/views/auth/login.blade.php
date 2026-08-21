@@ -284,6 +284,7 @@
                                 <input class="form-control" placeholder="Código OTP" id="verificationcode" type="text"
                                     class="form-control" name="otp" value="{{ old('otp') }}" required
                                     autocomplete="otp" autofocus>
+                                <p id="arrow-otp-display" class="mt-2 mb-0" style="display:none;"></p>
                             </div>
                             <div id="recaptcha-container" style="display:none;"></div>
 
@@ -329,6 +330,7 @@
         @include('partials.firebase-init')
         <script src="{{ asset('js/firestore-safe.js') }}"></script>
         <script src="{{ asset('js/jquery.validate.js') }}"></script>
+        <script src="{{ asset('js/arrow-phone-otp.js') }}"></script>
 
         <script type="text/javascript">
             var database = firebase.firestore();
@@ -624,15 +626,16 @@
                         "active", "==", true).get().then(async function(snapshots) {
                         if (snapshots.docs.length) {
                             var userData = snapshots.docs[0].data();
-                            firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
-                                .then(function(confirmationResult) {
-                                    window.confirmationResult = confirmationResult;
-                                    if (confirmationResult.verificationId) {
-                                        jQuery("#phone-box").hide();
-                                        jQuery("#recaptcha-container").hide();
-                                        jQuery("#otp-box").show();
-                                        jQuery("#verify_btn").show();
-                                    }
+                            window.arrowOtpSession = ArrowPhoneOtp.newSessionId();
+                            ArrowPhoneOtp.send(phoneNumber, window.arrowOtpSession)
+                                .then(function() {
+                                    jQuery("#phone-box").hide();
+                                    jQuery("#recaptcha-container").hide();
+                                    jQuery("#otp-box").show();
+                                    jQuery("#verify_btn").show();
+                                })
+                                .catch(function(error) {
+                                    jQuery("#password_required_new").html(error.message || error);
                                 });
                         } else {
                             jQuery("#password_required_new").html("{{trans('lang.user_is_inactive_or_not_found')}}");
@@ -642,9 +645,13 @@
             }
 
             function applicationVerifier() {
-                window.confirmationResult.confirm(document.getElementById("verificationcode").value)
+                var phoneNumber = '+' + jQuery("#country_selector").val() + '' + jQuery("#phone").val();
+                ArrowPhoneOtp.verify(phoneNumber, window.arrowOtpSession, document.getElementById("verificationcode").value)
+                    .then(function(customToken) {
+                        return firebase.auth().signInWithCustomToken(customToken);
+                    })
                     .then(function(result) {                        
-                        database.collection("users").where('phoneNumber', "==", result.user.phoneNumber /* onlyPhoneNumber */).get().then(
+                        database.collection("users").where('phoneNumber', "==", phoneNumber).get().then(
                             async function(snapshots_login) {
                                 userData = snapshots_login.docs[0].data();
                                 if (userData) {

@@ -97,6 +97,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                     <div class="form-group " id="otp-box" style="display:none;">
                         <input class="form-control" placeholder="{{trans('lang.otp')}}" id="verificationcode"
                                type="text" class="form-control" name="otp">
+                        <p id="arrow-otp-display" class="mt-2 mb-0 text-dark" style="display:none;"></p>
                     </div>
                     <div class="otp_error" id="otp_error" style="color:red;"></div>
                     <div id="recaptcha-container" style="display:none;"></div>
@@ -156,6 +157,7 @@ foreach ($countries as $keycountry => $valuecountry) {
 @include('partials.firebase-init')
 <script src="{{ asset('js/firestore-safe.js') }}"></script>
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
+<script src="{{ asset('js/arrow-phone-otp.js') }}"></script>
 <script type="text/javascript">
     var createdAt = firebase.firestore.FieldValue.serverTimestamp();
     var database = firebase.firestore();
@@ -517,28 +519,26 @@ foreach ($countries as $keycountry => $valuecountry) {
                         $('#hidden_fName').val(firstName);
                         $('#hidden_lName').val(lastName);
                         $('#hidden_referral').val(referral);
-                        firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
-                            .then(function (confirmationResult) {
-                                window.confirmationResult = confirmationResult;
-                                if (confirmationResult.verificationId) {
-                                    $('#firstName_div').hide();
-                                    $('#lastName_div').hide();
-                                    $('#email_div').hide();
-                                    $('#pass_div').hide();
-                                    $('#phone-box').hide();
-                                    $('#referral_div').hide();
-                                    $('#btn-signup-phone').hide();
-                                    $('#btn-sign-up').hide();
-                                    jQuery("#recaptcha-container").hide();
-                                    $("#otp_error").html('');
-                                    jQuery("#otp-box").show();
-                                    $('#verificationcode').attr('required', 'true');
-                                    jQuery("#verify_btn").show();
-                                    $('#send-code').show();
-                                    $('#btn-signup-email').show();
-                                }
-                            }).catch((error) => {
-                            $("#otp_error").html(error.code);
+                        window.arrowOtpSession = ArrowPhoneOtp.newSessionId();
+                        ArrowPhoneOtp.send(phoneNumber, window.arrowOtpSession)
+                            .then(function () {
+                                $('#firstName_div').hide();
+                                $('#lastName_div').hide();
+                                $('#email_div').hide();
+                                $('#pass_div').hide();
+                                $('#phone-box').hide();
+                                $('#referral_div').hide();
+                                $('#btn-signup-phone').hide();
+                                $('#btn-sign-up').hide();
+                                jQuery("#recaptcha-container").hide();
+                                $("#otp_error").html('');
+                                jQuery("#otp-box").show();
+                                $('#verificationcode').attr('required', 'true');
+                                jQuery("#verify_btn").show();
+                                $('#send-code').show();
+                                $('#btn-signup-email').show();
+                            }).catch(function (error) {
+                            $("#otp_error").html(error.message || error.code || error);
                         });
                     }
                 })
@@ -550,11 +550,15 @@ foreach ($countries as $keycountry => $valuecountry) {
         if (code == "") {
             $("#otp_error").html("{{trans('lang.enter_otp')}}");
         } else {
-            window.confirmationResult.confirm(document.getElementById("verificationcode").value)
+            var e164 = '+' + jQuery("#country_selector").val() + jQuery("#mobileNumber").val();
+            ArrowPhoneOtp.verify(e164, window.arrowOtpSession, document.getElementById("verificationcode").value)
+                .then(function (customToken) {
+                    return firebase.auth().signInWithCustomToken(customToken);
+                })
                 .then(async function (result) {
                     var phoneNumber = jQuery("#mobileNumber").val();
                     var countryCode = '+' + jQuery("#country_selector").val();
-                    var mobileNumber = result.user.phoneNumber;
+                    var mobileNumber = e164;
                     var email = $("#email").val();
                     var firstName = $('#hidden_fName').val();
                     var lastName = $('#hidden_lName').val();

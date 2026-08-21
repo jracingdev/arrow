@@ -58,6 +58,13 @@ class BrazilPhone {
     return d.length >= 8 && d.length <= 15;
   }
 
+  /// E.164 (+55 + dígitos nacionais).
+  static String toE164(String? national, [String? dial]) {
+    final d = digitsOnly(national);
+    final cc = normalizeDialCode(dial).replaceAll('+', '');
+    return '+$cc$d';
+  }
+
   static String normalizeDialCode(String? raw) {
     final v = (raw ?? '').trim();
     // Produto Arrow é BR-only: qualquer valor inválido/vazio → +55.

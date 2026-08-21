@@ -1,10 +1,11 @@
-import 'package:arrow_shared/arrow_phone_auth.dart';
+import 'package:arrow_shared/arrow_phone_otp.dart';
 import 'package:arrow_shared/brazil_phone.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
 import 'package:vendor/app/auth_screen/otp_screen.dart';
 import 'package:vendor/constant/show_toast_dialog.dart';
+import 'package:vendor/utils/notification_service.dart';
 
 import '../constant/constant.dart';
 
@@ -24,33 +25,29 @@ class PhoneNumberController extends GetxController {
     }
 
     ShowToastDialog.showLoader("please wait...".tr);
-    await FirebaseAuth.instance
-        .verifyPhoneNumber(
-          phoneNumber: '$dial$phoneDigits',
-          verificationCompleted: (PhoneAuthCredential credential) {},
-          verificationFailed: (FirebaseAuthException e) {
-            debugPrint("FirebaseAuthException--->${e.code} ${e.message}");
-            ShowToastDialog.closeLoader();
-            ShowToastDialog.showToast(ArrowPhoneAuth.toastFor(e));
-          },
-          codeSent: (String verificationId, int? resendToken) {
-            ShowToastDialog.closeLoader();
-            Get.to(
-              const OtpScreen(),
-              arguments: {
-                "countryCode": dial,
-                "countryISOCode": countryISOCode,
-                "phoneNumber": phoneDigits,
-                "verificationId": verificationId,
-              },
-            );
-          },
-          codeAutoRetrievalTimeout: (String verificationId) {},
-        )
-        .catchError((error) {
-          debugPrint("catchError--->$error");
-          ShowToastDialog.closeLoader();
-          ShowToastDialog.showToast(ArrowPhoneAuth.toastForError(error));
-        });
+    try {
+      final sessionId = ArrowPhoneOtp.newSessionId();
+      final fcmToken = await NotificationService.getToken();
+      final result = await ArrowPhoneOtp.send(
+        e164: BrazilPhone.toE164(phoneDigits, dial),
+        sessionId: sessionId,
+        fcmToken: fcmToken,
+      );
+      ShowToastDialog.closeLoader();
+      Get.to(
+        const OtpScreen(),
+        arguments: {
+          "countryCode": dial,
+          "countryISOCode": countryISOCode,
+          "phoneNumber": phoneDigits,
+          "sessionId": sessionId,
+          "displayCode": result.displayCode,
+          "fcmDelivered": result.fcmDelivered,
+        },
+      );
+    } catch (error) {
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast(error.toString());
+    }
   }
 }

@@ -1,8 +1,9 @@
-import 'package:arrow_shared/arrow_phone_auth.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:arrow_shared/arrow_phone_otp.dart';
+import 'package:arrow_shared/brazil_phone.dart';
 import 'package:get/get.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:vendor/constant/show_toast_dialog.dart';
+import 'package:vendor/utils/notification_service.dart';
 
 class OtpController extends GetxController {
   Rx<PinInputController> otpController = PinInputController().obs;
@@ -10,9 +11,12 @@ class OtpController extends GetxController {
   RxString countryCode = "".obs;
   RxString countryISOCode = "".obs;
   RxString phoneNumber = "".obs;
-  RxString verificationId = "".obs;
-  RxInt resendToken = 0.obs;
+  RxString sessionId = "".obs;
+  RxString displayCode = "".obs;
+  RxBool fcmDelivered = false.obs;
   RxBool isLoading = true.obs;
+
+  String get e164 => BrazilPhone.toE164(phoneNumber.value, countryCode.value);
 
   @override
   void onInit() {
@@ -23,33 +27,33 @@ class OtpController extends GetxController {
   Future<void> getArgument() async {
     dynamic argumentData = Get.arguments;
     if (argumentData != null) {
-      countryCode.value = argumentData['countryCode'];
-      countryISOCode.value = argumentData['countryISOCode'];
-      phoneNumber.value = argumentData['phoneNumber'];
-      verificationId.value = argumentData['verificationId'];
+      countryCode.value = argumentData['countryCode'] ?? "";
+      countryISOCode.value = argumentData['countryISOCode'] ?? "";
+      phoneNumber.value = argumentData['phoneNumber'] ?? "";
+      sessionId.value = argumentData['sessionId'] ?? "";
+      displayCode.value = argumentData['displayCode'] ?? "";
+      fcmDelivered.value = argumentData['fcmDelivered'] == true;
     }
     isLoading.value = false;
     update();
   }
 
   Future<bool> sendOTP() async {
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: countryCode.value + phoneNumber.value,
-      verificationCompleted: (PhoneAuthCredential credential) {},
-      verificationFailed: (FirebaseAuthException e) {
-        ShowToastDialog.showToast(ArrowPhoneAuth.toastFor(e));
-      },
-      codeSent: (String verificationId0, int? resendToken0) async {
-        verificationId.value = verificationId0;
-        resendToken.value = resendToken0!;
-        ShowToastDialog.showToast("OTP sent".tr);
-      },
-      timeout: const Duration(seconds: 25),
-      forceResendingToken: resendToken.value,
-      codeAutoRetrievalTimeout: (String verificationId0) {
-        verificationId0 = verificationId.value;
-      },
-    );
+    try {
+      final nextSession = ArrowPhoneOtp.newSessionId();
+      final fcmToken = await NotificationService.getToken();
+      final result = await ArrowPhoneOtp.send(
+        e164: e164,
+        sessionId: nextSession,
+        fcmToken: fcmToken,
+      );
+      sessionId.value = nextSession;
+      displayCode.value = result.displayCode;
+      fcmDelivered.value = result.fcmDelivered;
+      ShowToastDialog.showToast("OTP sent".tr);
+    } catch (e) {
+      ShowToastDialog.showToast(e.toString());
+    }
     return true;
   }
 }

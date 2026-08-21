@@ -61,6 +61,33 @@ class OtpVerificationScreen extends StatelessWidget {
                             "${"Enter the OTP sent to your mobile".tr} ${controller.countryCode} ${controller.maskPhoneNumber(controller.phoneNumber.value)}",
                             style: AppThemeData.boldTextStyle(fontSize: 24, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900),
                           ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "We sent the code as a notification on this device. It is not an SMS.".tr,
+                            style: AppThemeData.regularTextStyle(color: isDark ? AppThemeData.greyDark500 : AppThemeData.grey500),
+                          ),
+                          if (controller.displayCode.value.length == 6) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: isDark ? AppThemeData.greyDark50 : AppThemeData.grey100,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Your verification code".tr, style: AppThemeData.regularTextStyle(fontSize: 13, color: isDark ? AppThemeData.greyDark500 : AppThemeData.grey500)),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    controller.displayCode.value,
+                                    style: AppThemeData.boldTextStyle(fontSize: 28, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
 
                           const SizedBox(height: 30),
 
