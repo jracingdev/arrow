@@ -31,10 +31,15 @@ Web (painéis Laravel, `__firebaseConfig` em produção): `1:661081769489:web:7e
 
 IDs `…:android:7eea7bece5a655cfa4d3b1/b2/b3` eram placeholders locais — **não** existem no Console.
 
+O JSON oficial (baixado do Console) traz `oauth_client` e o client Web
+`661081769489-5e7inqhv9suqfdj4op1hms5drjtuojkd.apps.googleusercontent.com`,
+já preenchido em `kGoogleSignInWebClientId`. O `certificate_hash` Android
+desse JSON é **só** o SHA do Console (`4dd8331f…`). Os APKs desta máquina
+continuam com o SHA local `e19534b7…` — Sign-In Google ainda exige
+**Add fingerprint** com o SHA local nos 3 apps.
+
 ## Depois de cadastrar o SHA local
 
-1. Authentication → Sign-in method → **Google** → Enable.
-2. Aguarde 2–5 minutos.
-3. Baixe `google-services.json` de cada app (deve ter `oauth_client` **não vazio**) e coloque em `apps/<app>/android/app/` (não commitado).
-4. Copie o client ID tipo **Web application** (`*.apps.googleusercontent.com`) para `kGoogleSignInWebClientId` em `apps/shared/lib/arrow_production_config.dart`.
-5. Rebuild + reinstall.
+1. Authentication → Sign-in method → **Google** → Enable (se ainda não estiver).
+2. Aguarde 2–5 minutos (o JSON já tem oauth_client; não precisa baixar de novo só por isso).
+3. Rebuild + reinstall.

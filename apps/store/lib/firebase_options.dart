@@ -50,7 +50,7 @@ class DefaultFirebaseOptions {
 
   // Android app from google-services.json (br.app.arrow.store).
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDCjWM-AAnyO_quYy6_NnMcysURH2SSogw',
+    apiKey: 'AIzaSyCkfDofdVDF8BpZ3KC7yuO6D9gznmC4m7E',
     appId: '1:661081769489:android:c625e7c47a334c31a4d3b0',
     messagingSenderId: '661081769489',
     projectId: 'j-arrow',
@@ -59,7 +59,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDCjWM-AAnyO_quYy6_NnMcysURH2SSogw',
+    apiKey: 'AIzaSyCkfDofdVDF8BpZ3KC7yuO6D9gznmC4m7E',
     appId: '1:661081769489:web:7eea7bece5a655cfa4d3b0',
     messagingSenderId: '661081769489',
     projectId: 'j-arrow',

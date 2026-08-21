@@ -62,8 +62,9 @@ abstract final class ArrowFirebaseConsoleSha {
 /// Required as `GoogleSignIn.initialize(serverClientId: …)` so Android returns
 /// an `idToken` for `FirebaseAuth.signInWithCredential`.
 ///
-/// After adding [ArrowDebugSigningSha] on each Android app in project
-/// **j-arrow**, download a fresh `google-services.json` and paste the Web
-/// client ID here (type "Web application", ends with `.apps.googleusercontent.com`).
-/// Not present in production `__firebaseConfig` nor in the repo.
-const String kGoogleSignInWebClientId = '';
+/// Type 3 (Web application) from official `google-services.json` (j-arrow).
+/// Android oauth_client type 1 in that JSON is bound to
+/// [ArrowFirebaseConsoleSha], not [ArrowDebugSigningSha] — Google Sign-In still
+/// needs the local SHA added on each Android app in the Console.
+const String kGoogleSignInWebClientId =
+    '661081769489-5e7inqhv9suqfdj4op1hms5drjtuojkd.apps.googleusercontent.com';
