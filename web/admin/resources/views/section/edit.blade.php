@@ -335,9 +335,12 @@
                 ];
                 (docs && docs.length ? docs : fallback).forEach(function(data) {
                     if (!data || (!data.name && !data.flag)) return;
+                    var label = (window.ArrowI18n && typeof ArrowI18n.serviceTypeLabel === 'function')
+                        ? ArrowI18n.serviceTypeLabel(data.flag, data.name)
+                        : (data.name || data.flag);
                     $('#service_type').append($("<option></option>")
                         .attr("value", data.name || data.flag).attr("flag", data.flag)
-                        .text(data.name || data.flag));
+                        .text(label));
                 });
             }
             var serviceTypesReady = services.get().then(function(snapshots) {

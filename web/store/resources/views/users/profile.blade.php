@@ -718,7 +718,9 @@
                                 .attr("value", data.id)
                                 .attr("data-type", data.serviceTypeFlag)
                                 .attr("data-commission", JSON.stringify(data.adminCommision))
-                                .text(data.name + ' (' + ArrowI18n.serviceTypeLabel(data.serviceTypeFlag, data.serviceType) + ')')
+                                .text(data.name + ' (' + ((window.ArrowI18n && typeof ArrowI18n.serviceTypeLabel === 'function')
+                                    ? ArrowI18n.serviceTypeLabel(data.serviceTypeFlag, data.serviceType)
+                                    : (data.serviceType || data.serviceTypeFlag || '')) + ')')
                         );
                     }
                 });

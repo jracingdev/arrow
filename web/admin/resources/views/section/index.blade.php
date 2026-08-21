@@ -75,7 +75,16 @@
     <script type="text/javascript">
 
         var database = firebase.firestore();
-        
+
+        function serviceTypeLabelSafe(flag, name) {
+            try {
+                if (window.ArrowI18n && typeof ArrowI18n.serviceTypeLabel === 'function') {
+                    return ArrowI18n.serviceTypeLabel(flag, name) || name || flag || '';
+                }
+            } catch (e) {}
+            return name || flag || '';
+        }
+
         var offest = 1;
         var pagesize = 10;
         var end = null;
@@ -208,7 +217,7 @@
             } else {
                 html = html + '<td><img alt="" width="100%" style="width:70px;height:70px;" src="' + placeholderImage + '" alt="image"> <span data-url="' + route1 + '" class="redirecttopage"><a href="' + route1 + '">' + val.name + '</a></span></td>';
             }
-            html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + ArrowI18n.serviceTypeLabel(val.serviceTypeFlag, val.serviceType) + '</td>';
+            html = html + '<td data-url="' + route1 + '" class="redirecttopage">' + serviceTypeLabelSafe(val.serviceTypeFlag, val.serviceType) + '</td>';
             if (val.isActive) {
                 html = html + '<td><label class="switch"><input type="checkbox" checked id="' + val.id + '" name="isSwitch"><span class="slider round"></span></label></td>';
             } else {

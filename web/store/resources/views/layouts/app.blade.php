@@ -489,6 +489,41 @@
             window.ArrowI18n.searchPlaceholder = @json(trans('lang.search_here'));
             window.ArrowI18n.perHourSuffix = @json(trans('lang.per_hour_suffix'));
             window.ArrowI18n.viewDetails = @json(trans('lang.view_details'));
+            (function (i18n) {
+                var map = {
+                    'rental-service': 'Aluguel',
+                    'Rental Service': 'Aluguel',
+                    'delivery-service': 'Entrega marketplace (várias lojas)',
+                    'Multivendor Delivery Service': 'Entrega marketplace (várias lojas)',
+                    'ondemand-service': 'Serviço sob demanda',
+                    'On Demand Service': 'Serviço sob demanda',
+                    'ecommerce-service': 'E-commerce',
+                    'Ecommerce Service': 'E-commerce',
+                    'parcel_delivery': 'Encomendas',
+                    'parcel-service': 'Encomendas',
+                    'parcel-delivery': 'Encomendas',
+                    'Parcel Delivery Service': 'Encomendas',
+                    'Parcel Service': 'Encomendas',
+                    'cab-service': 'Corridas',
+                    'Cab Service': 'Corridas'
+                };
+                i18n.serviceTypeMap = Object.assign({}, map, i18n.serviceTypeMap || {});
+                if (typeof i18n.serviceType !== 'function') {
+                    i18n.serviceType = function (s) {
+                        if (s == null || s === '') return '';
+                        var key = String(s).trim();
+                        return (this.serviceTypeMap && this.serviceTypeMap[key]) || key;
+                    };
+                }
+                if (typeof i18n.serviceTypeLabel !== 'function') {
+                    i18n.serviceTypeLabel = function (flag, name) {
+                        var m = this.serviceTypeMap || map;
+                        if (flag && m[flag]) return m[flag];
+                        if (name && m[name]) return m[name];
+                        return name || flag || '';
+                    };
+                }
+            })(window.ArrowI18n);
         </script>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 

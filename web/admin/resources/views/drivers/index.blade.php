@@ -299,7 +299,9 @@
                             // Fetch service names
                             const serviceDocs = await serviceRef.get();
                             serviceDocs.forEach(doc => {
-                                serviceNames[doc.data().flag] = ArrowI18n.serviceTypeLabel(doc.data().flag, doc.data().name);
+                                serviceNames[doc.data().flag] = (window.ArrowI18n && typeof ArrowI18n.serviceTypeLabel === 'function')
+                                    ? ArrowI18n.serviceTypeLabel(doc.data().flag, doc.data().name)
+                                    : (doc.data().name || doc.data().flag || '');
                             });
 
                             querySnapshot.docs.map(async doc => {

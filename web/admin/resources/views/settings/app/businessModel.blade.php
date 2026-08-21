@@ -214,7 +214,9 @@
 
                         var data = listval.data();
 
-                        var serviceTypeLabel = ArrowI18n.serviceTypeLabel(data.serviceTypeFlag, data.serviceType);
+                        var serviceTypeLabel = (window.ArrowI18n && typeof ArrowI18n.serviceTypeLabel === 'function')
+                            ? ArrowI18n.serviceTypeLabel(data.serviceTypeFlag, data.serviceType)
+                            : (data.serviceType || data.serviceTypeFlag || '');
 
                         var $optgroup = $('#section').find("optgroup[label='" + serviceTypeLabel +
 
