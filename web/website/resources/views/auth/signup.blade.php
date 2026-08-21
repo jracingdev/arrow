@@ -157,7 +157,7 @@ foreach ($countries as $keycountry => $valuecountry) {
 @include('partials.firebase-init')
 <script src="{{ asset('js/firestore-safe.js') }}"></script>
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
-<script src="{{ asset('js/arrow-phone-otp.js') }}?v=3"></script>
+<script src="{{ asset('js/arrow-phone-otp.js') }}?v=4"></script>
 <script type="text/javascript">
     var createdAt = firebase.firestore.FieldValue.serverTimestamp();
     var database = firebase.firestore();
@@ -552,8 +552,8 @@ foreach ($countries as $keycountry => $valuecountry) {
         } else {
             var e164 = '+' + jQuery("#country_selector").val() + jQuery("#mobileNumber").val();
             ArrowPhoneOtp.verify(e164, window.arrowOtpSession, document.getElementById("verificationcode").value)
-                .then(function (customToken) {
-                    return firebase.auth().signInWithCustomToken(customToken);
+                .then(function (session) {
+                    return ArrowPhoneOtp.signIn(session);
                 })
                 .then(async function (result) {
                     var phoneNumber = jQuery("#mobileNumber").val();

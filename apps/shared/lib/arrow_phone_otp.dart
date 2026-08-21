@@ -53,7 +53,7 @@ class ArrowPhoneOtp {
     throw ArrowOtpException(json['message'] as String? ?? 'Falha ao enviar o código.');
   }
 
-  static Future<String> verify({
+  static Future<UserCredential> signInWithCode({
     required String e164,
     required String sessionId,
     required String code,
@@ -68,23 +68,22 @@ class ArrowPhoneOtp {
       }),
     );
     final json = _decode(response.body);
-    if (response.statusCode >= 200 && response.statusCode < 300 && json['success'] == true) {
-      final token = json['customToken'] as String? ?? '';
-      if (token.isEmpty) {
-        throw ArrowOtpException('Sessão Firebase inválida.');
-      }
-      return token;
+    if (response.statusCode < 200 || response.statusCode >= 300 || json['success'] != true) {
+      throw ArrowOtpException(json['message'] as String? ?? 'Código inválido.');
     }
-    throw ArrowOtpException(json['message'] as String? ?? 'Código inválido.');
-  }
 
-  static Future<UserCredential> signInWithCode({
-    required String e164,
-    required String sessionId,
-    required String code,
-  }) async {
-    final token = await verify(e164: e164, sessionId: sessionId, code: code);
-    return FirebaseAuth.instance.signInWithCustomToken(token);
+    final token = json['customToken'] as String? ?? '';
+    if (token.isNotEmpty) {
+      return FirebaseAuth.instance.signInWithCustomToken(token);
+    }
+
+    final email = json['email'] as String? ?? '';
+    final password = json['password'] as String? ?? '';
+    if (email.isNotEmpty && password.isNotEmpty) {
+      return FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+    }
+
+    throw ArrowOtpException('Sessão Firebase inválida.');
   }
 
   static Map<String, dynamic> _decode(String body) {

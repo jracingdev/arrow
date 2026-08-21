@@ -60,12 +60,16 @@
                 phone: phone,
                 sessionId: sessionId,
                 code: code
-            }).then(function (json) {
-                if (!json.customToken) {
-                    throw new Error(json.message || 'Sessão Firebase inválida.');
-                }
-                return json.customToken;
             });
+        },
+        signIn: function (session) {
+            if (session && session.customToken) {
+                return firebase.auth().signInWithCustomToken(session.customToken);
+            }
+            if (session && session.email && session.password) {
+                return firebase.auth().signInWithEmailAndPassword(session.email, session.password);
+            }
+            return Promise.reject(new Error((session && session.message) || 'Sessão Firebase inválida.'));
         }
     };
 })(window);

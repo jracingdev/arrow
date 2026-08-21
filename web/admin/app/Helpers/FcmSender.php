@@ -53,7 +53,7 @@ class FcmSender
             return ['ok' => false, 'error' => 'missing_credentials'];
         }
 
-        $projectId = env('FIREBASE_PROJECT_ID', 'j-arrow');
+        $projectId = config('firebase.project_id', 'j-arrow');
         $url = 'https://fcm.googleapis.com/v1/projects/'.$projectId.'/messages:send';
 
         $stringData = [];

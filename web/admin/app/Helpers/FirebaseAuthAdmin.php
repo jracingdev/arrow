@@ -9,13 +9,37 @@ class FirebaseAuthAdmin
 {
     public static function projectId(): string
     {
-        $fromEnv = trim((string) env('FIREBASE_PROJECT_ID', ''));
-        if ($fromEnv !== '') {
-            return $fromEnv;
+        $fromConfig = trim((string) config('firebase.project_id', ''));
+        if ($fromConfig !== '') {
+            return $fromConfig;
         }
         $creds = FcmSender::credentials();
 
         return (string) ($creds['project_id'] ?? 'j-arrow');
+    }
+
+    public static function apiKey(): string
+    {
+        return trim((string) config('firebase.api_key', ''));
+    }
+
+    /**
+     * @return array{method: string, customToken?: string, email?: string, password?: string}|null
+     */
+    public static function issueAuthSession(string $uid): ?array
+    {
+        $token = self::createCustomToken($uid);
+        if (is_string($token) && $token !== '') {
+            return ['method' => 'custom', 'customToken' => $token];
+        }
+
+        $passwordSession = self::issuePasswordSession($uid);
+        if ($passwordSession) {
+            Log::warning('Arrow OTP using password session fallback', ['uid' => $uid]);
+            return array_merge(['method' => 'password'], $passwordSession);
+        }
+
+        return null;
     }
 
     /**
@@ -146,13 +170,53 @@ class FirebaseAuthAdmin
     }
 
     /**
+     * @return array{email: string, password: string}|null
+     */
+    protected static function issuePasswordSession(string $uid): ?array
+    {
+        $access = FcmSender::accessToken(['https://www.googleapis.com/auth/identitytoolkit']);
+        if (!$access) {
+            return null;
+        }
+
+        $lookupUrl = 'https://identitytoolkit.googleapis.com/v1/projects/'.self::projectId().'/accounts:lookup';
+        $found = self::jsonPost($lookupUrl, $access, ['localId' => [$uid]]);
+        $email = $found['users'][0]['email'] ?? '';
+        if (!is_string($email) || $email === '') {
+            $email = 'otp.'.preg_replace('/[^a-zA-Z0-9]/', '', $uid).'@arrow.app.br';
+        }
+
+        $password = bin2hex(random_bytes(16));
+        $updateUrl = 'https://identitytoolkit.googleapis.com/v1/projects/'.self::projectId().'/accounts:update';
+        $updated = self::jsonPost($updateUrl, $access, [
+            'localId' => $uid,
+            'email' => $email,
+            'password' => $password,
+        ]);
+
+        if (!empty($updated['error']['message'])) {
+            $updated = self::jsonPost($updateUrl, $access, [
+                'localId' => $uid,
+                'password' => $password,
+            ]);
+        }
+
+        if (!empty($updated['error']['message'])) {
+            Log::error('Arrow password session failed', ['error' => $updated['error']['message'], 'uid' => $uid]);
+            return null;
+        }
+
+        return ['email' => $email, 'password' => $password];
+    }
+
+    /**
      * @return string|null Error message, or null if the token is accepted.
      */
     public static function identityToolkitRejects(string $customToken): ?string
     {
-        $apiKey = trim((string) env('FIREBASE_APIKEY', ''));
+        $apiKey = self::apiKey();
         if ($apiKey === '') {
-            return null;
+            return 'missing_api_key';
         }
 
         $url = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key='.rawurlencode($apiKey);

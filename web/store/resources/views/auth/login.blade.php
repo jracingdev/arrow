@@ -330,7 +330,7 @@
         @include('partials.firebase-init')
         <script src="{{ asset('js/firestore-safe.js') }}"></script>
         <script src="{{ asset('js/jquery.validate.js') }}"></script>
-        <script src="{{ asset('js/arrow-phone-otp.js') }}?v=3"></script>
+        <script src="{{ asset('js/arrow-phone-otp.js') }}?v=4"></script>
 
         <script type="text/javascript">
             var database = firebase.firestore();
@@ -647,8 +647,8 @@
             function applicationVerifier() {
                 var phoneNumber = '+' + jQuery("#country_selector").val() + '' + jQuery("#phone").val();
                 ArrowPhoneOtp.verify(phoneNumber, window.arrowOtpSession, document.getElementById("verificationcode").value)
-                    .then(function(customToken) {
-                        return firebase.auth().signInWithCustomToken(customToken);
+                    .then(function(session) {
+                        return ArrowPhoneOtp.signIn(session);
                     })
                     .then(function(result) {                        
                         database.collection("users").where('phoneNumber', "==", phoneNumber).get().then(
