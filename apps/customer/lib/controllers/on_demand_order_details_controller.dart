@@ -104,7 +104,7 @@ class OnDemandOrderDetailsController extends GetxController {
       offerCode.value = coupon.code ?? '';
       calculatePrice();
     } else {
-      Get.snackbar("Error", "Coupon cannot be applied");
+      Get.snackbar("Error".tr, "Coupon cannot be applied".tr);
     }
   }
 

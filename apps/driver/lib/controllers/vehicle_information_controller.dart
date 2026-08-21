@@ -158,7 +158,7 @@ class VehicleInformationController extends GetxController {
     for (final section in driverSections) {
       final sid = section.id ?? '';
       if (selectedVehiclePerSection[sid]?.value.id == null) {
-        ShowToastDialog.showToast("Please select a vehicle type for ${section.name}");
+        ShowToastDialog.showToast("${"Please select a vehicle type for".tr} ${section.name}");
         return;
       }
     }
@@ -169,15 +169,15 @@ class VehicleInformationController extends GetxController {
       final carMakes = selectedCarMakesPerSection[sid]?.value;
       final carModel = selectedCarModelPerSection[sid]?.value;
       if (plate.isEmpty) {
-        ShowToastDialog.showToast("Please enter car plate number for ${section.name}");
+        ShowToastDialog.showToast("${"Please enter car plate number for".tr} ${section.name}");
         return;
       }
       if (carMakes?.id == null) {
-        ShowToastDialog.showToast("Please select a car brand for ${section.name}");
+        ShowToastDialog.showToast("${"Please select a car brand for".tr} ${section.name}");
         return;
       }
       if (carModel?.id == null) {
-        ShowToastDialog.showToast("Please select a car model for ${section.name}");
+        ShowToastDialog.showToast("${"Please select a car model for".tr} ${section.name}");
         return;
       }
     }
@@ -209,7 +209,7 @@ class VehicleInformationController extends GetxController {
       bool success = await FireStoreUtils.updateUser(userModel.value);
       ShowToastDialog.closeLoader();
       ShowToastDialog.showToast(
-          success ? "Vehicle information updated successfully." : "Failed to update. Please try again.");
+          success ? "Vehicle information updated successfully.".tr : "Failed to update. Please try again.".tr);
     } catch (e) {
       ShowToastDialog.closeLoader();
       ShowToastDialog.showToast("Error updating vehicle info: $e");

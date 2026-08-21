@@ -325,16 +325,16 @@ session_start();
                 '                                        </div>\n' +
                 '                                    </div>\n' +
                 '                                    <div class="car-det-price ml-auto">\n' +
-                '                                        <span class="price">' + carRate + '/<small>day</small></span>\n' +
+                '                                        <span class="price">' + carRate + '/<small>{{ trans("lang.per_day") }}</small></span>\n' +
                 '                                    </div>\n' +
                 '                                </div>\n' +
                 '                            </div>' +
                 '<div class="car-specs-det mt-2 mb-3">\n' +
-                '                                <h3>Car Specs</h3>\n' +
+                '                                <h3>{{ trans("lang.car_specs") }}</h3>\n' +
                 '                                <div class="row">\n' +
                 '                                    <div class="col-md-4 car-specs-box">\n' +
                 '                                        <div class="car-specs-box-inner">\n' +
-                '                                            <label>Max Power</label>\n' +
+                '                                            <label>{{ trans("lang.max_power") }}</label>\n' +
                 '                                            <span>' + maxPower + ' hp' + '</span>\n' +
                 '                                        </div>\n' +
                 '                                    </div>\n' +
@@ -346,29 +346,29 @@ session_start();
                 '                                    </div>\n' +
                 '                                    <div class="col-md-4 car-specs-box">\n' +
                 '                                        <div class="car-specs-box-inner">\n' +
-                '                                            <label>Top Speed</label>\n' +
+                '                                            <label>{{ trans("lang.top_speed") }}</label>\n' +
                 '                                            <span>' + topSpeed + ' mph' + '</span>\n' +
                 '                                        </div>\n' +
                 '                                    </div>\n' +
                 '                                </div>\n' +
                 '                            </div>\n' +
                 ' <div class="car-info-det mt-3 mb-3">\n' +
-                '                                <h3>Car Info</h3>\n' +
+                '                                <h3>{{ trans("lang.car_info") }}</h3>\n' +
                 '                                <div class="row">\n' +
                 '                                    <div class="col-md-6 car-info-box">\n' +
                 '                                        <div class="car-info-box-list d-flex align-items-center">\n' +
-                '                                            <span><img src="../img/user-icon.png"></span><label>' + passenger + ' Pessengers</label>\n' +
+                '                                            <span><img src="../img/user-icon.png"></span><label>' + passenger + ' {{ trans("lang.passengers") }}</label>\n' +
                 '                                        </div>\n' +
                 '                                    </div>\n' +
                 '                                    <div class="col-md-6 car-info-box">\n' +
                 '                                        <div class="car-info-box-list d-flex align-items-center">\n' +
-                '                                            <span><img src="../img/door-icon.png"></span><label>' + doors + ' Doors</label>\n' +
+                '                                            <span><img src="../img/door-icon.png"></span><label>' + doors + ' {{ trans("lang.doors") }}</label>\n' +
                 '                                        </div>\n' +
                 '                                    </div>\n';
             if (air_conditioning) {
                 carDetailHtml += '                 <div class="col-md-6 car-info-box">\n' +
                     '                                        <div class="car-info-box-list d-flex align-items-center">\n' +
-                    '                                            <span><img src="../img/ac-icon.png"></span><label>Air Conditioning</label>\n' +
+                    '                                            <span><img src="../img/ac-icon.png"></span><label>{{ trans("lang.air_conditioning") }}</label>\n' +
                     '                                        </div>\n' +
                     '                                    </div>\n';
             }
@@ -379,12 +379,12 @@ session_start();
                 '                                    </div>\n' +
                 '                                    <div class="col-md-6 car-info-box">\n' +
                 '                                        <div class="car-info-box-list d-flex align-items-center">\n' +
-                '                                            <span><img src="../img/mlg-icon.png"></span><label>' + mileage + ' Mileage</label>\n' +
+                '                                            <span><img src="../img/mlg-icon.png"></span><label>' + mileage + ' {{ trans("lang.mileage") }}</label>\n' +
                 '                                        </div>\n' +
                 '                                    </div>\n' +
                 '                                    <div class="col-md-6 car-info-box">\n' +
                 '                                        <div class="car-info-box-list d-flex align-items-center">\n' +
-                '                                            <span><img src="../img/fuel-icon.png"></span><label>Fuel ' + fuel_filling + '\n' +
+                '                                            <span><img src="../img/fuel-icon.png"></span><label>{{ trans("lang.fuel") }} ' + fuel_filling + '\n' +
                 '                                                </label>\n' +
                 '                                        </div>\n' +
                 '                                    </div>\n' +
@@ -405,7 +405,7 @@ session_start();
             var url = '{{route('rental_cars_checkout', ':id')}}';
             url = url.replace(':id', rentalVehicleTypeDetails.id);
             carDetailHtml += '<div class="carrent-book mt-3">\n' +
-                '                                <a href="' + url + '" class="btn book-btn">Book Car</a>\n' +
+                '                                <a href="' + url + '" class="btn book-btn">{{ trans("lang.book_car") }}</a>\n' +
                 '                            </div>';
             $('#carDetailInfo').append(carDetailHtml);
             $("#data-table_processing_order").hide();

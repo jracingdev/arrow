@@ -808,4 +808,5 @@ const Map<String, String> enUS = {
   'Message sent failed': 'Message sent failed',
   'Storage permission is not enabled. Please allow it.': 'Storage permission is not enabled. Please allow it.',
   'Camera access is not enabled. Please allow camera permission.': 'Camera access is not enabled. Please allow camera permission.',
+  'Coupon cannot be applied': 'Coupon cannot be applied',
 };

@@ -38,7 +38,7 @@ $(document).on('click', '.auto_fill_title', function (event) {
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 toastr.error(xhr.responseJSON.message);
             } else {
-                toastr.error('An unexpected error occurred.');
+                toastr.error('Ocorreu um erro inesperado.');
             }
         },
         complete: function () {
@@ -47,7 +47,7 @@ $(document).on('click', '.auto_fill_title', function (event) {
             }, 500);
 
             $button.prop('disabled', false);
-            $button.find('.btn-text').text('Re-generate');
+            $button.find('.btn-text').text('Gerar novamente');
             $aiText.addClass('d-none').removeClass('ai-text-animation-visible');
         }
     });
@@ -93,7 +93,7 @@ $(document).on('click', '.auto_fill_description', function () {
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 toastr.error(xhr.responseJSON.message);
             } else {
-                toastr.error('An unexpected error occurred.');
+                toastr.error('Ocorreu um erro inesperado.');
             }
         },
         complete: function () {
@@ -101,7 +101,7 @@ $(document).on('click', '.auto_fill_description', function () {
                 $wrapper.removeClass('outline-animating');
             }, 500);
             $button.prop('disabled', false);
-            $button.find('.btn-text').text('Re-generate');
+            $button.find('.btn-text').text('Gerar novamente');
             $aiText.addClass('d-none').removeClass('ai-text-animation-visible');
         }
     });
@@ -152,7 +152,7 @@ $(document).on('click', '.ingredients_auto_fill', function () {
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 toastr.error(xhr.responseJSON.message);
             } else {
-                toastr.error('An unexpected error occurred.');
+                toastr.error('Ocorreu um erro inesperado.');
             }
         },
         complete: function () {
@@ -162,7 +162,7 @@ $(document).on('click', '.ingredients_auto_fill', function () {
             }, 500);
 
             $button.prop('disabled', false);
-            $button.find('.btn-text').text('Re-generate');
+            $button.find('.btn-text').text('Gerar novamente');
             $aiText.addClass('d-none').removeClass('ai-text-animation-visible');
         }
     });
@@ -231,7 +231,7 @@ $(document).on('click', '.addons_auto_fill', function () {
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 toastr.error(xhr.responseJSON.message);
             } else {
-                toastr.error('An unexpected error occurred.');
+                toastr.error('Ocorreu um erro inesperado.');
             }
         },
         complete: function () {
@@ -241,7 +241,7 @@ $(document).on('click', '.addons_auto_fill', function () {
             }, 500);
 
             $button.prop('disabled', false);
-            $button.find('.btn-text').text('Re-generate');
+            $button.find('.btn-text').text('Gerar novamente');
             $aiText.addClass('d-none').removeClass('ai-text-animation-visible');
         }
     });
@@ -297,7 +297,7 @@ $(document).on('click', '.specification_auto_fill', function () {
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 toastr.error(xhr.responseJSON.message);
             } else {
-                toastr.error('An unexpected error occurred.');
+                toastr.error('Ocorreu um erro inesperado.');
             }
         },
         complete: function () {
@@ -307,7 +307,7 @@ $(document).on('click', '.specification_auto_fill', function () {
             }, 500);
 
             $button.prop('disabled', false);
-            $button.find('.btn-text').text('Re-generate');
+            $button.find('.btn-text').text('Gerar novamente');
             $aiText.addClass('d-none').removeClass('ai-text-animation-visible');
         }
     });

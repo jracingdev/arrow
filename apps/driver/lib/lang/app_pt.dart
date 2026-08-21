@@ -463,4 +463,11 @@ const Map<String, String> ptPO = {
   'Order data not found': 'Dados do pedido não encontrados',
   'You have to allow location permission to use your location': 'É preciso permitir o acesso à localização para usar este recurso',
   'User not found': 'Usuário não encontrado',
+  'Please select a vehicle type for': 'Selecione o tipo de veículo para',
+  'Please enter car plate number for': 'Informe a placa do veículo para',
+  'Please select a car brand for': 'Selecione a marca do veículo para',
+  'Please select a car model for': 'Selecione o modelo do veículo para',
+  'Vehicle information updated successfully.': 'Informações do veículo atualizadas com sucesso.',
+  'Failed to update. Please try again.': 'Falha ao atualizar. Tente novamente.',
+  'Trip Start': 'Iniciar viagem',
 };

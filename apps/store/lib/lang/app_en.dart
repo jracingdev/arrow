@@ -819,4 +819,5 @@ const Map<String, String> enUS = {
   'Camera access is not enabled. Please allow camera permission.': 'Camera access is not enabled. Please allow camera permission.',
   'Please enter product quantity': 'Please enter product quantity',
   'Invalid response format.': 'Invalid response format.',
+  'OK': 'OK',
 };

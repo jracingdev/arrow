@@ -821,4 +821,5 @@ const Map<String, String> ptPO = {
   'Camera access is not enabled. Please allow camera permission.': 'O acesso à câmera não está ativado. Permita a permissão da câmera.',
   'Please enter product quantity': 'Informe a quantidade do produto',
   'Invalid response format.': 'Formato de resposta inválido.',
+  'OK': 'OK',
 };

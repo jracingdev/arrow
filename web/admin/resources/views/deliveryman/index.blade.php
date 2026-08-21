@@ -622,7 +622,7 @@
         });
         $("#deleteAll").click(function() {
             if ($('#deliverymanTable .is_open:checked').length) {
-                if (confirm('Are You Sure want to Delete Selected Data ?')) {
+                if (confirm("{{ trans('lang.are_you_sure_want_to_delete_selected_data') }}")) {
                     jQuery("#data-table_processing").show();
                     $('#deliverymanTable .is_open:checked').each(async function() {
                         var dataId = $(this).attr('dataId');

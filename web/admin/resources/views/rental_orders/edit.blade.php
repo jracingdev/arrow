@@ -911,7 +911,7 @@
                 if (userreviewsnapshot.docs.length > 0) {
                     jQuery("#customers_rating_and_review").append(reviewHTML);
                 } else {
-                    jQuery("#customers_rating_and_review").html('<h4>No Reviews Found</h4>');
+                    jQuery("#customers_rating_and_review").html('<h4>{{ trans("lang.no_reviews_found") }}</h4>');
                 }
             });
         }

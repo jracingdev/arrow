@@ -48,7 +48,7 @@ $(document).on('click', '.variation_setup_auto_fill', function () {
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 toastr.error(xhr.responseJSON.message);
             } else {
-                toastr.error('An unexpected error occurred.');
+                toastr.error('Ocorreu um erro inesperado.');
             }
         },
         complete: function () {
@@ -58,7 +58,7 @@ $(document).on('click', '.variation_setup_auto_fill', function () {
             }, 500);
 
             $button.prop('disabled', false);
-            $button.find('.btn-text').text('Re-generate');
+            $button.find('.btn-text').text('Gerar novamente');
             $aiText.addClass('d-none').removeClass('ai-text-animation-visible');
         }
     });

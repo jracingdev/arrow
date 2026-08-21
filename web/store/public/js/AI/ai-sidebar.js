@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
             content.style.display = 'none';
         });
         mainContent.style.display = 'block';
-        modalTitle.textContent = 'AI Assistant';
+        modalTitle.textContent = 'Assistente de IA';
     }
 
     $('#aiAssistantModal').on('show.bs.modal', function () {
@@ -29,10 +29,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             if (action === 'upload') {
-                modalTitle.textContent = 'Upload Image for Analysis';
+                modalTitle.textContent = 'Enviar imagem para análise';
                 uploadContent.style.display = 'block';
             } else if (action === 'title') {
-                modalTitle.textContent = 'Generate Product Title';
+                modalTitle.textContent = 'Gerar título do produto';
                 titleContent.style.display = 'block';
             }
         });
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const keywords = $('#productKeywords').val();
         const route = $button.data('route');
         if (!keywords.trim()) {
-            toastr.error('Please enter some keywords.');
+            toastr.error('Informe algumas palavras-chave.');
             return;
         }
 
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             behavior: 'smooth',
                             block: 'center'
                         });
-                        $titleActionButton.find('.btn-text').text('Re-generate');
+                        $titleActionButton.find('.btn-text').text('Gerar novamente');
                     }
                 });
 
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             error: function (xhr, status, error) {
                 console.error(error);
-                toastr.error('Failed to generate titles. Please try again.');
+                toastr.error('Falha ao gerar títulos. Tente novamente.');
                 $titlesList.empty();
             },
             complete: function () {
@@ -157,7 +157,7 @@ $(document).on('click', '#analyzeImageBtn', function () {
     const lang = $button.data('lang');
     
     if (!imageInput || !imageInput.files[0]) {
-        toastr.error('Please select an image first');
+        toastr.error('Selecione uma imagem primeiro');
         return;
     } else {
         $chooseImageBtn.addClass('disabled');
@@ -171,7 +171,7 @@ $(document).on('click', '#analyzeImageBtn', function () {
     }
 
     $button.prop('disabled', true);
-    $button.find('.btn-text').text('Generating');
+    $button.find('.btn-text').text('Gerando');
     $button.find('.ai-btn-animation').removeClass('d-none');
     $button.find('i').addClass('d-none');
 
@@ -237,13 +237,13 @@ $(document).on('click', '#analyzeImageBtn', function () {
             } else if (xhr.responseJSON && xhr.responseJSON.message) {
                 toastr.error(xhr.responseJSON.message);
             } else {
-                toastr.error('An unexpected error occurred during image analysis.');
+                toastr.error('Ocorreu um erro inesperado na análise da imagem.');
             }
 
             $imageRemoveButton.prop('disabled', false);
             $chooseImageBtn.removeClass('disabled');
             $button.prop('disabled', false);
-            $button.find('.btn-text').text('Generate Product Data');
+            $button.find('.btn-text').text('Gerar dados do produto');
             $button.find('.ai-btn-animation').addClass('d-none');
             $button.find('i').removeClass('d-none');
 
@@ -295,7 +295,7 @@ function waitForDescriptionAndContinue(lang, $button, $imageRemoveButton, $choos
                 $imageRemoveButton.trigger('click');
                 $chooseImageBtn.prop('disabled', false);
                 $button.prop('disabled', false);
-                $button.find('.btn-text').text('Generate Product Data');
+                $button.find('.btn-text').text('Gerar dados do produto');
                 $button.find('.ai-btn-animation').addClass('d-none');
                 $button.find('i').removeClass('d-none');
             }, totalDelay);

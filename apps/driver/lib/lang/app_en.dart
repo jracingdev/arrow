@@ -452,4 +452,11 @@ const Map<String, String> enUS = {
   'Order data not found': 'Order data not found',
   'You have to allow location permission to use your location': 'You have to allow location permission to use your location',
   'User not found': 'User not found',
+  'Please select a vehicle type for': 'Please select a vehicle type for',
+  'Please enter car plate number for': 'Please enter car plate number for',
+  'Please select a car brand for': 'Please select a car brand for',
+  'Please select a car model for': 'Please select a car model for',
+  'Vehicle information updated successfully.': 'Vehicle information updated successfully.',
+  'Failed to update. Please try again.': 'Failed to update. Please try again.',
+  'Trip Start': 'Trip Start',
 };

@@ -134,7 +134,7 @@ session_start();
                 <div class="row showCarDiv" style="display: none">
                     <div class="col-md-3 rental-list-left">
                         <div class="rental-left-box">
-                            <h3>Car type</h3>
+                            <h3>{{ trans('lang.car_type') }}</h3>
                             <!-- Tabs nav -->
                             <div class="rental-nav-box">
                                 <div class="nav flex-column nav-pills nav-pills-custom car_type_div" id="v-pills-tab"
@@ -560,14 +560,14 @@ session_start();
                                         '                                            </div>\n' +
                                         '                                            <div class="car-feture">\n' +
                                         '                                                <ul>\n' +
-                                        '                                                    <li><img src="../img/user-icon.png">' + passengers + ' Pessengers</li>\n' +
+                                        '                                                    <li><img src="../img/user-icon.png">' + passengers + ' {{ trans("lang.passengers") }}</li>\n' +
                                         '                                                    <li><img src="../img/manual-icon.png">' + gear + '</li>\n' +
                                         '                                                    <li><img src="../img/fuel-icon.png">' + fuel_type + '</li>\n' +
                                         '                                                </ul>\n' +
                                         '                                            </div>\n' +
                                         '                                        </div>\n' +
                                         '                                        <div class="col-md-2 car-price">\n' +
-                                        '                                            <span class="price">' + carRate + '/<small>day</small></span>\n' +
+                                        '                                            <span class="price">' + carRate + '/<small>{{ trans("lang.per_day") }}</small></span>\n' +
                                         '                                        </div>\n' +
                                         '                                    </div>\n' +
                                         '                            </div></a>\n' +

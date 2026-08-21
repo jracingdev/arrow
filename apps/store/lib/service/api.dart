@@ -141,7 +141,7 @@ class CustomDialog {
     Get.defaultDialog(
       title: title,
       content: Text(message),
-      textConfirm: "OK",
+      textConfirm: "OK".tr,
       barrierDismissible: false,
       onConfirm: () {
         _isDialogVisible = false;

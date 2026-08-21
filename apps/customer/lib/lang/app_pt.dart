@@ -823,4 +823,5 @@ const Map<String, String> ptBR = {
   'Message sent failed': 'Falha ao enviar a mensagem',
   'Storage permission is not enabled. Please allow it.': 'A permissão de armazenamento não está ativada. Permita o acesso.',
   'Camera access is not enabled. Please allow camera permission.': 'O acesso à câmera não está ativado. Permita a permissão da câmera.',
+  'Coupon cannot be applied': 'O cupom não pode ser aplicado',
 };

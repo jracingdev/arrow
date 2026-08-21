@@ -611,7 +611,7 @@ class RentalHomeScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        Constant.enableOTPTripStartForRental == false ? "Trip Start" : "Verify Passenger".tr,
+                        Constant.enableOTPTripStartForRental == false ? "Trip Start".tr : "Verify Passenger".tr,
                         style: AppThemeData.boldTextStyle(
                           fontSize: 22,
                           color: isDark ? AppThemeData.grey50 : AppThemeData.grey900,

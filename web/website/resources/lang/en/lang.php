@@ -951,5 +951,17 @@ return [
     'thursday' => 'Thursday',
     'friday' => 'Friday',
     'saturday' => 'Saturday',
+    'car_type' => 'Car type',
+    'car_specs' => 'Car specs',
+    'book_car' => 'Book car',
+    'per_day' => 'day',
+    'passengers' => 'Passengers',
+    'doors' => 'Doors',
+    'air_conditioning' => 'Air conditioning',
+    'mileage' => 'Mileage',
+    'fuel' => 'Fuel',
+    'max_power' => 'Max power',
+    'top_speed' => 'Top speed',
+    'car_info' => 'Car info',
 ];
 
