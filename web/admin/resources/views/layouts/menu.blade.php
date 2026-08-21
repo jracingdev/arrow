@@ -350,7 +350,7 @@ $service_type = @$_COOKIE['service_type'];
         in_array('advertisements', $role_has_permission) || 
         in_array('documents', $role_has_permission)
         )
-            @if($service_type != "ondemand-service")
+            @if($service_type != "ondemand-service" || in_array('documents', $role_has_permission))
             <li class="nav-subtitle">
                 <span class="nav-subtitle-span">
                     @if($service_type == "delivery-service" || $service_type == "ecommerce-service")
@@ -417,14 +417,17 @@ $service_type = @$_COOKIE['service_type'];
             @endif
             @endif
             
-            @if($service_type != "ondemand-service")
             @if (in_array('documents', $role_has_permission))
+                <li><a class="waves-effect waves-dark" href="{!! route('documents.pending') !!}" aria-expanded="false">
+                        <i class="ri-file-check-fill"></i>
+                        <span class="hide-menu">{{ trans('lang.document_pending_queue') }}</span>
+                    </a>
+                </li>
                 <li><a class="waves-effect waves-dark" href="{!! route('documents') !!}" aria-expanded="false">
                         <i class="ri-file-pdf-fill"></i>
                         <span class="hide-menu">{{ trans('lang.document_plural') }}</span>
                     </a>
                 </li>
-            @endif
             @endif
         @endif
 
@@ -555,6 +558,11 @@ $service_type = @$_COOKIE['service_type'];
         <li><a class="waves-effect waves-dark" href="{!! url('ondemand-bookings') !!}" aria-expanded="false">
                 <i class="ri-bookmark-3-fill"></i>
                 <span class="hide-menu">{{ trans('lang.booking_plural') }}</span>
+            </a>
+        </li>
+        <li><a class="waves-effect waves-dark" href="{!! route('ondemand.reports.index') !!}" aria-expanded="false">
+                <i class="ri-alarm-warning-fill"></i>
+                <span class="hide-menu">{{ trans('lang.ondemand_reports') }}</span>
             </a>
         </li>
         @endif

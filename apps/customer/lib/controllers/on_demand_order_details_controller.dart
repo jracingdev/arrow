@@ -11,7 +11,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../constant/collection_name.dart';
 import '../constant/constant.dart';
 import '../models/onprovider_order_model.dart';
-import '../models/order_invoice_model.dart';
 import '../models/wallet_transaction_model.dart';
 import '../models/worker_model.dart';
 import '../service/fire_store_utils.dart';
@@ -114,6 +113,9 @@ class OnDemandOrderDetailsController extends GetxController {
         }
 
         calculatePrice();
+
+        _providerLocSub?.cancel();
+        _watchProviderLocation();
 
         // Load available coupons
         FireStoreUtils.getProviderCouponAfterExpire(order.provider.author.toString()).then((expiredCoupons) {

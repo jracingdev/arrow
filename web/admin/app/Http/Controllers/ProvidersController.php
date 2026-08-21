@@ -34,6 +34,11 @@ class ProvidersController extends Controller
         return view('providers.chat', compact('id'));
     }
 
+    public function DocumentList($id)
+    {
+        return view('providers.document_list')->with('id', $id);
+    }
+
 }
 
 

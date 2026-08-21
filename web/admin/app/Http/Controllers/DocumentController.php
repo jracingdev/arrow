@@ -16,6 +16,11 @@ class DocumentController extends Controller
     {
         return view('documents.index');
     }
+
+    public function pending()
+    {
+        return view('documents.pending');
+    }
     public function create()
     {
         return view("documents.create");

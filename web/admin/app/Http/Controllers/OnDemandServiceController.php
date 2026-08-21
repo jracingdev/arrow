@@ -94,6 +94,16 @@ class OnDemandServiceController extends Controller
     {
         return view('OnDemandService.workers.chat', compact('id'));
     }
+
+    public function reports()
+    {
+        return view('OnDemandService.reports.index');
+    }
+
+    public function reportsEdit($id)
+    {
+        return view('OnDemandService.reports.edit')->with('id', $id);
+    }
    
 }
 

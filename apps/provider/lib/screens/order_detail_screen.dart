@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:arrow_shared/hourly_service_billing.dart';
+import 'package:arrow_shared/report_strikes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/constant/constant.dart';
@@ -16,6 +18,8 @@ import 'package:provider/screens/chat_screen.dart';
 import 'package:provider/service/fire_store_utils.dart';
 import 'package:provider/themes/app_theme.dart';
 import 'package:provider/widgets/hourly_timer_card.dart';
+import 'package:provider/widgets/report_problem_sheet.dart';
+import 'package:provider/widgets/service_map_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -238,6 +242,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                 ),
               ),
+              if (order.addressLine().isNotEmpty || order.customerLat() != null) ...[
+                const SizedBox(height: 12),
+                ServiceMapCard(
+                  title: 'Local do serviço',
+                  address: order.addressLine(),
+                  latitude: order.customerLat(),
+                  longitude: order.customerLng(),
+                ),
+              ],
               if ((order.authorID.isNotEmpty || (order.author.id ?? '').isNotEmpty) && order.status != Constant.orderPlaced) ...[
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
@@ -250,6 +263,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                   icon: const Icon(Icons.chat_bubble_outline),
                   label: const Text('Conversar com o cliente'),
+                ),
+              ],
+              if (Constant.canSosOrder(order.status)) ...[
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: () => _report(order, sos: true),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
+                  icon: const Icon(Icons.emergency_outlined),
+                  label: const Text('Estou em risco / Denunciar agora'),
+                ),
+              ],
+              if (Constant.canReportOrder(order.status)) ...[
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: () => _report(order),
+                  icon: const Icon(Icons.flag_outlined),
+                  label: const Text('Reportar problema'),
                 ),
               ],
               const SizedBox(height: 20),
@@ -325,6 +355,47 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           );
         },
       ),
+    );
+  }
+
+  Future<void> _report(ProviderOrderModel order, {bool sos = false}) async {
+    final uid = FireStoreUtils.getCurrentUid();
+    final customerId = order.authorID.isNotEmpty ? order.authorID : (order.author.id ?? '');
+    await showReportProblemSheet(
+      context: context,
+      sos: sos,
+      onSubmit: (category, description) async {
+        ShowToastDialog.showLoader('Enviando...');
+        try {
+          double? lat;
+          double? lng;
+          if (sos) {
+            try {
+              final pos = await Geolocator.getCurrentPosition();
+              lat = pos.latitude;
+              lng = pos.longitude;
+            } catch (_) {}
+            await FireStoreUtils.submitSos(orderId: order.id, reporterId: uid, latitude: lat, longitude: lng);
+          }
+          await FireStoreUtils.submitComplaint(
+            orderId: order.id,
+            reporterId: uid,
+            reporterRole: 'provider',
+            reporterName: Constant.userModel?.fullName() ?? 'Prestador',
+            reportedId: customerId,
+            reportedRole: 'customer',
+            reportedName: order.author.fullName(),
+            category: sos ? ReportCategories.abuse : category,
+            description: description,
+            priority: sos ? 'high' : 'normal',
+          );
+          ShowToastDialog.closeLoader();
+          ShowToastDialog.showToast('A plataforma vai analisar sua denúncia.');
+        } catch (e) {
+          ShowToastDialog.closeLoader();
+          ShowToastDialog.showToast(e.toString());
+        }
+      },
     );
   }
 

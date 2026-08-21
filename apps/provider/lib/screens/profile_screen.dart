@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/constant/constant.dart';
+import 'package:provider/models/provider_document_model.dart';
 import 'package:provider/models/user_model.dart';
 import 'package:provider/screens/documents_screen.dart';
 import 'package:provider/screens/home_shell_controller.dart';
@@ -49,17 +50,24 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Align(
                 alignment: Alignment.centerLeft,
-                child: InkWell(
-                  onTap: verified ? null : () => Get.to(() => const DocumentsScreen()),
-                  child: Chip(
-                    avatar: Icon(
-                      verified ? Icons.verified : Icons.hourglass_top,
-                      size: 16,
-                      color: verified ? AppTheme.success : AppTheme.warning,
-                    ),
-                    label: Text(verified ? 'Verificado' : 'Verificação pendente'),
-                    backgroundColor: (verified ? AppTheme.success : AppTheme.warning).withValues(alpha: 0.12),
-                  ),
+                child: StreamBuilder<ProviderDocumentModel?>(
+                  stream: FireStoreUtils.watchDocumentsVerify(uid),
+                  builder: (context, verifySnap) {
+                    final rejected = verified != true && (verifySnap.data?.hasRejected == true);
+                    final color = verified ? AppTheme.success : (rejected ? const Color(0xFFB91C1C) : AppTheme.warning);
+                    return InkWell(
+                      onTap: verified ? null : () => Get.to(() => const DocumentsScreen()),
+                      child: Chip(
+                        avatar: Icon(
+                          verified ? Icons.verified : (rejected ? Icons.cancel_outlined : Icons.hourglass_top),
+                          size: 16,
+                          color: color,
+                        ),
+                        label: Text(verified ? 'Verificado' : (rejected ? 'Recusado' : 'Verificação pendente')),
+                        backgroundColor: color.withValues(alpha: 0.12),
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 8),
@@ -101,6 +109,13 @@ class ProfileScreen extends StatelessWidget {
                 onTap: () => Get.to(() => const DocumentsScreen()),
               ),
               const Divider(),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: Text(
+                  'Denúncias verificadas e reincidentes podem levar à suspensão da conta.',
+                  style: TextStyle(color: AppTheme.grey500, fontSize: 13),
+                ),
+              ),
               ListTile(
                 leading: const Icon(Icons.logout, color: AppTheme.danger),
                 title: const Text('Sair', style: TextStyle(color: AppTheme.danger)),

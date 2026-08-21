@@ -243,7 +243,12 @@
                         confirmButtonColor: '#d33',
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            window.location.href = '/sos/edit/' + change.doc.id;
+                            var sosData = change.doc.data() || {};
+                            if (sosData.serviceType === 'ondemand-service') {
+                                window.location.href = '{{ url('/ondemand-reports/edit') }}/' + change.doc.id;
+                            } else {
+                                window.location.href = '/sos/edit/' + change.doc.id;
+                            }
                         }
                     });
                 }

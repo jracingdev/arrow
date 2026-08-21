@@ -707,6 +707,8 @@ Route::middleware(['permission:ondemand-services,ondemand.services.edit'])->grou
 });
 Route::middleware(['permission:ondemand-bookings,ondemand.bookings.index'])->group(function () {
     Route::get('/ondemand-bookings/{id?}', [App\Http\Controllers\OnDemandServiceController::class, 'Bookings'])->name('ondemand.bookings.index');
+    Route::get('/ondemand-reports', [App\Http\Controllers\OnDemandServiceController::class, 'reports'])->name('ondemand.reports.index');
+    Route::get('/ondemand-reports/edit/{id}', [App\Http\Controllers\OnDemandServiceController::class, 'reportsEdit'])->name('ondemand.reports.edit');
 });
 Route::middleware(['permission:ondemand-bookings,ondemand.bookings.edit'])->group(function () {
     Route::get('/ondemand-bookings/edit/{id}', [App\Http\Controllers\OnDemandServiceController::class, 'BookingsEdit'])->name('ondemand.bookings.edit');
@@ -814,6 +816,10 @@ Route::middleware(['permission:zone,zone.edit'])->group(function () {
 
 Route::middleware(['permission:documents,documents.list'])->group(function () {
     Route::get('documents', [App\Http\Controllers\DocumentController::class, 'index'])->name('documents');
+    Route::get('documents/pending', [App\Http\Controllers\DocumentController::class, 'pending'])->name('documents.pending');
+});
+Route::middleware(['permission:providers,providers.view'])->group(function () {
+    Route::get('providers/document-list/{id}', [App\Http\Controllers\ProvidersController::class, 'DocumentList'])->name('providers.document');
 });
 Route::middleware(['permission:documents,documents.create'])->group(function () {
     Route::get('/documents/create', [App\Http\Controllers\DocumentController::class, 'create'])->name('documents.create');
