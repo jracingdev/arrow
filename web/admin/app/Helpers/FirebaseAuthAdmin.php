@@ -18,6 +18,10 @@ class FirebaseAuthAdmin
         return (string) ($creds['project_id'] ?? 'j-arrow');
     }
 
+    /**
+     * Mint a Firebase Auth custom token and verify it against Identity Toolkit
+     * before handing it to the browser.
+     */
     public static function createCustomToken(string $uid, array $claims = []): ?string
     {
         $creds = FcmSender::credentials();
@@ -29,6 +33,15 @@ class FirebaseAuthAdmin
         if ($uid === '' || strlen($uid) > 128) {
             Log::error('Arrow custom token: uid inválido');
             return null;
+        }
+
+        $credProject = (string) ($creds['project_id'] ?? '');
+        $envProject = self::projectId();
+        if ($credProject !== '' && $credProject !== $envProject) {
+            Log::error('Arrow custom token: project mismatch', [
+                'credentials' => $credProject,
+                'env' => $envProject,
+            ]);
         }
 
         $now = time();
@@ -46,21 +59,46 @@ class FirebaseAuthAdmin
 
         $kid = $creds['private_key_id'] ?? null;
         $kid = is_string($kid) && $kid !== '' ? $kid : null;
+        $privateKey = self::normalizePrivateKey((string) $creds['private_key']);
 
-        $iamToken = self::signJwtViaIam($creds['client_email'], $payload);
-        if (is_string($iamToken) && $iamToken !== '') {
-            return $iamToken;
+        $candidates = [];
+
+        $local = self::encodeJwt($payload, $privateKey, $kid);
+        if ($local) {
+            $candidates[] = $local;
         }
 
-        try {
-            if (class_exists(JWT::class)) {
-                return JWT::encode($payload, $creds['private_key'], 'RS256', $kid);
+        if (class_exists(JWT::class)) {
+            try {
+                $candidates[] = JWT::encode($payload, $privateKey, 'RS256', $kid);
+            } catch (\Throwable $e) {
+                Log::warning('Arrow JWT::encode failed', ['error' => $e->getMessage()]);
             }
-        } catch (\Throwable $e) {
-            Log::error('Arrow custom token encode failed', ['error' => $e->getMessage()]);
         }
 
-        return self::encodeJwt($payload, $creds['private_key'], $kid);
+        $blob = self::signBlob($creds['client_email'], $payload, $kid);
+        if ($blob) {
+            $candidates[] = $blob;
+        }
+
+        $seen = [];
+        foreach ($candidates as $jwt) {
+            if (!is_string($jwt) || isset($seen[$jwt])) {
+                continue;
+            }
+            $seen[$jwt] = true;
+            $error = self::identityToolkitRejects($jwt);
+            if ($error === null) {
+                return $jwt;
+            }
+            Log::warning('Arrow custom token rejected by Identity Toolkit', [
+                'error' => $error,
+                'iss' => $creds['client_email'],
+                'project' => $credProject ?: $envProject,
+            ]);
+        }
+
+        return null;
     }
 
     public static function lookupUidByPhone(string $e164): ?string
@@ -107,32 +145,76 @@ class FirebaseAuthAdmin
         return $uid;
     }
 
-    protected static function signJwtViaIam(string $clientEmail, array $payload): ?string
+    /**
+     * @return string|null Error message, or null if the token is accepted.
+     */
+    public static function identityToolkitRejects(string $customToken): ?string
     {
-        $access = FcmSender::accessToken([
-            'https://www.googleapis.com/auth/cloud-platform',
-            'https://www.googleapis.com/auth/iam',
-        ]);
+        $apiKey = trim((string) env('FIREBASE_APIKEY', ''));
+        if ($apiKey === '') {
+            return null;
+        }
+
+        $url = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key='.rawurlencode($apiKey);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+            'token' => $customToken,
+            'returnSecureToken' => true,
+        ]));
+        $result = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $decoded = json_decode((string) $result, true);
+
+        if ($status >= 200 && $status < 300 && !empty($decoded['idToken'])) {
+            return null;
+        }
+
+        return $decoded['error']['message'] ?? ('HTTP '.$status);
+    }
+
+    /** Firebase Admin uses IAM signBlob, not signJwt. */
+    protected static function signBlob(string $clientEmail, array $payload, ?string $kid): ?string
+    {
+        $access = FcmSender::accessToken(['https://www.googleapis.com/auth/cloud-platform']);
         if (!$access) {
             return null;
         }
 
+        $header = ['alg' => 'RS256', 'typ' => 'JWT'];
+        if ($kid) {
+            $header['kid'] = $kid;
+        }
+        $signingInput = self::b64url(json_encode($header, JSON_UNESCAPED_SLASHES))
+            .'.'
+            .self::b64url(json_encode($payload, JSON_UNESCAPED_SLASHES));
+
         $url = 'https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/'
-            .rawurlencode($clientEmail).':signJwt';
+            .rawurlencode($clientEmail).':signBlob';
         $response = self::jsonPost($url, $access, [
-            'payload' => json_encode($payload, JSON_UNESCAPED_SLASHES),
+            'payload' => base64_encode($signingInput),
         ]);
 
-        $jwt = $response['signedJwt'] ?? null;
-        if (is_string($jwt) && substr_count($jwt, '.') === 2) {
-            return $jwt;
+        $signed = $response['signedBlob'] ?? null;
+        if (!is_string($signed) || $signed === '') {
+            if (!empty($response['error']['message'])) {
+                Log::warning('Arrow IAM signBlob failed', ['error' => $response['error']['message']]);
+            }
+            return null;
         }
 
-        if (!empty($response['error']['message'])) {
-            Log::warning('Arrow IAM signJwt failed', ['error' => $response['error']['message']]);
+        $raw = base64_decode($signed, true);
+        if ($raw === false) {
+            return null;
         }
 
-        return null;
+        return $signingInput.'.'.self::b64url($raw);
     }
 
     protected static function lookupUidInFirestore(string $e164): ?string
@@ -170,6 +252,14 @@ class FirebaseAuthAdmin
         return is_array($decoded) ? $decoded : [];
     }
 
+    protected static function normalizePrivateKey(string $key): string
+    {
+        $key = str_replace(["\r\n", "\r"], "\n", $key);
+        $key = str_replace('\\n', "\n", $key);
+
+        return $key;
+    }
+
     protected static function encodeJwt(array $payload, string $privateKey, ?string $kid = null): ?string
     {
         $header = ['alg' => 'RS256', 'typ' => 'JWT'];
@@ -181,6 +271,7 @@ class FirebaseAuthAdmin
         $signingInput = $headerPart.'.'.$bodyPart;
         $ok = openssl_sign($signingInput, $signature, $privateKey, OPENSSL_ALGO_SHA256);
         if (!$ok) {
+            Log::error('Arrow openssl_sign failed');
             return null;
         }
 

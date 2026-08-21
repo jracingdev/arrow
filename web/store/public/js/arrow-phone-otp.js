@@ -61,6 +61,9 @@
                 sessionId: sessionId,
                 code: code
             }).then(function (json) {
+                if (!json.customToken) {
+                    throw new Error(json.message || 'Sessão Firebase inválida.');
+                }
                 return json.customToken;
             });
         }

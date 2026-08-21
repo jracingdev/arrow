@@ -95,8 +95,6 @@ class PhoneOtpController extends Controller
             return response()->json(['success' => false, 'message' => 'Código inválido.'], 400);
         }
 
-        Cache::forget('otp:challenge:'.$e164);
-
         $uid = FirebaseAuthAdmin::ensureAuthUser($e164);
         if (!$uid) {
             return response()->json(['success' => false, 'message' => 'Falha ao criar sessão.'], 500);
@@ -104,8 +102,14 @@ class PhoneOtpController extends Controller
 
         $customToken = FirebaseAuthAdmin::createCustomToken($uid);
         if (!$customToken) {
-            return response()->json(['success' => false, 'message' => 'Credencial Firebase ausente no servidor.'], 500);
+            Log::error('Arrow OTP custom token failed', ['uid' => $uid]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Não foi possível autenticar no Firebase. Peça o código de novo em instantes.',
+            ], 500);
         }
+
+        Cache::forget('otp:challenge:'.$e164);
 
         return response()->json([
             'success' => true,

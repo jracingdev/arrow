@@ -289,7 +289,7 @@
         @include('partials.firebase-init')
         <script src="{{ asset('js/firestore-safe.js') }}"></script>
         <script src="{{ asset('js/jquery.validate.js') }}"></script>
-        <script src="{{ asset('js/arrow-phone-otp.js') }}"></script>
+        <script src="{{ asset('js/arrow-phone-otp.js') }}?v=3"></script>
 
         <script type="text/javascript">
             var database = firebase.firestore();
