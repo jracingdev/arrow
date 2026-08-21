@@ -1,4 +1,7 @@
 import 'package:arrow_shared/arrow_phone_otp.dart';
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:arrow_shared/brazil_phone.dart';
 import 'package:customer/screen_ui/location_enable_screens/location_permission_screen.dart';
 import 'package:customer/themes/show_toast_dialog.dart';
@@ -110,6 +113,12 @@ class OtpVerifyController extends GetxController {
 
       userModel.fcmToken = fcmToken;
       await FireStoreUtils.updateUser(userModel);
+      await ArrowSecureAuthUi.afterFederatedLogin(
+        Get.context,
+        ArrowSecureAuth.forApp(ArrowAndroidPackages.customer),
+        email: userModel.email,
+        method: ArrowLoginMethod.phone,
+      );
 
       if (userModel.shippingAddress?.isNotEmpty ?? false) {
         final defaultAddress = userModel.shippingAddress!.firstWhere((e) => e.isDefault == true, orElse: () => userModel.shippingAddress!.first);

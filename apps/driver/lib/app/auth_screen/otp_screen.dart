@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:arrow_shared/arrow_phone_otp.dart';
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:driver/app/auth_screen/login_screen.dart';
 import 'package:driver/app/auth_screen/signup_screen.dart';
 import 'package:driver/app/cab_screen/cab_dashboard_screen.dart';
@@ -235,6 +238,12 @@ class OtpScreen extends StatelessWidget {
                                 if (userModel.active == true) {
                                   userModel.fcmToken = await NotificationService.getToken();
                                   await FireStoreUtils.updateUser(userModel);
+                                  await ArrowSecureAuthUi.afterFederatedLogin(
+                                    Get.context,
+                                    ArrowSecureAuth.forApp(ArrowAndroidPackages.driver),
+                                    email: userModel.email,
+                                    method: ArrowLoginMethod.phone,
+                                  );
                                   if (userModel.isOwner == true) {
                                     Get.offAll(OwnerDashboardScreen());
                                   } else if ((userModel.serviceTypes?.length ?? 0) > 1) {

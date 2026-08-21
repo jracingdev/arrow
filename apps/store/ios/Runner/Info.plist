@@ -50,6 +50,8 @@
     <string>Used to capture audio for image picker plugin</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>This app needs access to your gallery photo.</string>
+    <key>NSFaceIDUsageDescription</key>
+    <string>Confirme sua identidade para entrar no Arrow</string>
 
     <key>UIBackgroundModes</key>
     <array>

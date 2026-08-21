@@ -1,5 +1,8 @@
 import 'package:arrow_shared/arrow_auth_errors.dart';
 import 'package:arrow_shared/arrow_google_auth.dart';
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -19,7 +22,16 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final arrowAuth = ArrowSecureAuth.forApp(ArrowAndroidPackages.provider);
   bool obscure = true;
+  bool rememberMe = true;
+  bool showBiometricLogin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreRemembered();
+  }
 
   @override
   void dispose() {
@@ -28,10 +40,53 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _goHomeIfAdmitted() async {
-    if (await AuthService.admitCurrentUser()) {
-      Get.offAll(() => const HomeShell());
-    }
+  Future<void> _restoreRemembered() async {
+    try {
+      final remember = await arrowAuth.isRememberMe();
+      final email = await arrowAuth.prefillEmail();
+      final password = await arrowAuth.prefillPassword();
+      final showBio = await arrowAuth.isBiometricsEnabled() && await arrowAuth.hasPasswordSecret();
+      if (!mounted) return;
+      setState(() {
+        rememberMe = remember;
+        if (email != null && email.isNotEmpty) emailController.text = email;
+        if (password != null && password.isNotEmpty) passwordController.text = password;
+        showBiometricLogin = showBio;
+      });
+      final gate = await arrowAuth.shouldAttemptLogin(
+        hasFirebaseSession: FirebaseAuth.instance.currentUser != null,
+      );
+      if (gate == ArrowAuthGate.credentialLogin) {
+        await _loginBiometrics();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _setRememberMe(bool value) async {
+    setState(() => rememberMe = value);
+    await arrowAuth.setRememberMe(value);
+    if (!value) passwordController.clear();
+  }
+
+  Future<void> _forgetDevice() async {
+    await arrowAuth.forgetDevice();
+    if (!mounted) return;
+    setState(() {
+      rememberMe = false;
+      showBiometricLogin = false;
+      emailController.clear();
+      passwordController.clear();
+    });
+  }
+
+  Future<void> _loginBiometrics() async {
+    final ok = await arrowAuth.authenticate();
+    if (!ok) return;
+    final creds = await arrowAuth.passwordCredentials();
+    if (creds == null) return;
+    emailController.text = creds.email;
+    passwordController.text = creds.password;
+    await _loginEmail();
   }
 
   Future<void> _loginEmail() async {
@@ -49,7 +104,16 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
       ShowToastDialog.closeLoader();
-      await _goHomeIfAdmitted();
+      if (await AuthService.admitCurrentUser()) {
+        await ArrowSecureAuthUi.afterPasswordLogin(
+          context,
+          arrowAuth,
+          email: email,
+          password: password,
+          rememberMe: rememberMe,
+        );
+        Get.offAll(() => const HomeShell());
+      }
     } on FirebaseAuthException catch (e) {
       ShowToastDialog.closeLoader();
       final mfa = ArrowAuthErrors.messageFor(e);
@@ -75,7 +139,15 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await ArrowGoogleAuth.signIn();
       ShowToastDialog.closeLoader();
-      await _goHomeIfAdmitted();
+      if (await AuthService.admitCurrentUser()) {
+        await ArrowSecureAuthUi.afterFederatedLogin(
+          context,
+          arrowAuth,
+          email: FirebaseAuth.instance.currentUser?.email,
+          method: ArrowLoginMethod.google,
+        );
+        Get.offAll(() => const HomeShell());
+      }
     } catch (e) {
       ShowToastDialog.closeLoader();
       ShowToastDialog.showToast(ArrowGoogleAuth.userMessage(e));
@@ -122,8 +194,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
+              ArrowRememberMeRow(value: rememberMe, onChanged: _setRememberMe),
+              const SizedBox(height: 12),
               ElevatedButton(onPressed: _loginEmail, child: const Text('Entrar')),
+              if (showBiometricLogin) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ArrowBiometricLoginButton(onPressed: _loginBiometrics),
+                ),
+              ],
+              Center(child: ArrowForgetDeviceButton(onPressed: _forgetDevice)),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () => Get.to(() => const PhoneScreen()),

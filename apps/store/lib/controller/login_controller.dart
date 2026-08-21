@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:arrow_shared/arrow_auth_errors.dart';
 import 'package:arrow_shared/arrow_google_auth.dart';
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -28,11 +31,91 @@ class LoginController extends GetxController {
   RxBool passwordVisible = true.obs;
 
   RxInt selectedTabbar = 0.obs;
+  RxBool rememberMe = true.obs;
+  RxBool showBiometricLogin = false.obs;
+  final ArrowSecureAuth arrowAuth = ArrowSecureAuth.forApp(ArrowAndroidPackages.store);
 
   @override
   void onInit() {
-    // TODO: implement onInit
     super.onInit();
+    _restoreRemembered();
+  }
+
+  Future<void> _restoreRemembered() async {
+    try {
+      rememberMe.value = await arrowAuth.isRememberMe();
+      final email = await arrowAuth.prefillEmail();
+      final password = await arrowAuth.prefillPassword();
+      if (email != null && email.isNotEmpty) {
+        emailEditingControllerOwner.value.text = email;
+        emailEditingControllerEmployee.value.text = email;
+      }
+      if (password != null && password.isNotEmpty) {
+        passwordEditingControllerOwner.value.text = password;
+        passwordEditingControllerEmployee.value.text = password;
+      }
+      showBiometricLogin.value = await arrowAuth.isBiometricsEnabled() && await arrowAuth.hasPasswordSecret();
+      final gate = await arrowAuth.shouldAttemptLogin(
+        hasFirebaseSession: FirebaseAuth.instance.currentUser != null,
+      );
+      if (gate == ArrowAuthGate.credentialLogin) {
+        await loginWithBiometrics();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> setRememberMe(bool value) async {
+    rememberMe.value = value;
+    await arrowAuth.setRememberMe(value);
+    if (!value) {
+      passwordEditingControllerOwner.value.clear();
+      passwordEditingControllerEmployee.value.clear();
+    }
+  }
+
+  Future<void> forgetDevice() async {
+    await arrowAuth.forgetDevice();
+    rememberMe.value = false;
+    showBiometricLogin.value = false;
+    emailEditingControllerOwner.value.clear();
+    passwordEditingControllerOwner.value.clear();
+    emailEditingControllerEmployee.value.clear();
+    passwordEditingControllerEmployee.value.clear();
+  }
+
+  Future<void> loginWithBiometrics() async {
+    final ok = await arrowAuth.authenticate();
+    if (!ok) return;
+    final creds = await arrowAuth.passwordCredentials();
+    if (creds == null) return;
+    if (selectedTabbar.value == 1) {
+      emailEditingControllerEmployee.value.text = creds.email;
+      passwordEditingControllerEmployee.value.text = creds.password;
+      await employeeloginWithEmailAndPassword();
+    } else {
+      emailEditingControllerOwner.value.text = creds.email;
+      passwordEditingControllerOwner.value.text = creds.password;
+      await onwerloginWithEmailAndPassword();
+    }
+  }
+
+  Future<void> _persistPassword(String email, String password) {
+    return ArrowSecureAuthUi.afterPasswordLogin(
+      Get.context,
+      arrowAuth,
+      email: email,
+      password: password,
+      rememberMe: rememberMe.value,
+    );
+  }
+
+  Future<void> _persistFederated({String? email, required ArrowLoginMethod method}) {
+    return ArrowSecureAuthUi.afterFederatedLogin(
+      Get.context,
+      arrowAuth,
+      email: email,
+      method: method,
+    );
   }
 
   Future<void> onwerloginWithEmailAndPassword() async {
@@ -50,6 +133,10 @@ class LoginController extends GetxController {
               userModel.fcmToken = await NotificationService.getToken();
             } catch (_) {}
             await FireStoreUtils.updateUser(userModel);
+            await _persistPassword(
+              emailEditingControllerOwner.value.text.toLowerCase().trim(),
+              passwordEditingControllerOwner.value.text.trim(),
+            );
             bool isPlanExpire = false;
             if (userModel.subscriptionPlan?.id != null) {
               if (userModel.subscriptionExpiryDate == null) {
@@ -128,6 +215,10 @@ class LoginController extends GetxController {
               userModel.fcmToken = await NotificationService.getToken();
             } catch (_) {}
             await FireStoreUtils.updateUser(userModel);
+            await _persistPassword(
+              emailEditingControllerEmployee.value.text.toLowerCase().trim(),
+              passwordEditingControllerEmployee.value.text.trim(),
+            );
             VendorModel? vendor = await FireStoreUtils.getVendorById(userModel.vendorID!);
             bool isPlanExpire = false;
             if (vendor?.subscriptionPlan?.id != null) {
@@ -241,6 +332,7 @@ class LoginController extends GetxController {
       } catch (_) {}
       await FireStoreUtils.updateUser(userModel);
       Constant.userModel = userModel;
+      await _persistFederated(email: userModel.email, method: ArrowLoginMethod.google);
 
       bool isPlanExpire = false;
       if (userModel.subscriptionPlan?.id != null) {
@@ -308,6 +400,7 @@ class LoginController extends GetxController {
                 if (userModel.active == true) {
                   userModel.fcmToken = await NotificationService.getToken();
                   await FireStoreUtils.updateUser(userModel);
+                  await _persistFederated(email: userModel.email, method: ArrowLoginMethod.apple);
                   bool isPlanExpire = false;
                   if (userModel.subscriptionPlan?.id != null) {
                     if (userModel.subscriptionExpiryDate == null) {

@@ -1,4 +1,7 @@
 import 'package:arrow_shared/arrow_phone_otp.dart';
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -139,6 +142,12 @@ class OtpScreen extends StatelessWidget {
                                             if (userModel.active == true) {
                                               userModel.fcmToken = await NotificationService.getToken();
                                               await FireStoreUtils.updateUser(userModel);
+                                              await ArrowSecureAuthUi.afterFederatedLogin(
+                                                Get.context,
+                                                ArrowSecureAuth.forApp(ArrowAndroidPackages.store),
+                                                email: userModel.email,
+                                                method: ArrowLoginMethod.phone,
+                                              );
                                               bool isPlanExpire = false;
                                               if (userModel.subscriptionPlan?.id != null) {
                                                 if (userModel.subscriptionExpiryDate == null) {

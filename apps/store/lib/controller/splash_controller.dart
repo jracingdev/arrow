@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:vendor/app/auth_screen/login_screen.dart';
@@ -32,11 +35,29 @@ class SplashController extends GetxController {
         return;
       }
       bool isLogin = await FireStoreUtils.isLogin();
+      final auth = ArrowSecureAuth.forApp(ArrowAndroidPackages.store);
+      final gate = await auth.shouldAttemptLogin(hasFirebaseSession: isLogin);
+      if (gate == ArrowAuthGate.sessionLock) {
+        Get.offAll(() => ArrowBiometricLockPage(
+              auth: auth,
+              onUnlocked: () => _admitLoggedInUser(),
+              onUsePassword: () => Get.offAll(const LoginScreen()),
+            ));
+        return;
+      }
       if (isLogin != true) {
         await FirebaseAuth.instance.signOut();
         Get.offAll(const LoginScreen());
         return;
       }
+      await _admitLoggedInUser();
+    } catch (e) {
+      Get.offAll(const LoginScreen());
+    }
+  }
+
+  Future<void> _admitLoggedInUser() async {
+    try {
       await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid()).then((value) async {
         if (value != null) {
           Constant.userModel = value;

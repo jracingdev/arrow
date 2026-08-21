@@ -1,3 +1,6 @@
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -848,6 +851,8 @@ class ProfileScreen extends StatelessWidget {
                                       Get.to(const TermsAndConditionScreen(type: "privacy"));
                                     },
                                   ),
+                                  ArrowBiometricSettingsTile(auth: ArrowSecureAuth.forApp(ArrowAndroidPackages.store)),
+                                  ArrowForgetDeviceTile(auth: ArrowSecureAuth.forApp(ArrowAndroidPackages.store)),
                                   if (Constant.userModel?.provider == 'email')
                                     cardDecoration(
                                       isDark,

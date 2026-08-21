@@ -1,3 +1,6 @@
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/controllers/my_profile_controller.dart';
 import 'package:customer/screen_ui/change_password_screen/change_password_screen.dart';
@@ -233,6 +236,8 @@ class ProfileScreen extends StatelessWidget {
                                     cardDecoration(isDark, controller, "assets/icons/ic_lock.svg", "Change Password".tr, () {
                                       Get.to(const ChangePasswordScreen());
                                     }),
+                                  ArrowBiometricSettingsTile(auth: ArrowSecureAuth.forApp(ArrowAndroidPackages.customer)),
+                                  ArrowForgetDeviceTile(auth: ArrowSecureAuth.forApp(ArrowAndroidPackages.customer)),
                                 ],
                               ),
                             ),

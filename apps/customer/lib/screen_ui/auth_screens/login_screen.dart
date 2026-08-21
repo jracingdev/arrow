@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:customer/screen_ui/auth_screens/sign_up_screen.dart';
 import 'package:customer/screen_ui/location_enable_screens/location_permission_screen.dart';
 import 'package:flutter/gestures.dart';
@@ -79,6 +80,10 @@ class LoginScreen extends StatelessWidget {
                               ),
                             ),
                           ),
+                          ArrowRememberMeRow(
+                            value: controller.rememberMe.value,
+                            onChanged: controller.setRememberMe,
+                          ),
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
@@ -93,6 +98,14 @@ class LoginScreen extends StatelessWidget {
                             color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900,
                             textColor: isDark ? AppThemeData.surfaceDark : AppThemeData.surface,
                           ),
+                          if (controller.showBiometricLogin.value) ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ArrowBiometricLoginButton(onPressed: controller.loginWithBiometrics),
+                            ),
+                          ],
+                          ArrowForgetDeviceButton(onPressed: controller.forgetDevice),
                           const SizedBox(height: 25),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,

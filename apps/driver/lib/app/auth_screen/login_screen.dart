@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:driver/app/auth_screen/phone_number_screen.dart';
 import 'package:driver/app/auth_screen/signup_screen.dart';
 import 'package:driver/app/forgot_password_screen/forgot_password_screen.dart';
@@ -132,6 +133,10 @@ class LoginScreen extends StatelessWidget {
                     ),
                     textInputAction: TextInputAction.done,
                   ),
+                  ArrowRememberMeRow(
+                    value: controller.rememberMe.value,
+                    onChanged: controller.setRememberMe,
+                  ),
                   InkWell(
                     onTap: () {
                       Get.to(const ForgotPasswordScreen());
@@ -150,8 +155,17 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(
-                    height: 30,
+                    height: 12,
                   ),
+                  if (controller.showBiometricLogin.value)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ArrowBiometricLoginButton(onPressed: controller.loginWithBiometrics),
+                      ),
+                    ),
+                  ArrowForgetDeviceButton(onPressed: controller.forgetDevice),
                 ],
               ),
             ),

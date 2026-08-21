@@ -6,6 +6,8 @@
 	<string>Usamos sua localização em primeiro plano para mostrar pedidos próximos e o caminho até o atendimento.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Selecione a nota fiscal (NFS-e) para anexar à reserva.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Confirme sua identidade para entrar no Arrow</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>https</string>

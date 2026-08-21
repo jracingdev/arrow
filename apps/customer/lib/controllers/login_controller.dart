@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:arrow_shared/arrow_auth_errors.dart';
 import 'package:arrow_shared/arrow_google_auth.dart';
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:customer/screen_ui/location_enable_screens/location_permission_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +31,56 @@ class LoginController extends GetxController {
   final RxBool isLoading = false.obs;
 
   RxBool passwordVisible = true.obs;
+  RxBool rememberMe = true.obs;
+  RxBool showBiometricLogin = false.obs;
+  final ArrowSecureAuth arrowAuth = ArrowSecureAuth.forApp(ArrowAndroidPackages.customer);
+
+  @override
+  void onInit() {
+    super.onInit();
+    _restoreRemembered();
+  }
+
+  Future<void> _restoreRemembered() async {
+    try {
+      rememberMe.value = await arrowAuth.isRememberMe();
+      final email = await arrowAuth.prefillEmail();
+      final password = await arrowAuth.prefillPassword();
+      if (email != null && email.isNotEmpty) emailController.value.text = email;
+      if (password != null && password.isNotEmpty) passwordController.value.text = password;
+      showBiometricLogin.value = await arrowAuth.isBiometricsEnabled() && await arrowAuth.hasPasswordSecret();
+      final gate = await arrowAuth.shouldAttemptLogin(
+        hasFirebaseSession: FirebaseAuth.instance.currentUser != null,
+      );
+      if (gate == ArrowAuthGate.credentialLogin) {
+        await loginWithBiometrics();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> setRememberMe(bool value) async {
+    rememberMe.value = value;
+    await arrowAuth.setRememberMe(value);
+    if (!value) passwordController.value.clear();
+  }
+
+  Future<void> forgetDevice() async {
+    await arrowAuth.forgetDevice();
+    rememberMe.value = false;
+    showBiometricLogin.value = false;
+    emailController.value.clear();
+    passwordController.value.clear();
+  }
+
+  Future<void> loginWithBiometrics() async {
+    final ok = await arrowAuth.authenticate();
+    if (!ok) return;
+    final creds = await arrowAuth.passwordCredentials();
+    if (creds == null) return;
+    emailController.value.text = creds.email;
+    passwordController.value.text = creds.password;
+    await loginWithEmail();
+  }
 
   Future<void> loginWithEmail() async {
     final email = emailController.value.text.trim();
@@ -56,6 +109,13 @@ class LoginController extends GetxController {
             userModel.fcmToken = await NotificationService.getToken();
           } catch (_) {}
           await FireStoreUtils.updateUser(userModel);
+          await ArrowSecureAuthUi.afterPasswordLogin(
+            Get.context,
+            arrowAuth,
+            email: email,
+            password: password,
+            rememberMe: rememberMe.value,
+          );
 
           if (userModel.shippingAddress != null && userModel.shippingAddress!.isNotEmpty) {
             final defaultAddress = userModel.shippingAddress!.firstWhere((e) => e.isDefault == true, orElse: () => userModel.shippingAddress!.first);
@@ -121,6 +181,12 @@ class LoginController extends GetxController {
               if (userModel.active == true) {
                 userModel.fcmToken = await NotificationService.getToken();
                 await FireStoreUtils.updateUser(userModel);
+                await ArrowSecureAuthUi.afterFederatedLogin(
+                  Get.context,
+                  arrowAuth,
+                  email: value.user?.email,
+                  method: ArrowLoginMethod.google,
+                );
 
                 if (userModel.shippingAddress != null && userModel.shippingAddress!.isNotEmpty) {
                   final defaultAddress = userModel.shippingAddress!.firstWhere((e) => e.isDefault == true, orElse: () => userModel.shippingAddress!.first);
@@ -189,6 +255,12 @@ class LoginController extends GetxController {
                 if (userModel.active == true) {
                   userModel.fcmToken = await NotificationService.getToken();
                   await FireStoreUtils.updateUser(userModel);
+                  await ArrowSecureAuthUi.afterFederatedLogin(
+                    Get.context,
+                    arrowAuth,
+                    email: userCredential.user?.email ?? appleCredential.email,
+                    method: ArrowLoginMethod.apple,
+                  );
 
                   if (userModel.shippingAddress != null && userModel.shippingAddress!.isNotEmpty) {
                     final defaultAddress = userModel.shippingAddress!.firstWhere((e) => e.isDefault == true, orElse: () => userModel.shippingAddress!.first);

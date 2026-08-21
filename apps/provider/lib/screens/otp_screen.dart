@@ -1,5 +1,9 @@
 import 'package:arrow_shared/arrow_phone_otp.dart';
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:arrow_shared/brazil_phone.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/constant/show_toast_dialog.dart';
@@ -51,6 +55,12 @@ class _OtpScreenState extends State<OtpScreen> {
       );
       ShowToastDialog.closeLoader();
       if (await AuthService.admitCurrentUser()) {
+        await ArrowSecureAuthUi.afterFederatedLogin(
+          context,
+          ArrowSecureAuth.forApp(ArrowAndroidPackages.provider),
+          email: FirebaseAuth.instance.currentUser?.email,
+          method: ArrowLoginMethod.phone,
+        );
         Get.offAll(() => const HomeShell());
       } else {
         Get.offAll(() => const LoginScreen());

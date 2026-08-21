@@ -1,3 +1,6 @@
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -22,6 +25,22 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _boot() async {
     await Future<void>.delayed(const Duration(milliseconds: 400));
+    final user = FirebaseAuth.instance.currentUser;
+    final auth = ArrowSecureAuth.forApp(ArrowAndroidPackages.provider);
+    final hasSession = user != null;
+    final gate = await auth.shouldAttemptLogin(hasFirebaseSession: hasSession);
+    if (gate == ArrowAuthGate.sessionLock) {
+      Get.offAll(() => ArrowBiometricLockPage(
+            auth: auth,
+            onUnlocked: () => _admitOrLogin(),
+            onUsePassword: () => Get.offAll(() => const LoginScreen()),
+          ));
+      return;
+    }
+    await _admitOrLogin();
+  }
+
+  Future<void> _admitOrLogin() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       Get.offAll(() => const LoginScreen());

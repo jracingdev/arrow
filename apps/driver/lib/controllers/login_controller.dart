@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:arrow_shared/arrow_auth_errors.dart';
 import 'package:arrow_shared/arrow_google_auth.dart';
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:crypto/crypto.dart';
 import 'package:driver/app/auth_screen/signup_screen.dart';
 import 'package:driver/app/cab_screen/cab_dashboard_screen.dart';
@@ -24,10 +27,55 @@ class LoginController extends GetxController {
   Rx<TextEditingController> passwordEditingController = TextEditingController().obs;
 
   RxBool passwordVisible = true.obs;
+  RxBool rememberMe = true.obs;
+  RxBool showBiometricLogin = false.obs;
+  final ArrowSecureAuth arrowAuth = ArrowSecureAuth.forApp(ArrowAndroidPackages.driver);
 
   @override
   void onInit() {
     super.onInit();
+    _restoreRemembered();
+  }
+
+  Future<void> _restoreRemembered() async {
+    try {
+      rememberMe.value = await arrowAuth.isRememberMe();
+      final email = await arrowAuth.prefillEmail();
+      final password = await arrowAuth.prefillPassword();
+      if (email != null && email.isNotEmpty) emailEditingController.value.text = email;
+      if (password != null && password.isNotEmpty) passwordEditingController.value.text = password;
+      showBiometricLogin.value = await arrowAuth.isBiometricsEnabled() && await arrowAuth.hasPasswordSecret();
+      final gate = await arrowAuth.shouldAttemptLogin(
+        hasFirebaseSession: FirebaseAuth.instance.currentUser != null,
+      );
+      if (gate == ArrowAuthGate.credentialLogin) {
+        await loginWithBiometrics();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> setRememberMe(bool value) async {
+    rememberMe.value = value;
+    await arrowAuth.setRememberMe(value);
+    if (!value) passwordEditingController.value.clear();
+  }
+
+  Future<void> forgetDevice() async {
+    await arrowAuth.forgetDevice();
+    rememberMe.value = false;
+    showBiometricLogin.value = false;
+    emailEditingController.value.clear();
+    passwordEditingController.value.clear();
+  }
+
+  Future<void> loginWithBiometrics() async {
+    final ok = await arrowAuth.authenticate();
+    if (!ok) return;
+    final creds = await arrowAuth.passwordCredentials();
+    if (creds == null) return;
+    emailEditingController.value.text = creds.email;
+    passwordEditingController.value.text = creds.password;
+    await loginWithEmailAndPassword();
   }
 
   Future<void> loginWithEmailAndPassword() async {
@@ -44,6 +92,13 @@ class LoginController extends GetxController {
             userModel?.fcmToken = await NotificationService.getToken();
           } catch (_) {}
           await FireStoreUtils.updateUser(userModel!);
+          await ArrowSecureAuthUi.afterPasswordLogin(
+            Get.context,
+            arrowAuth,
+            email: emailEditingController.value.text.toLowerCase().trim(),
+            password: passwordEditingController.value.text.trim(),
+            rememberMe: rememberMe.value,
+          );
           // Motorista já aprovado entra mesmo se auto_approve_driver estiver desligado
           // (essa flag vale só para cadastro novo).
           _navigateByUserModel(userModel);
@@ -108,6 +163,12 @@ class LoginController extends GetxController {
                 if (userModel.active == true) {
                   userModel.fcmToken = await NotificationService.getToken();
                   await FireStoreUtils.updateUser(userModel);
+                  await ArrowSecureAuthUi.afterFederatedLogin(
+                    Get.context,
+                    arrowAuth,
+                    email: userModel.email,
+                    method: ArrowLoginMethod.google,
+                  );
                   _navigateByUserModel(userModel);
                 } else {
                   await FirebaseAuth.instance.signOut();
@@ -167,6 +228,12 @@ class LoginController extends GetxController {
                 if (userModel.active == true) {
                   userModel.fcmToken = await NotificationService.getToken();
                   await FireStoreUtils.updateUser(userModel);
+                  await ArrowSecureAuthUi.afterFederatedLogin(
+                    Get.context,
+                    arrowAuth,
+                    email: userModel.email,
+                    method: ArrowLoginMethod.apple,
+                  );
                   _navigateByUserModel(userModel);
                 } else {
                   await FirebaseAuth.instance.signOut();

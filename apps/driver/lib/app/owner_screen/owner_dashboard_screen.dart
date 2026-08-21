@@ -10,6 +10,7 @@ import 'package:driver/app/verification_screen/verification_screen.dart';
 import 'package:driver/app/wallet_screen/wallet_screen.dart';
 import 'package:driver/app/withdraw_method_setup_screens/withdraw_method_setup_screen.dart';
 import 'package:driver/constant/constant.dart';
+import 'package:driver/themes/driver_auth_settings_tiles.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
 import 'package:driver/controllers/owner_dashboard_controller.dart';
 import 'package:driver/services/audio_player_service.dart';
@@ -544,6 +545,7 @@ class DrawerView extends StatelessWidget {
                           controller.drawerIndex.value = 9;
                         },
                       ),
+                    const DriverAuthSettingsTiles(),
                     const SizedBox(
                       height: 10,
                     ),

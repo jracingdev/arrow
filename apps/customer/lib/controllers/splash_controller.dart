@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/models/language_model.dart';
 import 'package:customer/models/user_model.dart';
@@ -43,50 +46,64 @@ class SplashController extends GetxController {
       }
       if (Preferences.getBoolean(Preferences.isFinishOnBoardingKey) == false) {
         Get.offAll(const OnboardingScreen());
+        return;
+      }
+      bool isLogin = await FireStoreUtils.isLogin();
+      final auth = ArrowSecureAuth.forApp(ArrowAndroidPackages.customer);
+      final gate = await auth.shouldAttemptLogin(hasFirebaseSession: isLogin);
+      if (gate == ArrowAuthGate.sessionLock) {
+        Get.offAll(() => ArrowBiometricLockPage(
+              auth: auth,
+              onUnlocked: () => _admitLoggedInUser(),
+              onUsePassword: () => Get.offAll(const LoginScreen()),
+            ));
+        return;
+      }
+      if (isLogin == true) {
+        await _admitLoggedInUser();
       } else {
-        bool isLogin = await FireStoreUtils.isLogin();
-        if (isLogin == true) {
-          await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid()).then((value) async {
-            if (value != null) {
-              UserModel userModel = value;
-              log(userModel.toJson().toString());
-              if (userModel.role == Constant.userRoleCustomer) {
-                if (userModel.active == true) {
-                  try {
-                    userModel.fcmToken = await NotificationService.getToken();
-                  } catch (_) {}
-                  await FireStoreUtils.updateUser(userModel);
-                  if (userModel.shippingAddress != null && userModel.shippingAddress!.isNotEmpty) {
-                    if (userModel.shippingAddress!.where((element) => element.isDefault == true).isNotEmpty) {
-                      Constant.selectedLocation = userModel.shippingAddress!.where((element) => element.isDefault == true).single;
-                    } else {
-                      Constant.selectedLocation = userModel.shippingAddress!.first;
-                    }
-                    Get.offAll(const ServiceListScreen());
-                  } else {
-                    Get.offAll(const LocationPermissionScreen());
-                  }
-                } else {
-                  await FirebaseAuth.instance.signOut();
-                  Get.offAll(const LoginScreen());
-                }
-              } else {
-                await FirebaseAuth.instance.signOut();
-                Get.offAll(const LoginScreen());
-              }
-            } else {
-              await FirebaseAuth.instance.signOut();
-              Get.offAll(const LoginScreen());
-            }
-          });
-        } else {
-          await FirebaseAuth.instance.signOut();
-          Get.offAll(const LoginScreen());
-        }
+        await FirebaseAuth.instance.signOut();
+        Get.offAll(const LoginScreen());
       }
     } catch (e, st) {
       log('splash redirect failed: $e\n$st');
       Get.offAll(const LoginScreen());
     }
+  }
+
+  Future<void> _admitLoggedInUser() async {
+    await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid()).then((value) async {
+      if (value != null) {
+        UserModel userModel = value;
+        log(userModel.toJson().toString());
+        if (userModel.role == Constant.userRoleCustomer) {
+          if (userModel.active == true) {
+            try {
+              userModel.fcmToken = await NotificationService.getToken();
+            } catch (_) {}
+            await FireStoreUtils.updateUser(userModel);
+            if (userModel.shippingAddress != null && userModel.shippingAddress!.isNotEmpty) {
+              if (userModel.shippingAddress!.where((element) => element.isDefault == true).isNotEmpty) {
+                Constant.selectedLocation = userModel.shippingAddress!.where((element) => element.isDefault == true).single;
+              } else {
+                Constant.selectedLocation = userModel.shippingAddress!.first;
+              }
+              Get.offAll(const ServiceListScreen());
+            } else {
+              Get.offAll(const LocationPermissionScreen());
+            }
+          } else {
+            await FirebaseAuth.instance.signOut();
+            Get.offAll(const LoginScreen());
+          }
+        } else {
+          await FirebaseAuth.instance.signOut();
+          Get.offAll(const LoginScreen());
+        }
+      } else {
+        await FirebaseAuth.instance.signOut();
+        Get.offAll(const LoginScreen());
+      }
+    });
   }
 }

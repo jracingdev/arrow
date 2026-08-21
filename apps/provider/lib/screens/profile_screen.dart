@@ -1,3 +1,6 @@
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:arrow_shared/rating_average.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -109,6 +112,8 @@ class ProfileScreen extends StatelessWidget {
                 onTap: () => Get.to(() => const DocumentsScreen()),
               ),
               const Divider(),
+              ArrowBiometricSettingsTile(auth: ArrowSecureAuth.forApp(ArrowAndroidPackages.provider)),
+              ArrowForgetDeviceTile(auth: ArrowSecureAuth.forApp(ArrowAndroidPackages.provider)),
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
                 child: Text(

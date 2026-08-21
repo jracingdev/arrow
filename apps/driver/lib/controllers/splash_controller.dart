@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/arrow_secure_auth.dart';
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:driver/app/auth_screen/login_screen.dart';
 import 'package:driver/app/maintenance_mode_screen/maintenance_mode_screen.dart';
 import 'package:driver/app/on_boarding_screen.dart';
@@ -32,35 +35,18 @@ class SplashController extends GetxController {
         return;
       }
       bool isLogin = await FireStoreUtils.isLogin();
+      final auth = ArrowSecureAuth.forApp(ArrowAndroidPackages.driver);
+      final gate = await auth.shouldAttemptLogin(hasFirebaseSession: isLogin);
+      if (gate == ArrowAuthGate.sessionLock) {
+        Get.offAll(() => ArrowBiometricLockPage(
+              auth: auth,
+              onUnlocked: () => _admitLoggedInUser(),
+              onUsePassword: () => Get.offAll(const LoginScreen()),
+            ));
+        return;
+      }
       if (isLogin == true) {
-        await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid()).then((value) async {
-          if (value != null) {
-            UserModel userModel = value;
-            log(userModel.toJson().toString());
-            if (userModel.role == Constant.userRoleDriver) {
-              if (userModel.active == true) {
-                try {
-                  userModel.fcmToken = await NotificationService.getToken();
-                } catch (_) {}
-                await FireStoreUtils.updateUser(userModel);
-                if (userModel.isOwner == true) {
-                  Get.offAll(OwnerDashboardScreen());
-                } else {
-                  SignupController.navigateByUserModel(userModel);
-                }
-              } else {
-                await FirebaseAuth.instance.signOut();
-                Get.offAll(const LoginScreen());
-              }
-            } else {
-              await FirebaseAuth.instance.signOut();
-              Get.offAll(const LoginScreen());
-            }
-          } else {
-            await FirebaseAuth.instance.signOut();
-            Get.offAll(const LoginScreen());
-          }
-        });
+        await _admitLoggedInUser();
       } else {
         await FirebaseAuth.instance.signOut();
         Get.offAll(const LoginScreen());
@@ -69,5 +55,36 @@ class SplashController extends GetxController {
       log('splash redirect failed: $e\n$st');
       Get.offAll(const LoginScreen());
     }
+  }
+
+  Future<void> _admitLoggedInUser() async {
+    await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid()).then((value) async {
+      if (value != null) {
+        UserModel userModel = value;
+        log(userModel.toJson().toString());
+        if (userModel.role == Constant.userRoleDriver) {
+          if (userModel.active == true) {
+            try {
+              userModel.fcmToken = await NotificationService.getToken();
+            } catch (_) {}
+            await FireStoreUtils.updateUser(userModel);
+            if (userModel.isOwner == true) {
+              Get.offAll(OwnerDashboardScreen());
+            } else {
+              SignupController.navigateByUserModel(userModel);
+            }
+          } else {
+            await FirebaseAuth.instance.signOut();
+            Get.offAll(const LoginScreen());
+          }
+        } else {
+          await FirebaseAuth.instance.signOut();
+          Get.offAll(const LoginScreen());
+        }
+      } else {
+        await FirebaseAuth.instance.signOut();
+        Get.offAll(const LoginScreen());
+      }
+    });
   }
 }

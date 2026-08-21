@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:arrow_shared/arrow_secure_auth_ui.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -151,6 +152,10 @@ class OwnerLoginForm extends StatelessWidget {
                 ),
               ),
             ),
+            ArrowRememberMeRow(
+              value: controller.rememberMe.value,
+              onChanged: controller.setRememberMe,
+            ),
             Align(
               alignment: Alignment.centerRight,
               child: InkWell(
@@ -177,6 +182,14 @@ class OwnerLoginForm extends StatelessWidget {
                 }
               },
             ),
+            if (controller.showBiometricLogin.value) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ArrowBiometricLoginButton(onPressed: controller.loginWithBiometrics),
+              ),
+            ],
+            Center(child: ArrowForgetDeviceButton(onPressed: controller.forgetDevice)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Row(
@@ -279,6 +292,10 @@ class EmployeeLoginForm extends StatelessWidget {
                 ),
               ),
             ),
+            ArrowRememberMeRow(
+              value: controller.rememberMe.value,
+              onChanged: controller.setRememberMe,
+            ),
             const SizedBox(height: 30),
             RoundedButtonFill(
               title: "Login".tr,
@@ -294,6 +311,14 @@ class EmployeeLoginForm extends StatelessWidget {
                 }
               },
             ),
+            if (controller.showBiometricLogin.value) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ArrowBiometricLoginButton(onPressed: controller.loginWithBiometrics),
+              ),
+            ],
+            Center(child: ArrowForgetDeviceButton(onPressed: controller.forgetDevice)),
           ],
         ),
       ),
