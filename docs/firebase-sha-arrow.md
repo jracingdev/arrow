@@ -2,24 +2,21 @@
 
 Console display name: **arrow**. Project ID: **j-arrow**. Project number: **661081769489**.
 
-## SHA: local keystore vs Firebase Console
+Assinatura: ver `apps/README.md`. Release usa `apps/keystore/arrow-upload.jks` (não versionado).
 
-Os APKs desta máquina **não** usam o SHA que está no Console.
+## SHA para o Console (colar nos 3 apps)
 
 | Origem | SHA-1 | SHA-256 |
 |--------|-------|---------|
-| **Keystore local** (`%USERPROFILE%\.android\debug.keystore`, alias `androiddebugkey`) e APKs `app-release.apk` | `E1:95:34:B7:ED:3D:8A:AC:5C:34:C1:CD:46:4B:1C:56:31:91:77:EC` | `2E:49:8D:5D:FB:0D:BF:69:6E:60:10:97:9F:ED:8F:B9:AB:5F:E3:CE:44:BB:CC:65:8A:8C:CC:99:32:F4:FC:7C` |
-| **Firebase Console** (cadastrado nos 3 apps Android) | `4D:D8:33:1F:75:F0:8E:64:2E:19:67:12:54:F5:94:53:70:EC:2A:85` | `D6:37:B2:99:45:28:39:1E:55:4D:6D:83:22:0D:33:EB:32:ED:B6:90:06:90:1D:51:18:63:5A:69:B3:8F:2C:F0` |
+| **Debug** (USB / `flutter run`, `debug.keystore` desta máquina) | `E1:95:34:B7:ED:3D:8A:AC:5C:34:C1:CD:46:4B:1C:56:31:91:77:EC` | `2E:49:8D:5D:FB:0D:BF:69:6E:60:10:97:9F:ED:8F:B9:AB:5F:E3:CE:44:BB:CC:65:8A:8C:CC:99:32:F4:FC:7C` |
+| **Release Arrow** (`arrow-upload.jks`, alias `arrow`) | `1C:CF:2A:5A:4E:2B:CE:AE:79:06:26:BD:D5:D9:F6:2F:0C:56:9E:AD` | `48:E1:42:7F:1F:07:B3:5F:61:58:40:50:79:60:72:03:87:74:BE:04:70:0C:35:A9:A2:02:AC:75:73:D1:7F:00` |
+| Já no Console (`oauth_client` type 1) — pode ficar | `4D:D8:33:1F:75:F0:8E:64:2E:19:67:12:54:F5:94:53:70:EC:2A:85` | `D6:37:B2:99:45:28:39:1E:55:4D:6D:83:22:0D:33:EB:32:ED:B6:90:06:90:1D:51:18:63:5A:69:B3:8F:2C:F0` |
 
-**Ação obrigatória no Console:** em cada app Android, **Add fingerprint** com o SHA **local** (E1:95:… / 2E:49:…). Sem isso, Google Sign-In continua `DEVELOPER_ERROR` / `ApiException: 10`.
+**Agora (APKs debug nos aparelhos):** Adicionar impressão digital **debug** nos 3 apps. Sem isso, Google Sign-In continua `invalid-cert-hash`.
 
-O SHA `4D:D8:…` pode ficar cadastrado (não atrapalha), mas **não** assina os APKs atuais. Não há outra keystore no repo.
+**Antes do primeiro `flutter build apk` release:** Adicionar também os SHA **release**. Não rebuildar release até isso estar no Console.
 
-```bat
-keytool -list -v -keystore %USERPROFILE%\.android\debug.keystore -alias androiddebugkey -storepass android -keypass android
-```
-
-## Apps Android reais (Firebase Console)
+## Apps Android
 
 | App | Package | App ID |
 |-----|---------|--------|
@@ -27,19 +24,11 @@ keytool -list -v -keystore %USERPROFILE%\.android\debug.keystore -alias androidd
 | Store | `br.app.arrow.store` | `1:661081769489:android:c625e7c47a334c31a4d3b0` |
 | Driver | `br.app.arrow.driver` | `1:661081769489:android:246c57cb98fff558a4d3b0` |
 
-Web (painéis Laravel, `__firebaseConfig` em produção): `1:661081769489:web:7eea7bece5a655cfa4d3b0`
+Web: `1:661081769489:web:7eea7bece5a655cfa4d3b0`
 
-IDs `…:android:7eea7bece5a655cfa4d3b1/b2/b3` eram placeholders locais — **não** existem no Console.
+## Depois de cadastrar
 
-O JSON oficial (baixado do Console) traz `oauth_client` e o client Web
-`661081769489-5e7inqhv9suqfdj4op1hms5drjtuojkd.apps.googleusercontent.com`,
-já preenchido em `kGoogleSignInWebClientId`. O `certificate_hash` Android
-desse JSON é **só** o SHA do Console (`4dd8331f…`). Os APKs desta máquina
-continuam com o SHA local `e19534b7…` — Sign-In Google ainda exige
-**Add fingerprint** com o SHA local nos 3 apps.
-
-## Depois de cadastrar o SHA local
-
-1. Authentication → Sign-in method → **Google** → Enable (se ainda não estiver).
-2. Aguarde 2–5 minutos (o JSON já tem oauth_client; não precisa baixar de novo só por isso).
-3. Rebuild + reinstall.
+1. Authentication → Sign-in method → **Google** habilitado.
+2. Esperar 2–5 minutos.
+3. Baixar `google-services.json` atualizado se o Console tiver gerado novos `oauth_client` (arquivo gitignored).
+4. Só então rebuild **release** (combinado). Debug USB já deve funcionar após o passo debug.

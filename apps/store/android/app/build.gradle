@@ -24,6 +24,12 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('../../keystore/key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new java.io.FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace 'br.app.arrow.store'
     compileSdkVersion 36
@@ -53,13 +59,24 @@ android {
         versionName flutterVersionName
     }
 
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false  // Disable minification
-            shrinkResources false  // Disable shrinking resources
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `store run --release` works.
-            signingConfig signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 

@@ -37,7 +37,7 @@ void main() {
     );
   });
 
-  test('local debug SHA-1 is E1:95, not the Console 4D:D8 fingerprint', () {
+  test('local debug SHA-1 is E1:95; release Arrow is 1C:CF, not Console 4D:D8', () {
     expect(
       ArrowDebugSigningSha.sha1,
       'E1:95:34:B7:ED:3D:8A:AC:5C:34:C1:CD:46:4B:1C:56:31:91:77:EC',
@@ -46,10 +46,21 @@ void main() {
       ArrowDebugSigningSha.sha256,
       '2E:49:8D:5D:FB:0D:BF:69:6E:60:10:97:9F:ED:8F:B9:AB:5F:E3:CE:44:BB:CC:65:8A:8C:CC:99:32:F4:FC:7C',
     );
+    expect(
+      ArrowReleaseSigningSha.sha1,
+      '1C:CF:2A:5A:4E:2B:CE:AE:79:06:26:BD:D5:D9:F6:2F:0C:56:9E:AD',
+    );
+    expect(
+      ArrowReleaseSigningSha.sha256,
+      '48:E1:42:7F:1F:07:B3:5F:61:58:40:50:79:60:72:03:87:74:BE:04:70:0C:35:A9:A2:02:AC:75:73:D1:7F:00',
+    );
     expect(ArrowDebugSigningSha.sha1, isNot(ArrowFirebaseConsoleSha.sha1));
+    expect(ArrowReleaseSigningSha.sha1, isNot(ArrowDebugSigningSha.sha1));
+    expect(ArrowReleaseSigningSha.sha1, isNot(ArrowFirebaseConsoleSha.sha1));
   });
 
   test('Google login DEVELOPER_ERROR contract includes local SHA-1 and SHA-256', () {
+    expect(ArrowGoogleAuth.developerErrorToast, contains('SHA do app nao esta no Firebase'));
     expect(ArrowGoogleAuth.developerErrorToast, contains('invalid-cert-hash'));
     expect(ArrowGoogleAuth.developerErrorToast, contains('ApiException 10'));
     expect(ArrowGoogleAuth.developerErrorToast, contains('Adicionar impressao digital'));

@@ -18,13 +18,12 @@ class ArrowGoogleAuth {
 
   /// Mensagem padrao PT-BR com fingerprints para colar no Firebase (nunca "unknown").
   static String get developerErrorToast =>
-      'invalid-cert-hash / ApiException 10: o SHA deste APK nao esta no Firebase. '
-      'Abra o Console j-arrow → Configuracoes do projeto → seus apps → '
-      '${ArrowAndroidPackages.customer}, ${ArrowAndroidPackages.store} e '
-      '${ArrowAndroidPackages.driver} → Adicionar impressao digital. '
-      'Cole SHA-1 ${ArrowDebugSigningSha.sha1} e SHA-256 ${ArrowDebugSigningSha.sha256}. '
-      'O SHA 4D:D8 do JSON pode ficar. Nao ha keystore 4D:D8 nesta maquina. '
-      'Aguarde 2–5 min e tente de novo (sem rebuild).';
+      'SHA do app nao esta no Firebase (invalid-cert-hash / ApiException 10). '
+      'Console j-arrow → cada app (${ArrowAndroidPackages.customer}, '
+      '${ArrowAndroidPackages.store}, ${ArrowAndroidPackages.driver}) → '
+      'Adicionar impressao digital. '
+      'SHA-1 deste APK: ${ArrowDebugSigningSha.sha1} ; '
+      'SHA-256: ${ArrowDebugSigningSha.sha256}.';
 
   /// GMS devolveu canceled com reauth / status 16 — nao e back-button do usuario.
   static String get reauthErrorToast =>

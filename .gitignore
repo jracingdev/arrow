@@ -52,6 +52,14 @@ serviceAccount*.json
 **/serviceAccount*.json
 **/google-services.json
 google-services*.json
+
+# Android release signing (Arrow)
+apps/keystore/*.jks
+apps/keystore/*.keystore
+apps/keystore/key.properties
+**/key.properties
+**/*.jks
+**/*.keystore
 **/GoogleService-Info.plist
 firebase-debug.log
 firebase-debug.*.log

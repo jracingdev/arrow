@@ -37,8 +37,8 @@ abstract final class ArrowIosBundleIds {
   static const driver = 'br.app.arrow.driver';
 }
 
-/// Debug keystore fingerprints of **this machine** — what actually signs the APKs
-/// (`signingConfig signingConfigs.debug` → `%USERPROFILE%\.android\debug.keystore`).
+/// Debug keystore fingerprints of **this machine** — USB/`flutter run` builds
+/// (`signingConfigs.debug` → `%USERPROFILE%\.android\debug.keystore`).
 ///
 /// Verified 2026-08-21 with `keytool -list -v` and `apksigner verify --print-certs`.
 abstract final class ArrowDebugSigningSha {
@@ -48,9 +48,19 @@ abstract final class ArrowDebugSigningSha {
   static const sha1Compact = 'e19534b7ed3d8aac5c34c1cd464b1c56319177ec';
 }
 
-/// SHA currently listed on the three Android apps in Firebase Console.
-/// Does **not** match [ArrowDebugSigningSha] — Google Sign-In stays broken
-/// until this local SHA-1/SHA-256 is added to each Android app in j-arrow.
+/// Release keystore Arrow (`apps/keystore/arrow-upload.jks`, alias `arrow`).
+/// File and passwords are gitignored. Cadastre estes SHA no Firebase **antes**
+/// de `flutter build apk` (release).
+abstract final class ArrowReleaseSigningSha {
+  static const sha1 = '1C:CF:2A:5A:4E:2B:CE:AE:79:06:26:BD:D5:D9:F6:2F:0C:56:9E:AD';
+  static const sha256 =
+      '48:E1:42:7F:1F:07:B3:5F:61:58:40:50:79:60:72:03:87:74:BE:04:70:0C:35:A9:A2:02:AC:75:73:D1:7F:00';
+  static const sha1Compact = '1ccf2a5a4e2bceae790626bdd5d9f62f0c569ead';
+}
+
+/// SHA leftover on the three Android apps in Firebase Console (oauth_client type 1).
+/// Not an Arrow keystore on this machine. Can remain in the Console; it does not
+/// sign current debug or Arrow-release APKs.
 abstract final class ArrowFirebaseConsoleSha {
   static const sha1 = '4D:D8:33:1F:75:F0:8E:64:2E:19:67:12:54:F5:94:53:70:EC:2A:85';
   static const sha256 =
