@@ -135,3 +135,131 @@ match /driverDocument/{uid}/{fileName} {
 ```
 
 O cliente **nunca** deve ter `allow read` nesses paths.
+
+## Denúncias e SOS (`complaints` / `SOS`)
+
+Coleções já usadas nas corridas. Prestador e cliente sob demanda gravam no
+mesmo path (`complaints/{orderId}_{uid}`, `SOS/{orderId}_{uid}`). Cab legado
+usa id automático e os campos `customerId` / `driverId`. Aplique no Console
+**sem** substituir o restante das rules.
+
+### Contrato
+
+- Quem cria: usuário autenticado que é parte do pedido
+  (`provider_orders`: `authorID` / `author.id` / `provider.author` / `workerId`;
+  `rides`: `authorID` / `driverId`)
+- Status inicial do app: `Initiated`
+- Quem lê: o reporter (`reporterId`); no legado de corrida, `customerId` ou
+  `driverId`. Sem leitura pública de denúncias de terceiros
+- Quem atualiza `status` (`Under Investigation` / `Resolved` / `Dismissed`),
+  `adminNote`, `action`: só admin/backend
+- Apps sob demanda leem o próprio doc por id (`{orderId}_{uid}`). Query
+  `where('orderId' == …)` só funciona se **todos** os docs retornados forem
+  legíveis para o uid
+
+### Firestore (trecho sugerido)
+
+Reutilize `isAdmin()` se a seção KYC acima já estiver colada.
+
+```
+function isAdmin() {
+  return request.auth != null
+    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+}
+
+function onDemandOrder(orderId) {
+  return get(/databases/$(database)/documents/provider_orders/$(orderId)).data;
+}
+
+function rideOrder(orderId) {
+  return get(/databases/$(database)/documents/rides/$(orderId)).data;
+}
+
+function isOnDemandParty(orderId) {
+  return exists(/databases/$(database)/documents/provider_orders/$(orderId))
+    && (
+      onDemandOrder(orderId).authorID == request.auth.uid
+      || onDemandOrder(orderId).author.id == request.auth.uid
+      || onDemandOrder(orderId).provider.author == request.auth.uid
+      || onDemandOrder(orderId).workerId == request.auth.uid
+    );
+}
+
+function isRideParty(orderId) {
+  return exists(/databases/$(database)/documents/rides/$(orderId))
+    && (
+      rideOrder(orderId).authorID == request.auth.uid
+      || rideOrder(orderId).driverId == request.auth.uid
+    );
+}
+
+function isOrderParty(orderId) {
+  return request.auth != null
+    && (isOnDemandParty(orderId) || isRideParty(orderId));
+}
+
+match /complaints/{id} {
+  function isReporter() {
+    return request.auth != null && resource.data.reporterId == request.auth.uid;
+  }
+  function isLegacyCabParty() {
+    return request.auth != null
+      && (resource.data.customerId == request.auth.uid
+          || resource.data.driverId == request.auth.uid);
+  }
+
+  allow create: if isOrderParty(request.resource.data.orderId)
+    && request.resource.data.status == 'Initiated'
+    && (
+      request.resource.data.reporterId == request.auth.uid
+      || request.resource.data.customerId == request.auth.uid
+      || request.resource.data.driverId == request.auth.uid
+    );
+
+  allow read: if isAdmin() || isReporter() || isLegacyCabParty();
+
+  // Reporter pode reenviar SOS (set+merge) sem mudar status.
+  allow update: if isReporter()
+    && request.resource.data.status == resource.data.status
+    && request.resource.data.reporterId == resource.data.reporterId
+    && request.resource.data.orderId == resource.data.orderId;
+
+  allow update, delete: if isAdmin();
+}
+
+match /SOS/{id} {
+  function isReporter() {
+    return request.auth != null && resource.data.reporterId == request.auth.uid;
+  }
+
+  allow create: if isOrderParty(request.resource.data.orderId)
+    && request.resource.data.status == 'Initiated'
+    && (
+      !('reporterId' in request.resource.data)
+      || request.resource.data.reporterId == request.auth.uid
+    );
+
+  allow read: if isAdmin()
+    || isReporter()
+    || (!('reporterId' in resource.data)
+        && isOrderParty(resource.data.orderId));
+
+  allow update: if isReporter()
+    && request.resource.data.status == resource.data.status
+    && request.resource.data.orderId == resource.data.orderId;
+
+  allow update, delete: if isAdmin();
+}
+```
+
+Não publique um arquivo deny-all. Se `users.role` não for `admin` no painel
+Laravel, ajuste `isAdmin()` ao campo que o Console já usa. Parcel/rental:
+espelhe `isRideParty` em `parcel_orders` / `rental_orders` se essas denúncias
+existirem em produção.
+
+### Console
+
+1. Firebase Console → Firestore → Rules → incorporar o trecho (não colar um
+   arquivo completo deny-all).
+2. Sem deploy deste repo (`firebase deploy --only firestore:rules` não está
+   configurado aqui de propósito).
