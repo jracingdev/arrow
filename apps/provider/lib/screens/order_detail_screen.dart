@@ -1,12 +1,17 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/constant/constant.dart';
 import 'package:provider/constant/show_toast_dialog.dart';
+import 'package:provider/models/order_invoice_model.dart';
 import 'package:provider/models/provider_order_model.dart';
 import 'package:provider/models/worker_model.dart';
 import 'package:provider/service/fire_store_utils.dart';
 import 'package:provider/themes/app_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   const OrderDetailScreen({super.key, required this.orderId});
@@ -180,6 +185,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 const SizedBox(height: 12),
                 ElevatedButton(onPressed: () => _complete(order), child: const Text('Concluir')),
               ],
+              const SizedBox(height: 24),
+              _invoicesSection(order),
             ],
           );
         },
@@ -199,5 +206,105 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ],
       ),
     );
+  }
+
+  Widget _invoicesSection(ProviderOrderModel order) {
+    final canUpload = Constant.canUploadInvoice(order.status);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Documentos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 4),
+        const Text('Nota fiscal (NFS-e)', style: TextStyle(color: AppTheme.grey500)),
+        const SizedBox(height: 12),
+        if (order.invoices.isEmpty)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Text('Nenhuma nota fiscal anexada.'),
+          ),
+        ...order.invoices.asMap().entries.map((entry) {
+          final invoice = entry.value;
+          final when = invoice.uploadedAt;
+          return Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: ListTile(
+              leading: Icon(
+                invoice.fileName.toLowerCase().endsWith('.pdf') ? Icons.picture_as_pdf : Icons.image,
+                color: AppTheme.primary,
+              ),
+              title: Text(invoice.fileName.isEmpty ? 'NFS-e' : invoice.fileName),
+              subtitle: when == null ? null : Text(DateFormat('dd/MM/yyyy HH:mm').format(when.toDate())),
+              trailing: Wrap(
+                spacing: 4,
+                children: [
+                  IconButton(
+                    tooltip: 'Abrir',
+                    icon: const Icon(Icons.open_in_new),
+                    onPressed: () => _openInvoice(invoice),
+                  ),
+                  if (canUpload)
+                    IconButton(
+                      tooltip: 'Substituir',
+                      icon: const Icon(Icons.swap_horiz),
+                      onPressed: () => _pickAndUploadInvoice(order, replaceIndex: entry.key),
+                    ),
+                ],
+              ),
+            ),
+          );
+        }),
+        if (canUpload)
+          OutlinedButton.icon(
+            onPressed: () => _pickAndUploadInvoice(order),
+            icon: const Icon(Icons.attach_file),
+            label: Text(order.invoices.isEmpty ? 'Anexar nota fiscal' : 'Anexar outra nota'),
+          )
+        else
+          const Text(
+            'O anexo fica disponível quando o serviço está em andamento ou concluído.',
+            style: TextStyle(color: AppTheme.grey500, fontSize: 13),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _openInvoice(OrderInvoiceModel invoice) async {
+    final uri = Uri.tryParse(invoice.url);
+    if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      ShowToastDialog.showToast('Não foi possível abrir o arquivo.');
+    }
+  }
+
+  Future<void> _pickAndUploadInvoice(ProviderOrderModel order, {int? replaceIndex}) async {
+    if (!Constant.canUploadInvoice(order.status)) {
+      ShowToastDialog.showToast('Anexe a nota quando o serviço estiver em andamento ou concluído.');
+      return;
+    }
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: Constant.invoiceAllowedExtensions,
+    );
+    if (result == null || result.files.isEmpty) return;
+    final picked = result.files.single;
+    final path = picked.path;
+    if (path == null || path.isEmpty) {
+      ShowToastDialog.showToast('Não foi possível ler o arquivo.');
+      return;
+    }
+    ShowToastDialog.showLoader(replaceIndex == null ? 'Enviando nota...' : 'Substituindo nota...');
+    try {
+      await FireStoreUtils.uploadOrderInvoice(
+        orderId: order.id,
+        file: File(path),
+        fileName: picked.name,
+        current: order.invoices,
+        replaceIndex: replaceIndex,
+      );
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast(replaceIndex == null ? 'Nota fiscal anexada.' : 'Nota fiscal substituída.');
+    } catch (e) {
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast(e.toString());
+    }
   }
 }

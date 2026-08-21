@@ -2612,5 +2612,6 @@ return [
     'admin_rejected_your_document' => 'Admin has rejected your document',
     'admin_approved_your_document' => 'Admin has approved your document',
     'please_submit_again' => 'Please submit again.',
+    'nfse_invoice' => 'Service invoice (NFS-e)',
 ];
 ?>

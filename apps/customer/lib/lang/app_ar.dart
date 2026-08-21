@@ -794,4 +794,7 @@ const Map<String, String> arAR = {
       'أدخل عنوان البريد الإلكتروني المُسجَّل لديك، وسنرسل إليك رابطاً آمناً لإعادة تعيين كلمة المرور. افتح الرابط في صندوق الوارد الخاص بك، واتبع الخطوات لإنشاء كلمة مرور جديدة.',
   "No bookings found": "لم يتم العثور على حجوزات",
   "The store is not available in your area. Change other location first.": "المتجر غير متوفر في منطقتك. يرجى تغيير الموقع أولاً.",
+  'Nota fiscal': 'فاتورة الخدمة',
+  'Baixar nota': 'تنزيل الفاتورة',
+  'Não foi possível abrir a nota fiscal.': 'تعذر فتح الفاتورة.',
 };

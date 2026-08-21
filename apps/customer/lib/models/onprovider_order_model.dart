@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:customer/models/order_invoice_model.dart';
 import 'package:customer/models/provider_serivce_model.dart';
 import 'package:customer/models/tax_model.dart';
 import 'package:customer/models/user_model.dart';
@@ -34,6 +35,7 @@ class OnProviderOrderModel {
   String? workerId;
   String? platformFee;
   List<TaxModel>? platformTax;
+  List<OrderInvoiceModel> invoices;
 
   OnProviderOrderModel({
     this.sectionId = '',
@@ -67,10 +69,12 @@ class OnProviderOrderModel {
     this.workerId,
     this.platformFee,
     this.platformTax,
+    List<OrderInvoiceModel>? invoices,
   }) : author = author ?? UserModel(),
        createdAt = createdAt ?? Timestamp.now(),
        provider = provider ?? ProviderServiceModel(),
-       scheduleDateTime = scheduleDateTime ?? Timestamp.now();
+       scheduleDateTime = scheduleDateTime ?? Timestamp.now(),
+       invoices = invoices ?? const [];
 
   factory OnProviderOrderModel.fromJson(Map<String, dynamic> parsedJson) {
     List<TaxModel>? taxList;
@@ -119,6 +123,7 @@ class OnProviderOrderModel {
       extraChargesDescription: parsedJson['extraChargesDescription'] ?? "",
       platformFee: parsedJson['platformFee'],
       platformTax: platformTax,
+      invoices: OrderInvoiceModel.listFrom(parsedJson['invoices']),
     );
   }
 

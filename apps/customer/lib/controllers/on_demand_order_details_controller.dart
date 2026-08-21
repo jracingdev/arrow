@@ -1,11 +1,15 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/models/coupon_model.dart';
 import 'package:customer/models/user_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../constant/collection_name.dart';
 import '../constant/constant.dart';
 import '../models/onprovider_order_model.dart';
+import '../models/order_invoice_model.dart';
 import '../models/wallet_transaction_model.dart';
 import '../models/worker_model.dart';
 import '../service/fire_store_utils.dart';
@@ -36,6 +40,7 @@ class OnDemandOrderDetailsController extends GetxController {
   RxList<CouponModel> couponList = <CouponModel>[].obs;
 
   final RxBool isLoading = false.obs;
+  StreamSubscription? _invoiceSub;
 
   @override
   void onInit() {
@@ -46,6 +51,24 @@ class OnDemandOrderDetailsController extends GetxController {
       onProviderOrder.value = args;
     }
     getData();
+    _watchInvoices();
+  }
+
+  void _watchInvoices() {
+    final id = onProviderOrder.value?.id;
+    if (id == null || id.isEmpty) return;
+    _invoiceSub = FireStoreUtils.fireStore.collection(CollectionName.providerOrders).doc(id).snapshots().listen((snap) {
+      final current = onProviderOrder.value;
+      if (!snap.exists || snap.data() == null || current == null) return;
+      current.invoices = OrderInvoiceModel.listFrom(snap.data()!['invoices']);
+      onProviderOrder.refresh();
+    });
+  }
+
+  @override
+  void onClose() {
+    _invoiceSub?.cancel();
+    super.onClose();
   }
 
   Future<void> getData() async {
@@ -281,6 +304,13 @@ class OnDemandOrderDetailsController extends GetxController {
       log("Cancel error: $e\n$st");
       ShowToastDialog.closeLoader();
       ShowToastDialog.showToast("Something went wrong".tr);
+    }
+  }
+
+  Future<void> openInvoice(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      ShowToastDialog.showToast('Não foi possível abrir a nota fiscal.'.tr);
     }
   }
 }

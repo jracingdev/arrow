@@ -1290,5 +1290,15 @@ return [
     'price_unit' => 'Unidade de preço',
     'start_time' => 'Horário inicial',
     'end_time' => 'Horário final',
+    'nfse_documents' => 'Documentos',
+    'nfse_invoice' => 'Nota fiscal (NFS-e)',
+    'nfse_attach' => 'Anexar nota fiscal',
+    'nfse_replace' => 'Substituir',
+    'nfse_empty' => 'Nenhuma nota fiscal anexada.',
+    'nfse_hint' => 'PDF ou imagem, até 10 MB.',
+    'nfse_status_hint' => 'O anexo fica disponível quando o serviço está em andamento ou concluído.',
+    'nfse_invalid_type' => 'Envie um PDF ou imagem (JPG, PNG, WEBP).',
+    'nfse_too_large' => 'O arquivo deve ter no máximo 10 MB.',
+    'nfse_upload_failed' => 'Não foi possível enviar a nota fiscal.',
 ];
 ?>

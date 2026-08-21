@@ -2347,5 +2347,6 @@ return [
     'parcel_image' => 'صورة الطرد',
     'parcel_images_not_found' => 'صور الطرود غير موجودة',
     'you_have_received_new_message_from_admin' => 'لقد تلقيت رسالة جديدة من المسؤول',
+    'nfse_invoice' => 'فاتورة الخدمة (NFS-e)',
 ];
 ?>

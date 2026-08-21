@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/constant/collection_name.dart';
 import 'package:provider/constant/constant.dart';
 import 'package:provider/firebase_options.dart';
+import 'package:provider/service/fire_store_utils.dart';
 
 void main() {
   test('package Android do prestador vem do shared', () {
@@ -39,5 +40,16 @@ void main() {
     expect(Constant.statusLabel(Constant.orderAssigned), 'Pedido atribuído');
     expect(Constant.statusLabel(Constant.orderOngoing), 'Em andamento');
     expect(Constant.statusLabel(Constant.orderCompleted), 'Pedido concluído');
+    expect(Constant.canUploadInvoice(Constant.orderOngoing), isTrue);
+    expect(Constant.canUploadInvoice(Constant.orderCompleted), isTrue);
+    expect(Constant.canUploadInvoice(Constant.orderPlaced), isFalse);
+    expect(Constant.invoiceTypeNfse, 'nfs-e');
+  });
+
+  test('path de storage da NFS-e da reserva', () {
+    expect(
+      FireStoreUtils.invoiceStoragePath('order123', 'file-uuid', 'pdf'),
+      'provider_orders/order123/invoices/file-uuid.pdf',
+    );
   });
 }

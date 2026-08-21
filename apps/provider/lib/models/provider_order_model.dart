@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/models/order_invoice_model.dart';
 import 'package:provider/models/provider_service_model.dart';
 import 'package:provider/models/user_model.dart';
 
@@ -24,6 +25,7 @@ class ProviderOrderModel {
   UserModel author;
   ProviderServiceModel provider;
   Map<String, dynamic>? address;
+  List<OrderInvoiceModel> invoices;
 
   ProviderOrderModel({
     this.id = '',
@@ -47,8 +49,10 @@ class ProviderOrderModel {
     UserModel? author,
     ProviderServiceModel? provider,
     this.address,
+    List<OrderInvoiceModel>? invoices,
   })  : author = author ?? UserModel(),
-        provider = provider ?? ProviderServiceModel();
+        provider = provider ?? ProviderServiceModel(),
+        invoices = invoices ?? const [];
 
   factory ProviderOrderModel.fromJson(Map<String, dynamic> json) {
     return ProviderOrderModel(
@@ -75,6 +79,7 @@ class ProviderOrderModel {
           ? ProviderServiceModel.fromJson(Map<String, dynamic>.from(json['provider'] as Map))
           : ProviderServiceModel(),
       address: json['address'] is Map ? Map<String, dynamic>.from(json['address'] as Map) : null,
+      invoices: OrderInvoiceModel.listFrom(json['invoices']),
     );
   }
 

@@ -538,6 +538,58 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if ((controller.onProviderOrder.value?.invoices ?? const []).isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Text('Nota fiscal'.tr, style: AppThemeData.semiBoldTextStyle(fontSize: 16, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900)),
+                          ),
+                          Container(
+                            width: MediaQuery.of(context).size.width,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: isDark ? AppThemeData.greyDark400 : AppThemeData.grey100),
+                              color: isDark ? AppThemeData.greyDark50 : AppThemeData.grey50,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                              child: Column(
+                                children: [
+                                  ...controller.onProviderOrder.value!.invoices.map((invoice) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 6),
+                                      child: SizedBox(
+                                        width: MediaQuery.of(context).size.width,
+                                        child: ElevatedButton(
+                                          onPressed: () => controller.openInvoice(invoice.url),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppThemeData.primary300,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.download, color: AppThemeData.grey50),
+                                              const SizedBox(width: 8),
+                                              Flexible(
+                                                child: Text(
+                                                  controller.onProviderOrder.value!.invoices.length == 1
+                                                      ? 'Baixar nota'.tr
+                                                      : '${'Baixar nota'.tr} · ${invoice.fileName.isEmpty ? 'NFS-e' : invoice.fileName}',
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: AppThemeData.semiBoldTextStyle(fontSize: 16, color: AppThemeData.grey50),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                         (controller.onProviderOrder.value?.status != Constant.orderCompleted || controller.onProviderOrder.value?.status != Constant.orderCancelled) &&
                                 controller.onProviderOrder.value?.provider.priceUnit == "Fixed"
                             ? Column(

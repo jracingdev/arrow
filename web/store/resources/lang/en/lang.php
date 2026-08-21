@@ -1112,5 +1112,15 @@ return [
     'price_unit' => 'Price unit',
     'start_time' => 'Start time',
     'end_time' => 'End time',
+    'nfse_documents' => 'Documents',
+    'nfse_invoice' => 'Service invoice (NFS-e)',
+    'nfse_attach' => 'Attach invoice',
+    'nfse_replace' => 'Replace',
+    'nfse_empty' => 'No invoice attached.',
+    'nfse_hint' => 'PDF or image, up to 10 MB.',
+    'nfse_status_hint' => 'You can attach the invoice when the service is ongoing or completed.',
+    'nfse_invalid_type' => 'Send a PDF or image (JPG, PNG, WEBP).',
+    'nfse_too_large' => 'The file must be 10 MB or smaller.',
+    'nfse_upload_failed' => 'Could not upload the invoice.',
 ];
 ?>

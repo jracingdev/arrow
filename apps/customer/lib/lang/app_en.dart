@@ -809,4 +809,7 @@ const Map<String, String> enUS = {
   'Storage permission is not enabled. Please allow it.': 'Storage permission is not enabled. Please allow it.',
   'Camera access is not enabled. Please allow camera permission.': 'Camera access is not enabled. Please allow camera permission.',
   'Coupon cannot be applied': 'Coupon cannot be applied',
+  'Nota fiscal': 'Invoice',
+  'Baixar nota': 'Download invoice',
+  'Não foi possível abrir a nota fiscal.': 'Could not open the invoice.',
 };

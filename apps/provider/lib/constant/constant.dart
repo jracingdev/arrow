@@ -21,6 +21,14 @@ class Constant {
   static const List<String> tabCompleted = [orderCompleted];
   static const List<String> tabCancelled = [orderRejected, orderCancelled, driverRejected];
 
+  static const String invoiceTypeNfse = 'nfs-e';
+  static const int invoiceMaxBytes = 10 * 1024 * 1024;
+  static const List<String> invoiceAllowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
+
+  static bool canUploadInvoice(String status) {
+    return status == orderOngoing || status == inTransit || status == orderCompleted;
+  }
+
   static String defaultCountryCode = BrazilPhone.dialCode;
   static String defaultCountryISOCode = BrazilPhone.isoCode;
 

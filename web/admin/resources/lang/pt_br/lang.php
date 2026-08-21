@@ -2636,5 +2636,6 @@ return [
     'admin_rejected_your_document' => 'O administrador recusou o documento',
     'admin_approved_your_document' => 'O administrador aprovou o documento',
     'please_submit_again' => 'Envie novamente.',
+    'nfse_invoice' => 'Nota fiscal (NFS-e)',
 ];
 ?>

@@ -1,10 +1,16 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/constant/collection_name.dart';
+import 'package:provider/constant/constant.dart';
+import 'package:provider/models/order_invoice_model.dart';
 import 'package:provider/models/provider_order_model.dart';
 import 'package:provider/models/provider_service_model.dart';
 import 'package:provider/models/user_model.dart';
 import 'package:provider/models/worker_model.dart';
+import 'package:uuid/uuid.dart';
 
 class FireStoreUtils {
   static FirebaseFirestore get _db => FirebaseFirestore.instance;
@@ -52,6 +58,74 @@ class FireStoreUtils {
 
   static Future<void> updateOrder(String orderId, Map<String, dynamic> data) {
     return _db.collection(CollectionName.providerOrders).doc(orderId).update(data);
+  }
+
+  static String invoiceStoragePath(String orderId, String fileId, String extension) {
+    return 'provider_orders/$orderId/invoices/$fileId.$extension';
+  }
+
+  static String _invoiceExtension(String fileName) {
+    final dot = fileName.lastIndexOf('.');
+    if (dot < 0 || dot == fileName.length - 1) return '';
+    return fileName.substring(dot + 1).toLowerCase();
+  }
+
+  static String _invoiceContentType(String extension) {
+    switch (extension) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
+  static Future<void> uploadOrderInvoice({
+    required String orderId,
+    required File file,
+    required String fileName,
+    required List<OrderInvoiceModel> current,
+    int? replaceIndex,
+  }) async {
+    final length = await file.length();
+    if (length > Constant.invoiceMaxBytes) {
+      throw Exception('O arquivo deve ter no máximo 10 MB.');
+    }
+    final extension = _invoiceExtension(fileName);
+    if (!Constant.invoiceAllowedExtensions.contains(extension)) {
+      throw Exception('Envie um PDF ou imagem (JPG, PNG, WEBP).');
+    }
+    final fileId = const Uuid().v4();
+    final path = invoiceStoragePath(orderId, fileId, extension);
+    final ref = FirebaseStorage.instance.ref().child(path);
+    await ref.putFile(file, SettableMetadata(contentType: _invoiceContentType(extension)));
+    final url = await ref.getDownloadURL();
+    final invoice = OrderInvoiceModel(
+      type: Constant.invoiceTypeNfse,
+      url: url,
+      fileName: fileName,
+      uploadedAt: Timestamp.now(),
+      uploadedBy: getCurrentUid(),
+    );
+    final next = List<OrderInvoiceModel>.from(current);
+    if (replaceIndex != null && replaceIndex >= 0 && replaceIndex < next.length) {
+      final previous = next[replaceIndex];
+      next[replaceIndex] = invoice;
+      if (previous.url.isNotEmpty) {
+        try {
+          await FirebaseStorage.instance.refFromURL(previous.url).delete();
+        } catch (_) {}
+      }
+    } else {
+      next.add(invoice);
+    }
+    await updateOrder(orderId, {'invoices': next.map((e) => e.toJson()).toList()});
   }
 
   static Stream<List<ProviderServiceModel>> watchMyServices(String uid) {

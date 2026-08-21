@@ -824,4 +824,7 @@ const Map<String, String> ptBR = {
   'Storage permission is not enabled. Please allow it.': 'A permissão de armazenamento não está ativada. Permita o acesso.',
   'Camera access is not enabled. Please allow camera permission.': 'O acesso à câmera não está ativado. Permita a permissão da câmera.',
   'Coupon cannot be applied': 'O cupom não pode ser aplicado',
+  'Nota fiscal': 'Nota fiscal',
+  'Baixar nota': 'Baixar nota',
+  'Não foi possível abrir a nota fiscal.': 'Não foi possível abrir a nota fiscal.',
 };

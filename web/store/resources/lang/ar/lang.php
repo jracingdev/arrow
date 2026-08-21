@@ -1067,5 +1067,15 @@ return [
     'add_attribute_values' => 'إضافة قيم الخصائص',
     'assigning_taxes' => 'جارٍ تعيين الضرائب...',
     'base_price' => 'السعر الأساسي',
+    'nfse_documents' => 'المستندات',
+    'nfse_invoice' => 'فاتورة الخدمة (NFS-e)',
+    'nfse_attach' => 'إرفاق الفاتورة',
+    'nfse_replace' => 'استبدال',
+    'nfse_empty' => 'لا توجد فاتورة مرفقة.',
+    'nfse_hint' => 'PDF أو صورة، حتى 10 ميجابايت.',
+    'nfse_status_hint' => 'يمكن إرفاق الفاتورة عندما تكون الخدمة جارية أو مكتملة.',
+    'nfse_invalid_type' => 'أرسل ملف PDF أو صورة (JPG, PNG, WEBP).',
+    'nfse_too_large' => 'يجب ألا يتجاوز الملف 10 ميجابايت.',
+    'nfse_upload_failed' => 'تعذر رفع الفاتورة.',
 ];
 ?>

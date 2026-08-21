@@ -14,7 +14,7 @@ Já incluídos no JSON:
 | `provider_orders` | `provider.author` + `createdAt` / `status` / `sectionId` / `newScheduleDateTime`; `workerId` + `createdAt` |
 | `providers_workers` | `providerId` + `createdAt`; `active` + `providerId`; `providerId` + `online` + `createdAt` |
 
-Não há `firestore.rules` versionado neste repo. Não foi criado arquivo de rules (default deny em um arquivo novo quebraria customer/store/driver; allow-all abriria o banco).
+Não há `firestore.rules` versionado neste repo. Não foi criado arquivo de rules (default deny em um arquivo novo quebraria customer/store/driver; allow-all abriria o banco). Trechos sugeridos para NFS-e da reserva (`provider_orders.invoices` + Storage `provider_orders/{orderId}/invoices/`): ver `firebase/rules/README.md`.
 
 Se o console Firebase mostrar o link “create index”, abra **uma vez** e confirme, **ou** faça deploy:
 

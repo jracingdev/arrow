@@ -135,6 +135,10 @@
                                         </div>
 
                                     </div>
+                                    <div class="form-group row widt-100 gendetail-col mt-3" id="invoices_div" style="display:none">
+                                        <label class="col-12 control-label"><strong>{{ trans('lang.nfse_invoice') }}:</strong></label>
+                                        <ul id="invoices_list" class="mb-0 pl-3"></ul>
+                                    </div>
                                 </div>
 
                             </div>
@@ -1188,9 +1192,24 @@
                 }
             }
 
+            renderAdminInvoices(order);
             jQuery("#data-table_processing").hide();
         })
     });
+
+    function renderAdminInvoices(order) {
+        var list = (order && Array.isArray(order.invoices)) ? order.invoices : [];
+        var html = '';
+        list.forEach(function (inv) {
+            if (!inv || !inv.url) return;
+            var name = inv.fileName || 'NFS-e';
+            html += '<li><a href="' + inv.url + '" target="_blank" rel="noopener">' + name + '</a></li>';
+        });
+        if (html) {
+            $('#invoices_list').html(html);
+            $('#invoices_div').show();
+        }
+    }
 
     function getTwentyFourFormat(h, timeslot) {
         if (h < 10 && timeslot == "PM") {
