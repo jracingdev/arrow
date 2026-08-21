@@ -25,7 +25,7 @@
     <!-- Bluetooth Feature -->
     <uses-feature
         android:name="android.hardware.bluetooth"
-        android:required="true" />
+        android:required="false" />
 
     <!-- Queries -->
     <queries>
@@ -110,12 +110,6 @@
                     android:host="paypalcancel"
                     android:scheme="br.app.arrow.customer" />
 
-            </intent-filter>
-
-            <!-- Existing Flutter intent filters (KEEP these) -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 

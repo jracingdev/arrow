@@ -8,7 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}"/>
     
     <link rel="icon" type="image/png" href="{{asset('img/fav.png')}}">
-    <title><?php echo env('APP_NAME'); ?> - Online Item Ordering System</title>
+    <title><?php echo env('APP_NAME', 'Arrow'); ?> — Entrega multi-serviço</title>
     <link rel="stylesheet" type="text/css" href="{{asset('vendor/slick/slick.min.css')}}"/>
     <link rel="stylesheet" type="text/css" href="{{asset('vendor/slick/slick-theme.min.css')}}"/>
     <link rel="stylesheet" type="text/css" href="{{asset('vendor/slick/slick-lightbox.css')}}"/>

@@ -6,9 +6,9 @@ Os arquivos **`google-services.json` reais não vão para o Git** (`.gitignore`)
 
 | App | Package Android | Destino no repo |
 |-----|-----------------|-----------------|
-| Cliente | `com.emart.customer` | `apps/customer/android/app/google-services.json` |
-| Lojista | `com.emart.store` | `apps/store/android/app/google-services.json` |
-| Entregador | `com.emart.driver` | `apps/driver/android/app/google-services.json` |
+| Cliente | `br.app.arrow.customer` | `apps/customer/android/app/google-services.json` |
+| Lojista | `br.app.arrow.store` | `apps/store/android/app/google-services.json` |
+| Entregador | `br.app.arrow.driver` | `apps/driver/android/app/google-services.json` |
 
 ## Como gerar no Console Firebase
 

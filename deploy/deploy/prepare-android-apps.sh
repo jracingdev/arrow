@@ -101,7 +101,7 @@ Comandos de build por app:
   cd apps/driver   && flutter build appbundle
 
 Package names:
-  com.emart.customer | com.emart.store | com.emart.driver
+  br.app.arrow.customer | br.app.arrow.store | br.app.arrow.driver
 
 API base (GlobalURL): https://admin.arrow.app.br/
 EOF

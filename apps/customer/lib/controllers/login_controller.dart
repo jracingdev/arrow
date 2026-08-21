@@ -51,7 +51,9 @@ class LoginController extends GetxController {
 
       if (userModel != null && userModel.role == Constant.userRoleCustomer) {
         if (userModel.active == true) {
-          userModel.fcmToken = await NotificationService.getToken();
+          try {
+            userModel.fcmToken = await NotificationService.getToken();
+          } catch (_) {}
           await FireStoreUtils.updateUser(userModel);
 
           if (userModel.shippingAddress != null && userModel.shippingAddress!.isNotEmpty) {
@@ -76,7 +78,7 @@ class LoginController extends GetxController {
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         ShowToastDialog.showToast("No user found for that email.".tr);
-      } else if (e.code == 'wrong-password') {
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential' || e.code == 'INVALID_LOGIN_CREDENTIALS') {
         ShowToastDialog.showToast("Wrong password provided.".tr);
       } else if (e.code == 'invalid-email') {
         ShowToastDialog.showToast("Invalid email.".tr);

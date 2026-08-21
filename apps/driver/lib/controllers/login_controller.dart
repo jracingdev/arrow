@@ -39,14 +39,18 @@ class LoginController extends GetxController {
       UserModel? userModel = await FireStoreUtils.getUserProfile(credential.user!.uid);
       if (userModel?.role == Constant.userRoleDriver) {
         if (userModel?.active == true) {
-          userModel?.fcmToken = await NotificationService.getToken();
+          try {
+            userModel?.fcmToken = await NotificationService.getToken();
+          } catch (_) {}
           await FireStoreUtils.updateUser(userModel!);
-          if (Constant.autoApproveDriver == true) {
-            _navigateByUserModel(userModel);
-          }
+          // Motorista já aprovado entra mesmo se auto_approve_driver estiver desligado
+          // (essa flag vale só para cadastro novo).
+          _navigateByUserModel(userModel);
         } else {
           await FirebaseAuth.instance.signOut();
-          ShowToastDialog.showToast("This user is disable please contact to administrator".tr);
+          ShowToastDialog.showToast(
+            "Thank you for sign up, your application is under approval so please wait till that approve.".tr,
+          );
         }
       } else {
         await FirebaseAuth.instance.signOut();
@@ -56,13 +60,19 @@ class LoginController extends GetxController {
       print(e.code);
       if (e.code == 'user-not-found') {
         ShowToastDialog.showToast("No user found for that email.".tr);
-      } else if (e.code == 'wrong-password') {
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential' || e.code == 'INVALID_LOGIN_CREDENTIALS') {
         ShowToastDialog.showToast("Wrong password provided for that user.".tr);
       } else if (e.code == 'invalid-email') {
         ShowToastDialog.showToast("Invalid Email.".tr);
+      } else {
+        ShowToastDialog.showToast(e.message ?? e.code);
       }
+    } catch (e) {
+      debugPrint('driver email login error: $e');
+      ShowToastDialog.showToast("Something went wrong, please contact admin.".tr);
+    } finally {
+      ShowToastDialog.closeLoader();
     }
-    ShowToastDialog.closeLoader();
   }
 
   Future<void> loginWithGoogle() async {

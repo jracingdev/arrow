@@ -86,12 +86,15 @@ class LoginController extends GetxController {
           await FirebaseAuth.instance.signOut();
           ShowToastDialog.showToast("This user is not created in Store application.".tr);
         }
+      } else {
+        await FirebaseAuth.instance.signOut();
+        ShowToastDialog.showToast("This user is not created in Store application.".tr);
       }
     } on FirebaseAuthException catch (e) {
       print(e.code);
       if (e.code == 'user-not-found') {
         ShowToastDialog.showToast("No user found for that email.".tr);
-      } else if (e.code == 'wrong-password') {
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential' || e.code == 'INVALID_LOGIN_CREDENTIALS') {
         ShowToastDialog.showToast("Wrong password provided for that user.".tr);
       } else if (e.code == 'invalid-email') {
         ShowToastDialog.showToast("Invalid Email.".tr);
@@ -158,12 +161,15 @@ class LoginController extends GetxController {
           await FirebaseAuth.instance.signOut();
           ShowToastDialog.showToast("This user is not created in restaurant application.".tr);
         }
+      } else {
+        await FirebaseAuth.instance.signOut();
+        ShowToastDialog.showToast("This user is not created in restaurant application.".tr);
       }
     } on FirebaseAuthException catch (e) {
       print(e.code);
       if (e.code == 'user-not-found') {
         ShowToastDialog.showToast("No user found for that email.".tr);
-      } else if (e.code == 'wrong-password') {
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential' || e.code == 'INVALID_LOGIN_CREDENTIALS') {
         ShowToastDialog.showToast("Wrong password provided for that user.".tr);
       } else if (e.code == 'invalid-email') {
         ShowToastDialog.showToast("Invalid Email.".tr);
