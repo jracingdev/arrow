@@ -1,3 +1,4 @@
+import 'package:arrow_shared/hourly_service_billing.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,6 +9,7 @@ import '../../controllers/theme_controller.dart';
 import '../../models/onprovider_order_model.dart';
 import '../../models/worker_model.dart';
 import '../../themes/app_them_data.dart';
+import '../../widget/hourly_elapsed_text.dart';
 import 'on_demand_order_details_screen.dart';
 
 class MyBookingOnDemandScreen extends StatelessWidget {
@@ -179,6 +181,25 @@ class MyBookingOnDemandScreen extends StatelessWidget {
             if (order.provider.priceUnit == "Hourly") ...[
               if (order.startTime != null) ...[const Divider(thickness: 1), detailRow("Start Time", DateFormat('dd-MM-yyyy HH:mm').format(order.startTime!.toDate()), isDark)],
               if (order.endTime != null) ...[const Divider(thickness: 1), detailRow("End Time", DateFormat('dd-MM-yyyy HH:mm').format(order.endTime!.toDate()), isDark)],
+              if (HourlyServiceBilling.isHourly(order.provider.priceUnit) &&
+                  order.status == Constant.orderOngoing &&
+                  order.startTime != null &&
+                  order.endTime == null) ...[
+                const Divider(thickness: 1),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Tempo em atendimento".tr, style: AppThemeData.mediumTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900)),
+                      HourlyElapsedText(
+                        start: order.startTime!.toDate(),
+                        style: AppThemeData.regularTextStyle(fontSize: 14, color: AppThemeData.primary300),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
 
             if (worker != null) ...[const Divider(thickness: 1), detailRow("Worker", worker.fullName().toString(), isDark)],

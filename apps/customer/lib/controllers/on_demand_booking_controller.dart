@@ -1,3 +1,4 @@
+import 'package:arrow_shared/hourly_service_billing.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/models/coupon_model.dart';
@@ -152,7 +153,7 @@ class OnDemandBookingController extends GetxController {
     } else {
       UserModel? providerUser = await FireStoreUtils.getUserProfile(provider.value!.author!);
 
-      if (provider.value?.priceUnit == "Fixed") {
+      if (!HourlyServiceBilling.isHourly(provider.value?.priceUnit)) {
         OnProviderOrderModel onDemandOrderModel = OnProviderOrderModel(
           authorID: FireStoreUtils.getCurrentUid(),
           author: Constant.userModel!,
@@ -193,7 +194,7 @@ class OnDemandBookingController extends GetxController {
           address: selectedAddress.value,
           status: Constant.orderPlaced,
           createdAt: Timestamp.now(),
-          quantity: double.parse(quantity.value.toString()),
+          quantity: quantity.value < 1 ? 1.0 : quantity.value.toDouble(),
           provider: provider.value,
           extraPaymentStatus: true,
           scheduleDateTime: Timestamp.fromDate(selectedDateTime.value),
@@ -204,7 +205,7 @@ class OnDemandBookingController extends GetxController {
               Constant.sectionConstantModel?.adminCommision?.isEnabled == false
                   ? 'fixed'
                   : providerUser?.adminCommissionModel?.commissionType ?? Constant.sectionConstantModel?.adminCommision?.commissionType,
-          paymentStatus: true,
+          paymentStatus: false,
           taxModel: Constant.orderProductTaxList,
           platformFee: Constant.platformFeeModel?.fee ?? '0.0',
           platformTax: Constant.platformTaxList,

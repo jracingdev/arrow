@@ -25,6 +25,10 @@
                 <p><strong>{{ trans('lang.date') }}:</strong> <span id="schedule_date"></span></p>
                 <p><strong>{{ trans('lang.vendor_address') }}:</strong> <span id="address"></span></p>
                 <p><strong>OTP:</strong> <span id="otp_code"></span></p>
+                <div class="mt-3 d-none" id="timer_wrap">
+                    <p><strong>{{ trans('lang.total_time') }}:</strong> <span id="timer" class="text-danger font-weight-bold">00:00:00</span></p>
+                    <button type="button" class="btn btn-sm btn-danger" id="stop_timer_btn">{{ trans('lang.stop_time') }}</button>
+                </div>
                 <div class="mt-3" id="actions"></div>
                 <div class="form-group mt-3" id="worker_wrap" style="display:none;">
                     <label>{{ trans('lang.select_worker') }}</label>
@@ -62,6 +66,10 @@
     var providerId = "{{ $providerId }}";
     var order = null;
     var replaceInvoiceIndex = null;
+    var timerInterval = null;
+    var storedStartTime = null;
+    var storedEndTime = null;
+    var priceUnit = '';
     var statusLabel = {
         "Order Placed": "{{ trans('lang.placed_orders') }}",
         "Order Accepted": "{{ trans('lang.accept') }}",
@@ -81,10 +89,13 @@
             html += '<button type="button" class="btn btn-danger" id="reject_btn">{{ trans("lang.reject") }}</button>';
         } else if (order.status === 'Order Accepted') {
             html += '<button type="button" class="btn btn-primary" id="show_assign">{{ trans("lang.assign_worker") }}</button>';
+            html += '<button type="button" class="btn btn-info ml-2" id="start_btn">{{ trans("lang.start_service") }}</button>';
         } else if (order.status === 'Order Assigned') {
             html += '<button type="button" class="btn btn-info" id="start_btn">{{ trans("lang.start_service") }}</button>';
         } else if (order.status === 'Order Ongoing' || order.status === 'In Transit') {
-            $('#complete_wrap').show();
+            if (priceUnit !== 'Hourly' || storedEndTime) {
+                $('#complete_wrap').show();
+            }
         }
         $('#actions').html(html);
     }
@@ -176,6 +187,38 @@
         });
     }
 
+    function pad(n) {
+        return n < 10 ? '0' + n : '' + n;
+    }
+
+    function formatElapsed(ms) {
+        if (ms < 0) ms = 0;
+        var s = Math.floor(ms / 1000);
+        var h = Math.floor(s / 3600);
+        var m = Math.floor((s % 3600) / 60);
+        var sec = s % 60;
+        return pad(h) + ':' + pad(m) + ':' + pad(sec);
+    }
+
+    function renderTimer() {
+        if (priceUnit !== 'Hourly' || order.status !== 'Order Ongoing' || !storedStartTime) {
+            $('#timer_wrap').addClass('d-none');
+            return;
+        }
+        $('#timer_wrap').removeClass('d-none');
+        if (storedEndTime) {
+            $('#timer').text(formatElapsed(storedEndTime - storedStartTime));
+            $('#stop_timer_btn').hide();
+            return;
+        }
+        $('#stop_timer_btn').show();
+        $('#timer').text(formatElapsed(new Date() - storedStartTime));
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(function () {
+            $('#timer').text(formatElapsed(new Date() - storedStartTime));
+        }, 1000);
+    }
+
     function loadWorkers() {
         database.collection('providers_workers').where('providerId', '==', providerId).where('online', '==', true).get().then(function (snap) {
             $('#worker_list').html('<option value="">{{ trans("lang.select_worker") }}</option>');
@@ -202,8 +245,12 @@
             $('#schedule_date').text(sched && sched.toDate ? ArrowDateTime.formatDate(sched.toDate()) + ' ' + ArrowDateTime.formatTime(sched.toDate()) : '');
             $('#address').text((order.address && (order.address.address || order.address.locality)) || '');
             $('#otp_code').text(order.otp || '');
+            priceUnit = (order.provider && order.provider.priceUnit) ? order.provider.priceUnit : '';
+            storedStartTime = (order.startTime && order.startTime.toDate) ? order.startTime.toDate() : null;
+            storedEndTime = (order.endTime && order.endTime.toDate) ? order.endTime.toDate() : null;
             renderActions();
             renderInvoices();
+            renderTimer();
             $("#data-table_processing").hide();
         });
 
@@ -229,9 +276,24 @@
             database.collection('provider_orders').doc(id).update({ status: 'Order Assigned', workerId: worker }).then(function () { location.reload(); });
         });
         $(document).on('click', '#start_btn', function () {
-            database.collection('provider_orders').doc(id).update({
+            var payload = {
                 status: 'Order Ongoing',
                 startTime: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            if (priceUnit === 'Hourly') {
+                payload.endTime = null;
+            }
+            database.collection('provider_orders').doc(id).update(payload).then(function () { location.reload(); });
+        });
+        $(document).on('click', '#stop_timer_btn', function () {
+            if (!storedStartTime) { return; }
+            var now = new Date();
+            var hours = Math.abs(now - storedStartTime) / (1000 * 60 * 60);
+            hours = parseFloat(hours.toFixed(2));
+            if (hours < 1) hours = 1;
+            database.collection('provider_orders').doc(id).update({
+                endTime: firebase.firestore.FieldValue.serverTimestamp(),
+                quantity: hours
             }).then(function () { location.reload(); });
         });
         $(document).on('click', '#complete_btn', function () {
@@ -240,12 +302,19 @@
                 $('.error_top').html('<p>{{ trans("lang.please_enter_otp") }}</p>').show();
                 return;
             }
-            database.collection('provider_orders').doc(id).update({
+            if (priceUnit === 'Hourly' && !storedEndTime) {
+                $('.error_top').html('<p>{{ trans("lang.stop_the_timer") }}</p>').show();
+                return;
+            }
+            var payload = {
                 status: 'Order Completed',
                 extraPaymentStatus: true,
-                paymentStatus: true,
-                endTime: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(function () { location.reload(); });
+                paymentStatus: priceUnit === 'Hourly' ? (order.paymentStatus === true) : true
+            };
+            if (priceUnit !== 'Hourly') {
+                payload.endTime = firebase.firestore.FieldValue.serverTimestamp();
+            }
+            database.collection('provider_orders').doc(id).update(payload).then(function () { location.reload(); });
         });
 
         $(document).on('click', '.invoice-replace', function () {

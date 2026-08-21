@@ -1,3 +1,4 @@
+import 'package:arrow_shared/rating_average.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/models/worker_model.dart';
@@ -42,6 +43,8 @@ class WorkersScreen extends StatelessWidget {
                   if (worker.email.isNotEmpty) worker.email,
                   if (worker.salary.isNotEmpty) 'Salário: ${worker.salary}',
                   worker.online ? 'Online' : 'Offline',
+                  if (worker.reviewsCount > 0)
+                    '${RatingAverage.formatted(worker.reviewsSum, worker.reviewsCount)} (${worker.reviewsCount} avaliações)',
                 ].join(' · ')),
                 value: worker.online,
                 onChanged: (value) => FireStoreUtils.setWorkerOnline(worker.id, value),

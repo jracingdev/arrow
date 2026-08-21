@@ -13,6 +13,8 @@ class ProviderServiceModel {
   String address;
   String sectionId;
   String categoryId;
+  num reviewsCount;
+  num reviewsSum;
 
   ProviderServiceModel({
     this.id = '',
@@ -29,6 +31,8 @@ class ProviderServiceModel {
     this.address = '',
     this.sectionId = '',
     this.categoryId = '',
+    this.reviewsCount = 0,
+    this.reviewsSum = 0,
   });
 
   factory ProviderServiceModel.fromJson(Map<String, dynamic> json) {
@@ -47,6 +51,8 @@ class ProviderServiceModel {
       address: json['address']?.toString() ?? '',
       sectionId: json['sectionId']?.toString() ?? '',
       categoryId: json['categoryId']?.toString() ?? '',
+      reviewsCount: num.tryParse('${json['reviewsCount'] ?? 0}') ?? 0,
+      reviewsSum: num.tryParse('${json['reviewsSum'] ?? 0}') ?? 0,
     );
   }
 
@@ -66,6 +72,8 @@ class ProviderServiceModel {
       'address': address,
       'sectionId': sectionId,
       'categoryId': categoryId,
+      'reviewsCount': reviewsCount,
+      'reviewsSum': reviewsSum,
     };
   }
 }

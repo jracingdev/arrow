@@ -9,6 +9,8 @@ class WorkerModel {
   String salary;
   bool online;
   bool active;
+  num reviewsCount;
+  num reviewsSum;
 
   WorkerModel({
     this.id = '',
@@ -21,6 +23,8 @@ class WorkerModel {
     this.salary = '',
     this.online = false,
     this.active = true,
+    this.reviewsCount = 0,
+    this.reviewsSum = 0,
   });
 
   String fullName() => '$firstName $lastName'.trim();
@@ -37,6 +41,8 @@ class WorkerModel {
       salary: json['salary']?.toString() ?? '',
       online: json['online'] == true,
       active: json['active'] != false,
+      reviewsCount: num.tryParse('${json['reviewsCount'] ?? 0}') ?? 0,
+      reviewsSum: num.tryParse('${json['reviewsSum'] ?? 0}') ?? 0,
     );
   }
 }

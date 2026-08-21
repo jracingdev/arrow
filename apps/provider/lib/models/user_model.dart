@@ -17,6 +17,10 @@ class UserModel {
   String? provider;
   String? sectionId;
   String? appIdentifier;
+  bool? isDocumentVerify;
+  bool? isAutoVerify;
+  num? reviewsCount;
+  num? reviewsSum;
 
   UserModel({
     this.id,
@@ -35,9 +39,15 @@ class UserModel {
     this.provider,
     this.sectionId,
     this.appIdentifier,
+    this.isDocumentVerify,
+    this.isAutoVerify,
+    this.reviewsCount,
+    this.reviewsSum,
   });
 
   String fullName() => '${firstName ?? ''} ${lastName ?? ''}'.trim();
+
+  bool get needsDocumentVerification => isDocumentVerify != true && isAutoVerify != true;
 
   UserModel.fromJson(Map<String, dynamic> json) {
     id = json['id']?.toString() ?? json['userID']?.toString();
@@ -56,6 +66,10 @@ class UserModel {
     provider = json['provider']?.toString();
     sectionId = json['sectionId']?.toString() ?? json['section_id']?.toString();
     appIdentifier = json['appIdentifier']?.toString();
+    isDocumentVerify = json['isDocumentVerify'] == true;
+    isAutoVerify = json['isAutoVerify'] == true;
+    reviewsCount = num.tryParse(json['reviewsCount']?.toString() ?? '0') ?? 0;
+    reviewsSum = num.tryParse(json['reviewsSum']?.toString() ?? '0') ?? 0;
   }
 
   Map<String, dynamic> toJson() {
@@ -78,6 +92,10 @@ class UserModel {
       'provider': provider,
       'sectionId': sectionId,
       'appIdentifier': appIdentifier,
+      'isDocumentVerify': isDocumentVerify ?? false,
+      'isAutoVerify': isAutoVerify ?? false,
+      'reviewsCount': reviewsCount ?? 0,
+      'reviewsSum': reviewsSum ?? 0,
     };
   }
 }

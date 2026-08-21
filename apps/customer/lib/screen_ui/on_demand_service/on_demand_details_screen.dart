@@ -12,6 +12,7 @@ import '../../themes/app_them_data.dart';
 import '../../themes/round_button_fill.dart';
 import '../auth_screens/login_screen.dart';
 import 'on_demand_booking_screen.dart';
+import '../../widget/provider_verified_chip.dart';
 
 class OnDemandDetailsScreen extends StatelessWidget {
   const OnDemandDetailsScreen({super.key});
@@ -294,27 +295,37 @@ class OnDemandDetailsScreen extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(user.fullName(), style: TextStyle(color: isDark ? Colors.white : Colors.black, fontFamily: AppThemeData.regular, fontSize: 14, fontWeight: FontWeight.bold)),
+                                    Wrap(
+                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      children: [
+                                        Text(user.fullName(), style: TextStyle(color: isDark ? Colors.white : Colors.black, fontFamily: AppThemeData.regular, fontSize: 14, fontWeight: FontWeight.bold)),
+                                        ProviderVerifiedChip(verified: user.isDocumentVerify == true),
+                                      ],
+                                    ),
                                     const SizedBox(height: 5),
                                     Text(user.email ?? '', style: TextStyle(color: isDark ? Colors.white : Colors.black, fontFamily: AppThemeData.regular, fontSize: 14)),
                                     const SizedBox(height: 10),
                                     // Rating Box
-                                    Container(
-                                      decoration: BoxDecoration(color: AppThemeData.warning400, borderRadius: BorderRadius.circular(16)),
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(Icons.star, size: 16, color: Colors.white),
-                                          const SizedBox(width: 3),
-                                          Text(
-                                            double.parse(user.reviewsCount.toString()) != 0
-                                                ? (double.parse(user.reviewsSum.toString()) / double.parse(user.reviewsCount.toString())).toStringAsFixed(1)
-                                                : '0',
-                                            style: const TextStyle(letterSpacing: 0.5, fontSize: 12, fontFamily: AppThemeData.regular, fontWeight: FontWeight.w500, color: Colors.white),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(color: AppThemeData.warning400, borderRadius: BorderRadius.circular(16)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.star, size: 16, color: Colors.white),
+                                              const SizedBox(width: 3),
+                                              Text(
+                                                double.parse(user.reviewsCount.toString()) != 0
+                                                    ? (double.parse(user.reviewsSum.toString()) / double.parse(user.reviewsCount.toString())).toStringAsFixed(1)
+                                                    : '0',
+                                                style: const TextStyle(letterSpacing: 0.5, fontSize: 12, fontFamily: AppThemeData.regular, fontWeight: FontWeight.w500, color: Colors.white),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),

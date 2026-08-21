@@ -2104,6 +2104,8 @@ return [
     'document_vendor' => 'Lojista',
     'document_driver' => 'Motorista Individual',
     'document_owner' => 'Proprietário',
+    'document_provider' => 'Prestador',
+    'document_ondemand' => 'On-demand',
     'frontside' => 'Frente',
     'backside' => 'Verso',
     'document_title_help' => 'Insira o título do documento',

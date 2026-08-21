@@ -14,6 +14,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../constant/constant.dart';
+import '../constant/collection_name.dart';
 import '../models/payment_model/cod_setting_model.dart';
 import '../models/payment_model/flutter_wave_model.dart';
 import '../models/payment_model/mercado_pago_model.dart';
@@ -45,6 +46,7 @@ import '../themes/app_them_data.dart';
 import '../themes/show_toast_dialog.dart';
 import '../utils/preferences.dart';
 import 'on_demand_dashboard_controller.dart';
+import 'package:arrow_shared/hourly_service_billing.dart';
 
 class OnDemandPaymentController extends GetxController {
   Rx<OnProviderOrderModel?> onDemandOrderModel = Rx<OnProviderOrderModel?>(null);
@@ -69,24 +71,73 @@ class OnDemandPaymentController extends GetxController {
     getPaymentSettings();
   }
 
+  Future<void> _creditProviderWallet({required double amount, required String note}) async {
+    final providerId = onDemandOrderModel.value?.provider.author;
+    final orderId = onDemandOrderModel.value?.id;
+    if (providerId == null || providerId.isEmpty || amount <= 0 || orderId == null || orderId.isEmpty) return;
+
+    final existing = await FireStoreUtils.fireStore.collection(CollectionName.wallet).where('user_id', isEqualTo: providerId).where('order_id', isEqualTo: orderId).get();
+    final lookingForExtra = note.toLowerCase().contains('extra');
+    final alreadyCredited = existing.docs.any((d) {
+      final data = d.data();
+      if (data['transactionUser'] != 'provider' || data['isTopUp'] != true) return false;
+      final existingNote = (data['note'] ?? '').toString().toLowerCase();
+      return lookingForExtra ? existingNote.contains('extra') : !existingNote.contains('extra');
+    });
+    if (alreadyCredited) return;
+
+    final transactionModel = WalletTransactionModel(
+      id: Constant.getUuid(),
+      serviceType: 'ondemand-service',
+      amount: amount,
+      date: Timestamp.now(),
+      paymentMethod: 'wallet',
+      transactionUser: "provider",
+      userId: providerId,
+      isTopup: true,
+      orderId: orderId,
+      note: note,
+      paymentStatus: "success".tr,
+    );
+    await FireStoreUtils.setWalletTransaction(transactionModel).then((value) async {
+      if (value == true) {
+        await FireStoreUtils.updateUserWallet(amount: amount.toString(), userId: providerId);
+      }
+    });
+  }
+
   Future<void> placeOrder() async {
     if (!isExtra) {
-      // Normal Order
       ShowToastDialog.showLoader("Please wait...".tr);
 
-      onDemandOrderModel.value?.payment_method = selectedPaymentMethod.value;
-      onDemandOrderModel.value?.paymentStatus = onDemandOrderModel.value?.provider.priceUnit == "Fixed" && selectedPaymentMethod.value == "cod" ? false : true;
-      onDemandOrderModel.value?.extraPaymentStatus = true;
+      final order = onDemandOrderModel.value!;
+      final isNewBooking = order.id.isEmpty;
+      final hourly = HourlyServiceBilling.isHourly(order.provider.priceUnit);
+      final isCod = selectedPaymentMethod.value == PaymentGateway.cod.name || selectedPaymentMethod.value == 'cod';
 
-      await FireStoreUtils.onDemandOrderPlace(onDemandOrderModel.value!, totalAmount.value);
+      order.payment_method = selectedPaymentMethod.value;
+      if (hourly) {
+        order.paymentStatus = isCod ? false : true;
+      } else {
+        order.paymentStatus = isCod ? false : true;
+      }
+      if (isNewBooking) {
+        order.extraPaymentStatus = true;
+      }
 
-      if (onDemandOrderModel.value?.status == Constant.orderPlaced) {
-        await FireStoreUtils.sendOrderOnDemandServiceEmail(orderModel: onDemandOrderModel.value!);
+      if (isNewBooking) {
+        await FireStoreUtils.onDemandOrderPlace(order, totalAmount.value);
+      } else {
+        await FireStoreUtils.updateOnDemandOrder(order);
+      }
 
-        final providerUser = await FireStoreUtils.getUserProfile(onDemandOrderModel.value!.provider.author!);
+      if (isNewBooking && order.status == Constant.orderPlaced) {
+        await FireStoreUtils.sendOrderOnDemandServiceEmail(orderModel: order);
+
+        final providerUser = await FireStoreUtils.getUserProfile(order.provider.author!);
 
         if (providerUser != null) {
-          final payLoad = {"type": 'provider_order', "orderId": onDemandOrderModel.value?.id};
+          final payLoad = {"type": 'provider_order', "orderId": order.id};
           await SendNotification.sendFcmMessage(Constant.bookingPlaced, providerUser.fcmToken ?? '', payLoad);
         }
 
@@ -113,13 +164,16 @@ class OnDemandPaymentController extends GetxController {
         });
       }
 
+      if (selectedPaymentMethod.value != PaymentGateway.cod.name && selectedPaymentMethod.value != 'cod') {
+        await _creditProviderWallet(amount: totalAmount.value, note: "On-demand booking credited");
+      }
+
       ShowToastDialog.closeLoader();
       Get.offAll(const OnDemandDashboardScreen());
       OnDemandDashboardController controller = Get.put(OnDemandDashboardController());
       controller.selectedIndex.value = 2;
     } else {
-      // Extra Charges Flow
-      onDemandOrderModel.value?.createdAt = Timestamp.now();
+      // Extra Charges Flow — only extra amount; do not rewrite createdAt or re-debit the booking.
       onDemandOrderModel.value?.extraPaymentStatus = true;
 
       if (selectedPaymentMethod.value == PaymentGateway.wallet.name) {
@@ -143,27 +197,9 @@ class OnDemandPaymentController extends GetxController {
         });
       }
 
-      // Handle wallet payment if needed
-      if (selectedPaymentMethod.value != 'cod') {
-        WalletTransactionModel transactionModel = WalletTransactionModel(
-          id: Constant.getUuid(),
-          serviceType: 'ondemand-service',
-          amount: totalAmount.value,
-          date: Timestamp.now(),
-          paymentMethod: PaymentGateway.wallet.name,
-          transactionUser: "provider",
-          userId: onDemandOrderModel.value?.provider.author!,
-          isTopup: true,
-          orderId: onDemandOrderModel.value?.id,
-          note: 'Extra Charge Amount Credited',
-          paymentStatus: "success".tr,
-        );
-
-        await FireStoreUtils.setWalletTransaction(transactionModel).then((value) async {
-          if (value == true) {
-            await FireStoreUtils.updateUserWallet(amount: "-$totalAmount", userId: FireStoreUtils.getCurrentUid());
-          }
-        });
+      // Credit provider wallet on non-COD extra charges (same collection as delivery).
+      if (selectedPaymentMethod.value != PaymentGateway.cod.name && selectedPaymentMethod.value != 'cod') {
+        await _creditProviderWallet(amount: totalAmount.value, note: 'Extra Charge Amount Credited');
       }
 
       await FireStoreUtils.updateOnDemandOrder(onDemandOrderModel.value!);

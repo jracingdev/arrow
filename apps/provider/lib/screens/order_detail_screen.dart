@@ -5,12 +5,14 @@ import 'package:arrow_shared/hourly_service_billing.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/constant/constant.dart';
 import 'package:provider/constant/show_toast_dialog.dart';
 import 'package:provider/models/order_invoice_model.dart';
 import 'package:provider/models/provider_order_model.dart';
 import 'package:provider/models/worker_model.dart';
+import 'package:provider/screens/chat_screen.dart';
 import 'package:provider/service/fire_store_utils.dart';
 import 'package:provider/themes/app_theme.dart';
 import 'package:provider/widgets/hourly_timer_card.dart';
@@ -141,16 +143,25 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Future<void> _complete(ProviderOrderModel order) async {
+    final hourly = HourlyServiceBilling.isHourly(order.provider.priceUnit);
+    if (hourly && order.endTime == null) {
+      ShowToastDialog.showToast('Pare o cronômetro antes de concluir.');
+      return;
+    }
+    final isCod = Constant.isCod(order.paymentMethod);
+    if (hourly && order.paymentStatus != true && !isCod) {
+      ShowToastDialog.showToast('Aguarde o cliente pagar as horas antes de concluir.');
+      return;
+    }
     if (otpController.text.trim() != order.otp) {
       ShowToastDialog.showToast('Informe o OTP do cliente.');
       return;
     }
     ShowToastDialog.showLoader('Concluindo...');
     try {
-      final hourly = HourlyServiceBilling.isHourly(order.provider.priceUnit);
       final payload = <String, dynamic>{
         'status': Constant.orderCompleted,
-        'paymentStatus': hourly ? (order.paymentStatus ?? false) : true,
+        'paymentStatus': hourly ? (order.paymentStatus == true || isCod) : true,
         'extraPaymentStatus': true,
       };
       if (hourly) {
@@ -164,6 +175,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         payload['endTime'] = FieldValue.serverTimestamp();
       }
       await FireStoreUtils.updateOrder(order.id, payload);
+      if (isCod) {
+        if (payload['quantity'] is double) {
+          order.quantity = payload['quantity'] as double;
+        }
+        await FireStoreUtils.creditCodOnComplete(order);
+      }
       ShowToastDialog.closeLoader();
       ShowToastDialog.showToast('Pedido concluído.');
     } catch (e) {
@@ -190,16 +207,51 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             children: [
               Text(order.provider.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
-              Text(Constant.statusLabel(order.status), style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 16),
-              _row('Cliente', order.author.fullName()),
-              _row('Telefone', order.author.phoneNumber ?? ''),
-              _row('Pagamento', order.paymentMethod),
-              if (when != null) _row('Agenda', DateFormat('dd/MM/yyyy HH:mm').format(when.toDate())),
-              if (order.addressLine().isNotEmpty) _row('Endereço', order.addressLine()),
-              if (order.notes.isNotEmpty) _row('Observações', order.notes),
-              if (order.extraCharges.isNotEmpty && order.extraCharges != '0.0') _row('Taxa extra', order.extraCharges),
-              _row('OTP', order.otp),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Chip(
+                  label: Text(Constant.statusLabel(order.status)),
+                  backgroundColor: AppTheme.primary.withValues(alpha: 0.12),
+                  labelStyle: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: AppTheme.grey200),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _row('Cliente', order.author.fullName()),
+                      _row('Telefone', order.author.phoneNumber ?? ''),
+                      _row('Pagamento', Constant.paymentLabel(method: order.paymentMethod, paid: order.paymentStatus)),
+                      if (when != null) _row('Agenda', DateFormat('dd/MM/yyyy HH:mm').format(when.toDate())),
+                      if (order.addressLine().isNotEmpty) _row('Endereço', order.addressLine()),
+                      if (order.notes.isNotEmpty) _row('Observações', order.notes),
+                      if (order.extraCharges.isNotEmpty && order.extraCharges != '0.0') _row('Taxa extra', order.extraCharges),
+                      _row('OTP', order.otp),
+                    ],
+                  ),
+                ),
+              ),
+              if ((order.authorID.isNotEmpty || (order.author.id ?? '').isNotEmpty) && order.status != Constant.orderPlaced) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Get.to(
+                    () => ChatScreen(
+                      orderId: order.id,
+                      customerId: order.authorID.isNotEmpty ? order.authorID : (order.author.id ?? ''),
+                      customerName: order.author.fullName(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.chat_bubble_outline),
+                  label: const Text('Conversar com o cliente'),
+                ),
+              ],
               const SizedBox(height: 20),
               if (order.status == Constant.orderPlaced) ...[
                 ElevatedButton(onPressed: () => _accept(order), child: const Text('Aceitar')),
@@ -235,14 +287,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     );
                   },
                 ),
+                const SizedBox(height: 12),
+                ElevatedButton(onPressed: () => _start(order), child: const Text('Cheguei / Iniciar atendimento')),
               ],
               if (order.status == Constant.orderAssigned)
-                ElevatedButton(onPressed: () => _start(order), child: const Text('Iniciar serviço')),
+                ElevatedButton(onPressed: () => _start(order), child: const Text('Cheguei / Iniciar atendimento')),
               if (order.status == Constant.orderOngoing || order.status == Constant.inTransit) ...[
                 if (HourlyServiceBilling.isHourly(order.provider.priceUnit) && order.startTime != null) ...[
                   HourlyTimerCard(
                     elapsed: (order.endTime?.toDate() ?? DateTime.now()).difference(order.startTime!.toDate()),
-                    rate: double.tryParse(order.provider.disPrice != '0' && order.provider.disPrice.isNotEmpty ? order.provider.disPrice : order.provider.price) ?? 0,
+                    rate: HourlyServiceBilling.unitPrice(order.provider.price, order.provider.disPrice),
                     hours: HourlyServiceBilling.billableHours(
                       order.startTime!.toDate(),
                       order.endTime?.toDate() ?? DateTime.now(),
@@ -255,13 +309,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ],
                   const SizedBox(height: 12),
                 ],
-                TextField(
-                  controller: otpController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'OTP do cliente', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(onPressed: () => _complete(order), child: const Text('Concluir')),
+                if (!HourlyServiceBilling.isHourly(order.provider.priceUnit) || order.endTime != null) ...[
+                  TextField(
+                    controller: otpController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'OTP do cliente', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(onPressed: () => _complete(order), child: const Text('Concluir')),
+                ],
               ],
               const SizedBox(height: 24),
               _invoicesSection(order),

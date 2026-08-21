@@ -6,4 +6,10 @@ class CollectionName {
   static const String providersWorkers = ArrowFirestoreCollections.providersWorkers;
   static const String providersServices = 'providers_services';
   static const String settings = 'settings';
+  static const String documents = 'documents';
+  static const String documentsVerify = 'documents_verify';
+  static const String wallet = 'wallet';
+  static const String itemsReview = 'items_review';
+  static const String chat = 'chat';
+  static const String payouts = 'payouts';
 }

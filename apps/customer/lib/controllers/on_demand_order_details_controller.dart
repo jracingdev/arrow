@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:arrow_shared/hourly_service_billing.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/models/coupon_model.dart';
 import 'package:customer/models/user_model.dart';
@@ -51,17 +52,25 @@ class OnDemandOrderDetailsController extends GetxController {
       onProviderOrder.value = args;
     }
     getData();
-    _watchInvoices();
+    _watchOrder();
   }
 
-  void _watchInvoices() {
+  void _watchOrder() {
     final id = onProviderOrder.value?.id;
     if (id == null || id.isEmpty) return;
     _invoiceSub = FireStoreUtils.fireStore.collection(CollectionName.providerOrders).doc(id).snapshots().listen((snap) {
       final current = onProviderOrder.value;
       if (!snap.exists || snap.data() == null || current == null) return;
-      current.invoices = OrderInvoiceModel.listFrom(snap.data()!['invoices']);
+      final data = snap.data()!;
+      current.invoices = OrderInvoiceModel.listFrom(data['invoices']);
+      current.startTime = data['startTime'] is Timestamp ? data['startTime'] as Timestamp : current.startTime;
+      current.endTime = data['endTime'] is Timestamp ? data['endTime'] as Timestamp : (data.containsKey('endTime') && data['endTime'] == null ? null : current.endTime);
+      current.status = data['status']?.toString() ?? current.status;
+      current.paymentStatus = data['paymentStatus'] as bool? ?? current.paymentStatus;
+      current.extraPaymentStatus = data['extraPaymentStatus'] as bool? ?? current.extraPaymentStatus;
+      current.quantity = double.tryParse('${data['quantity'] ?? current.quantity}') ?? current.quantity;
       onProviderOrder.refresh();
+      calculatePrice();
     });
   }
 
@@ -142,7 +151,11 @@ class OnDemandOrderDetailsController extends GetxController {
             ? double.tryParse(onProviderOrder.value?.provider.price.toString() ?? "0") ?? 0
             : double.tryParse(onProviderOrder.value?.provider.disPrice.toString() ?? "0") ?? 0;
 
-    price.value = basePrice * (onProviderOrder.value?.quantity ?? 0.0);
+    var qty = onProviderOrder.value?.quantity ?? 0.0;
+    if (HourlyServiceBilling.isHourly(onProviderOrder.value?.provider.priceUnit) && qty < 1) {
+      qty = 1;
+    }
+    price.value = basePrice * qty;
 
     // discount
     if (discountType.value == "Percentage" || discountType.value == "Percent") {

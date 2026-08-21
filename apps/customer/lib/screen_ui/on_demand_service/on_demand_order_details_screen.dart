@@ -14,6 +14,9 @@ import '../../themes/show_toast_dialog.dart';
 import '../multi_vendor_service/chat_screens/chat_screen.dart';
 import 'on_demand_payment_screen.dart';
 import 'on_demand_review_screen.dart';
+import '../../widget/hourly_elapsed_text.dart';
+import '../../widget/provider_verified_chip.dart';
+import 'package:arrow_shared/hourly_service_billing.dart';
 
 class OnDemandOrderDetailsScreen extends StatelessWidget {
   const OnDemandOrderDetailsScreen({super.key});
@@ -408,9 +411,15 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text(
-                                                  controller.providerUser.value?.fullName() ?? '',
-                                                  style: TextStyle(color: isDark ? Colors.white : Colors.black, fontFamily: AppThemeData.regular, fontSize: 14, fontWeight: FontWeight.bold),
+                                                Wrap(
+                                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                                  children: [
+                                                    Text(
+                                                      controller.providerUser.value?.fullName() ?? '',
+                                                      style: TextStyle(color: isDark ? Colors.white : Colors.black, fontFamily: AppThemeData.regular, fontSize: 14, fontWeight: FontWeight.bold),
+                                                    ),
+                                                    ProviderVerifiedChip(verified: controller.providerUser.value?.isDocumentVerify == true),
+                                                  ],
                                                 ),
                                                 const SizedBox(height: 5),
                                                 Text(
@@ -605,6 +614,18 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                             : Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                if (HourlyServiceBilling.isHourly(controller.onProviderOrder.value?.provider.priceUnit) &&
+                                    controller.onProviderOrder.value?.status == Constant.orderOngoing &&
+                                    controller.onProviderOrder.value?.startTime != null &&
+                                    controller.onProviderOrder.value?.endTime == null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8, bottom: 8),
+                                    child: HourlyElapsedText(
+                                      start: controller.onProviderOrder.value!.startTime!.toDate(),
+                                      prefix: '${'Tempo em atendimento'.tr}: ',
+                                      style: AppThemeData.semiBoldTextStyle(fontSize: 16, color: AppThemeData.primary300),
+                                    ),
+                                  ),
                                 controller.onProviderOrder.value?.paymentStatus == false || controller.onProviderOrder.value?.extraPaymentStatus == false
                                     ? Column(
                                       children: [
@@ -736,7 +757,10 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                               ),
                             )
                             : SizedBox(),
-                        controller.onProviderOrder.value?.provider.priceUnit != "Fixed" && controller.onProviderOrder.value?.paymentStatus == false
+                        controller.onProviderOrder.value?.provider.priceUnit != "Fixed" &&
+                                HourlyServiceBilling.isHourly(controller.onProviderOrder.value?.provider.priceUnit) &&
+                                controller.onProviderOrder.value?.paymentStatus == false &&
+                                controller.onProviderOrder.value?.endTime != null
                             ? Visibility(
                               visible: controller.onProviderOrder.value?.status == Constant.orderOngoing ? true : false,
                               child: Padding(
@@ -746,10 +770,7 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                                   color: AppThemeData.primary300,
                                   textColor: AppThemeData.grey50,
                                   onPress: () async {
-                                    double finalTotalAmount = 0.0;
-                                    finalTotalAmount =
-                                        controller.totalAmount.value +
-                                        double.parse(controller.onProviderOrder.value!.extraCharges!.isNotEmpty ? controller.onProviderOrder.value!.extraCharges.toString() : "0.0");
+                                    double finalTotalAmount = controller.totalAmount.value;
                                     controller.onProviderOrder.value?.discount = controller.discountAmount.toString();
                                     controller.onProviderOrder.value?.discountType = controller.discountType.toString();
                                     controller.onProviderOrder.value?.discountLabel = controller.discountLabel.toString();

@@ -34,6 +34,8 @@
                                 <option value="vendor">{{trans('lang.document_vendor')}}</option>
                                 <option value="driver">{{trans('lang.document_driver')}}</option>
                                 <option value="owner">{{trans('lang.document_owner')}}</option>
+                                <option value="provider">{{trans('lang.document_provider')}}</option>
+                                <option value="ondemand">{{trans('lang.document_ondemand')}}</option>
                             </select>
                             <div class="form-text text-muted">{{ trans("lang.select_document_for") }}
                             </div>
@@ -120,6 +122,23 @@
                                     jQuery("#data-table_processing").hide();
                                     window.location.href = '{{ route("documents")}}';
                                 }
+                            } else {
+                                jQuery("#data-table_processing").hide();
+                                window.location.href = '{{ route("documents")}}';
+                            }
+                        })
+                    } else if (document_for == 'provider' || document_for == 'ondemand') {
+                        var enableDocIds = await getDocId(document_for);
+                        await database.collection('users').where('role', '==', 'provider').get().then(async function (snapshotsprovider) {
+                            if (snapshotsprovider.docs.length > 0) {
+                                var verification = await userDocVerification(enableDocIds, snapshotsprovider);
+                                if (verification) {
+                                    jQuery("#data-table_processing").hide();
+                                    window.location.href = '{{ route("documents")}}';
+                                }
+                            } else {
+                                jQuery("#data-table_processing").hide();
+                                window.location.href = '{{ route("documents")}}';
                             }
                         })
                     } else {
@@ -131,6 +150,9 @@
                                     jQuery("#data-table_processing").hide();
                                     window.location.href = '{{ route("documents")}}';
                                 }
+                            } else {
+                                jQuery("#data-table_processing").hide();
+                                window.location.href = '{{ route("documents")}}';
                             }
                         })
                     }

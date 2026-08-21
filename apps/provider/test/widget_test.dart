@@ -1,4 +1,5 @@
 import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/rating_average.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/constant/collection_name.dart';
 import 'package:provider/constant/constant.dart';
@@ -33,8 +34,15 @@ void main() {
     expect(Constant.orderRejected, 'Order Rejected');
     expect(Constant.orderCancelled, 'Order Cancelled');
     expect(Constant.tabActive, contains('In Transit'));
-    expect(Constant.tabCancelled, contains('Driver Rejected'));
+    expect(Constant.tabAccepted, contains('Order Accepted'));
+    expect(Constant.tabOngoing, contains('Order Ongoing'));
+    expect(Constant.tabUpcoming, contains('Order Assigned'));
+    expect(Constant.paymentLabel(method: 'cod', paid: false), 'COD · A pagar');
+    expect(Constant.paymentLabel(method: 'stripe', paid: true), 'Pago · stripe');
     expect(CollectionName.providersServices, 'providers_services');
+    expect(CollectionName.wallet, 'wallet');
+    expect(CollectionName.documentsVerify, 'documents_verify');
+    expect(CollectionName.itemsReview, 'items_review');
     expect(Constant.statusLabel(Constant.orderPlaced), 'Pedido realizado');
     expect(Constant.statusLabel(Constant.orderAccepted), 'Pedido aceito');
     expect(Constant.statusLabel(Constant.orderAssigned), 'Pedido atribuído');
@@ -51,5 +59,13 @@ void main() {
       FireStoreUtils.invoiceStoragePath('order123', 'file-uuid', 'pdf'),
       'provider_orders/order123/invoices/file-uuid.pdf',
     );
+  });
+
+  test('média de avaliações e rótulo de pagamento', () {
+    expect(RatingAverage.of(9, 2), 4.5);
+    expect(RatingAverage.formatted(10, 2), '5.0');
+    expect(Constant.isCod('cod'), isTrue);
+    expect(Constant.paymentLabel(method: 'wallet', paid: true), contains('Pago'));
+    expect(Constant.paymentLabel(method: 'cod', paid: false), contains('A pagar'));
   });
 }

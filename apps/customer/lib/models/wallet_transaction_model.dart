@@ -53,6 +53,7 @@ class WalletTransactionModel {
     data['date'] = date;
     data['transactionUser'] = transactionUser;
     data['note'] = note;
+    data['serviceType'] = serviceType;
     return data;
   }
 }

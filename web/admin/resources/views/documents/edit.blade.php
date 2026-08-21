@@ -34,6 +34,8 @@
                                 <option value="vendor">{{trans('lang.document_vendor')}}</option>
                                 <option value="driver">{{trans('lang.document_driver')}}</option>
                                 <option value="owner">{{trans('lang.document_owner')}}</option>
+                                <option value="provider">{{trans('lang.document_provider')}}</option>
+                                <option value="ondemand">{{trans('lang.document_ondemand')}}</option>
                             </select>
                             <div class="form-text text-muted">{{ trans("lang.select_document_for") }}
                             </div>

@@ -1,3 +1,5 @@
+import 'package:arrow_shared/hourly_service_billing.dart';
+import 'package:arrow_shared/rating_average.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/models/provider_service_model.dart';
 import 'package:provider/service/fire_store_utils.dart';
@@ -28,13 +30,34 @@ class ServicesScreen extends StatelessWidget {
             itemBuilder: (context, i) {
               final service = services[i];
               final price = service.disPrice.isNotEmpty && service.disPrice != '0' ? service.disPrice : service.price;
+              final unit = HourlyServiceBilling.isHourly(service.priceUnit) ? '/hora' : '';
+              final avg = RatingAverage.formatted(service.reviewsSum, service.reviewsCount);
               return SwitchListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                   side: const BorderSide(color: AppTheme.grey200),
                 ),
                 title: Text(service.title),
-                subtitle: Text('$price ${service.priceUnit}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('$price$unit'),
+                    Row(
+                      children: [
+                        for (var s = 1; s <= 5; s++)
+                          Icon(
+                            s <= RatingAverage.of(service.reviewsSum, service.reviewsCount).round()
+                                ? Icons.star
+                                : Icons.star_border,
+                            size: 14,
+                            color: AppTheme.warning,
+                          ),
+                        const SizedBox(width: 6),
+                        Text('$avg (${service.reviewsCount})', style: const TextStyle(color: AppTheme.grey500, fontSize: 12)),
+                      ],
+                    ),
+                  ],
+                ),
                 value: service.publish,
                 onChanged: (value) => FireStoreUtils.setServicePublish(service.id, value),
               );

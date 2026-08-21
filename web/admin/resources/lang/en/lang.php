@@ -2104,6 +2104,8 @@ return [
     'document_vendor' => 'Vendor',
     'document_driver' => 'Individual Driver',
     'document_owner' => 'Owner',
+    'document_provider' => 'Provider',
+    'document_ondemand' => 'On-demand',
     'frontside' => 'Front Side',
     'backside' => 'Back Side',
     'document_title_help' => 'Insert document title',
