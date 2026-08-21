@@ -192,6 +192,26 @@
                                         <input type="hidden" id="hidden_email" />
                                 </div>
 
+                                <div class="form-group">
+                                    <label class="text-dark">{{ trans('lang.login_as') }}</label>
+                                    <div class="d-flex align-items-center" style="gap:18px;">
+                                        <div class="radio radio-info radio-inline">
+                                            <input type="radio" name="signup_role" id="signup_role_vendor" value="vendor" checked>
+                                            <label for="signup_role_vendor"> {{ trans('lang.owner') }} </label>
+                                        </div>
+                                        <div class="radio radio-info radio-inline">
+                                            <input type="radio" name="signup_role" id="signup_role_provider" value="provider">
+                                            <label for="signup_role_provider"> {{ trans('lang.provider') }} </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group" id="provider_section_wrap" style="display:none;">
+                                    <label class="text-dark">{{ trans('lang.section') }}</label>
+                                    <select class="form-control" id="provider_section_id">
+                                        <option value="">{{ trans('lang.select') }}</option>
+                                    </select>
+                                </div>
+
                                 <div class="form-group " id="phone-box">
                                     <div class="col-xs-12">
                                         <select name="country" id="country_selector">
@@ -299,14 +319,37 @@
 
             var vendor_active = false;
             var autoAprroveVendor = database.collection('settings').doc("vendor");
-            autoAprroveVendor.get().then(async function(snapshots) {
-                var vendordata = snapshots.exists ? (snapshots.data() || {}) : {};
-                if (vendordata.auto_approve_vendor == true) {
-                    vendor_active = true;
+            var autoApproveProvider = database.collection('settings').doc("provider");
+            function refreshAutoApprove() {
+                var role = $('input[name="signup_role"]:checked').val() || 'vendor';
+                vendor_active = false;
+                if (role === 'provider') {
+                    autoApproveProvider.get().then(function(snapshots) {
+                        var data = snapshots.exists ? (snapshots.data() || {}) : {};
+                        vendor_active = data.auto_approve_provider == true;
+                    }).catch(function() {});
+                } else {
+                    autoAprroveVendor.get().then(function(snapshots) {
+                        var vendordata = snapshots.exists ? (snapshots.data() || {}) : {};
+                        vendor_active = vendordata.auto_approve_vendor == true;
+                    }).catch(function() {});
                 }
-            }).catch(function (autoApproveError) {
-                console.error("Error loading auto_approve_vendor:", autoApproveError);
+            }
+            refreshAutoApprove();
+            $(document).on('change', 'input[name="signup_role"]', function() {
+                refreshAutoApprove();
+                if ($(this).val() === 'provider') {
+                    $('#provider_section_wrap').show();
+                } else {
+                    $('#provider_section_wrap').hide();
+                }
             });
+            database.collection('sections').where('serviceTypeFlag', '==', 'ondemand-service').where('isActive', '==', true).orderBy('order').get().then(function (snapshots) {
+                snapshots.docs.forEach(function (doc) {
+                    var data = doc.data();
+                    $('#provider_section_id').append($('<option></option>').attr('value', data.id).text(data.name));
+                });
+            }).catch(function() {});
 
             var adminEmail = '';
 
@@ -459,22 +502,38 @@
 
                             
                             coordinates = new firebase.firestore.GeoPoint(0, 0);
-                            geoFirestore.collection("users").doc(uuid).set({
+                            var signupRole = $('input[name="signup_role"]:checked').val() || 'vendor';
+                            var providerSectionId = $('#provider_section_id').val() || '';
+                            if (signupRole === 'provider' && !providerSectionId) {
+                                $('.error_top').show().html("<p>{{trans('lang.select_ondemand_section')}}</p>");
+                                return;
+                            }
+                            var userDoc = {
                                 'email': email,
                                 'firstName': firstName,
                                 'lastName': lastName,
                                 'id': uuid,
                                 'phoneNumber': phoneNumber,
-                                'role': "vendor",
+                                'role': signupRole,
                                 'profilePictureURL': "",
-                                'vendorID': '',
                                 'active': vendor_active,
+                                'isActive': vendor_active,
                                 'coordinates': coordinates,
                                 'createdAt': createdAt,
-                                'sectionId': '',
-                                'isDocumentVerify': isStoreVerification === true ? false : true,
-                                'isAutoVerify': isStoreVerification === false ? true : false,
-                            }).then(async function(result) {
+                            };
+                            if (signupRole === 'provider') {
+                                userDoc.section_id = providerSectionId;
+                                userDoc.sectionId = providerSectionId;
+                                userDoc.wallet_amount = 0;
+                                userDoc.reviewsCount = 0;
+                                userDoc.reviewsSum = 0;
+                            } else {
+                                userDoc.vendorID = '';
+                                userDoc.sectionId = '';
+                                userDoc.isDocumentVerify = isStoreVerification === true ? false : true;
+                                userDoc.isAutoVerify = isStoreVerification === false ? true : false;
+                            }
+                            geoFirestore.collection("users").doc(uuid).set(userDoc).then(async function(result) {
                                 autoAprroveVendor.get().then(async function(snapshots) {
                                     var formattedDate = new Date();
                                     var month = formattedDate.getMonth() + 1;

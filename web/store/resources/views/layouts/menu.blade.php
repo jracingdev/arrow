@@ -90,7 +90,7 @@
                 $('#sidebarnav').append(newLi);
                 }
             }
-            if ((isStoreVerification == true && isAutoVerify == false) || (isStoreVerification == true && isStoreDocumentVerify == false) ) {
+            if (authRole === 'vendor' && ((isStoreVerification == true && isAutoVerify == false) || (isStoreVerification == true && isStoreDocumentVerify == false) )) {
             var newLi = `
                     <li class="{{ request()->routeIs('vendors.document') ? 'active' : '' }}">
                     <a class="waves-effect waves-dark" href="{!! route('vendors.document') !!}" aria-expanded="false">
@@ -159,6 +159,40 @@
             .vendorID != null) {
             vendorId = userData.vendorID;
             checkVendor = userData.vendorID;
+        }
+        if(userData.role == "provider"){
+            newLi += `<li class="{{ request()->routeIs('provider.bookings') || request()->routeIs('provider.bookings.edit') ? 'active' : '' }}">
+                    <a class="waves-effect waves-dark" href="{!! route('provider.bookings') !!}" aria-expanded="false">
+                        <i class="mdi mdi-calendar-clock"></i>
+                        <span class="hide-menu">{{ trans('lang.booking_plural') }}</span>
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('provider.services') || request()->routeIs('provider.services.create') || request()->routeIs('provider.services.edit') ? 'active' : '' }}">
+                    <a class="waves-effect waves-dark" href="{!! route('provider.services') !!}" aria-expanded="false">
+                        <i class="mdi mdi-briefcase"></i>
+                        <span class="hide-menu">{{ trans('lang.service_plural') }}</span>
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('provider.workers') || request()->routeIs('provider.workers.create') || request()->routeIs('provider.workers.edit') ? 'active' : '' }}">
+                    <a class="waves-effect waves-dark" href="{!! route('provider.workers') !!}" aria-expanded="false">
+                        <i class="mdi mdi-account-multiple"></i>
+                        <span class="hide-menu">{{ trans('lang.worker_plural') }}</span>
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('wallettransaction.index') ? 'active' : '' }}">
+                    <a class="waves-effect waves-dark" href="{!! route('wallettransaction.index') !!}" aria-expanded="false">
+                        <i class="mdi mdi-swap-horizontal"></i>
+                        <span class="hide-menu">{{ trans('lang.wallet_transaction_plural') }}</span>
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('user.profile') ? 'active' : '' }}">
+                    <a class="waves-effect waves-dark" href="{!! route('user.profile') !!}" aria-expanded="false">
+                        <i class="mdi mdi-account"></i>
+                        <span class="hide-menu">{{ trans('lang.profile') }}</span>
+                    </a>
+                </li>`;
+            $('#sidebarnav').append(newLi);
+            return;
         }
         if(userData.role == "vendor"){
              newLi += `<li>

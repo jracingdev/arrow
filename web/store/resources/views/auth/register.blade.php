@@ -76,6 +76,31 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="form-group row width-50">
+                            <label class="col-3 control-label">{{trans('lang.login_as')}}</label>
+                            <div class="col-7">
+                                <div class="d-flex align-items-center" style="gap:18px;">
+                                    <div class="radio radio-info radio-inline">
+                                        <input type="radio" name="signup_role" id="signup_role_vendor" value="vendor" checked>
+                                        <label for="signup_role_vendor"> {{ trans('lang.owner') }} </label>
+                                    </div>
+                                    <div class="radio radio-info radio-inline">
+                                        <input type="radio" name="signup_role" id="signup_role_provider" value="provider">
+                                        <label for="signup_role_provider"> {{ trans('lang.provider') }} </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row width-50" id="provider_section_wrap" style="display:none;">
+                            <label class="col-3 control-label">{{trans('lang.section')}}</label>
+                            <div class="col-7">
+                                <select class="form-control" id="provider_section_id">
+                                    <option value="">{{ trans('lang.select') }}</option>
+                                </select>
+                            </div>
+                        </div>
                        
                         <div class="form-group row width-50" id="phone-box">
                             <label class="col-3 control-label">{{trans('lang.user_phone')}}</label>
@@ -188,6 +213,36 @@
     var vendor_menu_filename = [];
 
     var autoAprroveVendor = database.collection('settings').doc("vendor");
+    var autoApproveProvider = database.collection('settings').doc("provider");
+
+    function buildSignupUserDoc(userId, imageUrl, email, firstName, lastName, phone, active, role, sectionId) {
+        var doc = {
+            'firstName': firstName,
+            'lastName': lastName,
+            'email': email.toLowerCase().trim(),
+            'phoneNumber': phone,
+            'profilePictureURL': imageUrl || '',
+            'role': role,
+            'id': userId,
+            'active': active,
+            'isActive': active,
+            'createdAt': createdAt,
+        };
+        if (role === 'provider') {
+            doc.section_id = sectionId;
+            doc.sectionId = sectionId;
+            doc.wallet_amount = 0;
+            doc.reviewsCount = 0;
+            doc.reviewsSum = 0;
+            doc.location = { 'latitude': 0.01, 'longitude': 0.01 };
+        } else {
+            doc.vendorID = null;
+            doc.sectionId = '';
+            doc.isDocumentVerify = isStoreVerification === true ? false : true;
+            doc.isAutoVerify = isStoreVerification === false ? true : false;
+        }
+        return doc;
+    }
 
     var sections_list = [];
 
@@ -243,6 +298,21 @@
             templateSelection: formatState2,
             placeholder: "{{ trans('lang.select_country') }}",
             allowClear: true
+        });
+
+        database.collection('sections').where('serviceTypeFlag', '==', 'ondemand-service').where('isActive', '==', true).orderBy('order').get().then(function (snapshots) {
+            snapshots.docs.forEach(function (doc) {
+                var data = doc.data();
+                $('#provider_section_id').append($('<option></option>').attr('value', data.id).text(data.name));
+            });
+        }).catch(function () {});
+
+        $('input[name="signup_role"]').on('change', function () {
+            if ($(this).val() === 'provider') {
+                $('#provider_section_wrap').show();
+            } else {
+                $('#provider_section_wrap').hide();
+            }
         });
         
         // --- DEFAULT COUNTRY: BR (+55), sobrescreve com globalSettings se existir ---
@@ -314,6 +384,16 @@
         userFullPhoneNumber = '+' + country_code + '' + userPhone;
        
         var vendor_active = false;
+        var signupRole = $('input[name="signup_role"]:checked').val() || 'vendor';
+        var providerSectionId = $('#provider_section_id').val() || '';
+        if (signupRole === 'provider') {
+            await autoApproveProvider.get().then(async function (snapshots) {
+                var providerdata = snapshots.exists ? (snapshots.data() || {}) : {};
+                if (providerdata.auto_approve_provider == true) {
+                    vendor_active = true;
+                }
+            }).catch(function () {});
+        } else {
         await autoAprroveVendor.get().then(async function (snapshots) {
             var vendordata = snapshots.exists ? (snapshots.data() || {}) : {};
             if (vendordata.auto_approve_vendor == true) {
@@ -322,6 +402,7 @@
         }).catch(function (autoApproveError) {
             console.error("Error loading auto_approve_vendor:", autoApproveError);
         });
+        }
 
         var user_name = userFirstName + " " + userLastName;        
         var user_id = '';
@@ -361,6 +442,11 @@
             $(".error_top").html("");
             $(".error_top").append("<p>{{trans('lang.enter_owners_phone')}}</p>");
             window.scrollTo(0, 0);
+        } else if (signupRole === 'provider' && !providerSectionId) {
+            $(".error_top").show();
+            $(".error_top").html("");
+            $(".error_top").append("<p>{{trans('lang.select_ondemand_section')}}</p>");
+            window.scrollTo(0, 0);
         }  else {
             jQuery("#data-table_processing").show();         
 
@@ -368,21 +454,7 @@
                 if (loginType === "google" && existingUUID) {
                     // Directly store user in Firestore using passed Google UUID
                     await storeImageData().then(async (IMG) => {
-                        database.collection('users').doc(existingUUID).set({
-                            'firstName': userFirstName,
-                            'lastName': userLastName,
-                            'email': email,
-                            'phoneNumber': userFullPhoneNumber,
-                            'profilePictureURL': IMG.ownerImage,
-                            'role': 'vendor',
-                            'id': existingUUID,
-                            'active': vendor_active,
-                            'vendorID': null,
-                            'createdAt': createdAt,
-                            'sectionId': '',
-                            'isDocumentVerify': isStoreVerification === true ? false : true,
-                            'isAutoVerify': isStoreVerification === false ? true : false,
-                        }).then(async function () {
+                        database.collection('users').doc(existingUUID).set(buildSignupUserDoc(existingUUID, IMG.ownerImage, email, userFirstName, userLastName, userFullPhoneNumber, vendor_active, signupRole, providerSectionId)).then(async function () {
                             autoAprroveVendor.get().then(async function (snapshots) {
                                 var formattedDate = new Date();
                                 var month = formattedDate.getMonth() + 1;
@@ -409,8 +481,7 @@
 
                                 if (sendEmailStatus) {
 
-                                    var vendordata = snapshots.data();
-                                    if (vendordata.auto_approve_vendor == false) {
+                                    if (vendor_active == false) {
                                         $(".alert-success").show();
                                         $(".alert-success").html("");
                                         $(".alert-success").append("<p>{{trans('lang.signup_waiting_approval')}}</p>");
@@ -441,22 +512,7 @@
                         .then(async function (firebaseUser) {
                             user_id = firebaseUser.user.uid;
                             await storeImageData().then(async (IMG) => {
-                                database.collection('users').doc(user_id).set({
-                                    'firstName': userFirstName,
-                                    'lastName': userLastName,
-                                    // 'email': email,
-                                    'email': email.toLowerCase().trim(),// Store email in lowercase newly added
-                                    'phoneNumber': userFullPhoneNumber,
-                                    'profilePictureURL': IMG.ownerImage,
-                                    'role': 'vendor',
-                                    'id': user_id,
-                                    'active': vendor_active,
-                                    'vendorID': null,
-                                    createdAt: createdAt,
-                                    'sectionId': '',
-                                    'isDocumentVerify': isStoreVerification === true ? false : true,
-                                    'isAutoVerify': isStoreVerification === false ? true : false,
-                                }).then(async function () {
+                                database.collection('users').doc(user_id).set(buildSignupUserDoc(user_id, IMG.ownerImage, email, userFirstName, userLastName, userFullPhoneNumber, vendor_active, signupRole, providerSectionId)).then(async function () {
                                     autoAprroveVendor.get().then(async function (snapshots) {
                                         var formattedDate = new Date();
                                         var month = formattedDate.getMonth() + 1;
@@ -483,8 +539,7 @@
 
                                         if (sendEmailStatus) {
 
-                                            var vendordata = snapshots.data();
-                                            if (vendordata.auto_approve_vendor == false) {
+                                            if (vendor_active == false) {
                                                 $(".alert-success").show();
                                                 $(".alert-success").html("");
                                                 $(".alert-success").append("<p>{{trans('lang.signup_waiting_approval')}}</p>");

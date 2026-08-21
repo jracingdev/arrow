@@ -195,6 +195,10 @@
                                         <label for="role_vendor"> {{ trans('lang.owner') }} </label>
                                     </div>
                                     <div class="radio radio-info radio-inline">
+                                        <input type="radio" name="role" id="role_provider" value="provider">
+                                        <label for="role_provider"> {{ trans('lang.provider') }} </label>
+                                    </div>
+                                    <div class="radio radio-info radio-inline">
                                         <input type="radio" name="role" id="role_employee" value="employee">
                                         <label for="role_employee"> {{ trans('lang.employee') }} </label>
                                     </div>
@@ -339,6 +343,39 @@
             var documentVerificationEnable = false;  
             var businessModel = database.collection('settings').doc("vendor");
 
+            function finishProviderLogin(userData, uid, email, password) {
+                $.ajax({
+                    type: 'POST',
+                    url: "{{ route('setToken') }}",
+                    data: {
+                        id: uid,
+                        userId: userData.id || uid,
+                        email: email,
+                        password: password || '',
+                        firstName: userData.firstName || '',
+                        lastName: userData.lastName || '',
+                        profilePicture: userData.profilePictureURL || '',
+                        isSubscribed: '',
+                        role: 'provider'
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(data) {
+                        jQuery('#data-table_processing').hide();
+                        if (data.access) {
+                            window.location = "{{ route('dashboard') }}";
+                        } else {
+                            $("#password_required").html("Falha no login — problema de token");
+                        }
+                    },
+                    error: function() {
+                        jQuery('#data-table_processing').hide();
+                        $("#password_required").html("Erro no servidor durante o login");
+                    }
+                });
+            }
+
             businessModel.get().then(async function(snapshots) {
 
                 var businessModelSettings = snapshots.data();
@@ -432,6 +469,10 @@
                             var userToken=result.user.getIdToken();
                             var uid=result.user.uid;
                             if (userData.active == true) {
+                                if (userData.role == "provider") {
+                                    finishProviderLogin(userData, uid, email, password);
+                                    return;
+                                }
                                 if (userData.role == "vendor") {
                                     if (userData.hasOwnProperty('sectionId') && userData.sectionId != null && userData.sectionId != '') {
                                         await database.collection('sections').where('id', '==', userData.sectionId).get().then(async function(snapshots) {
@@ -622,7 +663,8 @@
                 if (jQuery("#phone").val() && jQuery("#country_selector").val()) {
                     var phoneNumber = '+' + jQuery("#country_selector").val() + '' + jQuery("#phone").val();
                     onlyPhoneNumber = jQuery("#phone").val();
-                    database.collection("users").where("phoneNumber", "==", phoneNumber).where("role", "==", 'vendor').where(
+                    var selectedRole = $('input[name="role"]:checked').val() || 'vendor';
+                    database.collection("users").where("phoneNumber", "==", phoneNumber).where("role", "==", selectedRole).where(
                         "active", "==", true).get().then(async function(snapshots) {
                         if (snapshots.docs.length) {
                             var userData = snapshots.docs[0].data();
@@ -654,6 +696,10 @@
                             async function(snapshots_login) {
                                 userData = snapshots_login.docs[0].data();
                                 if (userData) {
+                                    if (userData.role == "provider" && userData.active == true) {
+                                        finishProviderLogin(userData, userData.id, userData.email || phoneNumber, '');
+                                        return;
+                                    }
                                     if (userData.role == "vendor" && userData.active == true) {
                                         if (userData.hasOwnProperty('sectionId') && userData.sectionId != null && userData.sectionId != '') {
                                             await database.collection('sections').where('id', '==', userData.sectionId).get().then(async function(snapshots) {
@@ -836,6 +882,10 @@
                 database.collection("users").doc(user.uid).get().then(async function(snapshots_login) {
                     var userData=snapshots_login.data();
                     if(userData) {
+                        if(userData.role=="provider"&&userData.active) {
+                            finishProviderLogin(userData, userData.id, userData.email || user.email, '');
+                            return;
+                        }
                         if(userData.role=="vendor"&&userData.active) {
                             var uid=userData.id;
                             var firstName=userData.firstName;

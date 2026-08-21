@@ -652,11 +652,13 @@
         var id = this.id;
         if (ischeck) {
             database.collection('users').doc(id).update({
-                'active': true
+                'active': true,
+                'isActive': true
             }).then(function (result) { });
         } else {
             database.collection('users').doc(id).update({
-                'active': false
+                'active': false,
+                'isActive': false
             }).then(function (result) { });
         }
     });

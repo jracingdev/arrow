@@ -417,6 +417,20 @@
                             </div>
                         </div>
                         <div class="form-group row width-50">
+                            <label class="col-5 control-label">{{ trans('lang.provider_android_package') }}</label>
+                            <div class="col-7">
+                                <input type="text" class="form-control" id="provider_android_package" placeholder="br.app.arrow.provider">
+                                <div class="form-text text-muted">{{ trans('lang.provider_app_id_help') }}</div>
+                            </div>
+                        </div>
+                        <div class="form-group row width-50">
+                            <label class="col-5 control-label">{{ trans('lang.provider_ios_bundle') }}</label>
+                            <div class="col-7">
+                                <input type="text" class="form-control" id="provider_ios_bundle" placeholder="br.app.arrow.provider">
+                                <div class="form-text text-muted">{{ trans('lang.provider_app_id_help') }}</div>
+                            </div>
+                        </div>
+                        <div class="form-group row width-50">
                             <label class="col-5 control-label">{{ trans('lang.setting_api_secure_key') }}</label>
                             <div class="col-7">
                                 <input type="password" class="form-control" id="api_secure_key">
@@ -603,11 +617,16 @@
             });
 
             provider.get().then(async function(snapshots) {
-                var providerData = snapshots.data();
+                var providerData = snapshots.exists ? (snapshots.data() || {}) : {};
                 if (providerData.auto_approve_provider) {
                     $("#auto_approve_provider").prop('checked', true);
                 }
-            })
+                $("#provider_android_package").val(providerData.androidPackage || 'br.app.arrow.provider');
+                $("#provider_ios_bundle").val(providerData.iosBundleId || providerData.androidPackage || 'br.app.arrow.provider');
+            }).catch(function() {
+                $("#provider_android_package").val('br.app.arrow.provider');
+                $("#provider_ios_bundle").val('br.app.arrow.provider');
+            });
 
             story.get().then(async function(snapshots) {
                 var story_data = snapshots.data();
@@ -625,6 +644,12 @@
                 $('#store_url').val(version_data.storeUrl);
                 $('#website_url').val(version_data.websiteUrl);
                 $('#provider_url').val(version_data.providerUrl);
+                if (!$("#provider_android_package").val()) {
+                    $("#provider_android_package").val(version_data.providerAndroidPackage || 'br.app.arrow.provider');
+                }
+                if (!$("#provider_ios_bundle").val()) {
+                    $("#provider_ios_bundle").val(version_data.providerIosBundleId || version_data.providerAndroidPackage || 'br.app.arrow.provider');
+                }
             });
 
             mapKey.get().then(async function(snapshots) {
@@ -706,6 +731,8 @@
                 var auto_approve_vendor = $("#auto_approve_vendor").is(":checked");
                 var isEmployeeManagement = $("#emaployee_detail_management").is(":checked");
                 var auto_approve_provider = $("#auto_approve_provider").is(":checked");
+                var provider_android_package = ($("#provider_android_package").val() || 'br.app.arrow.provider').trim();
+                var provider_ios_bundle = ($("#provider_ios_bundle").val() || provider_android_package).trim();
                 var emaployee_detail_management = $("#emaployee_detail_management").is(":checked");
                 var store_can_upload_story = $("#store_can_upload_story").is(":checked");
                 var story_upload_time = parseInt($('#story_upload_time').val());
@@ -842,9 +869,12 @@
                         'auto_approve_vendor': auto_approve_vendor,
                         'isEmployeeManagement': emaployee_detail_management,
                     });
-                    database.collection('settings').doc("provider").update({
+                    database.collection('settings').doc("provider").set({
                         'auto_approve_provider': auto_approve_provider,
-                    });
+                        'androidPackage': provider_android_package || 'br.app.arrow.provider',
+                        'iosBundleId': provider_ios_bundle || 'br.app.arrow.provider',
+                        'appId': provider_android_package || 'br.app.arrow.provider',
+                    }, { merge: true });
                     database.collection('settings').doc("story").update({
                         'isEnabled': store_can_upload_story,
                         'videoDuration': story_upload_time,
@@ -855,6 +885,8 @@
                         'websiteUrl': website_url,
                         'storeUrl': store_url,
                         'providerUrl': provider_url,
+                        'providerAndroidPackage': provider_android_package || 'br.app.arrow.provider',
+                        'providerIosBundleId': provider_ios_bundle || 'br.app.arrow.provider',
                     });
                     database.collection('settings').doc("googleMapKey").update({
                         'key': googleApiKey,

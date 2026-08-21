@@ -179,6 +179,15 @@ Route::middleware(['check.subscription'])->group(function () {
     Route::get('employee/create', [App\Http\Controllers\EmployeeController::class, 'create'])->name('employees.create');
     Route::get('employee/edit/{id}', [App\Http\Controllers\EmployeeController::class, 'edit'])->name('employees.edit');
 
+    Route::get('provider/bookings', [App\Http\Controllers\ProviderController::class, 'bookings'])->name('provider.bookings');
+    Route::get('provider/bookings/edit/{id}', [App\Http\Controllers\ProviderController::class, 'bookingsEdit'])->name('provider.bookings.edit');
+    Route::get('provider/services', [App\Http\Controllers\ProviderController::class, 'services'])->name('provider.services');
+    Route::get('provider/services/create', [App\Http\Controllers\ProviderController::class, 'servicesCreate'])->name('provider.services.create');
+    Route::get('provider/services/edit/{id}', [App\Http\Controllers\ProviderController::class, 'servicesEdit'])->name('provider.services.edit');
+    Route::get('provider/workers', [App\Http\Controllers\ProviderController::class, 'workers'])->name('provider.workers');
+    Route::get('provider/workers/create', [App\Http\Controllers\ProviderController::class, 'workersCreate'])->name('provider.workers.create');
+    Route::get('provider/workers/edit/{id}', [App\Http\Controllers\ProviderController::class, 'workersEdit'])->name('provider.workers.edit');
+
     Route::get('point-of-sale', [App\Http\Controllers\POSController::class, 'pointOfSale'])->name('point.of.sale');
     Route::get('pos-orders', [App\Http\Controllers\POSController::class, 'posOrder'])->name('pos.order');
     Route::any('add-to-cart', [App\Http\Controllers\ProductController::class, 'addToCart'])->name('add-to-cart');

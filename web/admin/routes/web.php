@@ -728,6 +728,7 @@ Route::middleware(['permission:on-board,onboard.list'])->group(function () {
     Route::get('/on-board', [App\Http\Controllers\OnBoardController::class, 'index'])->name('on-board');
 });
 Route::middleware(['permission:on-board,onboard.edit'])->group(function () {
+    Route::get('/on-board/create', [App\Http\Controllers\OnBoardController::class, 'create'])->name('on-board.create');
     Route::get('/on-board/save/{id}', [App\Http\Controllers\OnBoardController::class, 'save'])->name('on-board.save');
 });
 

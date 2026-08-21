@@ -103,6 +103,20 @@
 
 
                             <div class="form-group row width-50">
+                                <label class="col-3 control-label">{{trans('lang.app_screen')}}<span class="required-field"></span></label>
+                                <div class="col-7">
+                                    <select class="form-control onboard_type">
+                                        <option value="customer">{{trans('lang.customer_app')}}</option>
+                                        <option value="driver">{{trans('lang.driver_app')}}</option>
+                                        <option value="store">{{trans('lang.store_app')}}</option>
+                                        <option value="provider">{{trans('lang.provider_app')}}</option>
+                                        <option value="worker">{{trans('lang.worker_app')}}</option>
+                                    </select>
+                                </div>
+                            </div>
+
+
+                            <div class="form-group row width-50">
 
                                 <label class="col-3 control-label">{{trans('lang.image')}}</label>
 
@@ -212,6 +226,12 @@
 
         jQuery("#data-table_processing").show();
 
+        if (!requestId) {
+            $(".onboard_type").val('provider');
+            jQuery("#data-table_processing").hide();
+            return;
+        }
+
         var ref = database.collection('on_boarding').where("id", "==", requestId);
 
         ref.get().then(async function (snapshots) {
@@ -221,6 +241,10 @@
             $(".title").val(data.title);
 
             $(".description").val(data.description);
+
+            if (data.type) {
+                $(".onboard_type").val(data.type);
+            }
 
             if (data.image == '' || data.image == null) {
 
@@ -260,6 +284,8 @@
 
         var description = $(".description").val();
 
+        var onboardType = $(".onboard_type").val() || 'provider';
+
 
 
         if (title == '') {
@@ -286,15 +312,28 @@
 
             storeImageData().then(IMG => {
 
-                database.collection('on_boarding').doc(requestId).update({
-
+                var payload = {
                     'title': title,
-
                     'description': description,
-
                     'image': IMG,
+                    'type': onboardType,
+                };
 
-                }).then(function (result) {
+                if (!requestId) {
+                    var newId = database.collection('on_boarding').doc().id;
+                    payload.id = newId;
+                    database.collection('on_boarding').doc(newId).set(payload).then(function (result) {
+                        window.location.href = '{{ route("on-board")}}';
+                    }).catch(function (error) {
+                        jQuery("#data-table_processing").hide();
+                        $(".error_top").show();
+                        $(".error_top").html("");
+                        $(".error_top").append("<p>" + error + "</p>");
+                    });
+                    return;
+                }
+
+                database.collection('on_boarding').doc(requestId).update(payload).then(function (result) {
 
                     window.location.href = '{{ route("on-board")}}';
 

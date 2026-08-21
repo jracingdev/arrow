@@ -43,7 +43,12 @@
                    <div class="card-header-title">
                     <h3 class="text-dark-2 mb-2 h4">{{trans('lang.on_board_table')}}</h3>
                     <p class="mb-0 text-dark-2">{{trans('lang.on_board_table_text')}}</p>
-                   </div>             
+                   </div>
+                   <div class="card-header-right d-flex align-items-center">
+                    <div class="card-header-btn mr-3">
+                        <a class="btn-primary btn rounded-full" href="{!! route('on-board.create') !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.on_board_create')}}</a>
+                    </div>
+                   </div>
                  </div>
                  <div class="card-body">
                          <div class="table-responsive m-t-10">
@@ -237,6 +242,8 @@
             var type ="{{trans('lang.driver_app')}}";
         }else if (val.type == "store") {
             var type ="{{trans('lang.store_app')}}";
+        } else {
+            var type = val.type || '';
         }
         html.push('<td>' + type + '</td>');
         html.push('<span class="action-btn"><a href="' + route1 + '" class="onboard-edit" data-toggle="tooltip" title="{{trans("lang.edit")}}"><i class="mdi mdi-lead-pencil"></i></a></span>');

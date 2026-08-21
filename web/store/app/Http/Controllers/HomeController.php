@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\VendorUsers;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FirestoreHelper;
 
 class HomeController extends Controller
 {
@@ -29,7 +30,11 @@ class HomeController extends Controller
         $user = Auth::user();
         $id = Auth::id();
         $exist = VendorUsers::where('user_id',$id)->first();
-        $id=$exist->uuid;
+        $id = $exist ? $exist->uuid : $id;
+        $userDoc = FirestoreHelper::getDocument('users/' . $id);
+        if (!empty($userDoc) && (($userDoc['role'] ?? '') === 'provider')) {
+            return view('provider.home')->with('id', $id);
+        }
         return view('home')->with('id',$id);
     }
 

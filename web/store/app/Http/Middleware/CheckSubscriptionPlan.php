@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Helpers\FirestoreHelper;
+use App\Models\VendorUsers;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,13 +18,17 @@ class CheckSubscriptionPlan
      */
     public function handle($request, Closure $next)
     {
-        // Check if user is logged in
         if (Auth::check()) {
             $user = Auth::user();
-            
-            // Check the 'issubscribed' field
+            $vendorUser = VendorUsers::where('user_id', $user->id)->first();
+            if ($vendorUser) {
+                $userDoc = FirestoreHelper::getDocument('users/' . $vendorUser->uuid);
+                if (!empty($userDoc) && (($userDoc['role'] ?? '') === 'provider')) {
+                    return $next($request);
+                }
+            }
+
             if ($user->isSubscribed=='false') {
-                // Redirect to the subscription plan page
                 return redirect()->route('subscription-plan.show');
             }
         }

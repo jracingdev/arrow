@@ -624,6 +624,23 @@
             });
 
             var pageloadded = 0;
+            if (authRole === 'provider') {
+                database.collection('provider_orders').where('provider.author', "==", cuser_id).onSnapshot(function(doc) {
+                    if (pageloadded) {
+                        doc.docChanges().forEach(function(change) {
+                            val = change.doc.data();
+                            if (change.type == "added" && val.status == "Order Placed") {
+                                $('.order_subject').text(orderPlacedSubject || "{{ trans('lang.provider_new_bookings') }}");
+                                $('.order_message').text(orderPlacedMsg || val.authorName || '');
+                                jQuery("#notification_url").attr("href", "{{ url('provider/bookings/edit') }}/" + val.id);
+                                jQuery("#notification_order").modal('show');
+                            }
+                        });
+                    } else {
+                        pageloadded = 1;
+                    }
+                });
+            } else {
             database.collection('vendor_orders').where('vendor.author', "==", cuser_id).onSnapshot(function(doc) {
                 if (pageloadded) {
                     doc.docChanges().forEach(function(change) {
@@ -683,6 +700,7 @@
                     pageloadded = 1;
                 }
             });
+            }
 
             var pageloadded_book = 0;
             
@@ -758,6 +776,10 @@
                 
 
                 let vendorIdForOrders = '';
+
+                if (authRole === 'provider') {
+                    return;
+                }
 
                 if (authRole === 'vendor') {
                     vendorIdForOrders = cuser_id;           // Most common case

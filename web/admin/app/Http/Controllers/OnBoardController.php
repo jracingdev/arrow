@@ -17,6 +17,11 @@ class OnBoardController extends Controller
     }
 
 
+    public function create()
+    {
+        return view('on-board.save')->with('id', '');
+    }
+
     public function save($id)
     {
         return view('on-board.save')->with('id', $id);
