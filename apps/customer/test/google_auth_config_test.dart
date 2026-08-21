@@ -7,6 +7,9 @@ void main() {
     expect(ArrowAndroidPackages.customer, 'br.app.arrow.customer');
     expect(kGoogleSignInWebClientId, isNotEmpty);
     expect(kGoogleSignInWebClientId, contains('.apps.googleusercontent.com'));
+    expect(ArrowGoogleAuth.developerErrorToast, contains('invalid-cert-hash'));
     expect(ArrowGoogleAuth.developerErrorToast, contains(ArrowDebugSigningSha.sha1));
+    expect(ArrowGoogleAuth.developerErrorToast, contains(ArrowDebugSigningSha.sha256));
+    expect(ArrowGoogleAuth.reauthErrorToast, isNot(ArrowGoogleAuth.userCanceledToast));
   });
 }

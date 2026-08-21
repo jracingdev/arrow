@@ -14,14 +14,33 @@ class ArrowGoogleAuth {
 
   static bool _googleSignInReady = false;
 
-  /// Mensagem padrao PT-BR com SHA-1 para colar no Firebase (nunca "unknown").
+  static String get _webClientId => kGoogleSignInWebClientId.trim();
+
+  /// Mensagem padrao PT-BR com fingerprints para colar no Firebase (nunca "unknown").
   static String get developerErrorToast =>
-      'DEVELOPER_ERROR (ApiException 10). '
-      'Cadastre no Firebase j-arrow o SHA-1: ${ArrowDebugSigningSha.sha1}';
+      'invalid-cert-hash / ApiException 10: o SHA deste APK nao esta no Firebase. '
+      'Abra o Console j-arrow → Configuracoes do projeto → seus apps → '
+      '${ArrowAndroidPackages.customer}, ${ArrowAndroidPackages.store} e '
+      '${ArrowAndroidPackages.driver} → Adicionar impressao digital. '
+      'Cole SHA-1 ${ArrowDebugSigningSha.sha1} e SHA-256 ${ArrowDebugSigningSha.sha256}. '
+      'O SHA 4D:D8 do JSON pode ficar. Nao ha keystore 4D:D8 nesta maquina. '
+      'Aguarde 2–5 min e tente de novo (sem rebuild).';
+
+  /// GMS devolveu canceled com reauth / status 16 — nao e back-button do usuario.
+  static String get reauthErrorToast =>
+      'Google recusou o idToken apos escolher a conta '
+      '(codigo 16 / Account reauth failed). '
+      'Reconecte a conta em Configuracoes → Google neste aparelho. '
+      'Se persistir, cadastre no Firebase j-arrow (customer, store e driver) '
+      'SHA-1 ${ArrowDebugSigningSha.sha1} e SHA-256 ${ArrowDebugSigningSha.sha256}';
+
+  static const String userCanceledToast = 'Login Google cancelado.';
+
+  static const String networkErrorToast = 'Erro de rede no login Google.';
 
   /// Returns a [UserCredential] or throws (never returns null silently).
   static Future<UserCredential> signIn() async {
-    if (kGoogleSignInWebClientId.isNotEmpty) {
+    if (_webClientId.isNotEmpty) {
       return _signInWithGoogleSignInPlugin();
     }
     return _signInWithFirebaseProvider();
@@ -35,7 +54,9 @@ class ArrowGoogleAuth {
     try {
       return await FirebaseAuth.instance.signInWithProvider(provider);
     } on FirebaseAuthException catch (e) {
-      debugPrint('ArrowGoogleAuth FirebaseAuthException code=${e.code} message=${e.message}');
+      debugPrint(
+        'ArrowGoogleAuth FirebaseAuthException code=${e.code} message=${e.message}',
+      );
       rethrow;
     }
   }
@@ -43,11 +64,35 @@ class ArrowGoogleAuth {
   static Future<UserCredential> _signInWithGoogleSignInPlugin() async {
     final googleSignIn = GoogleSignIn.instance;
     if (!_googleSignInReady) {
-      await googleSignIn.initialize(serverClientId: kGoogleSignInWebClientId);
+      await googleSignIn.initialize(serverClientId: _webClientId);
       _googleSignInReady = true;
     }
 
-    final googleUser = await googleSignIn.authenticate();
+    // Plugin docs: do not call authenticate() until after signOut().
+    try {
+      await googleSignIn.signOut();
+    } catch (e) {
+      debugPrint('ArrowGoogleAuth signOut ignored: $e');
+    }
+
+    GoogleSignInAccount googleUser;
+    try {
+      googleUser = await googleSignIn.authenticate();
+    } on GoogleSignInException catch (e) {
+      debugPrint(
+        'ArrowGoogleAuth GoogleSignInException '
+        'code=${e.code.name} description=${e.description} details=${e.details}',
+      );
+      if (isDisguisedCancel(e)) {
+        debugPrint(
+          'ArrowGoogleAuth native flow failed with disguised cancel; '
+          'falling back to FirebaseAuth.signInWithProvider',
+        );
+        return _signInWithFirebaseProvider();
+      }
+      rethrow;
+    }
+
     if (googleUser.id.isEmpty) {
       throw StateError('Selecao de conta Google vazia.');
     }
@@ -55,7 +100,8 @@ class ArrowGoogleAuth {
     final idToken = googleUser.authentication.idToken;
     if (idToken == null || idToken.isEmpty) {
       throw StateError(
-        'idToken Google ausente. Cadastre SHA-1 no Firebase j-arrow: ${ArrowDebugSigningSha.sha1}',
+        'idToken Google ausente. Cadastre SHA-1 no Firebase j-arrow: '
+        '${ArrowDebugSigningSha.sha1}',
       );
     }
 
@@ -63,49 +109,123 @@ class ArrowGoogleAuth {
     return FirebaseAuth.instance.signInWithCredential(credential);
   }
 
-  /// Toast PT-BR — inclui SHA-1 real em erros de configuracao.
+  /// True when Play Services maps SHA / sessao morta para
+  /// [GoogleSignInExceptionCode.canceled] instead of DEVELOPER_ERROR.
+  static bool isDisguisedCancel(GoogleSignInException error) {
+    if (error.code != GoogleSignInExceptionCode.canceled) {
+      return false;
+    }
+    return looksLikeDeveloperOrReauth(_errorBlob(error));
+  }
+
+  static bool looksLikeCertHash(String blob) {
+    return blob.contains('invalid-cert-hash') ||
+        blob.contains('invalid_cert_hash') ||
+        blob.contains('cert-hash') ||
+        blob.contains('certificate_hash');
+  }
+
+  static bool looksLikeDeveloperOrReauth(String blob) {
+    if (looksLikeCertHash(blob) ||
+        blob.contains('reauth') ||
+        blob.contains('account reauth failed') ||
+        blob.contains('[16]') ||
+        blob.contains('status code 16') ||
+        blob.contains('commonstatuscodes.canceled') ||
+        blob.contains('developer_error') ||
+        blob.contains('apiexception: 10') ||
+        blob.contains('apiexception 10') ||
+        blob.contains('statuscode=10') ||
+        blob.contains('12500') ||
+        blob.contains('sha-1') ||
+        blob.contains('current app sha')) {
+      return true;
+    }
+    // Bare "canceled" / 12501 without extra context is a real user dismiss.
+    return false;
+  }
+
+  static bool looksLikeNetwork(String blob) {
+    return blob.contains('network') ||
+        blob.contains('unknownhost') ||
+        blob.contains('apiexception: 7') ||
+        blob.contains('statuscode=7');
+  }
+
+  static String _errorBlob(Object error) {
+    if (error is GoogleSignInException) {
+      return '${error.code.name} ${error.description ?? ''} ${error.details ?? ''} ${error.toString()}'
+          .toLowerCase();
+    }
+    if (error is FirebaseAuthException) {
+      return '${error.code} ${error.message ?? ''} ${error.toString()}'.toLowerCase();
+    }
+    return error.toString().toLowerCase();
+  }
+
+  /// Toast PT-BR — inclui SHA real em erros de configuracao.
   /// Nao passar por `.tr` (traducao pode esconder o fingerprint).
   static String userMessage(Object error) {
     debugPrint('ArrowGoogleAuth error: $error');
+    final blob = _errorBlob(error);
+
+    if (looksLikeNetwork(blob)) {
+      if (error is FirebaseAuthException) {
+        return 'Erro de rede no login Google (${error.code}).';
+      }
+      return networkErrorToast;
+    }
+
+    if (looksLikeDeveloperOrReauth(blob)) {
+      if (looksLikeCertHash(blob) ||
+          blob.contains('developer_error') ||
+          blob.contains('apiexception: 10') ||
+          blob.contains('apiexception 10')) {
+        return developerErrorToast;
+      }
+      if (blob.contains('reauth') || blob.contains('[16]')) {
+        return reauthErrorToast;
+      }
+      return developerErrorToast;
+    }
+
     if (error is FirebaseAuthException) {
       final code = error.code;
-      if (code == 'web-context-cancelled' || code == 'user-cancelled' || code == 'canceled') {
-        return 'Login Google cancelado.';
-      }
-      if (code.contains('network') || code == 'network-request-failed') {
-        return 'Erro de rede no login Google ($code).';
-      }
-      final msg = error.message ?? '';
-      if (msg.contains('DEVELOPER_ERROR') ||
-          msg.contains('ApiException: 10') ||
-          code == 'unknown' ||
-          code == 'operation-not-allowed') {
+      if (code == 'invalid-cert-hash' || code.contains('cert-hash')) {
         return developerErrorToast;
+      }
+      if (code == 'web-context-cancelled' ||
+          code == 'user-cancelled' ||
+          code == 'canceled') {
+        return userCanceledToast;
+      }
+      if (code == 'operation-not-allowed') {
+        return 'Provedor Google desativado no Firebase Auth (j-arrow).';
       }
       return 'Falha no Google Auth: $code';
     }
+
     if (error is GoogleSignInException) {
-      if (error.code == GoogleSignInExceptionCode.canceled) {
-        return 'Login Google cancelado.';
+      switch (error.code) {
+        case GoogleSignInExceptionCode.canceled:
+          return userCanceledToast;
+        case GoogleSignInExceptionCode.clientConfigurationError:
+        case GoogleSignInExceptionCode.providerConfigurationError:
+          return developerErrorToast;
+        default:
+          return 'Falha Google Sign-In: ${error.code.name}'
+              '${error.description == null ? '' : ' (${error.description})'}';
       }
-      if (error.code == GoogleSignInExceptionCode.clientConfigurationError) {
-        return developerErrorToast;
-      }
-      return 'Falha Google Sign-In: ${error.code.name}';
     }
+
+    if (blob.contains('canceled') || blob.contains('cancelled')) {
+      return userCanceledToast;
+    }
+    if (blob.contains('12501')) {
+      return userCanceledToast;
+    }
+
     final text = error.toString();
-    if (text.contains('DEVELOPER_ERROR') || text.contains('ApiException: 10')) {
-      return developerErrorToast;
-    }
-    if (text.contains('ApiException: 12500')) {
-      return 'ApiException 12500 (Play Services/OAuth).';
-    }
-    if (text.contains('network') || text.contains('NETWORK') || text.contains('UnknownHost')) {
-      return 'Sem rede para Google/Firebase.';
-    }
-    if (text.contains('canceled') || text.contains('cancelled') || text.contains('CANCELED')) {
-      return 'Login Google cancelado.';
-    }
     final short = text.length > 120 ? '${text.substring(0, 120)}…' : text;
     return 'Falha no Google: $short';
   }

@@ -1,6 +1,8 @@
 import 'package:arrow_shared/arrow_google_auth.dart';
 import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 void main() {
   test('kGoogleSignInWebClientId is the j-arrow Web OAuth client', () {
@@ -9,6 +11,9 @@ void main() {
       kGoogleSignInWebClientId,
       '661081769489-5e7inqhv9suqfdj4op1hms5drjtuojkd.apps.googleusercontent.com',
     );
+    expect(kGoogleSignInWebClientId.contains("'"), isFalse);
+    expect(kGoogleSignInWebClientId.contains('"'), isFalse);
+    expect(kGoogleSignInWebClientId.trim(), kGoogleSignInWebClientId);
   });
 
   test('Android package names match Firebase apps', () {
@@ -44,8 +49,70 @@ void main() {
     expect(ArrowDebugSigningSha.sha1, isNot(ArrowFirebaseConsoleSha.sha1));
   });
 
-  test('Google login DEVELOPER_ERROR contract includes local SHA-1', () {
+  test('Google login DEVELOPER_ERROR contract includes local SHA-1 and SHA-256', () {
+    expect(ArrowGoogleAuth.developerErrorToast, contains('invalid-cert-hash'));
     expect(ArrowGoogleAuth.developerErrorToast, contains('ApiException 10'));
+    expect(ArrowGoogleAuth.developerErrorToast, contains('Adicionar impressao digital'));
     expect(ArrowGoogleAuth.developerErrorToast, contains(ArrowDebugSigningSha.sha1));
+    expect(ArrowGoogleAuth.developerErrorToast, contains(ArrowDebugSigningSha.sha256));
+    expect(ArrowGoogleAuth.developerErrorToast, contains(ArrowAndroidPackages.customer));
+    expect(ArrowGoogleAuth.developerErrorToast, contains(ArrowAndroidPackages.store));
+    expect(ArrowGoogleAuth.developerErrorToast, contains(ArrowAndroidPackages.driver));
+  });
+
+  test('userMessage keeps real user cancel distinct from reauth/SHA', () {
+    const realCancel = GoogleSignInException(
+      code: GoogleSignInExceptionCode.canceled,
+    );
+    expect(ArrowGoogleAuth.userMessage(realCancel), ArrowGoogleAuth.userCanceledToast);
+    expect(ArrowGoogleAuth.isDisguisedCancel(realCancel), isFalse);
+
+    const reauth = GoogleSignInException(
+      code: GoogleSignInExceptionCode.canceled,
+      description: '[16] Account reauth failed.',
+    );
+    expect(ArrowGoogleAuth.isDisguisedCancel(reauth), isTrue);
+    expect(ArrowGoogleAuth.userMessage(reauth), ArrowGoogleAuth.reauthErrorToast);
+    expect(ArrowGoogleAuth.userMessage(reauth), isNot(ArrowGoogleAuth.userCanceledToast));
+    expect(ArrowGoogleAuth.userMessage(reauth), contains(ArrowDebugSigningSha.sha1));
+    expect(ArrowGoogleAuth.userMessage(reauth), contains(ArrowDebugSigningSha.sha256));
+
+    const ten = GoogleSignInException(
+      code: GoogleSignInExceptionCode.clientConfigurationError,
+      description: 'DEVELOPER_ERROR ApiException: 10',
+    );
+    expect(ArrowGoogleAuth.isDisguisedCancel(ten), isFalse);
+    expect(ArrowGoogleAuth.userMessage(ten), ArrowGoogleAuth.developerErrorToast);
+
+    const signInFailed = GoogleSignInException(
+      code: GoogleSignInExceptionCode.unknownError,
+      description: 'ApiException: 12500',
+    );
+    expect(ArrowGoogleAuth.userMessage(signInFailed), ArrowGoogleAuth.developerErrorToast);
+
+    const network = GoogleSignInException(
+      code: GoogleSignInExceptionCode.unknownError,
+      description: 'ApiException: 7 NETWORK_ERROR',
+    );
+    expect(ArrowGoogleAuth.userMessage(network), ArrowGoogleAuth.networkErrorToast);
+
+    final firebaseCancel = FirebaseAuthException(code: 'web-context-cancelled');
+    expect(ArrowGoogleAuth.userMessage(firebaseCancel), ArrowGoogleAuth.userCanceledToast);
+
+    final firebaseUnknownTen = FirebaseAuthException(
+      code: 'unknown',
+      message: 'A call to GoogleApi.signIn failed with ApiException: 10',
+    );
+    expect(ArrowGoogleAuth.userMessage(firebaseUnknownTen), ArrowGoogleAuth.developerErrorToast);
+
+    final firebaseNotAllowed = FirebaseAuthException(code: 'operation-not-allowed');
+    expect(ArrowGoogleAuth.userMessage(firebaseNotAllowed), contains('desativado'));
+
+    final certHash = FirebaseAuthException(code: 'invalid-cert-hash');
+    expect(ArrowGoogleAuth.userMessage(certHash), ArrowGoogleAuth.developerErrorToast);
+    expect(ArrowGoogleAuth.userMessage(certHash), isNot(ArrowGoogleAuth.userCanceledToast));
+    expect(ArrowGoogleAuth.userMessage(certHash), contains('Adicionar impressao digital'));
+    expect(ArrowGoogleAuth.userMessage(certHash), contains(ArrowDebugSigningSha.sha1));
+    expect(ArrowGoogleAuth.userMessage(certHash), contains(ArrowDebugSigningSha.sha256));
   });
 }

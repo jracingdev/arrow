@@ -8,14 +8,21 @@ class ShowToastDialog {
       EasyLoading.dismiss();
     }
     final text = _looksTechnical(message) ? message : message.tr;
-    EasyLoading.showToast(text, toastPosition: position, duration: const Duration(seconds: 6));
+    EasyLoading.showToast(
+      text,
+      toastPosition: position,
+      duration: Duration(seconds: _looksTechnical(message) ? 14 : 6),
+    );
   }
 
   static bool _looksTechnical(String message) {
     return message.contains('SHA-1') ||
+        message.contains('SHA-256') ||
+        message.contains('invalid-cert-hash') ||
         message.contains('DEVELOPER_ERROR') ||
         message.contains('ApiException') ||
         message.contains('Firebase j-arrow') ||
+        message.contains('Adicionar impressao digital') ||
         message.contains('Cadastre no Firebase');
   }
 

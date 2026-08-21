@@ -14,8 +14,16 @@ class ShowToastDialog {
     EasyLoading.showToast(
       message,
       toastPosition: position,
-      duration: const Duration(seconds: 5),
+      duration: Duration(seconds: _isShaConfig(message) ? 14 : 5),
     );
+  }
+
+  static bool _isShaConfig(String message) {
+    return message.contains('SHA-1') ||
+        message.contains('invalid-cert-hash') ||
+        message.contains('DEVELOPER_ERROR') ||
+        message.contains('ApiException') ||
+        message.contains('Adicionar impressao digital');
   }
 
   /// Show a loading indicator with a status message.
