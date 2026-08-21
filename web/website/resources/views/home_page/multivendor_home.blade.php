@@ -137,10 +137,11 @@
     @include('layouts.footer')
     <link rel="stylesheet" href="{{ asset('css/dist/zuck.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dist/skins/snapssenger.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/swiper/swiper-bundle.min.css') }}">
     <script src="{{ asset('js/dist/zuck.min.js') }}"></script>
     <script src="https://unpkg.com/geofirestore@5.2.0/dist/geofirestore.js"></script>
     <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
-    <script type="text/javascript" src="{{ asset('vendor/swiper/swiper.min.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('js/swiper/swiper-bundle.min.js') }}"></script>
     <script type="text/javascript">
         var firestore = firebase.firestore();
         var geoFirestore = new GeoFirestore(firestore);
@@ -1196,20 +1197,22 @@
                     }
                 });
 
-                new Swiper('.swiper-stories', {
-                    slidesPerView: 5,
-                    breakpoints: {
-                        991: {
-                            slidesPerView: 4,
+                if (typeof Swiper === 'function') {
+                    new Swiper('.swiper-stories', {
+                        slidesPerView: 5,
+                        breakpoints: {
+                            991: {
+                                slidesPerView: 4,
+                            },
+                            767: {
+                                slidesPerView: 3,
+                            },
+                            650: {
+                                slidesPerView: 2,
+                            },
                         },
-                        767: {
-                            slidesPerView: 3,
-                        },
-                        650: {
-                            slidesPerView: 2,
-                        },
-                    },
-                });
+                    });
+                }
             }
         }
 
