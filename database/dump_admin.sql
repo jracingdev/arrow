@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `emart_admin`
+-- Database: `arrow_admin`
 --
 
 -- --------------------------------------------------------
@@ -444,7 +444,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `role_id`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'admin', 'admin@emart.com', NULL, '$2y$10$4D/Oi3x7gxPwZ/zxCKtgCOlPNujUnUER0vkMjQ0moL7l3cAJwTIJa', 1, 'HjSePqqru7FrAQGczeNp2DSYtURRzxz7ffUYurQoV3vzEi0CgRtefjpbz5kA', '2022-02-26 12:22:29', '2022-03-02 08:48:06');
+(1, 'admin', 'admin@arrow.app.br', NULL, '$2y$10$4D/Oi3x7gxPwZ/zxCKtgCOlPNujUnUER0vkMjQ0moL7l3cAJwTIJa', 1, 'HjSePqqru7FrAQGczeNp2DSYtURRzxz7ffUYurQoV3vzEi0CgRtefjpbz5kA', '2022-02-26 12:22:29', '2022-03-02 08:48:06');
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

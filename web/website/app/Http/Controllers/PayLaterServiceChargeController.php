@@ -544,7 +544,7 @@ class PayLaterServiceChargeController extends Controller
                         'amount' => ($service_charge_cart['cart_order']['total_pay'] * 1000),
                         'currency' => $currency,
                         'payment_method' => 'pm_card_visa',
-                        'description' => 'Emart Order',
+                        'description' => 'Arrow Order',
                     ]);
                     $service_charge_cart['paymentStatus'] = true;
                     Session::put('service_charge_cart', $service_charge_cart);

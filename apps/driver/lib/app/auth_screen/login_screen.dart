@@ -39,7 +39,7 @@ class LoginScreen extends StatelessWidget {
                     style: TextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontSize: 22, fontFamily: AppThemeData.semiBold),
                   ),
                   Text(
-                    "Sign in to access your eMart account and manage your deliveries seamlessly.".tr,
+                    "Sign in to access your Arrow account and manage your deliveries seamlessly.".tr,
                     style: TextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey500, fontFamily: AppThemeData.regular),
                   ),
                   const SizedBox(

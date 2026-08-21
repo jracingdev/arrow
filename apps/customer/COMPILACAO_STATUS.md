@@ -1,4 +1,4 @@
-# Status da Compilação do Projeto eMart Customer App
+# Status da Compilação do Projeto Arrow Customer App
 
 ## ✅ Progresso Realizado
 

@@ -14953,7 +14953,7 @@ i.fa-info {
 .auth-wrapper-left {
     width: 0;
     flex-grow: 1;
-    background: url(../images/e-mart-log-in-bg.png) no-repeat center left / cover;
+    background: url(../images/arrow-log-in-bg.png) no-repeat center left / cover;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;

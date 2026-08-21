@@ -1,6 +1,6 @@
-# Arrow (eMart)
+# Arrow
 
-Monorepo da plataforma **Arrow** — baseada no eMart 6.8 — com painéis web Laravel, landing page estática, apps Flutter e recursos Firebase.
+Monorepo da plataforma **Arrow** — base white-label 6.8 — com painéis web Laravel, landing page estática, apps Flutter e recursos Firebase.
 
 **Repositório:** https://github.com/jracingdev/arrow.git
 
@@ -11,9 +11,6 @@ arrow/
 ├── README.md
 ├── .gitignore
 ├── database/              # Dumps SQL (desenvolvimento/importação inicial)
-│   ├── emart_admin.sql
-│   ├── emart_store.sql
-│   └── emart_website.sql
 ├── web/
 │   ├── landing/           # Landing page estática (HTML)
 │   ├── website/           # Painel do cliente (Laravel 10)
@@ -111,17 +108,17 @@ Site estático HTML. Não requer Composer nem banco de dados.
 
 ## Importação dos bancos de dados
 
-Os dumps em `database/` são os originais do eMart. Em produção, use os bancos já criados no aaPanel (`arrow_*_db`). Para ambiente local:
+Os dumps em `database/` servem só para ambiente local. Em produção, use os bancos já criados no aaPanel (`arrow_*_db`). Importe o arquivo `.sql` correspondente a cada painel:
 
 ```bash
 mysql -u root -p -e "CREATE DATABASE arrow_website_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p arrow_website_db < database/emart_website.sql
+mysql -u root -p arrow_website_db < database/dump_website.sql
 
 mysql -u root -p -e "CREATE DATABASE arrow_store_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p arrow_store_db < database/emart_store.sql
+mysql -u root -p arrow_store_db < database/dump_store.sql
 
 mysql -u root -p -e "CREATE DATABASE arrow_admin_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p arrow_admin_db < database/emart_admin.sql
+mysql -u root -p arrow_admin_db < database/dump_admin.sql
 ```
 
 Ajuste nomes de banco/usuário no `.env` conforme seu ambiente.
@@ -165,7 +162,7 @@ node import-user.js
 
 ## Apps Flutter (`apps/`)
 
-Base eMart **6.8** · Flutter SDK **3.44.4** (ou compatível) · arquitetura **GetX**.
+Base Arrow **6.8** · Flutter SDK **3.44.4** (ou compatível) · arquitetura **GetX**.
 
 | App | Pasta | Público |
 |-----|-------|---------|
@@ -183,7 +180,7 @@ Configure `google-services.json` (Android) e credenciais Firebase localmente —
 
 No código, a URL da API admin fica em `Constant.globalUrl` (`lib/constant/constant.dart`), apontando para `kAdminApiBaseUrl` do pacote `apps/shared` (`arrow_shared`).
 
-Documentação detalhada: `docs/eMart App Documentation.pdf`
+Documentação detalhada: `docs/Arrow App Documentation.pdf`
 
 ### Android — build de release
 
@@ -241,4 +238,4 @@ Correção rápida no servidor: `cd /www/wwwroot/arrow-repo/deploy && sudo ./fix
 
 ## Licença
 
-Código base eMart — consulte a documentação original em `docs/`.
+Código base Arrow — consulte a documentação original em `docs/`.

@@ -671,7 +671,7 @@ class ParcelController extends Controller
                         'amount' => ($parcel_cart['cart_order']['total_pay'] * 1000),
                         'currency' => $currency,
                         'payment_method' => 'pm_card_visa',
-                        'description' => 'Emart Parcel Order',
+                        'description' => 'Arrow Parcel Order',
                     ]);
                     $parcel_cart['payment_status'] = true;
                     Session::put('parcel_cart', $parcel_cart);

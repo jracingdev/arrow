@@ -20,8 +20,8 @@ const seedPath = path.join(__dirname, 'notifications-ptbr-seed.json');
 function patchEmailBody(html) {
   if (!html || typeof html !== 'string') return html;
   let out = html;
-  out = out.replace(/Emart/g, 'Arrow');
-  out = out.replace(/eMart/g, 'Arrow');
+  out = out.replace(/Arrow/g, 'Arrow');
+  out = out.replace(/Arrow/g, 'Arrow');
   out = out.replace(/\bDear\b/g, 'Olá,');
   out = out.replace(/\bBest regards\b/gi, 'Atenciosamente');
   out = out.replace(/\bWarm regards\b/gi, 'Atenciosamente');

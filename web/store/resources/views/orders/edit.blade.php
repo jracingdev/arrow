@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 @section('content')
     <?php
     $countries = file_get_contents(public_path('countriesdata.json'));
@@ -779,7 +779,7 @@
                         payment_method = '<img alt="image" src="' + image +
                             '"  width="30%" height="30%" onerror="this.onerror=null;this.src=\'' + place_image + '\'">';
                     } else if (order.payment_method == "wallet") {
-                        image = '{{ asset('images/payment/emart_wallet.png') }}';
+                        image = '{{ asset('images/payment/arrow_wallet.png') }}';
                         payment_method = '<img alt="image" src="' + image +
                             '"  width="30%" height="30%" onerror="this.onerror=null;this.src=\'' + place_image + '\'">';
                     } else if (order.payment_method == "paytm") {

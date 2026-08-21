@@ -173,7 +173,7 @@ class SubscriptionController extends GetxController {
       walletSettingModel.value = WalletSettingModel.fromJson(jsonDecode(Preferences.getString(Preferences.walletSettings)));
       if (stripeModel.value.isEnabled == true) {
         Stripe.publishableKey = stripeModel.value.clientpublishableKey.toString();
-        Stripe.merchantIdentifier = 'eMart Store'.tr;
+        Stripe.merchantIdentifier = 'Arrow Store'.tr;
         Stripe.instance.applySettings();
       }
       setRef();
@@ -563,7 +563,7 @@ class SubscriptionController extends GetxController {
     var options = {
       'key': razorPayModel.value.razorpayKey,
       'amount': amount * 100,
-      'name': 'eMart',
+      'name': 'Arrow',
       'order_id': orderId,
       "currency": Constant.currencyModel?.code ?? "BRL",
       'description': 'wallet Topup',

@@ -39,7 +39,7 @@ npm run cms:all:br
 | `scripts/backfill-sections-br.js` | Backfill `order` 0..n; `--activate-br` |
 | `scripts/seed-terms-privacy-lgpd.js` | `settings/termsAndConditions` + `privacyPolicy` (HTML pt-BR LGPD, placeholders `[RAZAO_SOCIAL]` `[EMAIL_CONTATO]` `[CNPJ]`) |
 | `scripts/seed-contact-payments-br.js` | ContactUs Brazil, `defaultCountryCode=+55`, desliga Razorpay/PayStack/Xendit/Stripe demo, Mercado Pago enableável, currency BRL |
-| `scripts/seed-document-verification-settings.js` | Cria `settings/document_verification_settings` (defaults eMart/`collections.json`: store/driver/owner = false). Só cria se ausente; `--force` sobrescreve |
+| `scripts/seed-document-verification-settings.js` | Cria `settings/document_verification_settings` (defaults Arrow/`collections.json`: store/driver/owner = false). Só cria se ausente; `--force` sobrescreve |
 | `scripts/update-onboarding-ptbr.js` | Onboarding residual pt-BR (inclui 6 títulos EN) |
 | `scripts/list-sections.js` | Diagnóstico das seções |
 

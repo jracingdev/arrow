@@ -499,7 +499,7 @@
 				DEVELOPMENT_TEAM = 9J9XV5T2VN;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Emart Customer";
+				INFOPLIST_KEY_CFBundleDisplayName = "Arrow";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -692,7 +692,7 @@
 				DEVELOPMENT_TEAM = 9J9XV5T2VN;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Emart Customer";
+				INFOPLIST_KEY_CFBundleDisplayName = "Arrow";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -723,7 +723,7 @@
 				DEVELOPMENT_TEAM = 9J9XV5T2VN;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Emart Customer";
+				INFOPLIST_KEY_CFBundleDisplayName = "Arrow";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

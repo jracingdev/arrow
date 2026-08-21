@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
   // Android app from google-services.json (br.app.arrow.driver).
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDCjWM-AAnyO_quYy6_NnMcysURH2SSogw',
-    appId: '1:661081769489:android:7eea7bece5a655cfa4d3b3',
+    appId: '1:661081769489:android:246c57cb98fff558a4d3b0',
     messagingSenderId: '661081769489',
     projectId: 'j-arrow',
     databaseURL: 'https://j-arrow-default-rtdb.firebaseio.com',

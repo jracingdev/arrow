@@ -403,7 +403,7 @@ class OnDemandCheckoutController extends Controller
                         'amount' => ($ondemand_cart['cart_order']['total_pay'] * 1000),
                         'currency' => $currency,
                         'payment_method' => 'pm_card_visa',
-                        'description' => 'Emart Order',
+                        'description' => 'Arrow Order',
                     ]);
                     $ondemand_cart['paymentStatus'] = true;
                     Session::put('ondemand_cart', $ondemand_cart);

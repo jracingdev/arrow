@@ -2295,7 +2295,7 @@ return [
     'please_submit_again' => 'يرجى الإرسال مرة أخرى',
     'approved_your_document' => 'تمت الموافقة على مستندك',
     'admin_approved_document' => 'قام المسؤول بالموافقة على مستندك',
-    'rights_reserved' => 'Emart. جميع الحقوق محفوظة.',
+    'rights_reserved' => 'Arrow. جميع الحقوق محفوظة.',
     'map_legend' => 'مفتاح الخريطة',
     'legend' => 'المفتاح',
     'type_your_message' => 'اكتب رسالتك...',

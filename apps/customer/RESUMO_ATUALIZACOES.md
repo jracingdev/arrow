@@ -1,8 +1,8 @@
-# Resumo das Atualizações Realizadas no Projeto eMart
+# Resumo das Atualizações Realizadas no Projeto Arrow
 
 ## 📋 Visão Geral
 
-Este documento resume todas as atualizações e correções realizadas no projeto eMart Customer App para torná-lo funcional e pronto para compilação.
+Este documento resume todas as atualizações e correções realizadas no projeto Arrow Customer App para torná-lo funcional e pronto para compilação.
 
 ## ✅ Atualizações Realizadas
 

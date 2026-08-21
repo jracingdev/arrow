@@ -653,7 +653,7 @@ class GiftCardController extends GetxController {
     var options = {
       'key': razorPayModel.value.razorpayKey,
       'amount': amount * 100,
-      'name': 'eMart',
+      'name': 'Arrow',
       'order_id': orderId,
       "currency": Constant.currencyModel?.code ?? "BRL",
       'description': 'wallet Topup',

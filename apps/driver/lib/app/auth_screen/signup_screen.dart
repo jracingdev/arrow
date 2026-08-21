@@ -44,7 +44,7 @@ class SignupScreen extends StatelessWidget {
                       style: TextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontSize: 22, fontFamily: AppThemeData.semiBold),
                     ),
                     Text(
-                      "Sign up now to start your journey as a eMart driver and begin earning with every delivery.".tr,
+                      "Sign up now to start your journey as an Arrow driver and begin earning with every delivery.".tr,
                       style: TextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey500, fontFamily: AppThemeData.regular),
                     ),
                     const SizedBox(height: 10),

@@ -45,7 +45,7 @@ class DineInOrderScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Welcome to eMart Store".tr,
+                              "Welcome to Arrow Store".tr,
                               style: TextStyle(color: isDark ? AppThemeData.grey900 : AppThemeData.grey50, fontSize: 12, fontFamily: AppThemeData.regular),
                             ),
                             Text(

@@ -1,4 +1,4 @@
-# 🎨 Visualização das Telas do App eMart
+# 🎨 Visualização das Telas do App Arrow
 
 ## 📱 Telas Principais com Descrição Visual
 
@@ -6,7 +6,7 @@
 
 ```
 ┌─────────────────────────────────────┐
-│  eMart                    [🔍] [🗺️] │
+│  Arrow                    [🔍] [🗺️] │
 │  All-in-One Multi-Service App       │
 ├─────────────────────────────────────┤
 │                                     │

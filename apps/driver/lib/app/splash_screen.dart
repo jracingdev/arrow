@@ -29,7 +29,7 @@ class SplashScreen extends StatelessWidget {
                   height: 12,
                 ),
                 Text(
-                  "Welcome to eMart Driver".tr,
+                  "Welcome to Arrow Driver".tr,
                   style: TextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey50, fontSize: 24, fontFamily: AppThemeData.bold),
                 ),
                 Text(

@@ -26,12 +26,12 @@ class SplashScreen extends StatelessWidget {
                   Image.asset("assets/images/ic_logo.png", height: 140),
                   const SizedBox(height: 14),
                   Text(
-                    "Welcome to eMart Store".tr,
+                    "Welcome to Arrow Store".tr,
                     textAlign: TextAlign.center,
                     style: AppThemeData.semiBoldTextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey50, fontSize: 18),
                   ),
                   Text(
-                    "Your eMart, Your Products, Delivered Fast!".tr,
+                    "Your Arrow, Your Products, Delivered Fast!".tr,
                     textAlign: TextAlign.center,
                     style: AppThemeData.semiBoldTextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey50, fontSize: 14),
                   ),

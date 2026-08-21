@@ -589,7 +589,7 @@
                             '\'" width="30%" height="30%">';
 
                     } else if (order.paymentMethod == "wallet") {
-                        image = '{{ asset('images/payment/emart_wallet.png') }}';
+                        image = '{{ asset('images/payment/arrow_wallet.png') }}';
                         payment_method = '<img alt="image" src="' + image +
                             '" onerror="this.onerror=null;this.src=\'' + place_image +
                             '\'" width="30%" height="30%" >';

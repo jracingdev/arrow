@@ -1,8 +1,8 @@
-# Análise Completa do Projeto eMart Customer App
+# Análise Completa do Projeto Arrow Customer App
 
 ## 📱 Visão Geral
 
-O **eMart Customer App** é um aplicativo Flutter multi-serviço que oferece uma plataforma completa para diversos tipos de serviços de entrega e locação. É uma solução "All-in-One" que integra múltiplos serviços em uma única aplicação.
+O **Arrow Customer App** é um aplicativo Flutter multi-serviço que oferece uma plataforma completa para diversos tipos de serviços de entrega e locação. É uma solução "All-in-One" que integra múltiplos serviços em uma única aplicação.
 
 ## 🏗️ Arquitetura e Tecnologias
 
@@ -17,7 +17,7 @@ O **eMart Customer App** é um aplicativo Flutter multi-serviço que oferece uma
 
 ### Versão do Projeto
 - **Versão**: 1.0.2+2
-- **Nome do Pacote**: emartconsumer
+- **Nome do Pacote**: Arrowconsumer
 
 ## 🎯 Funcionalidades Principais
 
@@ -534,7 +534,7 @@ Cada gateway de pagamento tem suas próprias configurações:
 
 ## 🎯 Conclusão
 
-O **eMart Customer App** é um aplicativo Flutter robusto e completo que oferece uma solução multi-serviço para diversos tipos de negócios. Com sua arquitetura modular, suporte a múltiplos serviços, pagamentos e idiomas, é uma solução escalável e flexível.
+O **Arrow Customer App** é um aplicativo Flutter robusto e completo que oferece uma solução multi-serviço para diversos tipos de negócios. Com sua arquitetura modular, suporte a múltiplos serviços, pagamentos e idiomas, é uma solução escalável e flexível.
 
 O projeto demonstra uso avançado de Firebase, Flutter e diversas bibliotecas modernas, criando uma experiência de usuário rica e funcional. Com as melhorias sugeridas, pode se tornar uma solução ainda mais robusta e mantível.
 

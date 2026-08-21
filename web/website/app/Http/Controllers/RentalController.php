@@ -656,7 +656,7 @@ class RentalController extends Controller
                         'amount' => ($rentalCarsData['cart_order']['total_pay'] * 1000),
                         'currency' => $currency,
                         'payment_method' => 'pm_card_visa',
-                        'description' => 'Emart Rental Order',
+                        'description' => 'Arrow Rental Order',
                     ]);
                     $rentalCarsData['payment_status'] = true;
                     Session::put('rentalCarsData', $rentalCarsData);

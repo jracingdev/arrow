@@ -119,7 +119,7 @@ class WalletController extends GetxController {
         xenditModel.value = Xendit.fromJson(jsonDecode(Preferences.getString(Preferences.xenditSettings)));
 
         flutterStipe.Stripe.publishableKey = stripeModel.value.clientpublishableKey.toString();
-        flutterStipe.Stripe.merchantIdentifier = 'eMart Driver';
+        flutterStipe.Stripe.merchantIdentifier = 'Arrow Driver';
         flutterStipe.Stripe.instance.applySettings();
         setRef();
 
@@ -737,7 +737,7 @@ class WalletController extends GetxController {
     var options = {
       'key': razorPayModel.value.razorpayKey,
       'amount': amount * 100,
-      'name': 'eMart',
+      'name': 'Arrow',
       'order_id': orderId,
       "currency": Constant.currencyModel?.code ?? "BRL",
       'description': 'wallet Topup',

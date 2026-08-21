@@ -1,7 +1,7 @@
 const Map<String, String> hiIN = {
   'Log In to Your Account': 'Log In to Your Account',
-  'Sign in to access your eMart account and manage your deliveries seamlessly.':
-  'Sign in to access your eMart account and manage your deliveries seamlessly.',
+  'Sign in to access your Arrow account and manage your deliveries seamlessly.':
+  'Sign in to access your Arrow account and manage your deliveries seamlessly.',
   'Didn’t Have an account?': 'Didn’t Have an account?',
   'Sign up': 'Sign up',
   'Email Address': 'Email Address',
@@ -37,8 +37,8 @@ const Map<String, String> hiIN = {
   'E-mail': 'E-mail',
   'Please enter mobile number': 'Please enter mobile number',
   'Create an Account': 'Create an Account',
-  'Sign up now to start your journey as a eMart driver and begin earning with every delivery.':
-  'Sign up now to start your journey as a eMart driver and begin earning with every delivery.',
+  'Sign up now to start your journey as an Arrow driver and begin earning with every delivery.':
+  'Sign up now to start your journey as an Arrow driver and begin earning with every delivery.',
   'Service': 'Service',
   'Service Type': 'Service Type',
   'Continue as a.': 'Continue as a.',
@@ -89,7 +89,7 @@ const Map<String, String> hiIN = {
   "Legal": "Legal",
   "Terms and Conditions": "Terms and Conditions",
   "Privacy Policy": "Privacy Policy",
-  "Check out eMart, your ultimate food delivery application!": "Check out eMart, your ultimate food delivery application!",
+  "Check out Arrow, your ultimate delivery application!": "Check out Arrow, your ultimate delivery application!",
   "Google Play:": "Google Play:",
   "App Store:": "App Store:",
   "Look what I made!": "Look what I made!",
@@ -400,6 +400,6 @@ const Map<String, String> hiIN = {
   "Please enter stripe account Id": "Please enter stripe account Id",
   "Skip": "Skip",
   "Next": "Next",
-  "Welcome to eMart Driver": "Welcome to eMart Driver",
+  "Welcome to Arrow Driver": "Welcome to Arrow Driver",
   "Your Favorite Ride, Parcel, Rental & Item Delivered Fast!": "Your Favorite Ride, Parcel, Rental & Item Delivered Fast!",
 };

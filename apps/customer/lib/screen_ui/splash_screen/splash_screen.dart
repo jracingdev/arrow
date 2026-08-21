@@ -21,7 +21,7 @@ class SplashScreen extends StatelessWidget {
               children: [
                 Image.asset(AppAssets.icAppLogo, height: 120, width: 120),
                 const SizedBox(height: 12),
-                Text("eMart".tr, style: TextStyle(color: AppThemeData.grey50, fontSize: 24, fontFamily: AppThemeData.bold)),
+                Text("Arrow".tr, style: TextStyle(color: AppThemeData.grey50, fontSize: 24, fontFamily: AppThemeData.bold)),
               ],
             ),
           ),

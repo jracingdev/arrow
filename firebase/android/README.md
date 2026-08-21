@@ -4,11 +4,11 @@ Os arquivos **`google-services.json` reais não vão para o Git** (`.gitignore`)
 
 ## Onde colocar cada arquivo
 
-| App | Package Android | Destino no repo |
-|-----|-----------------|-----------------|
-| Cliente | `br.app.arrow.customer` | `apps/customer/android/app/google-services.json` |
-| Lojista | `br.app.arrow.store` | `apps/store/android/app/google-services.json` |
-| Entregador | `br.app.arrow.driver` | `apps/driver/android/app/google-services.json` |
+| App | Package Android | App ID (Console) | Destino no repo |
+|-----|-----------------|------------------|-----------------|
+| Cliente | `br.app.arrow.customer` | `1:661081769489:android:d8da3fce389fcabca4d3b0` | `apps/customer/android/app/google-services.json` |
+| Lojista | `br.app.arrow.store` | `1:661081769489:android:c625e7c47a334c31a4d3b0` | `apps/store/android/app/google-services.json` |
+| Entregador | `br.app.arrow.driver` | `1:661081769489:android:246c57cb98fff558a4d3b0` | `apps/driver/android/app/google-services.json` |
 
 ## Como gerar no Console Firebase
 

@@ -25,7 +25,7 @@ class ServiceListScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("eMart".tr, style: AppThemeData.semiBoldTextStyle(fontSize: 22, color: themeController.isDark.value ? AppThemeData.grey50 : AppThemeData.grey900)),
+                Text("Arrow".tr, style: AppThemeData.semiBoldTextStyle(fontSize: 22, color: themeController.isDark.value ? AppThemeData.grey50 : AppThemeData.grey900)),
                 Text("All Your Needs in One App!".tr, style: AppThemeData.regularTextStyle(fontSize: 14, color: themeController.isDark.value ? AppThemeData.grey100 : AppThemeData.grey700)),
               ],
             ),

@@ -600,7 +600,7 @@ class CheckoutController extends Controller
                         'amount' => ($cart['cart_order']['total_pay'] * 1000),
                         'currency' => $currency,
                         'payment_method' => 'pm_card_visa',
-                        'description' => 'Emart Order',
+                        'description' => 'Arrow Order',
                     ]);
                     $cart['payment_status'] = true;
                     Session::put('cart', $cart);

@@ -685,7 +685,7 @@
                     image = '{{ asset('images/payment/marcado_pago.png') }}';
                     payment_method = '<img alt="image" style="max-width:100px;" src="' + image + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'">';
                 } else if (val.payment_method == "Wallet" || val.payment_method == "wallet") {
-                    image = '{{ asset('images/payment/emart_wallet.png') }}';
+                    image = '{{ asset('images/payment/arrow_wallet.png') }}';
                     payment_method = '<img alt="image" style="max-width:100px;" src="' + image + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'">';
                 } else if (val.payment_method == "Paytm" || val.payment_method == "paytm") {
                     image = '{{ asset('images/payment/paytm.png') }}';

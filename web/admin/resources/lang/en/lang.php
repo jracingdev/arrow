@@ -2313,7 +2313,7 @@ return [
     'please_submit_again' => 'Please submit again',
     'approved_your_document' => 'Approved  your document',
     'admin_approved_document' => 'Admin has Approved your',
-    'rights_reserved' => 'Emart. All rights reserved.',
+    'rights_reserved' => 'Arrow. All rights reserved.',
     'map_legend' => 'Map Legend',
     'legend' => 'Legend',
     'type_your_message' => 'Type your message...',

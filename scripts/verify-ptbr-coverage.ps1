@@ -29,7 +29,7 @@ function Parse-DartMap([string]$file) {
 function Test-RealEnglish([string]$s) {
   if ([string]::IsNullOrWhiteSpace($s)) { return $false }
   # intentional keep
-  if ($s -match '^(CPF|CNPJ|CEP|OTP|SMS|API|URL|ID|GPS|PDF|CSV|SKU|QR|PIN|HTML|JSON|USD|BRL|INR|VAT|GST|eMart|Arrow|OK|SOS|iOS|Android|SSL|TLS|SMTP|MB|Km|mph|Total|Subtotal|Status|Menu|Chat|Manual|Individual|Extras|Item|JAN|MAR|JUN|JUL|NOV|PM|V|km|JPEG, PNG)$') { return $false }
+  if ($s -match '^(CPF|CNPJ|CEP|OTP|SMS|API|URL|ID|GPS|PDF|CSV|SKU|QR|PIN|HTML|JSON|USD|BRL|INR|VAT|GST|Arrow|Arrow|OK|SOS|iOS|Android|SSL|TLS|SMTP|MB|Km|mph|Total|Subtotal|Status|Menu|Chat|Manual|Individual|Extras|Item|JAN|MAR|JUN|JUL|NOV|PM|V|km|JPEG, PNG)$') { return $false }
   if ($s -match '^(PayPal|Stripe|RazorPay|Razorpay|Paytm|Xendit|MidTrans|MercadoPago|FlutterWave|Payfast|OrangePay|Apple Pay|Google Maps|OpenStreetMap|Foodie|Waze Map|Google Go)$') { return $false }
   if ($s -match 'Vandex|MapsWithMe|Google Play|App Store') { return $false }
   if ($s -match 'dd-MM-yyyy|HH:mm|MMM dd') { return $false }

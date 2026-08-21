@@ -35,7 +35,7 @@ class SignupScreen extends StatelessWidget {
                     style: TextStyle(color: isDark ? AppThemeData.grey50 : AppThemeData.grey900, fontSize: 22, fontFamily: AppThemeData.semiBold),
                   ),
                   Text(
-                    "Join eMart Store today and start managing your orders effortlessly.".tr,
+                    "Join Arrow Store today and start managing your orders effortlessly.".tr,
                     style: TextStyle(color: isDark ? AppThemeData.grey400 : AppThemeData.grey500, fontSize: 16, fontFamily: AppThemeData.regular),
                   ),
                   const SizedBox(height: 32),

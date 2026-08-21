@@ -257,7 +257,7 @@ class ParcelOrderConfirmationController extends GetxController {
         selectedPaymentMethod.value = PaymentGateway.xendit.name;
       }
       Stripe.publishableKey = stripeModel.value.clientpublishableKey.toString();
-      Stripe.merchantIdentifier = 'eMart Customer';
+      Stripe.merchantIdentifier = 'Arrow Customer';
       Stripe.instance.applySettings();
       setRef();
 
@@ -433,8 +433,8 @@ class ParcelOrderConfirmationController extends GetxController {
   //             sandboxMode: payPalModel.value.isLive == true ? false : true,
   //             clientId: payPalModel.value.paypalClient ?? '',
   //             secretKey: payPalModel.value.paypalSecret ?? '',
-  //             returnURL: "https://success.emart.com/return",
-  //             cancelURL: "https://cancel.emart.com/cancel",
+  //             returnURL: "https://success.Arrow.com/return",
+  //             cancelURL: "https://cancel.Arrow.com/cancel",
   //             // returnURL: "br.app.arrow.customer://paypalpay",
   //             // cancelURL: "br.app.arrow.customer://paypalpay",
   //             transactions: [
@@ -741,7 +741,7 @@ class ParcelOrderConfirmationController extends GetxController {
     var options = {
       'key': razorPayModel.value.razorpayKey,
       'amount': amount * 100,
-      'name': 'eMart',
+      'name': 'Arrow',
       'order_id': orderId,
       "currency": Constant.currencyModel?.code ?? "BRL",
       'description': 'wallet Topup',

@@ -161,7 +161,7 @@ class ProfileScreen extends StatelessWidget {
                                       }),
                                   cardDecoration(isDark, controller, "assets/icons/ic_share.svg", "Share app".tr, () {
                                     Share.share(
-                                      '${'Check out emart, the ultimate all-in-one multi-vendor eBusiness platform.'.tr} \n\n${'Google Play:'.tr} ${Constant.googlePlayLink} \n\n${'App Store:'.tr} ${Constant.appStoreLink}',
+                                      '${'Check out Arrow, the ultimate all-in-one multi-vendor platform.'.tr} \n\n${'Google Play:'.tr} ${Constant.googlePlayLink} \n\n${'App Store:'.tr} ${Constant.appStoreLink}',
                                       subject: 'Look what I made!'.tr,
                                     );
                                   }),

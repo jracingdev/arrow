@@ -152,7 +152,7 @@ class NotificationService {
     log('Got a message whilst in the foreground!');
     log('Message data: ${message.notification!.body.toString()}');
     try {
-      AndroidNotificationChannel channel = const AndroidNotificationChannel('0', 'eMart customer', description: 'Show eMart Notification', importance: Importance.max);
+      AndroidNotificationChannel channel = const AndroidNotificationChannel('0', 'Arrow customer', description: 'Show Arrow Notification', importance: Importance.max);
       AndroidNotificationDetails notificationDetails = AndroidNotificationDetails(
         channel.id,
         channel.name,

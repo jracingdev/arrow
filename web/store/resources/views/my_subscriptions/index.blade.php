@@ -315,7 +315,7 @@
                 image = '{{ asset('images/marcadopago.png') }}';
                 payment_method = '<img style="width:100px" alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'">';
             } else if (val.payment_type.toString().toLowerCase()== "wallet") {
-                image = '{{ asset('images/emart_wallet.png') }}';
+                image = '{{ asset('images/arrow_wallet.png') }}';
                 payment_method = '<img style="width:100px" alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'">';
             } else if (val.payment_type.toString().toLowerCase() == "paytm") {
                 image = '{{ asset('images/paytm.png') }}';

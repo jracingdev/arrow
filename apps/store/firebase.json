@@ -4,7 +4,7 @@
       "android": {
         "default": {
           "projectId": "j-arrow",
-          "appId": "1:661081769489:android:7eea7bece5a655cfa4d3b2",
+          "appId": "1:661081769489:android:c625e7c47a334c31a4d3b0",
           "fileOutput": "android/app/google-services.json"
         }
       },
@@ -20,7 +20,7 @@
         "lib/firebase_options.dart": {
           "projectId": "j-arrow",
           "configurations": {
-            "android": "1:661081769489:android:7eea7bece5a655cfa4d3b2",
+            "android": "1:661081769489:android:c625e7c47a334c31a4d3b0",
             "ios": "1:661081769489:web:7eea7bece5a655cfa4d3b0"
           }
         }

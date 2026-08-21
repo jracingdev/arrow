@@ -306,7 +306,7 @@ Os três painéis Laravel (**website**, **store**, **admin**) **não** leem a co
 | `FIREBASE_DATABASE_URL` | `https://j-arrow-default-rtdb.firebaseio.com` | Realtime Database (se usado) ou URL do projeto |
 | `FIREBASE_PROJECT_ID` | `j-arrow` | `projectId` |
 | `FIREBASE_STORAGE_BUCKET` | `j-arrow.appspot.com` | `storageBucket` |
-| `FIREBASE_MESSAAGING_SENDER_ID` | `123456789` | `messagingSenderId` (grafia original do eMart: **MESSAAGING**) |
+| `FIREBASE_MESSAAGING_SENDER_ID` | `123456789` | `messagingSenderId` (grafia original do Arrow: **MESSAAGING**) |
 | `FIREBASE_APP_ID` | `1:123:web:abc` | `appId` |
 | `FIREBASE_MEASUREMENT_ID` | `G-XXXX` | `measurementId` (Analytics; pode ficar vazio em dev, mas preencha em produção) |
 

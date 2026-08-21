@@ -58,44 +58,44 @@
                                 <div class="map-markers">
                                     <ul>
                                         <li>
-                                            <input type="radio" name="marker_icon" value="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fsedan.png?alt=media&token=50c63470-65e4-45fa-bda1-cecfce83cb47" id="sedan" title="Seden" checked>
-                                            <img src="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fsedan.png?alt=media&token=50c63470-65e4-45fa-bda1-cecfce83cb47">
+                                            <input type="radio" name="marker_icon" value="{{ asset('images/markers/sedan.png') }}" id="sedan" title="Seden" checked>
+                                            <img src="{{ asset('images/markers/sedan.png') }}">
                                         </li>
                                         <li>
-                                            <input type="radio" name="marker_icon" value="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fsuv.png?alt=media&token=e741359a-2f69-4e17-b731-a3f52282176b" id="suv" title="SUV">
-                                            <img src="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fsuv.png?alt=media&token=e741359a-2f69-4e17-b731-a3f52282176b">
+                                            <input type="radio" name="marker_icon" value="{{ asset('images/markers/suv.png') }}" id="suv" title="SUV">
+                                            <img src="{{ asset('images/markers/suv.png') }}">
                                         </li>
                                         <li>
-                                            <input type="radio" name="marker_icon" value="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fhatchback.png?alt=media&token=be339f9a-b483-4662-9965-b60e187e2824" id="hatchback" title="Hatchback">
-                                            <img src="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fhatchback.png?alt=media&token=be339f9a-b483-4662-9965-b60e187e2824">
+                                            <input type="radio" name="marker_icon" value="{{ asset('images/markers/hatchback.png') }}" id="hatchback" title="Hatchback">
+                                            <img src="{{ asset('images/markers/hatchback.png') }}">
                                         </li>
                                         <li>
-                                            <input type="radio" name="marker_icon" value="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fminivan.png?alt=media&token=298e9508-e925-49ce-9597-0a64b8d56e1e" id="minivan" title="Minivan">
-                                            <img src="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fminivan.png?alt=media&token=298e9508-e925-49ce-9597-0a64b8d56e1e">
+                                            <input type="radio" name="marker_icon" value="{{ asset('images/markers/minivan.png') }}" id="minivan" title="Minivan">
+                                            <img src="{{ asset('images/markers/minivan.png') }}">
                                         </li>
                                         <li>
-                                            <input type="radio" name="marker_icon" value="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fbike.png?alt=media&token=c8747106-ac49-436d-9355-3c274ca8bd76" id="bike" title="Bike">
-                                            <img src="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fbike.png?alt=media&token=c8747106-ac49-436d-9355-3c274ca8bd76">
+                                            <input type="radio" name="marker_icon" value="{{ asset('images/markers/bike.png') }}" id="bike" title="Bike">
+                                            <img src="{{ asset('images/markers/bike.png') }}">
                                         </li>
                                         <li>
-                                            <input type="radio" name="marker_icon" value="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fscooter.png?alt=media&token=0dd48daa-5d24-4166-bb49-f01f3afea683" id="scooter" title="Scooter">
-                                            <img src="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fscooter.png?alt=media&token=0dd48daa-5d24-4166-bb49-f01f3afea683">
+                                            <input type="radio" name="marker_icon" value="{{ asset('images/markers/scooter.png') }}" id="scooter" title="Scooter">
+                                            <img src="{{ asset('images/markers/scooter.png') }}">
                                         </li>
                                         <li>
-                                            <input type="radio" name="marker_icon" value="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fautorickshaw.png?alt=media&token=a3d607f8-fa02-46ca-855a-1b2da56ac9c1" id="autorickshaw" title="Auto Rickshaw">
-                                            <img src="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fautorickshaw.png?alt=media&token=a3d607f8-fa02-46ca-855a-1b2da56ac9c1">
+                                            <input type="radio" name="marker_icon" value="{{ asset('images/markers/autorickshaw.png') }}" id="autorickshaw" title="Auto Rickshaw">
+                                            <img src="{{ asset('images/markers/autorickshaw.png') }}">
                                         </li>
                                         <li>
-                                            <input type="radio" name="marker_icon" value="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fminibus.png?alt=media&token=f0e342a2-2c62-4a1c-be2b-9e78eb64db6c" id="minibus" title="Minibus">
-                                            <img src="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fminibus.png?alt=media&token=f0e342a2-2c62-4a1c-be2b-9e78eb64db6c">
+                                            <input type="radio" name="marker_icon" value="{{ asset('images/markers/minibus.png') }}" id="minibus" title="Minibus">
+                                            <img src="{{ asset('images/markers/minibus.png') }}">
                                         </li>
                                         <li>
-                                            <input type="radio" name="marker_icon" value="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fbus.png?alt=media&token=da016c81-6317-45ba-bf1e-e13192138c2b" id="bus" title="Bus">
-                                            <img src="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Fbus.png?alt=media&token=da016c81-6317-45ba-bf1e-e13192138c2b">
+                                            <input type="radio" name="marker_icon" value="{{ asset('images/markers/bus.png') }}" id="bus" title="Bus">
+                                            <img src="{{ asset('images/markers/bus.png') }}">
                                         </li>
                                         <li>
-                                            <input type="radio" name="marker_icon" value="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Ftruck.png?alt=media&token=4807adfe-458d-4659-b8d6-13d4125cd456" id="truck" title="Truck">
-                                            <img src="https://firebasestorage.googleapis.com/v0/b/emart-8d99f.appspot.com/o/marker%2Ftruck.png?alt=media&token=4807adfe-458d-4659-b8d6-13d4125cd456">
+                                            <input type="radio" name="marker_icon" value="{{ asset('images/markers/truck.png') }}" id="truck" title="Truck">
+                                            <img src="{{ asset('images/markers/truck.png') }}">
                                         </li>
                                     </ul>
                                     <div class="form-text text-muted">

@@ -1,7 +1,7 @@
 /**
  * Garante settings/document_verification_settings no Firestore.
  *
- * Defaults alinhados a firebase/import-export/collections.json (eMart):
+ * Defaults alinhados a firebase/import-export/collections.json (Arrow):
  *   isStoreVerification: false
  *   isDriverVerification: false
  *   isOwnerVerification: false

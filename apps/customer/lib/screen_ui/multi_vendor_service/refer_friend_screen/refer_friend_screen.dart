@@ -70,7 +70,7 @@ class ReferFriendScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                "${'Invite your friends to sign up with emart using your code, and you’ll earn'.tr} ${Constant.amountShow(amount: Constant.sectionConstantModel!.referralAmount)} ${'after their Success the first order! 💸🍔'.tr}"
+                                "${'Invite your friends to sign up with Arrow using your code, and you’ll earn'.tr} ${Constant.amountShow(amount: Constant.sectionConstantModel!.referralAmount)} ${'after their Success the first order! 💸🍔'.tr}"
                                     .tr,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 16, color: isDark ? AppThemeData.grey50 : AppThemeData.grey50, fontFamily: AppThemeData.regular, fontWeight: FontWeight.w500),

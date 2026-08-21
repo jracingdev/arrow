@@ -413,7 +413,7 @@
                 payment_method = '<img class="size" alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'" >';
 
             } else if (val.payment_method == "Wallet" || val.payment_method == "tax") {
-                image = '{{asset("images/payment/emart_wallet.png")}}';
+                image = '{{asset("images/payment/arrow_wallet.png")}}';
                 payment_method = '<img class="size" alt="image" src="' + image + '" onerror="this.onerror=null;this.src=\'' + place_image + '\'" >';
 
             } else if (val.payment_method == "Paytm") {

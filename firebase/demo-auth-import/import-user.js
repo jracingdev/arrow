@@ -7,7 +7,7 @@ let adminConfig = {
     databaseURL: "YOUR_DATABASE_URL",
 };
 let newUserOverrides=[];
-let users_update_list=[{'email':'customer02@emart.com','uid':'eMIxZi024oXntpRxo7Sz895n5E93','password':'12345678'},{'email':'customer03@emart.com','uid':'ncxVDiCldHW3bnQU1bDCJVjc2B42','password':'123456'},{'email':'store03@emart.com','uid':'HthbaL49TgRkf2ZtPLhwSlBYjGI2','password':'123456'},{'email':'store04@emart.com','uid':'EmFlJfSWqDQLjYsOTPF2Zfusx3w1','password':'123456'},{'email':'driver01@emart.com','uid':'EJ4N3Nn5ZxXnscQkVjLKH1OF9Qs2','password':'123456'}];
+let users_update_list=[{'email':'customer02@Arrow.com','uid':'eMIxZi024oXntpRxo7Sz895n5E93','password':'12345678'},{'email':'customer03@Arrow.com','uid':'ncxVDiCldHW3bnQU1bDCJVjc2B42','password':'123456'},{'email':'store03@Arrow.com','uid':'HthbaL49TgRkf2ZtPLhwSlBYjGI2','password':'123456'},{'email':'store04@Arrow.com','uid':'EmFlJfSWqDQLjYsOTPF2Zfusx3w1','password':'123456'},{'email':'driver01@Arrow.com','uid':'EJ4N3Nn5ZxXnscQkVjLKH1OF9Qs2','password':'123456'}];
 Start();
 async function Start() {
     console.log("Initializing firebase. databaseURL:", adminConfig.databaseURL);
