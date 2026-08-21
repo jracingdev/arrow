@@ -2595,5 +2595,10 @@ return [
     'name_placeholder' => 'Name',
     'email_placeholder' => 'Email',
     'password_placeholder' => 'Password',
+    'driver_accepted' => 'Driver Accepted',
+    'sos_alert' => 'SOS Alert',
+    'new_sos_initiated' => 'New SOS initiated',
+    'per_hour_suffix' => '/hr',
+    'view_details' => 'View Details',
 ];
 ?>

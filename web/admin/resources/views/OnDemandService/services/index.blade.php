@@ -474,7 +474,7 @@
                 ],
                 initComplete: function() {
                     $(".dataTables_filter").append($(".dt-buttons").detach());
-                    $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+                    $('.dataTables_filter input').attr('placeholder', ArrowI18n.searchPlaceholder).attr('autocomplete','new-password').val('');
                     $('.dataTables_filter label').contents().filter(function() {
                         return this.nodeType === 3; 
                     }).remove();
@@ -554,9 +554,9 @@ var showProviderColumn = (id === '');
             if (val.disPrice == "0"){
                 if (val.priceUnit == "Hourly") {
                     if (currencyAtRight) {
-                        html.push('<td data-html="true" data-order="' + val.price + '">' + parseFloat(val.price).toFixed(decimal_degits) + '' + currentCurrency + '/hr</td>');
+                        html.push('<td data-html="true" data-order="' + val.price + '">' + parseFloat(val.price).toFixed(decimal_degits) + '' + currentCurrency + ArrowI18n.perHourSuffix + '</td>');
                     }else {
-                        html.push('<td data-html="true" data-order="' + val.price + '">' + currentCurrency + parseFloat(val.price).toFixed(decimal_degits) + '/hr</td>');
+                        html.push('<td data-html="true" data-order="' + val.price + '">' + currentCurrency + parseFloat(val.price).toFixed(decimal_degits) + ArrowI18n.perHourSuffix + '</td>');
                     }
                 } else {
                     if (currencyAtRight) {
@@ -568,9 +568,9 @@ var showProviderColumn = (id === '');
             }else {
                 if (val.priceUnit == "Hourly") {
                     if (currencyAtRight) {
-                        html.push('<td data-html="true" data-order="' + val.disPrice + '">' + parseFloat(val.disPrice).toFixed(decimal_degits) + '' + currentCurrency + '/hr  <s>' + parseFloat(val.price).toFixed(decimal_degits) + '' + currentCurrency + '/hr</s></td>');
+                        html.push('<td data-html="true" data-order="' + val.disPrice + '">' + parseFloat(val.disPrice).toFixed(decimal_degits) + '' + currentCurrency + ArrowI18n.perHourSuffix + '  <s>' + parseFloat(val.price).toFixed(decimal_degits) + '' + currentCurrency + ArrowI18n.perHourSuffix + '</s></td>');
                     } else {
-                        html.push('<td data-html="true" data-order="' + val.disPrice + '">' + '' + currentCurrency + parseFloat(val.disPrice).toFixed(decimal_degits) + '/hr  <s>' + currentCurrency + '' + parseFloat(val.price).toFixed(decimal_degits) + '/hr</s> </td>');
+                        html.push('<td data-html="true" data-order="' + val.disPrice + '">' + '' + currentCurrency + parseFloat(val.disPrice).toFixed(decimal_degits) + ArrowI18n.perHourSuffix + '  <s>' + currentCurrency + '' + parseFloat(val.price).toFixed(decimal_degits) + ArrowI18n.perHourSuffix + '</s> </td>');
                     }
                 } else {
                     if (currencyAtRight) {

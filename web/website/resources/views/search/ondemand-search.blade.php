@@ -410,14 +410,14 @@
                     var or_price = getFormattedPrice(parseFloat(val.price));
                     var dis_price = getFormattedPrice(parseFloat(val.disPrice));
                     if (val.priceUnit == "Hourly") {
-                        or_price = or_price + "/hr";
-                        dis_price = dis_price + "/hr";
+                        or_price = or_price + ArrowI18n.perHourSuffix;
+                        dis_price = dis_price + ArrowI18n.perHourSuffix;
                     }
                     html = html + '<span class="text-gray mb-0 pro-price ">' + dis_price + '  <s>' + or_price + '</s></span>';
                 } else {
                     var or_price = getFormattedPrice(parseFloat(val.price));
                     if (val.priceUnit == "Hourly") {
-                        or_price = or_price + "/hr";
+                        or_price = or_price + ArrowI18n.perHourSuffix;
                     }
                     html = html + '<span class="text-gray mb-0 pro-price ">' + or_price + '</span>';
                 }

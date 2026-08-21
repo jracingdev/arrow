@@ -614,23 +614,23 @@
             }
             
             if (val.status == 'Order Placed') {
-                html.push('<td class="order_placed"><span>' + val.status + '</span></td>');
+                html.push('<td class="order_placed"><span>' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Order Accepted') {
-                html.push('<td class="order_accepted"><span>' + val.status + '</span></td>');
+                html.push('<td class="order_accepted"><span>' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Order Rejected') {
-                html.push('<td class="order_rejected"><span>' + val.status + '</span></td>');
+                html.push('<td class="order_rejected"><span>' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Driver Pending') {
-                html.push('<td class="driver_pending"><span>' + val.status + '</span></td>');
+                html.push('<td class="driver_pending"><span>' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Driver Rejected') {
-                html.push('<td class="driver_rejected"><span>' + val.status + '</span></td>');
+                html.push('<td class="driver_rejected"><span>' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Order Shipped') {
-                html.push('<td class="order_shipped"><span>' + val.status + '</span></td>');
+                html.push('<td class="order_shipped"><span>' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'In Transit') {
-                html.push('<td class="in_transit"><span>' + val.status + '</span></td>');
+                html.push('<td class="in_transit"><span>' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Order Completed') {
-                html.push('<td class="order_completed"><span>' + val.status + '</span></td>');
+                html.push('<td class="order_completed"><span>' + ArrowI18n.status(val.status) + '</span></td>');
             } else {
-                html.push('<td class="order_completed"><span>' + val.status + '</span></td>');
+                html.push('<td class="order_completed"><span>' + ArrowI18n.status(val.status) + '</span></td>');
             }
 
             var actionHtml = '';

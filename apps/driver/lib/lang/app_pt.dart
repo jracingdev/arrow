@@ -425,4 +425,18 @@ const Map<String, String> ptPO = {
   'Confirm Cash Collection': 'Confirmar recebimento em dinheiro',
   'Please confirm that you have received the full cash amount from the customer before continuing.':
       'Confirme que você recebeu o valor total em dinheiro do cliente antes de continuar.',
+  'Order Placed': 'Pedido realizado',
+  'Order Accepted': 'Pedido aceito',
+  'Order Assigned': 'Pedido atribuído',
+  'Order Ongoing': 'Em andamento',
+  'Order Completed': 'Pedido concluído',
+  'Order Cancelled': 'Pedido cancelado',
+  'Order Canceled': 'Pedido cancelado',
+  'Order Rejected': 'Pedido recusado',
+  'Driver Pending': 'Motorista pendente',
+  'Driver Rejected': 'Motorista recusou',
+  'Driver Accepted': 'Motorista aceitou',
+  'Order Shipped': 'Pedido enviado',
+  'In Transit': 'Em trânsito',
+  'Order Delivered': 'Pedido entregue',
 };

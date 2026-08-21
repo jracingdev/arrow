@@ -633,7 +633,7 @@
                                 } else {
                                     perHourPrice = currentCurrency + "" + perHourPrice.toFixed(decimal_degits);
                                 }
-                                price = perHourPrice + '/hr';
+                                price = perHourPrice + ArrowI18n.perHourSuffix;
                             }
                             if (childData.hasOwnProperty("scheduleDateTime")) {
                                 childData.bookingDateTime = childData.scheduleDateTime;
@@ -753,7 +753,7 @@
                 ],
                 "language": datatableLang,
                 initComplete: function() {
-                    $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete', 'new-password').val('');
+                    $('.dataTables_filter input').attr('placeholder', ArrowI18n.searchPlaceholder).attr('autocomplete', 'new-password').val('');
                     $('.dataTables_filter label').contents().filter(function() {
                         return this.nodeType === 3;
                     }).remove();
@@ -776,21 +776,21 @@
             html.push('<td><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="' + val.id + '">' +(val.id.length > 8 ? val.id.substring(0, 8) + '...' : val.id) + '</a></td>');
             html.push('<td><a href="' + userRoute + '">' + val.authorName + '<a/></td>');
             if (val.status == 'Order Placed') {
-                html.push('<td class="order_placed"><span class="badge badge-success">' + val.status + '</span></td>');
+                html.push('<td class="order_placed"><span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Order Assigned') {
-                html.push('<td class="order_assigned"><span class="badge badge-success">' + val.status + '</span></td>');
+                html.push('<td class="order_assigned"><span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Order Ongoing') {
-                html.push('<td class="order_ongoing"><span class="badge badge-success">' + val.status + '</span></td>');
+                html.push('<td class="order_ongoing"><span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Order Accepted') {
-                html.push('<td class="order_accept"><span class="badge badge-success">' + val.status + '</span></td>');
+                html.push('<td class="order_accept"><span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Order Rejected') {
-                html.push('<td class="order_rejected"><span class="badge badge-success">' + val.status + '</span></td>');
+                html.push('<td class="order_rejected"><span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Order Completed') {
-                html.push('<td class="order_completed"><span class="badge badge-success">' + val.status + '</span></td>');
+                html.push('<td class="order_completed"><span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status == 'Order Cancelled') {
-                html.push('<td class="order_rejected"><span class="badge badge-success">' + val.status + '</span></td>');
+                html.push('<td class="order_rejected"><span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span></td>');
             } else {
-                html.push('<td class="order_completed"><span class="badge badge-success">' + val.status + '</span></td>');
+                html.push('<td class="order_completed"><span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span></td>');
             }
             html.push('<td>' + val.price + '</td>');
             var bookingDate = '';

@@ -327,20 +327,20 @@
             html = html + '<p class="text-gray mb-1 small"><span class="fa fa-map-marker"></span> ' + val.address + '</p>';
             var hourlyHtml = '';
             if (val.priceUnit == 'Hourly') {
-                hourlyHtml += '/hr';
+                hourlyHtml += ArrowI18n.perHourSuffix;
             }
             if (val.hasOwnProperty('disPrice') && val.disPrice != '' && val.disPrice != '0') {
                 var or_price = getFormattedPrice(parseFloat(val.price));
                 var dis_price = getFormattedPrice(parseFloat(val.disPrice));
                 if (val.priceUnit == "Hourly") {
-                    html = html + '<span class="pro-price">' + dis_price + "/hr" + '  <s>' + or_price + "/hr" + '</s>' + '</span>';
+                    html = html + '<span class="pro-price">' + dis_price + ArrowI18n.perHourSuffix + '  <s>' + or_price + ArrowI18n.perHourSuffix + '</s>' + '</span>';
                 } else {
                     html = html + '<span class="pro-price">' + dis_price + '  <s>' + or_price + '</s>' + '</span>';
                 }
             } else {
                 var or_price = getFormattedPrice(parseFloat(val.price));
                 if (val.priceUnit == "Hourly") {
-                    html = html + '<span class="pro-price">' + or_price + "/hr" + '</span>'
+                    html = html + '<span class="pro-price">' + or_price + ArrowI18n.perHourSuffix + '</span>'
                 } else {
                     html = html + '<span class="pro-price">' + or_price + '</span>'
                 }

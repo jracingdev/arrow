@@ -87,7 +87,7 @@ session_start();
                         }?>" onchange="dropLocation()">
                     </div>
                     <div class="col-md-1 search-btn">
-                        <button type="button" class="btn btn-primary" id="find_car" onclick="findCar()">Search</button>
+                        <button type="button" class="btn btn-primary" id="find_car" onclick="findCar()">{{ trans('lang.search') }}</button>
                     </div>
                 </div>
                 <div class="rental-list-top-btn border-top pt-3">

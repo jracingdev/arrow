@@ -356,7 +356,7 @@ order: [[ @if(empty($id)) 2 @else 1 @endif, "desc" ]], // Order by Amount column
             ],
             initComplete: function() {
                 $(".dataTables_filter").append($(".dt-buttons").detach());
-                $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+                $('.dataTables_filter input').attr('placeholder', ArrowI18n.searchPlaceholder).attr('autocomplete','new-password').val('');
                 $('.dataTables_filter label').contents().filter(function() {
                     return this.nodeType === 3; 
                 }).remove();

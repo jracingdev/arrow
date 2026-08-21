@@ -1010,21 +1010,21 @@
             }
 
             if (order.status == 'Order Placed') {
-                $('#old_order_status').html('<span class="order_placed py-2 px-3">' + order.status + '</span>');
+                $('#old_order_status').html('<span class="order_placed py-2 px-3">' + ArrowI18n.status(order.status) + '</span>');
             } else if (order.status == 'Order Assigned') {
-                $('#old_order_status').html('<span class="order_assigned py-2 px-3">' + order.status + '</span>');
+                $('#old_order_status').html('<span class="order_assigned py-2 px-3">' + ArrowI18n.status(order.status) + '</span>');
             } else if (order.status == 'Order Ongoing') {
-                $('#old_order_status').html('<span class="order_ongoing py-2 px-3">' + order.status + '</span>');
+                $('#old_order_status').html('<span class="order_ongoing py-2 px-3">' + ArrowI18n.status(order.status) + '</span>');
             } else if (order.status == 'Order Accepted') {
-                $('#old_order_status').html('<span class="order_accept py-2 px-3">' + order.status + '</span>');
+                $('#old_order_status').html('<span class="order_accept py-2 px-3">' + ArrowI18n.status(order.status) + '</span>');
             } else if (order.status == 'Order Rejected') {
-                $('#old_order_status').html('<span class="order_rejected py-2 px-3">' + order.status + '</span>');
+                $('#old_order_status').html('<span class="order_rejected py-2 px-3">' + ArrowI18n.status(order.status) + '</span>');
             } else if (order.status == 'Order Completed') {
-                $('#old_order_status').html('<span class="order_completed py-2 px-3">' + order.status + '</span>');
+                $('#old_order_status').html('<span class="order_completed py-2 px-3">' + ArrowI18n.status(order.status) + '</span>');
             } else if (order.status == 'Order Cancelled') {
-                $('#old_order_status').html('<span class="order_rejected py-2 px-3">' + order.status + '</span>');
+                $('#old_order_status').html('<span class="order_rejected py-2 px-3">' + ArrowI18n.status(order.status) + '</span>');
             } else {
-                $('#old_order_status').html('<span class="order_completed py-2 px-3">' + order.status + '</span>');
+                $('#old_order_status').html('<span class="order_completed py-2 px-3">' + ArrowI18n.status(order.status) + '</span>');
             }
 
             var productstotalHTML = buildHTMLProductstotal(order);
@@ -1734,7 +1734,7 @@
                     <td style="color:green">${basePriceDisplay} x ${quantity} (${subtotalDisplay})</td></tr>`;
         } else {
             html += `<tr class="final-rate"><td class="label">{{trans("lang.price")}}</td>
-                    <td style="color:green">${basePriceDisplay}/hr</td></tr>`;
+                    <td style="color:green">${basePriceDisplay}${ArrowI18n.perHourSuffix}</td></tr>`;
         }
 
         // Discount

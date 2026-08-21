@@ -273,8 +273,8 @@ class OrderScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          orderModel.status.toString(),
+                          Text(
+                            Constant.orderStatusLabel(orderModel.status),
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             color: Constant.statusColor(status: orderModel.status.toString()),

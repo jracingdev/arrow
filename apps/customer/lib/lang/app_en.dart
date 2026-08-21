@@ -795,5 +795,8 @@ const Map<String, String> enUS = {
   'Set from map': 'Set from map',
   'Enter Manually location': 'Enter Manually location',
   "No bookings found": "No bookings found",
+  'Order Assigned': 'Order Assigned',
+  'Order Ongoing': 'Order Ongoing',
+  'Placed': 'Placed',
   'The store is not available in your area. Change other location first.': 'The store is not available in your area. Change other location first.',
 };

@@ -177,20 +177,20 @@
                 html = html + '<a href="' + view_service_details + '"><img alt="#" src="' + photo + '" onerror="this.onerror=null;this.src=\'' + placeholderImageSrc + '\'" class="img-fluid item-img w-100"></a></div><div class="py-2 position-relative"><div class="list-card-body"><h6 class="mb-1"><a href="' + view_service_details + '" class="text-black">' + val.title + '</a></h6><h6><span class="fa fa-map-marker mr-1"></span>' + val.address + '</h6>';
                 var hourlyHtml = '';
                 if (val.priceUnit == 'Hourly') {
-                    hourlyHtml += '/hr';
+                    hourlyHtml += ArrowI18n.perHourSuffix;
                 }
                 if (val.hasOwnProperty('disPrice') && val.disPrice != '' && val.disPrice != '0') {
                     var or_price = getFormattedPrice(parseFloat(val.price));
                     var dis_price = getFormattedPrice(parseFloat(val.disPrice));
                     if (val.priceUnit == "Hourly") {
-                        html = html + '<span class="pro-price">' + dis_price + "/hr" + '  <s>' + or_price + "/hr" + '</s>' + '</span>';
+                        html = html + '<span class="pro-price">' + dis_price + ArrowI18n.perHourSuffix + '  <s>' + or_price + ArrowI18n.perHourSuffix + '</s>' + '</span>';
                     } else {
                         html = html + '<span class="pro-price">' + dis_price + '  <s>' + or_price + '</s>' + '</span>';
                     }
                 } else {
                     var or_price = getFormattedPrice(parseFloat(val.price));
                     if (val.priceUnit == "Hourly") {
-                        html = html + '<span class="pro-price">' + or_price + "/hr" + '</span>'
+                        html = html + '<span class="pro-price">' + or_price + ArrowI18n.perHourSuffix + '</span>'
                     } else {
                         html = html + '<span class="pro-price">' + or_price + '</span>'
                     }

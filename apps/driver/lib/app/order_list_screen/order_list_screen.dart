@@ -143,7 +143,7 @@ class OrderListScreen extends StatelessWidget {
                                                       ),
                                                     ),
                                                     Text(
-                                                      orderModel.status.toString(),
+                                                      Constant.orderStatusLabel(orderModel.status),
                                                       textAlign: TextAlign.start,
                                                       style: TextStyle(
                                                         fontFamily: AppThemeData.semiBold,

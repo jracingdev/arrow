@@ -631,28 +631,28 @@ element.style {
             html = html + '<td data-url="' + route + '" class="redirecttopage"><i class="mdi mdi-cart"></i> ' + val.products[0].quantity + '</td>';
             html = html + '<td data-url="' + route + '" class="redirecttopage">' + date + ' ' + time + '</td>';
               if (val.status == 'Order Placed') {
-                html = html + '<td class="order_placed"><span>' + val.status + '</span></td>';
+                html = html + '<td class="order_placed"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
             } else if (val.status == 'Order Accepted') {
-                html = html + '<td data-url="' + route + '" class="order_accepted redirecttopage"><span>' + val.status + '</span></td>';
+                html = html + '<td data-url="' + route + '" class="order_accepted redirecttopage"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
             } else if (val.status == 'Order Rejected') {
-                html = html + '<td data-url="' + route + '" class="order_rejected redirecttopage"><span>' + val.status + '</span></td>';
+                html = html + '<td data-url="' + route + '" class="order_rejected redirecttopage"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
             } else if (val.status == 'Driver Pending') {
-                html = html + '<td data-url="' + route + '" class="driver_pending redirecttopage"><span>' + val.status + '</span></td>';
+                html = html + '<td data-url="' + route + '" class="driver_pending redirecttopage"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
             } else if (val.status == 'Driver Rejected') {
-                html = html + '<td data-url="' + route + '" class="driver_rejected redirecttopage"><span>' + val.status + '</span></td>';
+                html = html + '<td data-url="' + route + '" class="driver_rejected redirecttopage"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
             } else if (val.status == 'Order Shipped') {
-                html = html + '<td data-url="' + route + '" class="order_shipped redirecttopage"><span>' + val.status + '</span></td>';
+                html = html + '<td data-url="' + route + '" class="order_shipped redirecttopage"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
             } else if (val.status == 'In Transit') {
-                html = html + '<td data-url="' + route + '" class="in_transit redirecttopage"><span>' + val.status + '</span></td>';
+                html = html + '<td data-url="' + route + '" class="in_transit redirecttopage"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
             } else if (val.status == 'Order Completed') {
-                html = html + '<td data-url="' + route + '" class="order_completed redirecttopage"><span>' + val.status + '</span></td>';
+                html = html + '<td data-url="' + route + '" class="order_completed redirecttopage"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
             }
             html = html + '</a></tr>';

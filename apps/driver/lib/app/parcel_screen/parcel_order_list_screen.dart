@@ -133,7 +133,7 @@ class ParcelOrderListScreen extends StatelessWidget {
                                                       // order.senderPickupDateTime != null
                                                       //     ? "Pickup Time: ${controller.formatDate(order.senderPickupDateTime!)}"
                                                       //     : '',
-                                                      order.status,
+                                                      Constant.orderStatusLabel(order.status),
                                                       isDark,
                                                     ),
                                                     const SizedBox(height: 16),

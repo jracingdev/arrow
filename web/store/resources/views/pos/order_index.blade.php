@@ -359,13 +359,13 @@
 
 
         if (val.status == 'InProcess') {
-            html.push('<span class="order_placed"><span>' + val.status + '</span></span>');
+            html.push('<span class="order_placed"><span>' + ArrowI18n.status(val.status) + '</span></span>');
         } else if (val.status == 'InTransit') {
-            html.push('<span class="in_transit"><span>' + val.status + '</span></span>');
+            html.push('<span class="in_transit"><span>' + ArrowI18n.status(val.status) + '</span></span>');
         } else if (val.status == 'Delivered') {
-            html.push('<span class="order_completed"><span>' + val.status + '</span></span>');
+            html.push('<span class="order_completed"><span>' + ArrowI18n.status(val.status) + '</span></span>');
         } else {
-            html.push('<span class="order_completed"><span>' + val.status + '</span></span>');
+            html.push('<span class="order_completed"><span>' + ArrowI18n.status(val.status) + '</span></span>');
         }
         var actionHtml = '';
         actionHtml = actionHtml + '<span class="action-btn">';

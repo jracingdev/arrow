@@ -326,7 +326,7 @@ class OwnerOrderListScreen extends StatelessWidget {
                                                 vertical: 8,
                                                 horizontal: 12),
                                         child: Text(
-                                          order.status.toString(),
+                                          Constant.orderStatusLabel(order.status),
                                           style: AppThemeData
                                               .boldTextStyle(
                                                   fontSize: 14,
@@ -507,7 +507,7 @@ class OwnerOrderListScreen extends StatelessWidget {
                                         order.sender?.address ??
                                             '',
                                         order.sender?.phone ?? '',
-                                        order.status,
+                                        Constant.orderStatusLabel(order.status),
                                         isDark,
                                       ),
                                       const SizedBox(height: 16),
@@ -723,7 +723,7 @@ class OwnerOrderListScreen extends StatelessWidget {
                                                         .circular(12),
                                               ),
                                               child: Text(
-                                                  order.status ?? '',
+                                                  Constant.orderStatusLabel(order.status),
                                                   style: AppThemeData
                                                       .boldTextStyle(
                                                           fontSize: 14,
@@ -1039,7 +1039,7 @@ class OwnerOrderListScreen extends StatelessWidget {
                                               10),
                                     ),
                                     child: Text(
-                                      order.status ?? '',
+                                      Constant.orderStatusLabel(order.status),
                                       style: AppThemeData
                                           .boldTextStyle(
                                               fontSize: 14,

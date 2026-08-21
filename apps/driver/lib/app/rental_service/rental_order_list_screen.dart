@@ -108,7 +108,7 @@ class RentalOrderListScreen extends StatelessWidget {
                                                           border: Border.all(color: AppThemeData.info300),
                                                           borderRadius: BorderRadius.circular(12),
                                                         ),
-                                                        child: Text(order.status ?? '', style: AppThemeData.boldTextStyle(fontSize: 14, color: AppThemeData.info500)),
+                                                        child: Text(Constant.orderStatusLabel(order.status), style: AppThemeData.boldTextStyle(fontSize: 14, color: AppThemeData.info500)),
                                                       ),
                                                     ],
                                                   ],

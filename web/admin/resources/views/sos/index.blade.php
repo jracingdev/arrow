@@ -279,11 +279,11 @@
         html.push(val.address);
 
         if (val.status == "Completed") {
-            html.push('<span class="badge badge-success">' + val.status + '</span>');
+            html.push('<span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span>');
         } else if (val.status == "Processing") {
-            html.push('<span class="badge badge-info">' + val.status + '</span>');
+            html.push('<span class="badge badge-info">' + ArrowI18n.status(val.status) + '</span>');
         } else {
-            html.push('<span class="badge badge-primary">' + val.status + '</span>');
+            html.push('<span class="badge badge-primary">' + ArrowI18n.status(val.status) + '</span>');
         }
 
         var action = '';

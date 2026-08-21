@@ -1261,5 +1261,10 @@ return [
     'order_assigned' => 'Pedido atribuído',
     'Permission' => 'Permissão',
     'please_enter_otp' => 'Digite o código OTP',
+    'order_ongoing' => 'Em andamento',
+    'driver_accepted' => 'Motorista aceitou',
+    'per_hour_suffix' => '/hora',
+    'view_details' => 'Ver detalhes',
+    'in_process' => 'Em andamento',
 ];
 ?>

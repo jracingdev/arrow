@@ -44,7 +44,7 @@
                                     <option value="title">{{trans('lang.title')}}</option>
                                 </select>
                                 <div class="form-group">
-                                <input type="search" id="search" class="search form-control" placeholder="Search" aria-controls="users-table"></label>&nbsp;<button onclick="searchtext();" class="btn btn-warning btn-flat">{{trans('lang.search')}}</button>&nbsp;<button onclick="searchclear();" class="btn btn-warning btn-flat">{{trans('lang.clear')}}</button>
+                                <input type="search" id="search" class="search form-control" placeholder="{{ trans('lang.search') }}" aria-controls="users-table"></label>&nbsp;<button onclick="searchtext();" class="btn btn-warning btn-flat">{{trans('lang.search')}}</button>&nbsp;<button onclick="searchclear();" class="btn btn-warning btn-flat">{{trans('lang.clear')}}</button>
                             </div>
                             </div>
  

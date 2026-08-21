@@ -561,11 +561,11 @@
                                     <p>${getFormattedPrice(parseFloat(val.rentalPackageModel.baseFare))}</p>
                                     
                                 </div>                   
-                                 <a class="btn btn-success" href="${route1}">View Details</a>                 
+                                 <a class="btn btn-success" href="${route1}">{{ trans('lang.view_details') }}</a>                 
                                 </div>
                                 
                                 <div class="col-md-2 car-price">
-                                    <div><label class="badge rounded-pill text-white px-3 py-2 fw-bold badge-success">${val.status}</label></div>
+                                    <div><label class="badge rounded-pill text-white px-3 py-2 fw-bold badge-success">${ArrowI18n.status(val.status)}</label></div>
                                     <span class="price">${getFormattedPrice(parseFloat(order_total))}<small></small></span>
                                 </div>
                             </div>
@@ -750,10 +750,10 @@
                                         <p>${val.rentalPackageModel.description}</p>
                                         <p>${getFormattedPrice(parseFloat(val.rentalPackageModel.baseFare))}</p>
                                   </div>  
-                                  <a class="btn btn-success" href="${route1}">View Details</a>
+                                  <a class="btn btn-success" href="${route1}">{{ trans('lang.view_details') }}</a>
                                   
-                                        ${val.status !== "In Transit" ? `<a class="btn btn-danger cancel_booking" data-id="${val.id}" href="javascript:void(0)">Cancel Bookings</a>` : ''} 
-                                        ${val.status === "In Transit" && val.endKitoMetersReading !== "" && val.paymentStatus === false  ? `<a class="btn btn-info"  href="${route1}">Pay Now</a>` : ''}                             
+                                        ${val.status !== "In Transit" ? `<a class="btn btn-danger cancel_booking" data-id="${val.id}" href="javascript:void(0)">{{ trans('lang.cancel_booking') }}</a>` : ''} 
+                                        ${val.status === "In Transit" && val.endKitoMetersReading !== "" && val.paymentStatus === false  ? `<a class="btn btn-info"  href="${route1}">{{ trans('lang.pay_now') }}</a>` : ''}                             
                                 </div>
 
                                 
@@ -768,7 +768,7 @@
                                         val.status === 'Order Shipped' ? 'bg-primary' :
                                         val.status === 'In Transit' ? 'bg-info' : 'bg-dark'
                                     }">
-                                        ${val.status}
+                                        ${ArrowI18n.status(val.status)}
                                     </label></div>
                                     <span class="price">${getFormattedPrice(parseFloat(order_total))}<small></small></span>
                                 </div>
@@ -957,11 +957,11 @@
                                         <p>${getFormattedPrice(parseFloat(val.rentalPackageModel.baseFare))}</p>
                                         
                                     </div>
-                                   <a class="btn btn-success" href="${route1}">View Details</a>
+                                   <a class="btn btn-success" href="${route1}">{{ trans('lang.view_details') }}</a>
                                 </div>
 
                                 <div class="col-md-2 car-price">
-                                    <div><label class="badge rounded-pill text-white px-3 py-2 fw-bold badge-danger">${val.status}</label></div>
+                                    <div><label class="badge rounded-pill text-white px-3 py-2 fw-bold badge-danger">${ArrowI18n.status(val.status)}</label></div>
                                     <span class="price">${getFormattedPrice(parseFloat(order_total))}<small></small></span>
                                 </div>
                             </div>

@@ -346,31 +346,31 @@
         html.push(val.clientName);
 
         if (val.status == 'Order Placed') {
-            html.push('<span class="badge badge-warning ">' + val.status + '</span>');
+            html.push('<span class="badge badge-warning ">' + ArrowI18n.status(val.status) + '</span>');
 
         } else if (val.status == 'Order Accepted') {
-            html.push('<span class="badge badge-info ">' + val.status + '</span>');
+            html.push('<span class="badge badge-info ">' + ArrowI18n.status(val.status) + '</span>');
 
         } else if (val.status == 'Order Rejected') {
-            html.push('<span class="badge badge-danger ">' + val.status + '</span>');
+            html.push('<span class="badge badge-danger ">' + ArrowI18n.status(val.status) + '</span>');
 
         } else if (val.status == 'Driver Pending') {
-            html.push('<span class="badge badge-secondary ">' + val.status + '</span>');
+            html.push('<span class="badge badge-secondary ">' + ArrowI18n.status(val.status) + '</span>');
 
         } else if (val.status == 'Driver Rejected') {
-            html.push('<span class="badge badge-danger ">' + val.status + '</span>');
+            html.push('<span class="badge badge-danger ">' + ArrowI18n.status(val.status) + '</span>');
 
         } else if (val.status == 'Order Shipped') {
-            html.push('<span class="badge badge-primary ">' + val.status + '</span>');
+            html.push('<span class="badge badge-primary ">' + ArrowI18n.status(val.status) + '</span>');
 
         } else if (val.status == 'In Transit') {
-            html.push('<span class="badge badge-info ">' + val.status + '</span>');
+            html.push('<span class="badge badge-info ">' + ArrowI18n.status(val.status) + '</span>');
 
         } else if (val.status == 'Order Completed') {
-            html.push('<span class="badge badge-success ">' + val.status + '</span>');
+            html.push('<span class="badge badge-success ">' + ArrowI18n.status(val.status) + '</span>');
 
         }else if(val.status == 'Order Cancelled') {
-            html.push('<span class="badge badge-dark ">' + val.status + '</span>');
+            html.push('<span class="badge badge-dark ">' + ArrowI18n.status(val.status) + '</span>');
 
         }else{
             html.push('');

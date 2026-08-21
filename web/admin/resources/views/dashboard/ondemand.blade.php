@@ -1181,29 +1181,29 @@
                 html = html + '<td>' + date + ' ' + time + '</td>';
 
                 if (val.status == 'Order Placed') {
-                    html = html + '<td class="order_placed"><span>' + val.status + '</span></td>';
+                    html = html + '<td class="order_placed"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
                 } else if (val.status == 'Order Assigned') {
-                    html = html + '<td class="order_assigned"><span>' + val.status + '</span></td>';
+                    html = html + '<td class="order_assigned"><span>' + ArrowI18n.status(val.status) + '</span></td>';
                 }
                 else if (val.status == 'Order Ongoing') {
-                    html = html + '<td class="order_ongoing"><span>' + val.status + '</span></td>';
+                    html = html + '<td class="order_ongoing"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
                 }
                 else if (val.status == 'Order Accepted') {
-                    html = html + '<td class="order_accept"><span>' + val.status + '</span></td>';
+                    html = html + '<td class="order_accept"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
                 } else if (val.status == 'Order Rejected') {
-                    html = html + '<td class="order_rejected"><span>' + val.status + '</span></td>';
+                    html = html + '<td class="order_rejected"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
                 } else if (val.status == 'Order Completed') {
-                    html = html + '<td class="order_completed"><span>' + val.status + '</span></td>';
+                    html = html + '<td class="order_completed"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
                 }
                 else if (val.status == 'Order Cancelled') {
-                    html = html + '<td class="order_rejected"><span>' + val.status + '</span></td>';
+                    html = html + '<td class="order_rejected"><span>' + ArrowI18n.status(val.status) + '</span></td>';
                 } else {
-                    html = html + '<td class="order_completed"><span>' + val.status + '</span></td>';
+                    html = html + '<td class="order_completed"><span>' + ArrowI18n.status(val.status) + '</span></td>';
 
                 }
 

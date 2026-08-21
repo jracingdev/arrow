@@ -244,7 +244,7 @@
                 html = html + '<div class="col-md-7 order-top-left"><div class="parcel_payment-detail" style><div class="sender-det"><h3><strong>' + val.sender.name + '</strong></h3> <p>' + val.sender.phone + '</p><p>' + val.sender.address + '</p></div>';
                 html = html + '<div class="receiver-det"><h3><strong>' + val.receiver.name + '</strong> </h3><p>' + val.receiver.phone + '</p><p>' + val.receiver.address + '</p></div></div></div>';
                 html = html + '<div class="col-md-5 order-top-right"><div class="order-summery">';
-                html = html + '<div class="payment-total d-flex"><label>{{ trans("lang.order_order_status_id") }}</label><span class="price ml-auto"><span class="badge badge-success p-2">'+val.status+'</span></span></div>';
+                html = html + '<div class="payment-total d-flex"><label>{{ trans("lang.order_order_status_id") }}</label><span class="price ml-auto"><span class="badge badge-success p-2">'+ArrowI18n.status(val.status)+'</span></span></div>';
                 html = html + '<div class="payment-total d-flex"><label>{{ trans("lang.order_id") }}</label><span class="price ml-auto">'+order_id+'</span></div>';
                 
                 let order_subtotal = parseFloat(val.subTotal || 0);
@@ -436,7 +436,7 @@
                 html = html + '<div class="col-md-7 order-top-left"><div class="parcel_payment-detail"><div class="sender-det"><h3><strong>' + val.sender.name + '</strong></h3> <p>' + val.sender.phone + '</p><p>' + val.sender.address + '</p></div>';
                 html = html + '<div class="receiver-det"><h3><strong>' + val.receiver.name + '</strong> </h3><p>' + val.receiver.phone + '</p><p>' + val.receiver.address + '</p></div></div></div>';
                 html = html + '<div class="col-md-5 order-top-right"><div class="order-summery">';
-                html = html + '<div class="payment-total d-flex"><label>{{ trans("lang.order_order_status_id") }}</label><span class="price ml-auto"><span class="badge badge-success p-2">'+val.status+'</span></span></div>';
+                html = html + '<div class="payment-total d-flex"><label>{{ trans("lang.order_order_status_id") }}</label><span class="price ml-auto"><span class="badge badge-success p-2">'+ArrowI18n.status(val.status)+'</span></span></div>';
                 html = html + '<div class="payment-total d-flex"><label>{{ trans("lang.order_id") }}</label><span class="price ml-auto">'+order_id+'</span></div>';
                 
                 let order_subtotal = parseFloat(val.subTotal || 0);
@@ -583,7 +583,7 @@
                 html = html + '<div class="col-md-7 order-top-left"><div class="parcel_payment-detail"><div class="sender-det"><h3><strong>' + val.sender.name + '</strong></h3> <p>' + val.sender.phone + '</p><p>' + val.sender.address + '</p></div>';
                 html = html + '<div class="receiver-det"><h3><strong>' + val.receiver.name + '</strong> </h3><p>' + val.receiver.phone + '</p><p>' + val.receiver.address + '</p></div></div></div>';
                 html = html + '<div class="col-md-5 order-top-right"><div class="order-summery">';
-                html = html + '<div class="payment-total d-flex"><label>{{ trans("lang.order_order_status_id") }}</label><span class="price ml-auto"><span class="badge badge-success p-2">'+val.status+'</span></span></div>';
+                html = html + '<div class="payment-total d-flex"><label>{{ trans("lang.order_order_status_id") }}</label><span class="price ml-auto"><span class="badge badge-success p-2">'+ArrowI18n.status(val.status)+'</span></span></div>';
                 html = html + '<div class="payment-total d-flex"><label>{{ trans("lang.order_id") }}</label><span class="price ml-auto">'+order_id+'</span></div>';
                 
                 let order_subtotal = parseFloat(val.subTotal || 0);

@@ -498,7 +498,7 @@
             ],
             initComplete: function() {
                 $(".dataTables_filter").append($(".dt-buttons").detach());
-                $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+                $('.dataTables_filter input').attr('placeholder', ArrowI18n.searchPlaceholder).attr('autocomplete','new-password').val('');
                 $('.dataTables_filter label').contents().filter(function() {
                     return this.nodeType === 3; 
                 }).remove();
@@ -570,23 +570,23 @@
             html.push('<td></td>');
         }
         if (val.status == 'Order Placed') {
-            html.push('<td class="order_placed"><span class="badge badge-warning">' + val.status + '</span></td>');
+            html.push('<td class="order_placed"><span class="badge badge-warning">' + ArrowI18n.status(val.status) + '</span></td>');
         } else if (val.status == 'Order Accepted') {
-            html.push('<td class="order_accepted"><span class="badge badge-info">' + val.status + '</span></td>');
+            html.push('<td class="order_accepted"><span class="badge badge-info">' + ArrowI18n.status(val.status) + '</span></td>');
         } else if (val.status == 'Order Rejected') {
-            html.push('<td class="order_rejected"><span class="badge badge-danger ">' + val.status + '</span></td>');
+            html.push('<td class="order_rejected"><span class="badge badge-danger ">' + ArrowI18n.status(val.status) + '</span></td>');
         } else if (val.status == 'Driver Pending') {
-            html.push('<td class="driver_pending"><span class="badge badge-secondary ">' + val.status + '</span></td>');
+            html.push('<td class="driver_pending"><span class="badge badge-secondary ">' + ArrowI18n.status(val.status) + '</span></td>');
         } else if (val.status == 'Driver Rejected') {
-            html.push('<td class="driver_rejected"><span class="badge badge-danger ">' + val.status + '</span></td>');
+            html.push('<td class="driver_rejected"><span class="badge badge-danger ">' + ArrowI18n.status(val.status) + '</span></td>');
         } else if (val.status == 'Order Shipped') {
-            html.push('<td class="order_shipped"><span class="badge badge-primary ">' + val.status + '</span></td>');
+            html.push('<td class="order_shipped"><span class="badge badge-primary ">' + ArrowI18n.status(val.status) + '</span></td>');
         } else if (val.status == 'In Transit') {
-            html.push('<td class="in_transit"><span class="badge badge-info ">' + val.status + '</span></td>');
+            html.push('<td class="in_transit"><span class="badge badge-info ">' + ArrowI18n.status(val.status) + '</span></td>');
         } else if (val.status == 'Order Completed') {
-            html.push('<td class="order_completed"><span class="badge badge-success ">' + val.status + '</span></td>');
+            html.push('<td class="order_completed"><span class="badge badge-success ">' + ArrowI18n.status(val.status) + '</span></td>');
         } else {
-            html.push('<td class="order_completed"><span class="badge badge-dark ">' + val.status + '</span></td>');
+            html.push('<td class="order_completed"><span class="badge badge-dark ">' + ArrowI18n.status(val.status) + '</span></td>');
         }
         var action = '';
         action = action + '<span class="action-btn"></i></a><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';

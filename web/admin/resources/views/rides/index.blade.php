@@ -647,11 +647,11 @@
         }
 
         if (val.status == 'Order Completed') {
-            html.push('<td><span class="badge badge-success">Order Completed</span></td>');
+            html.push('<td><span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span></td>');
         } else if (val.status == 'Order Rejected') {
-            html.push('<td><span class="badge badge-danger">Order Rejected</span></td>');
+            html.push('<td><span class="badge badge-danger">' + ArrowI18n.status(val.status) + '</span></td>');
         } else {
-            html.push('<td><span class="badge badge-danger">Pending</span></td>');
+            html.push('<td><span class="badge badge-danger">' + ArrowI18n.status(val.status || 'Pending') + '</span></td>');
         }
         var action = '';
         action = action + '<span class="action-btn"><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';

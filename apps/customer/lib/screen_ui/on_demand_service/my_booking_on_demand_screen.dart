@@ -41,7 +41,7 @@ class MyBookingOnDemandScreen extends StatelessWidget {
                   unselectedLabelColor: AppThemeData.grey900,
                   labelStyle: AppThemeData.boldTextStyle(fontSize: 16),
                   unselectedLabelStyle: AppThemeData.mediumTextStyle(fontSize: 16),
-                  tabs: controller.tabTitles.map((title) => Tab(child: Center(child: Text(title)))).toList(),
+                  tabs: controller.tabTitles.map((title) => Tab(child: Center(child: Text(title.tr)))).toList(),
                 ),
               ),
             ),
@@ -108,7 +108,7 @@ class MyBookingOnDemandScreen extends StatelessWidget {
                                                     Container(
                                                       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                                                       decoration: BoxDecoration(color: AppThemeData.info50, border: Border.all(color: AppThemeData.info300), borderRadius: BorderRadius.circular(12)),
-                                                      child: Text(onProviderOrder.status, style: AppThemeData.boldTextStyle(fontSize: 14, color: AppThemeData.info500)),
+                                                      child: Text(Constant.orderStatusLabel(onProviderOrder.status), style: AppThemeData.boldTextStyle(fontSize: 14, color: AppThemeData.info500)),
                                                     ),
                                                     Padding(
                                                       padding: const EdgeInsets.only(top: 6),

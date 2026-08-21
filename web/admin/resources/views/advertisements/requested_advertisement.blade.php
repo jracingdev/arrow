@@ -322,7 +322,7 @@
                         ],
                         "language": datatableLang,
                         initComplete: function() {
-                            $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete', 'new-password').val('');
+                            $('.dataTables_filter input').attr('placeholder', ArrowI18n.searchPlaceholder).attr('autocomplete', 'new-password').val('');
                             $('.dataTables_filter label').contents().filter(function() {
                                 return this.nodeType === 3;
                             }).remove();

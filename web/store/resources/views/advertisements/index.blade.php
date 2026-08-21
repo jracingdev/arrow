@@ -351,9 +351,9 @@
             html.push('<td><a href="' + advertisementsView + '">' + val.title + '</a></td>');
 
             if (val.type === 'restaurant_promotion') {
-                html.push('<td>Restaurant Promotion</td>');
+                html.push('<td>{{ trans('lang.restaurant_promotion') }}</td>');
             } else {
-                html.push('<td>Video Promotion</td>');
+                html.push('<td>{{ trans('lang.video_promotion') }}</td>');
             }
 
             html.push('<td>' + startDate + '-' + endDate + '</td>');

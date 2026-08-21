@@ -158,6 +158,12 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/js/bootstrap-timepicker.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script src="{{ asset('js/arrow-datetime.js') }}"></script>
+    <script src="{{ asset('js/arrow-i18n.js') }}"></script>
+    <script type="text/javascript">
+        window.ArrowI18n.searchPlaceholder = @json(trans('lang.search_here'));
+        window.ArrowI18n.perHourSuffix = @json(trans('lang.per_hour_suffix'));
+        window.ArrowI18n.viewDetails = @json(trans('lang.view_details'));
+    </script>
     <script type="text/javascript">
         window.ArrowChartMonths = [
             @json(trans('lang.month_short_jan')),
@@ -230,9 +236,9 @@
                     var data = change.doc.data();
                     Swal.fire({
                         icon: 'warning',
-                        title: 'SOS Alert!',
-                        html: `New SOS initiated<br>`,
-                        confirmButtonText: 'View Details',
+                        title: @json(trans('lang.sos_alert')),
+                        html: @json(trans('lang.new_sos_initiated')),
+                        confirmButtonText: @json(trans('lang.view_details')),
                         confirmButtonColor: '#d33',
                     }).then((result) => {
                         if (result.isConfirmed) {

@@ -344,7 +344,7 @@
                 basePrice = parseFloat(snapshotsProducts.provider.disPrice);
             }
 
-            let priceUnit = snapshotsProducts.provider.priceUnit === 'Hourly' ? ' /hr' : '';
+            let priceUnit = snapshotsProducts.provider.priceUnit === 'Hourly' ? (' ' + ArrowI18n.perHourSuffix) : '';
             let sub_total = basePrice * quantity;
             let total_price = sub_total;
 

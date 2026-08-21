@@ -182,7 +182,7 @@ class MyCabBookingScreen extends StatelessWidget {
                                                         ),
                                                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                                                         child: Text(
-                                                          order.status.toString(),
+                                                          Constant.orderStatusLabel(order.status),
                                                           style: AppThemeData.boldTextStyle(fontSize: 14, color: AppThemeData.warning500),
                                                           overflow: TextOverflow.ellipsis,
                                                         ),

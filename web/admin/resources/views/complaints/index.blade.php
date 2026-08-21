@@ -219,9 +219,9 @@
             html = html + '<td><a href="' + route2 + '" class="redirecttopage">' + val.customerName + '</a></td>';
             html = html + '<td><a href="' + diverRoute + '" class="redirecttopage">' + val.driverName + '</a></td>';
             if (val.status == "Resolved") {
-                html = html + '<td><span class="badge badge-success">' + val.status + '</span></td>';
+                html = html + '<td><span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span></td>';
             } else {
-                html = html + '<td><span class="badge badge-primary">' + val.status + '</span></td>';
+                html = html + '<td><span class="badge badge-primary">' + ArrowI18n.status(val.status) + '</span></td>';
             }
 
             html = html + '<td><span class="action-btn"><a href="' + routeEdit +

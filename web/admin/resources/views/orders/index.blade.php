@@ -1098,23 +1098,23 @@
                 html.push('<td>{{ trans('lang.order_delivery') }}</td>');
             }
             if (val.status === 'Order Placed') {
-                html.push('<td><span class="badge badge-warning ">' + val.status + '</span></td>');
+                html.push('<td><span class="badge badge-warning ">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status === 'Order Accepted') {
-                html.push('<td><span class="badge badge-info ">' + val.status + '</span></td>');
+                html.push('<td><span class="badge badge-info ">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status === 'Order Rejected') {
-                html.push('<td><span class="badge badge-danger ">' + val.status + '</span></td>');
+                html.push('<td><span class="badge badge-danger ">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status === 'Driver Pending') {
-                html.push('<td><span class="badge badge-secondary ">' + val.status + '</span></td>');
+                html.push('<td><span class="badge badge-secondary ">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status === 'Driver Rejected') {
-                html.push('<td><span class="badge badge-danger ">' + val.status + '</span></td>');
+                html.push('<td><span class="badge badge-danger ">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status === 'Order Shipped') {
-                html.push('<td><span class="badge badge-primary ">' + val.status + '</span></td>');
+                html.push('<td><span class="badge badge-primary ">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status === 'In Transit') {
-                html.push('<td><span class="badge badge-info ">' + val.status + '</span></td>');
+                html.push('<td><span class="badge badge-info ">' + ArrowI18n.status(val.status) + '</span></td>');
             } else if (val.status === 'Order Completed') {
-                html.push('<td><span class="badge badge-success ">' + val.status + '</span></td>');
+                html.push('<td><span class="badge badge-success ">' + ArrowI18n.status(val.status) + '</span></td>');
             } else {
-                html.push('<td><span class="badge badge-dark ">' + val.status + '</span></td>');
+                html.push('<td><span class="badge badge-dark ">' + ArrowI18n.status(val.status) + '</span></td>');
             }
 
             var actionHtml = '';

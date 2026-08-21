@@ -1168,4 +1168,8 @@ return [
     'enter_first_name' => 'Informe o nome',
     'enter_last_name' => 'Informe o sobrenome',
     'enter_email' => 'Informe o e-mail',
+    'order_ongoing' => 'Em andamento',
+    'driver_accepted' => 'Motorista aceitou',
+    'driver_rejected' => 'Motorista recusou',
+    'per_hour_suffix' => '/hora',
 ];

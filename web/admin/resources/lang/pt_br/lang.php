@@ -1441,7 +1441,7 @@ return [
     'select_worker_err' => 'Selecionar Prestador',
     'assign' => 'Atribuir',
     'worker' => 'Prestador',
-    'order_ongoing' => 'Pedido em Andamento',
+    'order_ongoing' => 'Em andamento',
     'add_extra_charges' => 'Adicionar Taxas Extras',
     'add_extra_charge_err' => 'Adicionar valor de taxa extra',
     'add' => 'Adicionar',
@@ -2619,5 +2619,10 @@ return [
     'if_you_did_not_receive_the_email' => 'Se você não recebeu o e-mail',
     'click_here_to_request_another' => 'clique aqui para solicitar outro',
     'zone_not_found' => 'Zona não encontrada',
+    'driver_accepted' => 'Motorista aceitou',
+    'sos_alert' => 'Alerta SOS',
+    'new_sos_initiated' => 'Novo SOS iniciado',
+    'per_hour_suffix' => '/hora',
+    'view_details' => 'Ver detalhes',
 ];
 ?>
