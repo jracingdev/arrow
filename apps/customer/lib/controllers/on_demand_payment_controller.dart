@@ -46,7 +46,6 @@ import '../themes/app_them_data.dart';
 import '../themes/show_toast_dialog.dart';
 import '../utils/preferences.dart';
 import 'on_demand_dashboard_controller.dart';
-import 'package:arrow_shared/hourly_service_billing.dart';
 
 class OnDemandPaymentController extends GetxController {
   Rx<OnProviderOrderModel?> onDemandOrderModel = Rx<OnProviderOrderModel?>(null);
@@ -112,15 +111,10 @@ class OnDemandPaymentController extends GetxController {
 
       final order = onDemandOrderModel.value!;
       final isNewBooking = order.id.isEmpty;
-      final hourly = HourlyServiceBilling.isHourly(order.provider.priceUnit);
       final isCod = selectedPaymentMethod.value == PaymentGateway.cod.name || selectedPaymentMethod.value == 'cod';
 
       order.payment_method = selectedPaymentMethod.value;
-      if (hourly) {
-        order.paymentStatus = isCod ? false : true;
-      } else {
-        order.paymentStatus = isCod ? false : true;
-      }
+      order.paymentStatus = isCod ? false : true;
       if (isNewBooking) {
         order.extraPaymentStatus = true;
       }

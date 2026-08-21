@@ -43,6 +43,8 @@ void main() {
     expect(CollectionName.wallet, 'wallet');
     expect(CollectionName.documentsVerify, 'documents_verify');
     expect(CollectionName.itemsReview, 'items_review');
+    expect(CollectionName.chat, 'chat');
+    expect(CollectionName.payouts, 'payouts');
     expect(Constant.statusLabel(Constant.orderPlaced), 'Pedido realizado');
     expect(Constant.statusLabel(Constant.orderAccepted), 'Pedido aceito');
     expect(Constant.statusLabel(Constant.orderAssigned), 'Pedido atribuído');
