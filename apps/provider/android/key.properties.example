@@ -1,0 +1,8 @@
+# Copie para android/key.properties apenas se for local.
+# O app de release usa o arquivo compartilhado apps/keystore/key.properties
+# (referenciado em android/app/build.gradle.kts). Não versionar senhas.
+
+storePassword=REPLACE_ME
+keyPassword=REPLACE_ME
+keyAlias=arrow
+storeFile=../../../keystore/arrow-upload.jks
