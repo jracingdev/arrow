@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/constant/constant.dart';
 import 'package:provider/models/provider_order_model.dart';
+import 'package:provider/models/provider_service_model.dart';
+import 'package:provider/models/user_model.dart';
 import 'package:provider/screens/home_shell_controller.dart';
 import 'package:provider/screens/nearby_requests_screen.dart';
 import 'package:provider/screens/order_detail_screen.dart';
@@ -53,11 +55,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       appBar: AppBar(
         title: const Text('Pedidos'),
         actions: [
-          IconButton(
-            tooltip: 'Pedidos próximos',
-            onPressed: () => Get.to(() => const NearbyRequestsScreen()),
-            icon: const Icon(Icons.near_me_outlined),
-          ),
+          _NearbyAction(uid: uid),
         ],
       ),
       body: Obx(() {
@@ -145,6 +143,48 @@ class _OrdersScreenState extends State<OrdersScreen> {
           ],
         );
       }),
+    );
+  }
+}
+
+class _NearbyAction extends StatelessWidget {
+  const _NearbyAction({required this.uid});
+
+  final String uid;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<UserModel?>(
+      stream: FireStoreUtils.watchUser(uid),
+      builder: (context, userSnap) {
+        final user = userSnap.data ?? Constant.userModel;
+        return StreamBuilder<List<ProviderServiceModel>>(
+          stream: FireStoreUtils.watchMyServices(uid),
+          builder: (context, serviceSnap) {
+            return StreamBuilder<List<ProviderOrderModel>>(
+              stream: FireStoreUtils.watchNearbyBroadcast(
+                uid: uid,
+                myServices: serviceSnap.data ?? const [],
+                lat: user?.latitude,
+                lng: user?.longitude,
+                online: user?.online == true,
+              ),
+              builder: (context, nearbySnap) {
+                final count = nearbySnap.data?.length ?? 0;
+                return IconButton(
+                  tooltip: 'Pedidos próximos',
+                  onPressed: () => Get.to(() => const NearbyRequestsScreen()),
+                  icon: Badge(
+                    isLabelVisible: count > 0,
+                    label: Text('$count'),
+                    child: const Icon(Icons.near_me_outlined),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 }

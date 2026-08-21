@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/constant/collection_name.dart';
 import 'package:provider/constant/constant.dart';
 import 'package:provider/firebase_options.dart';
+import 'package:provider/models/user_model.dart';
 import 'package:provider/service/fire_store_utils.dart';
 
 void main() {
@@ -59,6 +60,13 @@ void main() {
     expect(Constant.invoiceTypeNfse, 'nfs-e');
     expect(Constant.dispatchBroadcast, 'broadcast');
     expect(Constant.dispatchDirect, 'direct');
+  });
+
+  test('prestador disponível usa users.online', () {
+    expect(UserModel(online: true).online, isTrue);
+    expect(UserModel.fromJson({'online': true}).online, isTrue);
+    expect(UserModel.fromJson({}).online, isFalse);
+    expect(UserModel.fromJson({'online': true}).toJson()['online'], isTrue);
   });
 
   test('path de storage da NFS-e da reserva', () {

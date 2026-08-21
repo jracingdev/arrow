@@ -39,6 +39,7 @@ class ViewCategoryServiceListScreen extends StatelessWidget {
     return GetX<ViewCategoryServiceController>(
       init: ViewCategoryServiceController(),
       builder: (controller) {
+        final visible = controller.visibleProviders;
         return Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: false,
@@ -68,50 +69,61 @@ class ViewCategoryServiceListScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Column(
                     children: [
-                      Material(
-                        color: isDark ? AppThemeData.greyDark50 : AppThemeData.grey50,
-                        borderRadius: BorderRadius.circular(12),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () => _openBroadcast(controller),
-                          child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Row(
-                              children: [
-                                Icon(Icons.near_me, color: AppThemeData.primary300),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text("Pedir prestador próximo".tr, style: AppThemeData.semiBoldTextStyle(fontSize: 16, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900)),
-                                      Text(
-                                        "Como um chamado: prestadores perto de você veem o pedido e o primeiro que aceitar fica com ele.".tr,
-                                        style: AppThemeData.mediumTextStyle(fontSize: 12, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey500),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Icon(Icons.chevron_right),
-                              ],
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _ModeCard(
+                              isDark: isDark,
+                              icon: Icons.flash_on,
+                              title: 'Pedir agora (próximos)'.tr,
+                              subtitle: 'Prestadores disponíveis perto de você. O primeiro que aceitar fica com o pedido.'.tr,
+                              onTap: () => _openBroadcast(controller),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _ModeCard(
+                              isDark: isDark,
+                              icon: Icons.person_search_outlined,
+                              title: 'Escolher profissional'.tr,
+                              subtitle: 'Lista por distância, nota e documentação verificada.'.tr,
+                              onTap: () {},
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Escolher profissional'.tr,
+                              style: AppThemeData.semiBoldTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900),
+                            ),
+                          ),
+                          FilterChip(
+                            selected: controller.verifiedOnly.value,
+                            label: Text('Só verificados'.tr),
+                            onSelected: (value) => controller.verifiedOnly.value = value,
+                          ),
+                        ],
+                      ),
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Text("Mais próximos primeiro".tr, style: AppThemeData.semiBoldTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900)),
+                        child: Text(
+                          'Ordenado por distância, depois nota. Profissionais verificados primeiro.'.tr,
+                          style: AppThemeData.mediumTextStyle(fontSize: 12, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey500),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Expanded(
-                        child: controller.providerList.isEmpty
+                        child: visible.isEmpty
                             ? Constant.showEmptyView(message: "No Service Found".tr)
                             : ListView.builder(
-                                itemCount: controller.providerList.length,
+                                itemCount: visible.length,
                                 padding: EdgeInsets.zero,
                                 itemBuilder: (context, index) {
-                                  ProviderServiceModel providerModel = controller.providerList[index];
+                                  ProviderServiceModel providerModel = visible[index];
                                   return ServiceView(isDark: isDark, provider: providerModel, controller: controller.onDemandHomeController.value);
                                 },
                               ),
@@ -121,6 +133,47 @@ class ViewCategoryServiceListScreen extends StatelessWidget {
                 ),
         );
       },
+    );
+  }
+}
+
+class _ModeCard extends StatelessWidget {
+  const _ModeCard({
+    required this.isDark,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final bool isDark;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: isDark ? AppThemeData.greyDark50 : AppThemeData.grey50,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: AppThemeData.primary300),
+              const SizedBox(height: 8),
+              Text(title, style: AppThemeData.semiBoldTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900)),
+              const SizedBox(height: 4),
+              Text(subtitle, style: AppThemeData.mediumTextStyle(fontSize: 11, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey500)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

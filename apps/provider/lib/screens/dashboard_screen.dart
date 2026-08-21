@@ -18,6 +18,7 @@ import 'package:provider/screens/wallet_screen.dart';
 import 'package:provider/screens/workers_screen.dart';
 import 'package:provider/service/fire_store_utils.dart';
 import 'package:provider/themes/app_theme.dart';
+import 'package:provider/utils/service_navigation.dart';
 import 'package:provider/widgets/elapsed_clock.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -77,6 +78,7 @@ class DashboardScreen extends StatelessWidget {
                       myServices: services,
                       lat: user?.latitude,
                       lng: user?.longitude,
+                      online: user?.online == true,
                     ),
                     builder: (context, nearbySnap) {
                       final nearby = nearbySnap.data ?? const <ProviderOrderModel>[];
@@ -112,6 +114,24 @@ class DashboardScreen extends StatelessWidget {
                           Text(
                             'Nota $avg · ${user?.reviewsCount ?? 0} avaliações',
                             style: const TextStyle(color: Colors.white70, fontSize: 13),
+                          ),
+                          const SizedBox(height: 12),
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            tileColor: Colors.transparent,
+                            value: user?.online == true,
+                            activeThumbColor: AppTheme.primary,
+                            title: const Text(
+                              'Disponível para pedidos próximos',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                            ),
+                            subtitle: Text(
+                              user?.online == true
+                                  ? 'Você aparece nos chamados próximos.'
+                                  : 'Ative para receber pedidos próximos.',
+                              style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            ),
+                            onChanged: (value) => FireStoreUtils.setOnline(value),
                           ),
                         ],
                       ),
@@ -260,10 +280,15 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                   if (nearby.isEmpty)
-                    const SliverToBoxAdapter(
+                    SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Text('Nenhum chamado próximo no momento.', style: TextStyle(color: AppTheme.grey500)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Text(
+                          user?.online == true
+                              ? 'Nenhum chamado próximo no momento.'
+                              : 'Fique disponível para ver pedidos próximos.',
+                          style: const TextStyle(color: AppTheme.grey500),
+                        ),
                       ),
                     )
                   else
@@ -436,16 +461,55 @@ class _UpcomingTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final when = order.newScheduleDateTime ?? order.scheduleDateTime;
     final date = when == null ? 'Horário a confirmar' : DateFormat('dd/MM HH:mm').format(when.toDate());
-    return ListTile(
+    final address = order.addressLine();
+    return Material(
+      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppTheme.grey200)),
-      leading: const CircleAvatar(
-        backgroundColor: Color(0x1A00A1F1),
-        child: Icon(Icons.event_outlined, color: AppTheme.primary),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Get.to(() => OrderDetailScreen(orderId: order.id)),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const CircleAvatar(
+                    backgroundColor: Color(0x1A00A1F1),
+                    child: Icon(Icons.event_outlined, color: AppTheme.primary),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(order.provider.title.isEmpty ? 'Serviço' : order.provider.title, style: const TextStyle(fontWeight: FontWeight.w700)),
+                        Text('$date · ${order.author.fullName()}', style: const TextStyle(color: AppTheme.grey500, fontSize: 13)),
+                        if (address.isNotEmpty) Text(address, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppTheme.grey500, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (address.isNotEmpty || order.customerLat() != null)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () => ServiceNavigation.open(
+                      name: order.provider.title,
+                      latitude: order.customerLat(),
+                      longitude: order.customerLng(),
+                      address: address,
+                    ),
+                    icon: const Icon(Icons.directions, size: 18),
+                    label: const Text('Como chegar'),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
-      title: Text(order.provider.title.isEmpty ? 'Serviço' : order.provider.title),
-      subtitle: Text('$date · ${order.author.fullName()}'),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () => Get.to(() => OrderDetailScreen(orderId: order.id)),
     );
   }
 }

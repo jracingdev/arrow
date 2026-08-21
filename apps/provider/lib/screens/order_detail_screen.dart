@@ -251,6 +251,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   longitude: order.customerLng(),
                 ),
               ],
+              const SizedBox(height: 12),
+              const Text(
+                'Proteção Arrow: documentação verificada pela plataforma. Use denúncia se houver problema no pedido.',
+                style: TextStyle(color: AppTheme.grey500, fontSize: 13),
+              ),
               if ((order.authorID.isNotEmpty || (order.author.id ?? '').isNotEmpty) && order.status != Constant.orderPlaced) ...[
                 const SizedBox(height: 12),
                 OutlinedButton.icon(

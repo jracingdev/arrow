@@ -13,6 +13,8 @@ import 'package:provider/screens/profile_screen.dart';
 import 'package:provider/service/fire_store_utils.dart';
 import 'package:provider/service/location_service.dart';
 import 'package:provider/themes/app_theme.dart';
+import 'package:provider/models/provider_order_model.dart';
+import 'package:provider/models/provider_service_model.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -97,15 +99,50 @@ class _HomeShellState extends State<HomeShell> {
               currentIndex: index,
               onTap: shell.goTo,
               selectedItemColor: AppTheme.primary,
-              items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Início'),
-                BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Pedidos'),
-                BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: 'Agenda'),
-                BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
+              items: [
+                const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Início'),
+                BottomNavigationBarItem(icon: _PedidosNavIcon(uid: uid, user: user), label: 'Pedidos'),
+                const BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: 'Agenda'),
+                const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
               ],
             ),
           );
         });
+      },
+    );
+  }
+}
+
+class _PedidosNavIcon extends StatelessWidget {
+  const _PedidosNavIcon({required this.uid, required this.user});
+
+  final String uid;
+  final UserModel? user;
+
+  @override
+  Widget build(BuildContext context) {
+    const icon = Icon(Icons.receipt_long_outlined);
+    if (user?.online != true) return icon;
+    return StreamBuilder<List<ProviderServiceModel>>(
+      stream: FireStoreUtils.watchMyServices(uid),
+      builder: (context, serviceSnap) {
+        return StreamBuilder<List<ProviderOrderModel>>(
+          stream: FireStoreUtils.watchNearbyBroadcast(
+            uid: uid,
+            myServices: serviceSnap.data ?? const [],
+            lat: user?.latitude,
+            lng: user?.longitude,
+            online: true,
+          ),
+          builder: (context, nearbySnap) {
+            final count = nearbySnap.data?.length ?? 0;
+            return Badge(
+              isLabelVisible: count > 0,
+              label: Text('$count'),
+              child: icon,
+            );
+          },
+        );
       },
     );
   }

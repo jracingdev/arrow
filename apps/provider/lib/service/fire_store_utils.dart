@@ -445,12 +445,21 @@ class FireStoreUtils {
     } catch (_) {}
   }
 
+  static Future<void> setOnline(bool online) {
+    final uid = getCurrentUid();
+    if (uid.isEmpty) return Future.value();
+    Constant.userModel?.online = online;
+    return _db.collection(CollectionName.users).doc(uid).set({'online': online}, SetOptions(merge: true));
+  }
+
   static Stream<List<ProviderOrderModel>> watchNearbyBroadcast({
     required String uid,
     required List<ProviderServiceModel> myServices,
     required double? lat,
     required double? lng,
+    bool online = false,
   }) {
+    if (!online) return Stream.value(const []);
     return _db.collection(CollectionName.providerOrders).where('dispatchMode', isEqualTo: Constant.dispatchBroadcast).snapshots().map((snap) {
       final now = DateTime.now();
       final categories = myServices.where((s) => s.publish).map((s) => s.categoryId).where((id) => id.isNotEmpty).toSet();

@@ -24,6 +24,7 @@ class UserModel {
   Map<String, dynamic>? location;
   double? latitude;
   double? longitude;
+  bool online = false;
 
   UserModel({
     this.id,
@@ -49,6 +50,7 @@ class UserModel {
     this.location,
     this.latitude,
     this.longitude,
+    this.online = false,
   });
 
   String fullName() => '${firstName ?? ''} ${lastName ?? ''}'.trim();
@@ -81,6 +83,7 @@ class UserModel {
     }
     latitude = double.tryParse('${json['latitude'] ?? ''}');
     longitude = double.tryParse('${json['longitude'] ?? ''}');
+    online = json['online'] == true;
     if (location != null) {
       latitude ??= double.tryParse('${location!['latitude'] ?? ''}');
       longitude ??= double.tryParse('${location!['longitude'] ?? ''}');
@@ -113,6 +116,7 @@ class UserModel {
       'reviewsSum': reviewsSum ?? 0,
       'latitude': latitude,
       'longitude': longitude,
+      'online': online,
       if (latitude != null && longitude != null)
         'location': {'latitude': latitude, 'longitude': longitude},
     };

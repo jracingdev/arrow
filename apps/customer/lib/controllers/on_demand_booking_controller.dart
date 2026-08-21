@@ -72,7 +72,8 @@ class OnDemandBookingController extends GetxController {
       }
     }
     selectedAddress.value = Constant.selectedLocation;
-    if (isBroadcast.value && dateTimeController.value.text.isEmpty) {
+    final asap = args?['asap'] == true;
+    if ((isBroadcast.value || asap) && dateTimeController.value.text.isEmpty) {
       setDateTime(DateTime.now());
     }
     fetchCoupons();
@@ -102,6 +103,10 @@ class OnDemandBookingController extends GetxController {
     selectedDateTime.value = dateTime;
     dateTimeText.value = DateFormat('dd-MM-yyyy HH:mm').format(dateTime);
     dateTimeController.value.text = dateTimeText.value;
+  }
+
+  bool get isAsap {
+    return selectedDateTime.value.difference(DateTime.now()).inMinutes.abs() <= 15;
   }
 
   void applyCoupon(CouponModel coupon) {

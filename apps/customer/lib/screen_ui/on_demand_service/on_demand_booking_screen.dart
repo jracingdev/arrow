@@ -14,6 +14,7 @@ import '../../themes/app_them_data.dart';
 import '../../themes/round_button_fill.dart';
 import '../../themes/show_toast_dialog.dart';
 import '../../themes/text_field_widget.dart';
+import '../../widget/arrow_protection_note.dart';
 import '../../widget/osm_map/map_picker_page.dart';
 import '../../widget/place_picker/location_picker_screen.dart';
 import '../../widget/place_picker/selected_location_model.dart';
@@ -111,6 +112,8 @@ class OnDemandBookingScreen extends StatelessWidget {
                     style: AppThemeData.mediumTextStyle(fontSize: 13, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey500),
                   ),
                 ],
+                const SizedBox(height: 12),
+                ArrowProtectionNote(isDark: isDark),
                 const SizedBox(height: 15),
                 Container(
                   padding: const EdgeInsets.all(8),
@@ -228,6 +231,40 @@ class OnDemandBookingScreen extends StatelessWidget {
                   },
                   child: TextFieldWidget(title: "Booking Date & Slot".tr, hintText: "Choose Date and Time".tr, controller: controller.dateTimeController.value, enable: false),
                 ),
+                const SizedBox(height: 8),
+                Obx(() {
+                  final asap = controller.isAsap;
+                  return Wrap(
+                    spacing: 8,
+                    children: [
+                      ChoiceChip(
+                        selected: asap,
+                        label: Text('Pedir agora'.tr),
+                        onSelected: (_) => controller.setDateTime(DateTime.now()),
+                      ),
+                      ChoiceChip(
+                        selected: !asap,
+                        label: Text('Agendar'.tr),
+                        onSelected: (_) {
+                          BottomPicker.dateTime(
+                            onSubmit: (date) {
+                              controller.setDateTime(date as DateTime);
+                            },
+                            minDateTime: DateTime.now(),
+                            buttonAlignment: MainAxisAlignment.center,
+                            displaySubmitButton: true,
+                            buttonSingleColor: AppThemeData.primary300,
+                            buttonPadding: 10,
+                            buttonWidth: 70,
+                            headerBuilder: (context) => Text("", style: AppThemeData.mediumTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900)),
+                            backgroundColor: isDark ? AppThemeData.greyDark50 : AppThemeData.grey50,
+                            pickerTextStyle: AppThemeData.mediumTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900),
+                          ).show(context);
+                        },
+                      ),
+                    ],
+                  );
+                }),
                 const SizedBox(height: 15),
                 controller.provider.value?.priceUnit == "Fixed"
                     ? Column(

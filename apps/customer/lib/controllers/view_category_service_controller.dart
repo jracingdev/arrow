@@ -6,10 +6,16 @@ import '../service/fire_store_utils.dart';
 
 class ViewCategoryServiceController extends GetxController {
   RxBool isLoading = true.obs;
+  RxBool verifiedOnly = false.obs;
   RxList<ProviderServiceModel> providerList = <ProviderServiceModel>[].obs;
 
   RxString categoryId = "".obs, categoryTitle = "".obs;
   Rx<OnDemandHomeController> onDemandHomeController = Get.find<OnDemandHomeController>().obs;
+
+  List<ProviderServiceModel> get visibleProviders {
+    if (!verifiedOnly.value) return providerList;
+    return providerList.where((p) => p.authorDocumentVerify == true).toList();
+  }
 
   @override
   void onInit() {
@@ -60,6 +66,9 @@ class ViewCategoryServiceController extends GetxController {
       providerList.addAll(providerServiceList);
     }
 
+    await FireStoreUtils.hideInactiveProviderAuthors(providerList);
+    FireStoreUtils.sortProviderListing(providerList);
+    providerList.refresh();
     isLoading.value = false;
   }
 }

@@ -10,6 +10,7 @@ import 'package:provider/models/user_model.dart';
 import 'package:provider/screens/order_detail_screen.dart';
 import 'package:provider/service/fire_store_utils.dart';
 import 'package:provider/themes/app_theme.dart';
+import 'package:provider/utils/service_navigation.dart';
 
 class NearbyRequestsScreen extends StatelessWidget {
   const NearbyRequestsScreen({super.key});
@@ -33,6 +34,7 @@ class NearbyRequestsScreen extends StatelessWidget {
                   myServices: services,
                   lat: user?.latitude,
                   lng: user?.longitude,
+                  online: user?.online == true,
                 ),
                 builder: (context, orderSnap) {
                   final orders = orderSnap.data ?? const <ProviderOrderModel>[];
@@ -40,10 +42,17 @@ class NearbyRequestsScreen extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (orders.isEmpty) {
-                    return const Center(child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Text('Nenhum pedido próximo no momento.', textAlign: TextAlign.center),
-                    ));
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          user?.online == true
+                              ? 'Nenhum pedido próximo no momento.'
+                              : 'Ative “Disponível para pedidos próximos” no início para ver chamados.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
                   }
                   return ListView.separated(
                     padding: const EdgeInsets.all(16),
@@ -110,6 +119,20 @@ class NearbyRequestCard extends StatelessWidget {
             Text(order.author.fullName().isEmpty ? 'Cliente' : order.author.fullName()),
             if (order.addressLine().isNotEmpty) Text(order.addressLine(), style: const TextStyle(color: AppTheme.grey500, fontSize: 13)),
             if (date.isNotEmpty) Text(date, style: const TextStyle(color: AppTheme.grey500, fontSize: 13)),
+            if (order.addressLine().isNotEmpty || order.customerLat() != null)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () => ServiceNavigation.open(
+                    name: order.provider.title,
+                    latitude: order.customerLat(),
+                    longitude: order.customerLng(),
+                    address: order.addressLine(),
+                  ),
+                  icon: const Icon(Icons.directions, size: 18),
+                  label: const Text('Como chegar'),
+                ),
+              ),
             const SizedBox(height: 10),
             Row(
               children: [
