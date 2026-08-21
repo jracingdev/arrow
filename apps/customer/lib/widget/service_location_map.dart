@@ -1,8 +1,9 @@
 import 'package:arrow_shared/geo_distance.dart';
 import 'package:customer/themes/show_toast_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:map_launcher/map_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/utils.dart';
@@ -28,6 +29,8 @@ class ServiceLocationMap extends StatelessWidget {
   final bool isDark;
 
   bool get _hasDest => GeoDistance.isValid(latitude, longitude);
+
+  bool get _hasProvider => showProvider && GeoDistance.isValid(providerLat, providerLng);
 
   Future<void> _open() async {
     if (_hasDest) {
@@ -62,6 +65,25 @@ class ServiceLocationMap extends StatelessWidget {
     await launchUrl(web, mode: LaunchMode.externalApplication);
   }
 
+  MapOptions _mapOptions() {
+    final dest = LatLng(latitude!, longitude!);
+    if (!_hasProvider) {
+      return MapOptions(
+        initialCenter: dest,
+        initialZoom: 15,
+        interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
+      );
+    }
+    return MapOptions(
+      initialCameraFit: CameraFit.bounds(
+        bounds: LatLngBounds(dest, LatLng(providerLat!, providerLng!)),
+        padding: const EdgeInsets.all(40),
+        maxZoom: 16,
+      ),
+      interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_hasDest && address.isEmpty) return const SizedBox.shrink();
@@ -80,27 +102,34 @@ class ServiceLocationMap extends StatelessWidget {
           if (_hasDest)
             SizedBox(
               height: 180,
-              child: GoogleMap(
-                initialCameraPosition: CameraPosition(target: LatLng(latitude!, longitude!), zoom: 15),
-                markers: {
-                  Marker(
-                    markerId: const MarkerId('service'),
-                    position: LatLng(latitude!, longitude!),
-                    infoWindow: InfoWindow(title: address.isEmpty ? 'Local do serviço'.tr : address),
+              child: FlutterMap(
+                options: _mapOptions(),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'br.app.arrow.customer',
                   ),
-                  if (showProvider && providerLat != null && providerLng != null)
-                    Marker(
-                      markerId: const MarkerId('provider'),
-                      position: LatLng(providerLat!, providerLng!),
-                      infoWindow: InfoWindow(title: 'Prestador'.tr),
-                      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-                    ),
-                },
-                liteModeEnabled: true,
-                zoomControlsEnabled: false,
-                myLocationButtonEnabled: false,
-                compassEnabled: false,
-                mapToolbarEnabled: false,
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: LatLng(latitude!, longitude!),
+                        width: 40,
+                        height: 40,
+                        alignment: Alignment.topCenter,
+                        child: const Icon(Icons.location_on, color: Colors.red, size: 36),
+                      ),
+                      if (_hasProvider)
+                        Marker(
+                          point: LatLng(providerLat!, providerLng!),
+                          width: 40,
+                          height: 40,
+                          alignment: Alignment.topCenter,
+                          child: const Icon(Icons.navigation, color: Color(0xFF2563EB), size: 32),
+                        ),
+                    ],
+                  ),
+                  const SimpleAttributionWidget(source: Text('© OpenStreetMap')),
+                ],
               ),
             ),
           Padding(
@@ -109,14 +138,13 @@ class ServiceLocationMap extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (address.isNotEmpty) Text(address),
-                if (showProvider && providerLat != null) const SizedBox(height: 6),
-                if (showProvider && providerLat != null)
-                  Text('Prestador a caminho'.tr, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                if (_hasProvider) const SizedBox(height: 6),
+                if (_hasProvider) Text('Prestador a caminho'.tr, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: _open,
-                  icon: const Icon(Icons.map_outlined),
-                  label: Text('Abrir no mapa'.tr),
+                  icon: const Icon(Icons.directions),
+                  label: Text('Como chegar'.tr),
                 ),
               ],
             ),
