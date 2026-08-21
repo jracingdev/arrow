@@ -18,10 +18,7 @@ abstract final class ArrowFirebaseAndroidAppIds {
   static const customer = '1:661081769489:android:d8da3fce389fcabca4d3b0';
   static const store = '1:661081769489:android:c625e7c47a334c31a4d3b0';
   static const driver = '1:661081769489:android:246c57cb98fff558a4d3b0';
-
-  /// Placeholder: criar no console o app Android `br.app.arrow.provider`
-  /// e substituir pelo `mobilesdk_app_id` (`1:661081769489:android:…`).
-  static const provider = 'CRIAR_NO_CONSOLE';
+  static const provider = '1:661081769489:android:e3046689b04067d2a4d3b0';
 }
 
 /// Web app used by Laravel panels (confirmed in production `__firebaseConfig`).

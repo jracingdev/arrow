@@ -20,7 +20,7 @@ Pacote Dart local usado pelos apps Flutter (`customer`, `store`, `driver`, `prov
 | Entregador | `br.app.arrow.driver` |
 | Prestador | `br.app.arrow.provider` |
 
-App ID Android do prestador: placeholder `ArrowFirebaseAndroidAppIds.provider = CRIAR_NO_CONSOLE` até o app ser criado no Console j-arrow.
+App ID Android do prestador: `1:661081769489:android:e3046689b04067d2a4d3b0`.
 
 SHA para colar no app Android **novo** (`br.app.arrow.provider`):
 

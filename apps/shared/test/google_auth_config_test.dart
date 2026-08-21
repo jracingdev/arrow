@@ -37,9 +37,10 @@ void main() {
       ArrowFirebaseAndroidAppIds.driver,
       '1:661081769489:android:246c57cb98fff558a4d3b0',
     );
-    // Placeholder: criar no console o app Android br.app.arrow.provider.
-    expect(ArrowFirebaseAndroidAppIds.provider, 'CRIAR_NO_CONSOLE');
-    expect(ArrowFirebaseAndroidAppIds.provider.startsWith('1:'), isFalse);
+    expect(
+      ArrowFirebaseAndroidAppIds.provider,
+      '1:661081769489:android:e3046689b04067d2a4d3b0',
+    );
   });
 
   test('provider Firestore collections are the on-demand names', () {
