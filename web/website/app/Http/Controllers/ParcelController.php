@@ -642,7 +642,7 @@ class ParcelController extends Controller
                 return $e->getMessage();
             }
         }
-        Session::put('success', 'Payment successful');
+        Session::put('success', trans('lang.payment_successful'));
         return redirect()->route('parcel_success');
     }
 
@@ -675,7 +675,7 @@ class ParcelController extends Controller
                     ]);
                     $parcel_cart['payment_status'] = true;
                     Session::put('parcel_cart', $parcel_cart);
-                    Session::put('success', 'Payment successful');
+                    Session::put('success', trans('lang.payment_successful'));
                     Session::save();
                     $res = array('status' => true, 'data' => $charge, 'message' => 'success');
                     echo json_encode($res);
@@ -702,7 +702,7 @@ class ParcelController extends Controller
             if ($parcel_cart['cart_order']) {
                 $parcel_cart['payment_status'] = true;
                 Session::put('parcel_cart', $parcel_cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
                 $res = array('status' => true, 'data' => array(), 'message' => 'success');
                 echo json_encode($res);
@@ -711,9 +711,9 @@ class ParcelController extends Controller
         }
         $parcel_cart['payment_status'] = false;
         Session::put('parcel_cart', $parcel_cart);
-        Session::put('error', 'Faild Payment');
+        Session::put('error', trans('lang.failed_payment'));
         Session::save();
-        $res = array('status' => false, 'message' => 'Faild Payment');
+        $res = array('status' => false, 'message' => trans('lang.failed_payment'));
         echo json_encode($res);
         exit;
     }
@@ -774,7 +774,7 @@ class ParcelController extends Controller
             if ($xendit_payment == $_GET['xendit_token']) {
                 $parcel_cart['payment_status'] = true;
                 Session::put('parcel_cart', $parcel_cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -784,7 +784,7 @@ class ParcelController extends Controller
             if ($midtrans_payment === $_GET['midtrans_token']) {
                 $parcel_cart['payment_status'] = true;
                 Session::put('parcel_cart', $parcel_cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -818,7 +818,7 @@ class ParcelController extends Controller
                     if (isset($responseBody['status']) && $responseBody['status'] == 'SUCCESS') {
                         $parcel_cart['payment_status'] = true;
                         Session::put('parcel_cart', $parcel_cart);
-                        Session::put('success', 'Payment successful');
+                        Session::put('success', trans('lang.payment_successful'));
                         Session::save();
                     } else {
                         return redirect($fail_url);
@@ -834,7 +834,7 @@ class ParcelController extends Controller
             if ($payfast_payment == $_GET['token']) {
                 $parcel_cart['payment_status'] = true;
                 Session::put('parcel_cart', $parcel_cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -844,7 +844,7 @@ class ParcelController extends Controller
             if ($paystack_reference == $_GET['reference']) {
                 $parcel_cart['payment_status'] = true;
                 Session::put('parcel_cart', $parcel_cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -853,7 +853,7 @@ class ParcelController extends Controller
             if ($_GET['status'] == 'successful' && $flutterwave_pay_tx_ref == $_GET['tx_ref']) {
                 $parcel_cart['payment_status'] = true;
                 Session::put('parcel_cart', $parcel_cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             } else {
                 return redirect()->route('checkout');
@@ -864,7 +864,7 @@ class ParcelController extends Controller
             if ($_GET['status'] == 'approved' && $mercadopago_preference_id == $_GET['preference_id']) {
                 $parcel_cart['payment_status'] = true;
                 Session::put('parcel_cart', $parcel_cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             } else {
                 return redirect()->route('checkout');
@@ -880,7 +880,7 @@ class ParcelController extends Controller
         $user = VendorUsers::where('email', $email)->first();
         $parcel_cart = array();
         Session::put('parcel_cart', []);
-        Session::put('success', 'Your order has been successful!');
+        Session::put('success', trans('lang.your_order_has_been_successful'));
         Session::save();
         $res = array('status' => true, 'order_complete' => true, 'html' => view('parcel.success', ['parcel_cart' => $parcel_cart, 'order_complete' => true, 'is_checkout' => 1, 'id' => $user->uuid])->render());
         echo json_encode($res);

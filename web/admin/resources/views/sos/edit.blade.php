@@ -497,8 +497,8 @@ async function drawRoute(originAddress,sosAddress,destinationAddress) {
     var destinationLatLng = destinationAddress.split(',').map(Number);
     var sosLatLng = sosAddress.split(',').map(Number);
     if (mapType == "OFFLINE"){
-      var sourceMarker = L.marker(originLatLng).addTo(map).bindPopup("Source = " + sourceLocationName);
-      var destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup("Destination = " + destinationLocationName);
+      var sourceMarker = L.marker(originLatLng).addTo(map).bindPopup("{{ trans('lang.sos_origin') }} = " + sourceLocationName);
+      var destinationMarker = L.marker(destinationLatLng).addTo(map).bindPopup("{{ trans('lang.destination') }} = " + destinationLocationName);
       var sosIcon=L.icon({
         iconUrl: '{!! asset('/images/sos-button-emoji.png') !!}', // Path to custom SOS marker icon
         iconSize: [32,32], // Icon size
@@ -540,19 +540,19 @@ async function drawRoute(originAddress,sosAddress,destinationAddress) {
             // Middle marker (SOS Point)
             markerOptions.icon=sosIcon;
           }
-          return L.marker(waypoint.latLng,markerOptions).bindPopup(i===0? "Source":i===n-1? "Destination":"SOS Point");
+          return L.marker(waypoint.latLng,markerOptions).bindPopup(i===0? "{{ trans('lang.sos_origin') }}":i===n-1? "{{ trans('lang.destination') }}":"{{ trans('lang.sos_point') }}");
         }
   }).addTo(map);
       }else{
         var sourceMarker = new google.maps.Marker({
             position:  { lat: originLatLng[0], lng: originLatLng[1] },
             map: map,
-            title: "Source"
+            title: "{{ trans('lang.sos_origin') }}"
           });
           var destinationMarker = new google.maps.Marker({
             position: { lat: destinationLatLng[0], lng: destinationLatLng[1] },
             map: map,
-            title: "Destination"
+            title: "{{ trans('lang.destination') }}"
           });
           var sosIcon = {
           url: '{!! asset('/images/sos-button-emoji.png') !!}',
@@ -562,16 +562,16 @@ async function drawRoute(originAddress,sosAddress,destinationAddress) {
             position: { lat: sosLatLng[0], lng: sosLatLng[1] },
             map: map,
             icon: sosIcon,
-            title: "SOS Point"
+            title: "{{ trans('lang.sos_point') }}"
           });
             var sourceInfoWindow = new google.maps.InfoWindow({
-            content: "Source: " + sourceLocationName
+            content: "{{ trans('lang.sos_origin') }}: " + sourceLocationName
           });
           var destinationInfoWindow = new google.maps.InfoWindow({
-            content: "Destination: " + destinationLocationName
+            content: "{{ trans('lang.destination') }}: " + destinationLocationName
           });
           var sosInfoWindow = new google.maps.InfoWindow({
-            content: "SOS Point: " + sosLatLng[0] + ' , ' + sosLatLng[1]
+            content: "{{ trans('lang.sos_point') }}: " + sosLatLng[0] + ' , ' + sosLatLng[1]
           });
           sourceMarker.addListener("click", function() {
             sourceInfoWindow.open(map, sourceMarker);

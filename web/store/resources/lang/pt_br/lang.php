@@ -1266,5 +1266,8 @@ return [
     'per_hour_suffix' => '/hora',
     'view_details' => 'Ver detalhes',
     'in_process' => 'Em andamento',
+    'payment_successful' => 'Pagamento realizado com sucesso',
+    'failed_payment' => 'Falha no pagamento',
+    'saturday' => 'Sábado',
 ];
 ?>

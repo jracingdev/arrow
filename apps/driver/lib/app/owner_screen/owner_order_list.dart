@@ -839,7 +839,7 @@ class OwnerOrderListScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            Text("Package info :",
+                            Text("Package info :".tr,
                                 style: AppThemeData.boldTextStyle(
                                     fontSize: 16,
                                     color: isDark

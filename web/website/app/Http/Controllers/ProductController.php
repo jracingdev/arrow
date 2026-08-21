@@ -663,7 +663,7 @@ class ProductController extends Controller
         $cart = array();
         Session::put('cart', $cart);
         Session::put('payfast_payment_token', '');
-        Session::put('success', 'Your order has been successful!');
+        Session::put('success', trans('lang.your_order_has_been_successful'));
 
         if(Storage::disk('local')->has('firebase/credentials.json')){
             
@@ -752,7 +752,7 @@ class ProductController extends Controller
             Session::save();
         }
         $cart = Session::get('cart');
-        session()->flash('success', 'Product removed successfully');
+        session()->flash('success', trans('lang.product_removed_successfully'));
         $res = array('status' => true, 'html' => view('vendor.cart_item', ['cart' => $cart])->render());
         echo json_encode($res);
         exit;

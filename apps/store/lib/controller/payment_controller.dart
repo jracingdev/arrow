@@ -142,7 +142,7 @@
 
 //       if (paymentIntentData!.containsKey("error")) {
 //         Get.back();
-//         ShowToastDialog.showToast("Something went wrong, please contact admin.");
+//         ShowToastDialog.showToast("Something went wrong, please contact admin.".tr);
 //       } else {
 //         await Stripe.instance.initPaymentSheet(
 //             paymentSheetParameters: SetupPaymentSheetParameters(
@@ -315,7 +315,7 @@
 //           }
 //         });
 //       } else {
-//         ShowToastDialog.showToast("Something went wrong, please contact admin.");
+//         ShowToastDialog.showToast("Something went wrong, please contact admin.".tr);
 //       }
 //     });
 //   }
@@ -578,7 +578,7 @@
 //       );
 //     } else {
 //       Get.back();
-//       ShowToastDialog.showToast("Something went wrong, please contact admin.");
+//       ShowToastDialog.showToast("Something went wrong, please contact admin.".tr);
 //     }
 //   }
 
@@ -692,7 +692,7 @@
 //       // ignore: use_build_context_synchronously
 //       return await webpayment(context: context, amountData: amount, currency: currency, orderIdData: orderId);
 //     } else {
-//       ShowToastDialog.showToast("Something went wrong, please contact admin.");
+//       ShowToastDialog.showToast("Something went wrong, please contact admin.".tr);
 //       return '';
 //     }
 //   }
@@ -730,7 +730,7 @@
 //         return '';
 //       }
 //     } else {
-//       ShowToastDialog.showToast("Something went wrong, please contact admin.");
+//       ShowToastDialog.showToast("Something went wrong, please contact admin.".tr);
 //       return '';
 //     }
 //   }

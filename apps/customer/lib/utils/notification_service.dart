@@ -122,7 +122,7 @@ class NotificationService {
   //     Get.to(BusinessDetailsScreen(), arguments: {"businessModel": businessModel});
   //   } else if (data['type'] == "user_follow") {
   //     String userId = data['userId'];
-  //     ShowToastDialog.showLoader("Please wait");
+  //     ShowToastDialog.showLoader("Please wait".tr);
   //     UserModel? userModel0 = await FireStoreUtils.getUserProfile(userId.toString());
   //     ShowToastDialog.closeLoader();
   //     Get.to(OtherPeopleScreen(), arguments: {"userModel": userModel0});

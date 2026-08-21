@@ -1874,7 +1874,7 @@
                                 text: "{{ trans('lang.section_change_alert') }}",
                                 icon: "warning",
                                 showCancelButton: true,
-                                confirmButtonText: "Yes, change it!"
+                                confirmButtonText: "{{ trans('lang.yes_change_it') }}"
                             }).then((result) => {
                                 if (result.isConfirmed) {
                                     $.ajax({
@@ -2662,7 +2662,16 @@
                 if (i === 1) {
                     return `{{trans('lang.next_available_tomorrow_at')}} ${getTimeFormat(nextSlot.from)}`;
                 } else {
-                    return `{{trans('lang.next_available')}} ${nextDay} {{trans('lang.at')}} ${getTimeFormat(nextSlot.from)}`;
+                    const dayLabels = {
+                        Sunday: @json(trans('lang.sunday')),
+                        Monday: @json(trans('lang.monday')),
+                        Tuesday: @json(trans('lang.tuesday')),
+                        Wednesday: @json(trans('lang.wednesday')),
+                        Thursday: @json(trans('lang.thursday')),
+                        Friday: @json(trans('lang.friday')),
+                        Saturday: @json(trans('lang.saturday'))
+                    };
+                    return `{{trans('lang.next_available')}} ${dayLabels[nextDay] || nextDay} {{trans('lang.at')}} ${getTimeFormat(nextSlot.from)}`;
                 }
             }
         }

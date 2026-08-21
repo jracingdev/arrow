@@ -604,7 +604,7 @@ class CheckoutController extends Controller
                     ]);
                     $cart['payment_status'] = true;
                     Session::put('cart', $cart);
-                    Session::put('success', 'Payment successful');
+                    Session::put('success', trans('lang.payment_successful'));
                     Session::save();
                     $res = array('status' => true, 'data' => $charge, 'message' => 'success');
                     echo json_encode($res);
@@ -649,7 +649,7 @@ class CheckoutController extends Controller
             if ($cart['cart_order']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
                 $res = array('status' => true, 'data' => array(), 'message' => 'success');
                 echo json_encode($res);
@@ -658,9 +658,9 @@ class CheckoutController extends Controller
         }
         $cart['payment_status'] = false;
         Session::put('cart', $cart);
-        Session::put('error', 'Faild Payment');
+        Session::put('error', trans('lang.failed_payment'));
         Session::save();
-        $res = array('status' => false, 'message' => 'Faild Payment');
+        $res = array('status' => false, 'message' => trans('lang.failed_payment'));
         echo json_encode($res);
         exit;
     }
@@ -688,7 +688,7 @@ class CheckoutController extends Controller
                 return $e->getMessage();
             }
         }
-        Session::put('success', 'Payment successful');
+        Session::put('success', trans('lang.payment_successful'));
         return redirect()->route('success');
     }
     
@@ -746,7 +746,7 @@ class CheckoutController extends Controller
             if ($xendit_payment == $_GET['xendit_token']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -756,7 +756,7 @@ class CheckoutController extends Controller
             if ($midtrans_payment === $_GET['midtrans_token']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -766,7 +766,7 @@ class CheckoutController extends Controller
             $sessionToken   = Session::get('orangepay_payment_token');
 
             if ($sessionToken !== $submittedToken) {
-                session()->flash('error', 'Invalid or expired payment token.');
+                session()->flash('error', trans('lang.invalid_or_expired_payment_token'));
                 return redirect()->route('wallet.pay');
             }
 
@@ -775,7 +775,7 @@ class CheckoutController extends Controller
             $isSandbox          = Session::get('orangepay_isSandbox');
 
             if (!$payToken || !$accessToken) {
-                session()->flash('error', 'Payment verification data missing.');
+                session()->flash('error', trans('lang.payment_verification_data_missing'));
                 return redirect()->route('wallet.pay');
             }
 
@@ -801,21 +801,21 @@ class CheckoutController extends Controller
                     $cart = Session::get('wallet_cart', []);
                     $cart['payment_status'] = true;
                     Session::put('wallet_cart', $cart);
-                    Session::put('success', 'Payment completed successfully via Orange Money');
+                    Session::put('success', trans('lang.payment_completed_via_orange'));
                     Session::save();
 
                     // Proceed to render success view
                 } else {
                     $errorMsg = $result['message'] ?? $result['status'] ?? 'Unknown status';
-                    session()->flash('error', 'Payment not successful: ' . $errorMsg);
+                    session()->flash('error', trans('lang.payment_not_successful') . ': ' . $errorMsg);
                     return redirect()->route('wallet.index');
                 }
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 $responseBody = $e->hasResponse() ? (string) $e->getResponse()->getBody() : '';
-                session()->flash('error', 'Orange verification failed: ' . $responseBody);
+                session()->flash('error', trans('lang.orange_verification_failed') . ': ' . $responseBody);
                 return redirect()->route('checkout');
             } catch (\Exception $e) {
-                session()->flash('error', 'Error contacting Orange: ' . $e->getMessage());
+                session()->flash('error', trans('lang.error_contacting_orange') . ': ' . $e->getMessage());
                 return redirect()->route('checkout');
             }
         }
@@ -825,7 +825,7 @@ class CheckoutController extends Controller
             if ($payfast_payment == $_GET['token']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -835,7 +835,7 @@ class CheckoutController extends Controller
             if ($paystack_reference == $_GET['reference']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -844,7 +844,7 @@ class CheckoutController extends Controller
             if ($_GET['status'] == 'successful' && $flutterwave_pay_tx_ref == $_GET['tx_ref']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             } else {
                 return redirect()->route('checkout');
@@ -855,7 +855,7 @@ class CheckoutController extends Controller
             if ($_GET['status'] == 'approved' && $mercadopago_preference_id == $_GET['preference_id']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             } else {
                 return redirect()->route('checkout');

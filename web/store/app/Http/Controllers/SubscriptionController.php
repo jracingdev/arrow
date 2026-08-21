@@ -402,7 +402,7 @@ class SubscriptionController extends Controller
                     ]);
                     $cart['payment_status'] = true;
                     Session::put('cart', $cart);
-                    Session::put('success', 'Payment successful');
+                    Session::put('success', trans('lang.payment_successful'));
                     Session::save();
                     $res = array('status' => true, 'data' => $charge, 'message' => 'success');
                     echo json_encode($res);
@@ -430,7 +430,7 @@ class SubscriptionController extends Controller
             if ($xendit_payment == $_GET['xendit_token']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -439,7 +439,7 @@ class SubscriptionController extends Controller
             if ($midtrans_payment === $_GET['midtrans_token']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -470,7 +470,7 @@ class SubscriptionController extends Controller
                     if (isset($responseBody['status']) && $responseBody['status'] == 'SUCCESS') {
                         $cart['payment_status'] = true;
                         Session::put('cart', $cart);
-                        Session::put('success', 'Payment successful');
+                        Session::put('success', trans('lang.payment_successful'));
                         Session::save();
                     } else {
                         return redirect($fail_url);
@@ -485,7 +485,7 @@ class SubscriptionController extends Controller
             if ($payfast_payment == $_GET['token']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -495,7 +495,7 @@ class SubscriptionController extends Controller
             if ($paystack_reference == $_GET['reference']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -504,7 +504,7 @@ class SubscriptionController extends Controller
             if ($_GET['status'] == 'successful' && $flutterwave_pay_tx_ref == $_GET['tx_ref']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             } else {
                 return redirect()->route('checkout');
@@ -515,7 +515,7 @@ class SubscriptionController extends Controller
             if ($_GET['status'] == 'approved' && $mercadopago_preference_id == $_GET['preference_id']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             } else {
                 return redirect()->route('checkout');
@@ -546,7 +546,7 @@ class SubscriptionController extends Controller
                 return redirect()->back();
             }
         }
-        Session::put('success', 'Payment successful');
+        Session::put('success', trans('lang.payment_successful'));
         return redirect()->route('success');
     }
     function generateSignature($data)
@@ -563,7 +563,7 @@ class SubscriptionController extends Controller
             if ($cart['cart_order']) {
                 $cart['payment_status'] = true;
                 Session::put('cart', $cart);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
                 $res = array('status' => true, 'data' => array(), 'message' => 'success');
                 echo json_encode($res);
@@ -572,9 +572,9 @@ class SubscriptionController extends Controller
         }
         $cart['payment_status'] = false;
         Session::put('cart', $cart);
-        Session::put('error', 'Faild Payment');
+        Session::put('error', trans('lang.failed_payment'));
         Session::save();
-        $res = array('status' => false, 'message' => 'Faild Payment');
+        $res = array('status' => false, 'message' => trans('lang.failed_payment'));
         echo json_encode($res);
         exit;
     }

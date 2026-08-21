@@ -302,7 +302,7 @@ class ChatScreen extends StatelessWidget {
                 controller.sendMessage(controller.messageController.value.text, url, '', 'image');
               }
             } catch (e) {
-              ShowToastDialog.showToast("Storage permission is not enabled. Please allow it.");
+              ShowToastDialog.showToast("Storage permission is not enabled. Please allow it.".tr);
             }
           },
           child: Text("Choose image from gallery".tr),
@@ -332,7 +332,7 @@ class ChatScreen extends StatelessWidget {
                 controller.sendMessage(controller.messageController.value.text, url, '', 'image');
               }
             } catch (e) {
-              ShowToastDialog.showToast("Camera access is not enabled. Please allow camera permission.");
+              ShowToastDialog.showToast("Camera access is not enabled. Please allow camera permission.".tr);
             }
           },
           child: Text("Take a picture".tr),

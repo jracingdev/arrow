@@ -2600,5 +2600,13 @@ return [
     'new_sos_initiated' => 'New SOS initiated',
     'per_hour_suffix' => '/hr',
     'view_details' => 'View Details',
+    'percent_complete' => '% complete',
+    'sos_origin' => 'Origin',
+    'sos_point' => 'SOS Point',
+    'document_rejected_title' => 'Document rejected',
+    'document_approved_title' => 'Document approved',
+    'admin_rejected_your_document' => 'Admin has rejected your document',
+    'admin_approved_your_document' => 'Admin has approved your document',
+    'please_submit_again' => 'Please submit again.',
 ];
 ?>

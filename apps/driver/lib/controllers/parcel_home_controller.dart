@@ -67,7 +67,7 @@ class ParcelHomeController extends GetxController {
   }
 
   Future<void> completeParcel(ParcelOrderModel parcelBookingData) async {
-    ShowToastDialog.showLoader("Please wait");
+    ShowToastDialog.showLoader("Please wait".tr);
     parcelBookingData.status = Constant.orderCompleted;
 
     await updateCabWalletAmount(parcelBookingData);

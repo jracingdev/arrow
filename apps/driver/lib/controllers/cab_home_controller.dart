@@ -170,7 +170,7 @@ class CabHomeController extends GetxController {
       ShowToastDialog.closeLoader();
       debugPrint("Error in acceptOrder: $e");
       debugPrintStack(stackTrace: s);
-      ShowToastDialog.showToast("Something went wrong. Please try again.");
+      ShowToastDialog.showToast("Something went wrong. Please try again.".tr);
     }
   }
 

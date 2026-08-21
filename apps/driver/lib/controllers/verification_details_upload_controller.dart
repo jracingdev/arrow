@@ -67,7 +67,7 @@ class DetailsUploadController extends GetxController {
       ShowToastDialog.showToast(
           source == ImageSource.camera ? "Camera permission denied. Please allow access to take a photo." : "Gallery permission denied. Please allow access to select an image.");
     } catch (e) {
-      ShowToastDialog.showToast("Something went wrong. Please try again.");
+      ShowToastDialog.showToast("Something went wrong. Please try again.".tr);
       print("Pick file error: $e");
     }
   }

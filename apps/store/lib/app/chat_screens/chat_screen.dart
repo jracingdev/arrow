@@ -277,7 +277,7 @@ class ChatScreen extends StatelessWidget {
                 Timer(const Duration(milliseconds: 500), () => controller.scrollController.value.jumpTo(controller.scrollController.value.position.minScrollExtent));
               }
             } catch (e) {
-              ShowToastDialog.showToast("Storage permission is not enabled. Please allow it.");
+              ShowToastDialog.showToast("Storage permission is not enabled. Please allow it.".tr);
             }
           },
           child: Text("Choose image from gallery".tr),
@@ -309,7 +309,7 @@ class ChatScreen extends StatelessWidget {
                 Timer(const Duration(milliseconds: 500), () => controller.scrollController.value.jumpTo(controller.scrollController.value.position.minScrollExtent));
               }
             } catch (e) {
-              ShowToastDialog.showToast("Camera access is not enabled. Please allow camera permission.");
+              ShowToastDialog.showToast("Camera access is not enabled. Please allow camera permission.".tr);
             }
           },
           child: Text("Take a picture".tr),

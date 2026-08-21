@@ -27,7 +27,7 @@ class RentalOrderDetailsController extends GetxController {
       fetchOrder(orderId);
     } else {
       isLoading.value = false;
-      ShowToastDialog.showToast("Invalid order details");
+      ShowToastDialog.showToast("Invalid order details".tr);
     }
   }
 

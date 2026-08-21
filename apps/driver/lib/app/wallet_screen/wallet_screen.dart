@@ -1319,7 +1319,7 @@ class WalletScreen extends StatelessWidget {
               Get.to(const OrderDetailsScreen(), arguments: {"orderModel": OrderModel.fromJson(orderData)});
               break;
             default:
-              ShowToastDialog.showToast("Order details not available");
+              ShowToastDialog.showToast("Order details not available".tr);
           }
         }
       },

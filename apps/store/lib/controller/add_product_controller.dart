@@ -246,7 +246,7 @@ class AddProductController extends GetxController {
     } else if (isDiscountedPriceOk.value == true) {
       ShowToastDialog.showToast("Please enter valid discount price".tr);
     } else if (productQuantityController.value.text.isEmpty) {
-      ShowToastDialog.showToast("Please enter product quantity");
+      ShowToastDialog.showToast("Please enter product quantity".tr);
     } else if (double.parse(regularPriceController.value.text.toString()) <= 0) {
       ShowToastDialog.showToast("Please enter valid regular price".tr);
     } else if (Constant.selectedSection!.serviceTypeFlag == "ecommerce-service" && selectedDigital.value == "Yes" && digitalFile == null && digitalProductFileName.isEmpty) {

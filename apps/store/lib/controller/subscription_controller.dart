@@ -196,7 +196,7 @@ class SubscriptionController extends GetxController {
 
   void handleExternalWaller(ExternalWalletResponse response) {
     Get.back();
-    ShowToastDialog.showToast("Payment Processing!! via");
+    ShowToastDialog.showToast("Payment Processing!! via".tr);
   }
 
   void handlePaymentError(PaymentFailureResponse response) {

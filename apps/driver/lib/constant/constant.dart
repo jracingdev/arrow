@@ -418,7 +418,7 @@ class Constant {
       permission = await Geolocator.requestPermission();
     }
     if (permission == LocationPermission.denied) {
-      ShowToastDialog.showToast("You have to allow location permission to use your location");
+      ShowToastDialog.showToast("You have to allow location permission to use your location".tr);
     } else if (permission == LocationPermission.deniedForever) {
       showDialog(
         context: context,

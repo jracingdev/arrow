@@ -387,7 +387,7 @@
                         title: '{{trans("lang.error")}}',
                         text: '{{ trans('lang.atleast_one_subscription_plan_should_be_active') }}',
                         icon: 'error',
-                        confirmButtonText: 'OK'
+                        confirmButtonText: "{{ trans('lang.ok') }}"
                     });
                     $(this).prop('checked', true);
 

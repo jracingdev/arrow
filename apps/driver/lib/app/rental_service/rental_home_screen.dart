@@ -332,7 +332,7 @@ class RentalHomeScreen extends StatelessWidget {
                                                                           "chatType": Constant.userRoleDriver,
                                                                         });
                                                                       } else {
-                                                                        ShowToastDialog.showToast("User not found");
+                                                                        ShowToastDialog.showToast("User not found".tr);
                                                                       }
                                                                     },
                                                                     child: Container(
@@ -565,7 +565,7 @@ class RentalHomeScreen extends StatelessWidget {
                                                                           if (rentalBookingData.paymentMethod == PaymentGateway.cod.name) {
                                                                             conformCashPayment(context, isDark, controller, rentalBookingData);
                                                                           } else {
-                                                                            ShowToastDialog.showToast("Please collect the payment from the customer through the app.");
+                                                                            ShowToastDialog.showToast("Please collect the payment from the customer through the app.".tr);
                                                                           }
                                                                         },
                                                                       )

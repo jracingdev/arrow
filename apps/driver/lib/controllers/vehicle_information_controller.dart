@@ -151,7 +151,7 @@ class VehicleInformationController extends GetxController {
 
   Future<void> saveVehicleInformation() async {
     if (userModel.value.isOwner == true) {
-      ShowToastDialog.showToast("Update not allowed for Owner type users.");
+      ShowToastDialog.showToast("Update not allowed for Owner type users.".tr);
       return;
     }
     // Validate at least one section has a vehicle selected
@@ -182,7 +182,7 @@ class VehicleInformationController extends GetxController {
       }
     }
 
-    ShowToastDialog.showLoader("Updating vehicle information...");
+    ShowToastDialog.showLoader("Updating vehicle information...".tr);
     try {
       // Merge vehicleDetails: only update sections for this service, keep others intact
       final existing = Map<String, dynamic>.from(userModel.value.vehicleDetails ?? {});

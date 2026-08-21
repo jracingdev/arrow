@@ -67,7 +67,7 @@
 //       type.value = args['type'] ?? "parcelOrder";
 //       _listenToOrder();
 //     } else {
-//       ShowToastDialog.showToast("Order data not found");
+//       ShowToastDialog.showToast("Order data not found".tr);
 //       Get.back();
 //     }
 //   }
@@ -343,7 +343,7 @@ class ParcelTrackingController extends GetxController {
       type.value = args['type'] ?? "parcelOrder";
       _listenToOrder();
     } else {
-      ShowToastDialog.showToast("Order data not found");
+      ShowToastDialog.showToast("Order data not found".tr);
       Get.back();
     }
    isLoading.value = false;

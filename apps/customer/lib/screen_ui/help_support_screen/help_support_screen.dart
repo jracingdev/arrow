@@ -378,7 +378,7 @@ class HelpSupportScreen extends StatelessWidget {
                 controller.sendMessage(message: '', url: url, videoThumbnail: '', messageType: 'image');
               }
             } catch (e) {
-              ShowToastDialog.showToast("Storage permission is not enabled. Please allow it.");
+              ShowToastDialog.showToast("Storage permission is not enabled. Please allow it.".tr);
             }
           },
           child: Text("Choose image from gallery".tr),
@@ -393,7 +393,7 @@ class HelpSupportScreen extends StatelessWidget {
               if (videoContainer != null) {
                 controller.sendMessage(message: '', url: videoContainer.videoUrl, videoThumbnail: videoContainer.thumbnailUrl, messageType: 'video');
               } else {
-                ShowToastDialog.showToast("Message sent failed");
+                ShowToastDialog.showToast("Message sent failed".tr);
               }
             }
           },
@@ -410,7 +410,7 @@ class HelpSupportScreen extends StatelessWidget {
                 controller.sendMessage(message: '', url: url, videoThumbnail: '', messageType: 'image');
               }
             } catch (e) {
-              ShowToastDialog.showToast("Camera access is not enabled. Please allow camera permission.");
+              ShowToastDialog.showToast("Camera access is not enabled. Please allow camera permission.".tr);
             }
           },
           child: Text("Take a Photo".tr),
@@ -425,7 +425,7 @@ class HelpSupportScreen extends StatelessWidget {
               if (videoContainer != null) {
                 controller.sendMessage(message: '', url: videoContainer.videoUrl, videoThumbnail: videoContainer.thumbnailUrl, messageType: 'video');
               } else {
-                ShowToastDialog.showToast("Message sent failed");
+                ShowToastDialog.showToast("Message sent failed".tr);
               }
             }
           },

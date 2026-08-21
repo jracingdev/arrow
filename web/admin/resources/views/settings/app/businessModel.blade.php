@@ -536,9 +536,9 @@
 
                             Swal.fire({
 
-                                title: 'Processing...',
+                                title: "{{ trans('lang.please_wait') }}",
 
-                                text: '0% Complete',
+                                text: '0{{ trans('lang.percent_complete') }}',
 
                                 allowOutsideClick: false,
 
@@ -560,7 +560,7 @@
 
                                 Swal.update({
 
-                                    text: `${Math.round((processed/total)*100)}% Complete`
+                                    text: `${Math.round((processed/total)*100)}{{ trans('lang.percent_complete') }}`
 
                                 });
 

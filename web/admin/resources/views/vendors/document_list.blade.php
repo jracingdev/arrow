@@ -211,8 +211,8 @@
                                             data: {
                                                 _token: "{{ csrf_token() }}",
                                                 fcm: fcmToken,
-                                                title:  'Rejected  your document',
-                                                message: 'Admin has Rejected your ' + docTitle + ' . Please submit again.',
+                                                title:  "{{ trans('lang.document_rejected_title') }}",
+                                                message: "{{ trans('lang.admin_rejected_your_document') }} " + docTitle + '. {{ trans('lang.please_submit_again') }}',
                                             },
                                             success: function (response) {
                                                 console.log("Notification sent successfully:", response);
@@ -237,8 +237,8 @@
                                             data: {
                                                 _token: "{{ csrf_token() }}",
                                                 fcm: fcmToken,
-                                                title:  'Approved  your document',
-                                                message: 'Admin has Approved your ' + docTitle,
+                                                title:  "{{ trans('lang.document_approved_title') }}",
+                                                message: "{{ trans('lang.admin_approved_your_document') }} " + docTitle,
                                             },
                                             success: function (response) {
                                                 console.log("Notification sent successfully:", response);

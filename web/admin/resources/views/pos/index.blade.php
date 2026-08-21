@@ -1028,7 +1028,7 @@
     function showError(message) {
         Swal.fire({
             icon: 'error',
-            title: 'Error',
+            title: "{{ trans('lang.error') }}",
             text: message,
             timer: 3000
         });

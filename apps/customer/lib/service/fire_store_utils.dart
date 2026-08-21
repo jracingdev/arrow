@@ -1728,13 +1728,13 @@ class FireStoreUtils {
 
   static Future<ChatVideoContainer?> uploadChatVideoToFireStorage(BuildContext context, File video) async {
     try {
-      ShowToastDialog.showLoader("Uploading video...");
+      ShowToastDialog.showLoader("Uploading video...".tr);
       final String uniqueID = const Uuid().v4();
       final Reference videoRef = FirebaseStorage.instance.ref('videos/$uniqueID.mp4');
       final UploadTask uploadTask = videoRef.putFile(video, SettableMetadata(contentType: 'video/mp4'));
       await uploadTask;
       final String videoUrl = await videoRef.getDownloadURL();
-      ShowToastDialog.showLoader("Generating thumbnail...");
+      ShowToastDialog.showLoader("Generating thumbnail...".tr);
       File thumbnail = await VideoCompress.getFileThumbnail(
         video.path,
         quality: 75, // 0 - 100

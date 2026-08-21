@@ -815,7 +815,7 @@
                 var vendorID = $("#main_vendor_id").val();
                 const vendorSnap = await vendorDetailsRef.where('id', "==", vendorID).get();
                 if (vendorSnap.empty) {
-                    Swal.fire({ text: "Vendor not found", icon: "error" });
+                    Swal.fire({ text: "{{ trans('lang.vendor_not_found') }}", icon: "error" });
                     return false;
                 }
                 var vendorDetails = vendorSnap.docs[0].data();

@@ -27,7 +27,7 @@ class API {
   static Future<dynamic> handleApiRequest({required Future<http.Response> Function() request, bool showLoader = true}) async {
     try {
       if (showLoader) {
-        ShowToastDialog.showLoader("Please wait");
+        ShowToastDialog.showLoader("Please wait".tr);
       }
 
       final response = await request().timeout(const Duration(seconds: 30));
@@ -56,7 +56,7 @@ class API {
       CustomDialog.showErrorDialog("No Internet", "Please check your connection.");
     } on FormatException {
       log("📦 JSON Decode Error");
-      ShowToastDialog.showToast("Invalid response format.");
+        ShowToastDialog.showToast("Invalid response format.".tr);
     } catch (e) {
       log("🔥 Unexpected Error: $e");
       CustomDialog.showErrorDialog("Unexpected Error", "$e");
@@ -71,7 +71,7 @@ class API {
       {required String url, required Map<String, String> headers, required Map<String, String> fields, List<http.MultipartFile>? files, bool showLoader = true}) async {
     try {
       if (showLoader) {
-        ShowToastDialog.showLoader("Please wait");
+        ShowToastDialog.showLoader("Please wait".tr);
       }
 
       var request = http.MultipartRequest('POST', Uri.parse(url));

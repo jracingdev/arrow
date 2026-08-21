@@ -470,7 +470,7 @@
             url: routeUrl,
             data: ajaxData,
             success: () => window.location.href = redirectUrl,
-            error: (error) => Swal.fire({ text: "Payment processing failed.", icon: "error" })
+            error: (error) => Swal.fire({ text: "{{ trans('lang.payment_processing_failed') }}", icon: "error" })
         });
     }
 

@@ -296,7 +296,7 @@ class GiftCardController extends GetxController {
       Map<String, dynamic>? paymentIntentData = await createStripeIntent(amount: amount);
       if (paymentIntentData!.containsKey("error")) {
         Get.back();
-        ShowToastDialog.showToast("Something went wrong, please contact admin.");
+        ShowToastDialog.showToast("Something went wrong, please contact admin.".tr);
       } else {
         await Stripe.instance.initPaymentSheet(
           paymentSheetParameters: SetupPaymentSheetParameters(

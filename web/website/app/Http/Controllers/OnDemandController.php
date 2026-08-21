@@ -274,7 +274,7 @@ class OnDemandController extends Controller
             }
             Session::save();
             $ondemand_cart = Session::get('ondemand_cart');
-            session()->flash('success', '{{trans("lang.service_remove_successfully")}}');
+            session()->flash('success', trans('lang.service_remove_successfully'));
             $res = array('status' => true, 'html' => view('providersService.cart_item', ['ondemand_cart' => $ondemand_cart])->render());
             echo json_encode($res);
             exit;

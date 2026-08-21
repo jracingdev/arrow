@@ -2624,5 +2624,13 @@ return [
     'new_sos_initiated' => 'Novo SOS iniciado',
     'per_hour_suffix' => '/hora',
     'view_details' => 'Ver detalhes',
+    'percent_complete' => '% concluído',
+    'sos_origin' => 'Origem',
+    'sos_point' => 'Ponto SOS',
+    'document_rejected_title' => 'Documento recusado',
+    'document_approved_title' => 'Documento aprovado',
+    'admin_rejected_your_document' => 'O administrador recusou o documento',
+    'admin_approved_your_document' => 'O administrador aprovou o documento',
+    'please_submit_again' => 'Envie novamente.',
 ];
 ?>

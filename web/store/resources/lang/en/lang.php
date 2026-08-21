@@ -1083,5 +1083,8 @@ return [
     'cep' => 'CEP',
     'cep_help' => 'Optional. Brazilian postal code (8 digits).',
     'please_enter_otp' => 'Please Enter OTP',
+    'payment_successful' => 'Payment successful',
+    'failed_payment' => 'Payment failed',
+    'saturday' => 'Saturday',
 ];
 ?>

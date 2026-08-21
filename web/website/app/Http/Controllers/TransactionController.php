@@ -385,7 +385,7 @@ class TransactionController extends Controller
                     $user_wallet['payment_status'] = true;
                     $user_wallet['transaction_id'] = $charge->id;
                     Session::put('user_wallet', $user_wallet);
-                    Session::put('success', 'Payment successful');
+                    Session::put('success', trans('lang.payment_successful'));
                     Session::save();
                     $res = ['status' => true, 'data' => $charge, 'message' => 'success'];
                     echo json_encode($res);
@@ -425,7 +425,7 @@ class TransactionController extends Controller
             $user_wallet['transaction_id'] = $request->transactionId;
             $user_wallet['payment_status'] = true;
             Session::put('user_wallet', $user_wallet);
-            Session::put('success', 'Payment successful');
+            Session::put('success', trans('lang.payment_successful'));
             Session::save();
             $res = ['status' => true, 'data' => [], 'message' => 'success'];
             echo json_encode($res);
@@ -433,9 +433,9 @@ class TransactionController extends Controller
         }
         $user_wallet['payment_status'] = false;
         Session::put('user_wallet', $user_wallet);
-        Session::put('error', 'Failed Payment');
+        Session::put('error', trans('lang.failed_payment'));
         Session::save();
-        $res = ['status' => false, 'message' => 'Failed Payment'];
+        $res = ['status' => false, 'message' => trans('lang.failed_payment')];
         echo json_encode($res);
         exit;
     }
@@ -463,7 +463,7 @@ class TransactionController extends Controller
                 return $e->getMessage();
             }
         }
-        Session::put('success', 'Payment successful');
+        Session::put('success', trans('lang.payment_successful'));
         return redirect()->route('wallet-success');
     }
     public function success() {
@@ -484,7 +484,7 @@ class TransactionController extends Controller
                 $user_wallet['transaction_id'] = $xendit_payment;
                 $user_wallet['payment_status'] = true;
                 Session::put('user_wallet', $user_wallet);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -496,7 +496,7 @@ class TransactionController extends Controller
                 $user_wallet['transaction_id'] = $midtrans_payment;
                 $user_wallet['payment_status'] = true;
                 Session::put('user_wallet', $user_wallet);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -530,7 +530,7 @@ class TransactionController extends Controller
                         $user_wallet['transaction_id'] = $payToken;
                         $user_wallet['payment_status'] = true;
                         Session::put('user_wallet', $user_wallet);
-                        Session::put('success', 'Payment successful');
+                        Session::put('success', trans('lang.payment_successful'));
                         Session::save();
                     } else {
                         return redirect($fail_url);
@@ -548,7 +548,7 @@ class TransactionController extends Controller
                 $user_wallet['transaction_id'] = $payfast_payment;
                 $user_wallet['payment_status'] = true;
                 Session::put('user_wallet', $user_wallet);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -560,7 +560,7 @@ class TransactionController extends Controller
                 $user_wallet['transaction_id'] = "";
                 $user_wallet['payment_status'] = true;
                 Session::put('user_wallet', $user_wallet);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             }
         }
@@ -572,7 +572,7 @@ class TransactionController extends Controller
                 $user_wallet['transaction_id'] = $_GET['transaction_id'];
                 $user_wallet['payment_status'] = true;
                 Session::put('user_wallet', $user_wallet);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             } else {
                 return redirect()->route('transactions');
@@ -586,7 +586,7 @@ class TransactionController extends Controller
                 $user_wallet['transaction_id'] = $_GET['payment_id'];
                 $user_wallet['payment_status'] = true;
                 Session::put('user_wallet', $user_wallet);
-                Session::put('success', 'Payment successful');
+                Session::put('success', trans('lang.payment_successful'));
                 Session::save();
             } else {
                 return redirect()->route('transactions');
