@@ -92,8 +92,16 @@
 
     <script type="text/javascript">
 
-        var user_permissions = '<?php echo @session('user_permissions') ?>';
-        user_permissions = Object.values(JSON.parse(user_permissions));
+        var user_permissions = [];
+        try {
+            var rawPerms = '<?php echo @session('user_permissions') ?>';
+            if (rawPerms) {
+                var parsedPerms = JSON.parse(rawPerms);
+                user_permissions = Array.isArray(parsedPerms) ? parsedPerms : Object.values(parsedPerms || {});
+            }
+        } catch (permErr) {
+            user_permissions = [];
+        }
         var checkDeletePermission = false;
         if ($.inArray('notification.delete', user_permissions) >= 0) {
             checkDeletePermission = true;
@@ -154,8 +162,10 @@
                             var time = '';
                             if (childData.hasOwnProperty("createdAt") && childData.createdAt != '') {
                                 try {
-                                    date = ArrowDateTime.formatDate(childData.createdAt.toDate());
-                                    time = ArrowDateTime.formatTime(childData.createdAt.toDate());
+                                    if (window.ArrowDateTime && typeof ArrowDateTime.formatDate === 'function') {
+                                        date = ArrowDateTime.formatDate(childData.createdAt.toDate());
+                                        time = ArrowDateTime.formatTime(childData.createdAt.toDate());
+                                    }
                                 } catch (err) {
 
                                 }
@@ -286,8 +296,10 @@
             var time = '';
             if (val.hasOwnProperty("createdAt")) {
                 try {
-                    date = ArrowDateTime.formatDate(val.createdAt.toDate());
-                    time = ArrowDateTime.formatTime(val.createdAt.toDate());
+                    if (window.ArrowDateTime && typeof ArrowDateTime.formatDate === 'function') {
+                        date = ArrowDateTime.formatDate(val.createdAt.toDate());
+                        time = ArrowDateTime.formatTime(val.createdAt.toDate());
+                    }
                 } catch (err) {
                 }
                 html.push('<td class="dt-time">' + date + ' ' + time + '</td>');

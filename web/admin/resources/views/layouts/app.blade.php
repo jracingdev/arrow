@@ -954,10 +954,16 @@
                         'payload': JSON.stringify(payload)
                     },
                     success: function (data) {
-                        checkFlag = true;
+                        checkFlag = !!(data && data.success);
+                        if (!checkFlag && data && data.message && window.console) {
+                            console.warn('FCM:', data.message);
+                        }
                     },
-                    error: function (error) {
-                        checkFlag = true;
+                    error: function (xhr) {
+                        checkFlag = false;
+                        if (window.console) {
+                            console.warn('FCM HTTP', xhr && xhr.status);
+                        }
                     }
                 });
             } else {

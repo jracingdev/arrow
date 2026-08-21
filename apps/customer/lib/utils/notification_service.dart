@@ -59,7 +59,7 @@ class NotificationService {
       log("::::::::::::onMessage:::::::::::::::::");
       if (message.notification != null) {
         log(message.notification.toString());
-        // display(message);
+        display(message);
       }
     });
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) async {

@@ -1,184 +1,223 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\Auth;
-use App\Models\VendorUsers;
+
+use App\Helpers\FcmSender;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Google\Client as Google_Client;
 
 class NotificationController extends Controller
 {
-
     public function __construct()
     {
         $this->middleware('auth');
     }
 
-    public function index($id='')
+    public function index($id = '')
     {
-
-        return view("notification.index")->with('id',$id);
+        return view('notification.index')->with('id', $id);
     }
 
-    public function send($id='')
+    public function send($id = '')
     {
-        return view('notification.send')->with('id',$id);
+        return view('notification.send')->with('id', $id);
     }
 
     public function broadcastnotification(Request $request)
     {
+        @set_time_limit(180);
 
-        if(Storage::disk('local')->has('firebase/credentials.json')){
+        $subject = trim((string) $request->input('subject', $request->input('title', '')));
+        $message = trim((string) $request->input('message', ''));
+        $audience = strtolower(trim((string) $request->input('audience', 'role')));
+        $role = strtolower(trim((string) $request->input('role', '')));
+        $topic = trim((string) $request->input('topic', ''));
+        $tokens = $this->normalizeTokens($request->input('tokens_json', $request->input('tokens', $request->input('fcm'))));
 
-            $client= new Google_Client();
-            $client->setAuthConfig(storage_path('app/firebase/credentials.json'));
-            $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
-            $client->refreshTokenWithAssertion();
-            $client_token = $client->getAccessToken();
-            $access_token = $client_token['access_token'];
-            $role = $request->role;
-
-            if(!empty($access_token) && !empty($role)){
-
-                $projectId = env('FIREBASE_PROJECT_ID');
-                $url = 'https://fcm.googleapis.com/v1/projects/'.$projectId.'/messages:send';
-
-                if( $role == "vendor" ) {
-                    $topic = "vendor";
-                }else if( $role == "customer" ) {
-                    $topic = "customer";
-                }else if( $role == "driver" ) {
-                    $topic = "driver";
-                }else if( $role == "provider" ) {
-                    $topic = "provider";
-                }else if( $role == "worker" ) {
-                    $topic = "worker";
-                }
-
-                $data = [
-                    'message' => [
-                        'notification' => [
-                            'title' => $request->subject,
-                            'body' => $request->message,
-                        ],
-                        'data' => [
-                            'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-                            'id' => '1',
-                            'status' => 'done',
-                        ],
-                        'topic' => $topic,
-                    ],
-                ];
-
-                $headers = array(
-                    'Content-Type: application/json',
-                    'Authorization: Bearer '.$access_token
-                );
-
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, $url);
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-                $result = curl_exec($ch);
-                if ($result === FALSE) {
-                    die('FCM Send Error: ' . curl_error($ch));
-                }
-                curl_close($ch);
-                $result=json_decode($result);
-
-                $response = array();
-                $response['success'] = true;
-                $response['message'] = 'Notification successfully sent.';
-                $response['result'] = $result;
-
-            }else{
-                $response = array();
-                $response['success'] = false;
-                $response['message'] = 'Missing role or sender id or token to send notification.';
-            }
-
-        }else{
-            $response = array();
-            $response['success'] = false;
-            $response['message'] = 'Firebase credentials file not found.';
+        if ($subject === '' || $message === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Informe o título e a mensagem da notificação.',
+                'sent' => 0,
+                'failed' => 0,
+                'skipped' => 0,
+            ]);
         }
-        return response()->json($response);
+
+        if (!FcmSender::credentials()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Arquivo de credenciais Firebase não encontrado. Envie o JSON da conta de serviço em Configurações ou copie-o para storage/app/firebase/credentials.json.',
+                'sent' => 0,
+                'failed' => 0,
+                'skipped' => 0,
+            ]);
+        }
+
+        $allowedRoles = FcmSender::ROLE_TOPICS;
+        $topics = [];
+
+        if (!in_array($audience, ['all', 'role', 'topic', 'user'], true)) {
+            $audience = $role !== '' ? 'role' : 'all';
+        }
+
+        if ($audience === 'all') {
+            $topics = $allowedRoles;
+        } elseif ($audience === 'role') {
+            if (!in_array($role, $allowedRoles, true)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Papel inválido. Use customer, vendor, driver, provider ou worker.',
+                    'sent' => 0,
+                    'failed' => 0,
+                    'skipped' => 0,
+                ]);
+            }
+            $topics = [$role];
+        } elseif ($audience === 'topic') {
+            if ($topic === '' || !preg_match('/^[A-Za-z0-9-_.~%]+$/', $topic)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Informe um tópico FCM válido.',
+                    'sent' => 0,
+                    'failed' => 0,
+                    'skipped' => 0,
+                ]);
+            }
+            $topics = [$topic];
+        } elseif ($audience === 'user') {
+            if ($tokens === []) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este usuário não tem token FCM válido. Peça para abrir o app e aceitar notificações.',
+                    'sent' => 0,
+                    'failed' => 0,
+                    'skipped' => 0,
+                ]);
+            }
+        }
+
+        $data = [
+            'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+            'type' => 'admin_broadcast',
+            'id' => '1',
+            'status' => 'done',
+        ];
+
+        $sent = 0;
+        $failed = 0;
+        $skipped = 0;
+        $errors = [];
+
+        if ($tokens !== []) {
+            $tokenResult = FcmSender::sendToTokens($tokens, $subject, $message, $data);
+            $sent += $tokenResult['sent'];
+            $failed += $tokenResult['failed'];
+            $skipped += $tokenResult['skipped'];
+            $errors = array_merge($errors, $tokenResult['errors']);
+        }
+
+        if ($topics !== [] && $tokens === []) {
+            $topicResult = FcmSender::sendToTopics($topics, $subject, $message, $data);
+            $sent += $topicResult['sent'];
+            $failed += $topicResult['failed'];
+            $skipped += $topicResult['skipped'];
+            $errors = array_merge($errors, $topicResult['errors']);
+        }
+
+        $errors = array_values(array_unique($errors));
+        $success = $sent > 0 && $failed === 0;
+        $partial = $sent > 0 && $failed > 0;
+
+        if ($sent === 0 && $failed === 0) {
+            return response()->json([
+                'success' => false,
+                'partial' => false,
+                'message' => 'Nenhum destinatário com token ou tópico para enviar.',
+                'sent' => 0,
+                'failed' => 0,
+                'skipped' => $skipped,
+                'errors' => $errors,
+            ]);
+        }
+
+        $messageText = $success
+            ? 'Notificação enviada com sucesso ('.$sent.' envio(s)).'
+            : ($partial
+                ? 'Envio parcial: '.$sent.' ok, '.$failed.' falha(s).'
+                : 'Falha ao enviar notificação ('.$failed.' falha(s)).');
+
+        if ($errors !== []) {
+            $messageText .= ' '.implode(' ', array_slice($errors, 0, 3));
+        }
+
+        return response()->json([
+            'success' => $success,
+            'partial' => $partial,
+            'message' => $messageText,
+            'sent' => $sent,
+            'failed' => $failed,
+            'skipped' => $skipped,
+            'errors' => $errors,
+        ]);
     }
+
     public function sendNotification(Request $request)
     {
+        $fcmToken = trim((string) $request->input('fcm', ''));
+        $title = trim((string) $request->input('title', $request->input('subject', '')));
+        $body = trim((string) $request->input('message', ''));
+        $payload = $request->input('payload');
 
-        if(Storage::disk('local')->has('firebase/credentials.json')){
-
-            $client= new Google_Client();
-            $client->setAuthConfig(storage_path('app/firebase/credentials.json'));
-            $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
-            $client->refreshTokenWithAssertion();
-            $client_token = $client->getAccessToken();
-            $access_token = $client_token['access_token'];
-
-            $fcm_token = $request->fcm;
-            $payload = json_decode($request->payload, true);
-            if(!empty($access_token) && !empty($fcm_token)){
-
-                $projectId = env('FIREBASE_PROJECT_ID');
-                $url = 'https://fcm.googleapis.com/v1/projects/'.$projectId.'/messages:send';
-
-                $data = [
-                    'message' => [
-                        'notification' => [
-                            'title' => $request->title,
-                            'body' => $request->message,
-                        ],
-                        'token' => $fcm_token,
-                        'data' => $payload,
-                    ],
-                ];
-
-                $headers = array(
-                    'Content-Type: application/json',
-                    'Authorization: Bearer '.$access_token
-                );
-
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, $url);
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-                
-                $result = curl_exec($ch);
-                if ($result === FALSE) {
-                    die('FCM Send Error: ' . curl_error($ch));
-                }
-                curl_close($ch);
-                $result=json_decode($result);
-
-                $response = array();
-                $response['success'] = true;
-                $response['message'] = 'Notification successfully sent.';
-                $response['result'] = $result;
-
-            }else{
-                $response = array();
-                $response['success'] = false;
-                $response['message'] = 'Missing sender id or token to send notification.';
-            }
-
-        }else{
-            $response = array();
-            $response['success'] = false;
-            $response['message'] = 'Firebase credentials file not found.';
+        if (is_string($payload)) {
+            $decoded = json_decode($payload, true);
+            $payload = is_array($decoded) ? $decoded : [];
+        } elseif (!is_array($payload)) {
+            $payload = [];
         }
-       
-        return response()->json($response);
+
+        if ($fcmToken === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token FCM vazio. Envio ignorado.',
+            ]);
+        }
+
+        $result = FcmSender::sendToToken($fcmToken, $title, $body, $payload);
+        if (!empty($result['ok'])) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Notificação enviada com sucesso.',
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => FcmSender::publicError($result['error'] ?? 'Falha ao enviar notificação.'),
+        ]);
+    }
+
+    /**
+     * @param  mixed  $tokens
+     * @return array<int, string>
+     */
+    private function normalizeTokens($tokens): array
+    {
+        if (is_string($tokens)) {
+            $decoded = json_decode($tokens, true);
+            $tokens = is_array($decoded) ? $decoded : (preg_split('/[\s,]+/', $tokens) ?: []);
+        }
+        if (!is_array($tokens)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($tokens as $token) {
+            $token = trim((string) $token);
+            if ($token !== '') {
+                $out[] = $token;
+            }
+        }
+
+        return array_values(array_unique($out));
     }
 }
-
-
