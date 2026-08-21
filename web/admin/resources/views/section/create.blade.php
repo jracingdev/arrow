@@ -324,13 +324,33 @@
         });
         $(document).ready(function() {
             jQuery("#data-table_processing").hide();
-            services.get().then(async function(snapshots) {
-                snapshots.docs.forEach((listval) => {
-                    var data = listval.data();
+            function fillServiceTypeSelect(docs) {
+                if (window.ArrowI18n && typeof ArrowI18n.fillServiceTypeSelect === 'function') {
+                    ArrowI18n.fillServiceTypeSelect('#service_type', docs || []);
+                    return;
+                }
+                var fallback = [
+                    { flag: 'rental-service', name: 'Rental Service' },
+                    { flag: 'delivery-service', name: 'Multivendor Delivery Service' },
+                    { flag: 'ondemand-service', name: 'On Demand Service' },
+                    { flag: 'ecommerce-service', name: 'Ecommerce Service' },
+                    { flag: 'parcel_delivery', name: 'Parcel Delivery Service' },
+                    { flag: 'cab-service', name: 'Cab Service' }
+                ];
+                (docs && docs.length ? docs : fallback).forEach(function(data) {
+                    if (!data || (!data.name && !data.flag)) return;
                     $('#service_type').append($("<option></option>")
-                        .attr("value", data.name).attr("flag", data.flag)
-                        .text(ArrowI18n.serviceTypeLabel(data.flag, data.name)));
-                })
+                        .attr("value", data.name || data.flag).attr("flag", data.flag)
+                        .text(data.name || data.flag));
+                });
+            }
+            services.get().then(function(snapshots) {
+                var docs = snapshots.docs.map(function(listval) {
+                    return listval.data() || {};
+                });
+                fillServiceTypeSelect(docs);
+            }).catch(function() {
+                fillServiceTypeSelect([]);
             });
             $(".save-setting-btn").click(async function() {
                 var name = $("#name").val();

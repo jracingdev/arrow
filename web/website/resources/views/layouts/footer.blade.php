@@ -112,8 +112,9 @@
 </footer>
 <script type="text/javascript" src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
 <script src="{{ asset('js/arrow-datetime.js') }}"></script>
-<script src="{{ asset('js/arrow-i18n.js') }}"></script>
+<script src="{{ asset('js/arrow-i18n.js') }}?v={{ @filemtime(public_path('js/arrow-i18n.js')) ?: time() }}"></script>
 <script type="text/javascript">
+    window.ArrowI18n = window.ArrowI18n || {};
     window.ArrowI18n.searchPlaceholder = @json(trans('lang.search_here'));
     window.ArrowI18n.perHourSuffix = @json(trans('lang.per_hour_suffix'));
     window.ArrowI18n.viewDetails = @json(trans('lang.view_details'));
