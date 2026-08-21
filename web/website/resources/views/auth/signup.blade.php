@@ -618,3 +618,5 @@ foreach ($countries as $keycountry => $valuecountry) {
         }
     }
 </script>
+</body>
+</html>

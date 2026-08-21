@@ -209,7 +209,7 @@ return [
     'view_all' => 'Ver tudo',
     'new_arrivals' => "Novidades",
     'processing' => 'Processando',
-    'online_item_os' => "Sistema de Pedidos Online",
+    'online_item_os' => "Entrega multi-serviço",
     'login' => "Entrar",
     'sign_in_to_continue' => "Entre para continuar",
     'log_in' => "ENTRAR",

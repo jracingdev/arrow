@@ -11,7 +11,7 @@
                         <div class="col-md-12 form-group">
                             <label class="form-label">{{ trans('lang.street_1') }}</label>
                             <div class="input-group">
-                                <input placeholder="Delivery Area" type="text" id="address_line1" class="form-control">
+                                <input placeholder="{{ trans('lang.street_1') }}" type="text" id="address_line1" class="form-control">
                                 <div class="input-group-append">
                                     <button onclick="getCurrentLocationAddress1()" type="button" class="btn btn-outline-secondary"><i class="feather-map-pin"></i></button>
                                 </div>
@@ -1904,8 +1904,6 @@
 </script>
 
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-<script type="text/javascript" src="{{ asset('js/rocket-loader.min.js') }}"></script>
-<script type="text/javascript" src="{{ asset('https://static.cloudflareinsights.com/beacon.min.js') }}"></script>
 <script type="text/javascript" src="{{ asset('js/sweetalert2.js') }}"></script>
 
 <?php if (Auth::user()) { ?>

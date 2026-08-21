@@ -88,3 +88,5 @@ foreach ($countries as $keycountry => $valuecountry) {
     }
 </script>
 <!--end page-scripts -->
+</body>
+</html>

@@ -7,7 +7,7 @@
     <meta name="author" content="<?php echo env('APP_NAME'); ?>">
     <meta name="csrf-token" content="{{ csrf_token() }}"/>
     <link rel="icon" type="image/png" href="{{asset('img/fav.png')}}">
-    <title>Arrow - {{trans('lang.online_item_os')}} </title>
+    <title><?php echo env('APP_NAME', 'Arrow'); ?> — {{ trans('lang.online_item_os') }}</title>
     <link rel="stylesheet" type="text/css" href="{{asset('vendor/slick/slick.min.css')}}"/>
     <link rel="stylesheet" type="text/css" href="{{asset('vendor/slick/slick-theme.min.css')}}"/>
     <link href="{{asset('vendor/icons/feather.css')}}" rel="stylesheet" type="text/css">
@@ -18,5 +18,3 @@
           rel="stylesheet">
 </head>
 <body>
-</body>
-</html>
