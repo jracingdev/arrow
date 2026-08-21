@@ -21,7 +21,8 @@ class ArrowGoogleAuth {
   static String get developerErrorToast =>
       'SHA do app nao esta no Firebase (invalid-cert-hash / ApiException 10). '
       'Console j-arrow → cada app (${ArrowAndroidPackages.customer}, '
-      '${ArrowAndroidPackages.store}, ${ArrowAndroidPackages.driver}) → '
+      '${ArrowAndroidPackages.store}, ${ArrowAndroidPackages.driver}, '
+      '${ArrowAndroidPackages.provider}) → '
       'Adicionar impressao digital. '
       'SHA-1 deste APK: ${ArrowDebugSigningSha.sha1} ; '
       'SHA-256: ${ArrowDebugSigningSha.sha256}.';
@@ -31,7 +32,7 @@ class ArrowGoogleAuth {
       'Google recusou o idToken apos escolher a conta '
       '(codigo 16 / Account reauth failed). '
       'Reconecte a conta em Configuracoes → Google neste aparelho. '
-      'Se persistir, cadastre no Firebase j-arrow (customer, store e driver) '
+      'Se persistir, cadastre no Firebase j-arrow (customer, store, driver e provider) '
       'SHA-1 ${ArrowDebugSigningSha.sha1} e SHA-256 ${ArrowDebugSigningSha.sha256}';
 
   static const String userCanceledToast = 'Login Google cancelado.';

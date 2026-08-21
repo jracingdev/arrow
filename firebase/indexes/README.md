@@ -11,6 +11,10 @@ Já incluídos no JSON:
 | `sections` | `isActive` ASC, `order` ASC |
 | `users` | `isOwner`, `role`, `sectionId`, `createdAt` DESC |
 | `users` | `sectionIds` CONTAINS, `isOwner`, `role`, `createdAt` DESC |
+| `provider_orders` | `provider.author` + `createdAt` / `status` / `sectionId` / `newScheduleDateTime`; `workerId` + `createdAt` |
+| `providers_workers` | `providerId` + `createdAt`; `active` + `providerId`; `providerId` + `online` + `createdAt` |
+
+Não há `firestore.rules` versionado neste repo. Não foi criado arquivo de rules (default deny em um arquivo novo quebraria customer/store/driver; allow-all abriria o banco).
 
 Se o console Firebase mostrar o link “create index”, abra **uma vez** e confirme, **ou** faça deploy:
 

@@ -18,6 +18,10 @@ abstract final class ArrowFirebaseAndroidAppIds {
   static const customer = '1:661081769489:android:d8da3fce389fcabca4d3b0';
   static const store = '1:661081769489:android:c625e7c47a334c31a4d3b0';
   static const driver = '1:661081769489:android:246c57cb98fff558a4d3b0';
+
+  /// Placeholder: criar no console o app Android `br.app.arrow.provider`
+  /// e substituir pelo `mobilesdk_app_id` (`1:661081769489:android:…`).
+  static const provider = 'CRIAR_NO_CONSOLE';
 }
 
 /// Web app used by Laravel panels (confirmed in production `__firebaseConfig`).
@@ -28,6 +32,7 @@ abstract final class ArrowAndroidPackages {
   static const customer = 'br.app.arrow.customer';
   static const store = 'br.app.arrow.store';
   static const driver = 'br.app.arrow.driver';
+  static const provider = 'br.app.arrow.provider';
 }
 
 /// iOS `PRODUCT_BUNDLE_IDENTIFIER` (same values as Android applicationId).
@@ -35,6 +40,13 @@ abstract final class ArrowIosBundleIds {
   static const customer = 'br.app.arrow.customer';
   static const store = 'br.app.arrow.store';
   static const driver = 'br.app.arrow.driver';
+  static const provider = 'br.app.arrow.provider';
+}
+
+/// Coleções Firestore usadas pelo app de prestador (on-demand).
+abstract final class ArrowFirestoreCollections {
+  static const providerOrders = 'provider_orders';
+  static const providersWorkers = 'providers_workers';
 }
 
 /// Debug keystore fingerprints of **this machine** — USB/`flutter run` builds

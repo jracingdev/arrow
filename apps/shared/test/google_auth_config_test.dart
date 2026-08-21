@@ -20,6 +20,8 @@ void main() {
     expect(ArrowAndroidPackages.customer, 'br.app.arrow.customer');
     expect(ArrowAndroidPackages.store, 'br.app.arrow.store');
     expect(ArrowAndroidPackages.driver, 'br.app.arrow.driver');
+    expect(ArrowAndroidPackages.provider, 'br.app.arrow.provider');
+    expect(ArrowIosBundleIds.provider, ArrowAndroidPackages.provider);
   });
 
   test('Firebase Android app ids belong to project 661081769489', () {
@@ -35,6 +37,14 @@ void main() {
       ArrowFirebaseAndroidAppIds.driver,
       '1:661081769489:android:246c57cb98fff558a4d3b0',
     );
+    // Placeholder: criar no console o app Android br.app.arrow.provider.
+    expect(ArrowFirebaseAndroidAppIds.provider, 'CRIAR_NO_CONSOLE');
+    expect(ArrowFirebaseAndroidAppIds.provider.startsWith('1:'), isFalse);
+  });
+
+  test('provider Firestore collections are the on-demand names', () {
+    expect(ArrowFirestoreCollections.providerOrders, 'provider_orders');
+    expect(ArrowFirestoreCollections.providersWorkers, 'providers_workers');
   });
 
   test('local debug SHA-1 is E1:95; release Arrow is 1C:CF, not Console 4D:D8', () {
@@ -69,6 +79,7 @@ void main() {
     expect(ArrowGoogleAuth.developerErrorToast, contains(ArrowAndroidPackages.customer));
     expect(ArrowGoogleAuth.developerErrorToast, contains(ArrowAndroidPackages.store));
     expect(ArrowGoogleAuth.developerErrorToast, contains(ArrowAndroidPackages.driver));
+    expect(ArrowGoogleAuth.developerErrorToast, contains(ArrowAndroidPackages.provider));
   });
 
   test('userMessage keeps real user cancel distinct from reauth/SHA', () {
