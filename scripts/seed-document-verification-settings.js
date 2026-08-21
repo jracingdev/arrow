@@ -9,6 +9,11 @@
  * Seguro: verificação de documentos desligada até o Admin habilitar.
  * Por padrão só cria se o doc não existir; use --force para sobrescrever.
  *
+ * Tipos de documento (coleção `documents`) o staff cria no Admin sem deploy:
+ *   driver, car (CRLV/seguro), vendor, store, owner, provider, ondemand.
+ * Títulos típicos: Certidão de antecedentes criminais, RG/CNH,
+ * comprovante de endereço, CRLV. Fila: Admin → Documentos → Pendentes.
+ *
  * Uso no servidor:
  *   cd firebase/import-export && npm i
  *   node ../../scripts/seed-document-verification-settings.js

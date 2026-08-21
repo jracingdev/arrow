@@ -70,7 +70,7 @@
     var database = firebase.firestore();
     var allDriver = database.collection('users').where('role','==','vendor');
     var ref = database.collection('users').where("id", "==", id);
-    var docsRef = database.collection('documents').where('enable', '==', true).where('type','==','vendor');
+    var docsRef = database.collection('documents').where('enable', '==', true);
     var docref = database.collection('documents_verify').doc(id);
     var back_photo = '';
     var front_photo = '';
@@ -112,6 +112,7 @@
                 var documents = docSnapshot.docs;
                 documents.forEach((ele) => {
                     var doc = ele.data();
+                    if (doc.type !== 'vendor' && doc.type !== 'store') return;
                     var docRefs = database.collection('documents_verify').doc(id);
                     docRefs.get().then(async function (docrefSnapshot) {
                         var docRef = docrefSnapshot.data() && docrefSnapshot.data().documents ? docrefSnapshot.data().documents.filter(docId => docId.documentId == doc.id)[0] : [];
@@ -136,6 +137,9 @@
                             display_status = '<span class="badge badge-success py-2 px-3">' + status + '</span>';
                         } else if (status == "rejected") {
                             display_status = '<span class="badge badge-danger py-2 px-3">' + status + '</span>';
+                            if (docRef && docRef.rejectReason) {
+                                display_status += '<div class="small text-danger mt-1">{{trans("lang.document_reject_reason")}}: ' + $('<div>').text(docRef.rejectReason).html() + '</div>';
+                            }
                         } else if (status == "uploaded") {
                             display_status = '<span class="badge badge-primary py-2 px-3">' + status + '</span>';
                         } else if (status == "pending") {
@@ -180,9 +184,24 @@
         var url = $(this).attr('data-url');
         window.location.href = url;
     });
+    function promptRejectReason() {
+        var reason = prompt("{{trans('lang.document_reject_reason_prompt')}}");
+        if (reason === null) return null;
+        reason = (reason || '').trim();
+        if (!reason) {
+            alert("{{trans('lang.document_reject_reason_required')}}");
+            return null;
+        }
+        return reason;
+    }
     $(document).on('click', '.verify-doc', function () {
-        jQuery("#data-table_processing").show();
         var status = $(this).attr('id') == "approve-doc" ? "approved" : "rejected";
+        var rejectReason = '';
+        if (status === 'rejected') {
+            rejectReason = promptRejectReason();
+            if (rejectReason === null) return;
+        }
+        jQuery("#data-table_processing").show();
         var docId = $(this).attr('data-id');
         var docTitle = $(this).attr('data-title');
         var docRefsTmp = database.collection('documents_verify').doc(id);
@@ -193,9 +212,12 @@
                 var objects = doc.data().documents;
                 var objectToupdate = objects[keydataId];
                 objectToupdate.status = status;
+                objectToupdate.rejectReason = status === 'rejected' ? rejectReason : '';
                 objects[keydataId] = objectToupdate;
                 database.collection('documents_verify').doc(id).update({
-                    documents: objects
+                    documents: objects,
+                    rejectReason: status === 'rejected' ? rejectReason : '',
+                    pending: status !== 'approved'
                 }).then(async function () {
                     var enableDocIds = await getDocId();
                     await ref.get().then( async function(snapshotsVendor){
@@ -279,9 +301,11 @@
     });
     async function getDocId(){
         var enableDocIds = [];
-        await database.collection('documents').where('enable', "==", true).where('type', '==', 'vendor').get().then(async function (snapshots) {
+        await database.collection('documents').where('enable', "==", true).get().then(async function (snapshots) {
             await snapshots.forEach((doc) => {
-                enableDocIds.push(doc.data().id);
+                if (doc.data().type === 'vendor' || doc.data().type === 'store') {
+                    enableDocIds.push(doc.data().id);
+                }
             });
         });
         return enableDocIds;

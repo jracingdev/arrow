@@ -3,7 +3,10 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:arrow_shared/brazil_phone.dart';
+import 'package:arrow_shared/document_verification.dart';
 import 'package:arrow_shared/geo_distance.dart';
+import 'package:arrow_shared/provider_listing_rank.dart';
+import 'package:arrow_shared/rating_average.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/collection_name.dart';
 import 'package:customer/firebase_options.dart';
@@ -2319,20 +2322,31 @@ class FireStoreUtils {
       service.longitude = coords.lng;
     }
 
+    sortProviderListing(providerList);
+  }
+
+  static void sortProviderListing(List<ProviderServiceModel> providerList) {
+    if (providerList.isEmpty) return;
+    final origin = Constant.selectedLocation.location;
     providerList.sort((a, b) {
-      final da = GeoDistance.km(
-        fromLat: origin?.latitude,
-        fromLng: origin?.longitude,
-        toLat: a.latitude,
-        toLng: a.longitude,
+      return ProviderListingRank.compare(
+        distanceA: GeoDistance.km(
+          fromLat: origin?.latitude,
+          fromLng: origin?.longitude,
+          toLat: a.latitude,
+          toLng: a.longitude,
+        ),
+        distanceB: GeoDistance.km(
+          fromLat: origin?.latitude,
+          fromLng: origin?.longitude,
+          toLat: b.latitude,
+          toLng: b.longitude,
+        ),
+        verifiedA: a.authorDocumentVerify == true,
+        verifiedB: b.authorDocumentVerify == true,
+        ratingA: RatingAverage.of(a.reviewsSum, a.reviewsCount),
+        ratingB: RatingAverage.of(b.reviewsSum, b.reviewsCount),
       );
-      final db = GeoDistance.km(
-        fromLat: origin?.latitude,
-        fromLng: origin?.longitude,
-        toLat: b.latitude,
-        toLng: b.longitude,
-      );
-      return GeoDistance.compareKm(da, db);
     });
   }
 
@@ -3066,6 +3080,7 @@ class FireStoreUtils {
         print('FireStoreUtils.getReviewByProviderServiceId Parse error ${document.id} $e');
       }
     });
+    await attachAuthorDocumentVerify(providerService);
     return providerService;
   }
 
@@ -3149,17 +3164,37 @@ class FireStoreUtils {
     return user != null && (user.active == true || user.isActive == true);
   }
 
+  static Future<void> attachAuthorDocumentVerify(List<ProviderServiceModel> providerList) async {
+    final ids = providerList.map((p) => p.author).whereType<String>().where((id) => id.isNotEmpty).toSet();
+    if (ids.isEmpty) return;
+    for (final id in ids) {
+      try {
+        final user = await getUserProfile(id);
+        final verified = DocumentVerification.isVerifiedForPublic(isDocumentVerify: user?.isDocumentVerify);
+        for (final service in providerList.where((p) => p.author == id)) {
+          service.authorDocumentVerify = verified;
+        }
+      } catch (_) {}
+    }
+  }
+
   static Future<void> hideInactiveProviderAuthors(List<ProviderServiceModel> providerList) async {
     final ids = providerList.map((p) => p.author).whereType<String>().where((id) => id.isNotEmpty).toSet();
     if (ids.isEmpty) return;
     final inactive = <String>{};
+    final verified = <String, bool>{};
     for (final id in ids) {
       try {
         final user = await getUserProfile(id);
         if (user == null || !isAccountActive(user)) inactive.add(id);
+        verified[id] = DocumentVerification.isVerifiedForPublic(isDocumentVerify: user?.isDocumentVerify);
       } catch (_) {}
     }
     providerList.removeWhere((p) => inactive.contains(p.author));
+    for (final service in providerList) {
+      service.authorDocumentVerify = verified[service.author ?? ''] == true;
+    }
+    sortProviderListing(providerList);
   }
 
   static Future<void> setOnDemandComplaint({

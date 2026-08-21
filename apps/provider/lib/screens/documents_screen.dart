@@ -45,9 +45,17 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   String _statusLabel(UploadedDocument? doc) {
     final status = (doc?.status ?? '').toLowerCase();
     if (status == 'approved') return 'Aprovado';
-    if (status == 'rejected') return 'Rejeitado';
+    if (status == 'rejected') return 'Recusado';
     if (doc?.frontImage?.isNotEmpty == true) return 'Pendente de aprovação';
     return 'Não enviado';
+  }
+
+  String? _rejectReason(UploadedDocument? doc) {
+    if ((doc?.status ?? '').toLowerCase() != 'rejected') return null;
+    final reason = doc?.rejectReason?.trim();
+    if (reason != null && reason.isNotEmpty) return reason;
+    final parent = uploaded?.latestRejectReason;
+    return parent;
   }
 
   Future<void> _pickAndUpload(DocumentModel doc, {required bool back}) async {
@@ -73,6 +81,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       }
       current.documentId = doc.id;
       current.status = 'pending';
+      current.rejectReason = '';
       await FireStoreUtils.uploadProviderDocument(current);
       ShowToastDialog.closeLoader();
       ShowToastDialog.showToast('Documento enviado. Aguarde a aprovação do administrador.');
@@ -106,6 +115,10 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       'Envie os documentos para verificação. O login continua liberado até o administrador aprovar.',
                       style: TextStyle(color: AppTheme.grey500),
                     ),
+                    if (uploaded?.hasRejected == true && uploaded?.latestRejectReason != null) ...[
+                      const SizedBox(height: 12),
+                      Text('Recusado. Motivo: ${uploaded!.latestRejectReason}', style: const TextStyle(color: Color(0xFFB91C1C))),
+                    ],
                     const SizedBox(height: 16),
                     for (final doc in catalog) _card(doc),
                   ],
@@ -125,6 +138,10 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
             Text(doc.title ?? 'Documento', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
             const SizedBox(height: 4),
             Text(_statusLabel(current), style: const TextStyle(color: AppTheme.grey500)),
+            if (_rejectReason(current) != null) ...[
+              const SizedBox(height: 6),
+              Text('Motivo: ${_rejectReason(current)}', style: const TextStyle(color: Color(0xFFB91C1C))),
+            ],
             const SizedBox(height: 12),
             if (doc.frontSide != false)
               OutlinedButton.icon(

@@ -32,14 +32,16 @@ class Documents {
   String? status;
   String? documentId;
   String? backImage;
+  String? rejectReason;
 
-  Documents({this.frontImage, this.status, this.documentId, this.backImage});
+  Documents({this.frontImage, this.status, this.documentId, this.backImage, this.rejectReason});
 
   Documents.fromJson(Map<String, dynamic> json) {
     frontImage = json['frontImage'];
     status = json['status'];
     documentId = json['documentId'];
     backImage = json['backImage'];
+    rejectReason = json['rejectReason']?.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -48,6 +50,7 @@ class Documents {
     data['status'] = status;
     data['documentId'] = documentId;
     data['backImage'] = backImage;
+    data['rejectReason'] = rejectReason ?? '';
     return data;
   }
 }

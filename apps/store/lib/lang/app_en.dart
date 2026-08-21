@@ -313,6 +313,7 @@ const Map<String, String> enUS = {
   "Accepted": "Accepted",
   "Completed": "Completed",
   "Rejected": "Rejected",
+  "Motivo:": "Reason:",
   "New Orders Not found": "New Orders Not found",
   "Accepted Orders Not found": "Accepted Orders Not found",
   "Completed Orders Not found": "Completed Orders Not found",

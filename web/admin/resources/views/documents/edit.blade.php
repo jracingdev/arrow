@@ -32,12 +32,15 @@
                         <div class="col-7">
                             <select id="document_for" class="form-control">
                                 <option value="vendor">{{trans('lang.document_vendor')}}</option>
+                                <option value="store">{{trans('lang.document_store')}}</option>
                                 <option value="driver">{{trans('lang.document_driver')}}</option>
+                                <option value="car">{{trans('lang.document_car')}}</option>
                                 <option value="owner">{{trans('lang.document_owner')}}</option>
                                 <option value="provider">{{trans('lang.document_provider')}}</option>
                                 <option value="ondemand">{{trans('lang.document_ondemand')}}</option>
                             </select>
                             <div class="form-text text-muted">{{ trans("lang.select_document_for") }}
+                                {{ trans("lang.document_types_examples") }}
                             </div>
                         </div>
                     </div>
@@ -151,8 +154,8 @@
                     'enable': isEnabled,
                     'id': id,
                 }).then(async function (result) {
-                    if (document_for == 'driver') {
-                        var enableDocIds = await getDocId('driver');
+                    if (document_for == 'driver' || document_for == 'car') {
+                        var enableDocIds = await getDocId(document_for);
                         await alldriver.get().then(async function (snapshotsdriver) {
                             if (snapshotsdriver.docs.length > 0) {
                                 var verification = await userDocVerification(enableDocIds, snapshotsdriver);
@@ -162,8 +165,22 @@
                                 }
                             }
                         })
+                    } else if (document_for == 'provider' || document_for == 'ondemand') {
+                        var enableDocIds = await getDocId(document_for);
+                        await database.collection('users').where('role', '==', 'provider').get().then(async function (snapshotsprovider) {
+                            if (snapshotsprovider.docs.length > 0) {
+                                var verification = await userDocVerification(enableDocIds, snapshotsprovider);
+                                if (verification) {
+                                    jQuery("#data-table_processing").hide();
+                                    window.location.href = '{{ route("documents")}}';
+                                }
+                            } else {
+                                jQuery("#data-table_processing").hide();
+                                window.location.href = '{{ route("documents")}}';
+                            }
+                        })
                     } else {
-                        var enableDocIds = await getDocId('vendor');
+                        var enableDocIds = await getDocId(document_for == 'store' ? 'store' : 'vendor');
                         await allvendor.get().then(async function (snapshotsvendor) {
                             if (snapshotsvendor.docs.length > 0) {
                                 var verification = await userDocVerification(enableDocIds, snapshotsvendor);

@@ -27,6 +27,7 @@ class ProviderServiceModel {
   String? priceUnit;
   List<dynamic> days;
   String? phoneNumber;
+  bool? authorDocumentVerify;
 
   String? subscriptionPlanId;
   Timestamp? subscriptionExpiryDate;
@@ -63,6 +64,7 @@ class ProviderServiceModel {
     this.subscriptionPlan,
     this.days = const [],
     this.phoneNumber,
+    this.authorDocumentVerify,
     this.subscriptionTotalOrders,
   }) : geoFireData = geoFireData ??
             GeoFireData(

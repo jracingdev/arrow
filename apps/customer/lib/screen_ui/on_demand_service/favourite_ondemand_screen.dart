@@ -8,6 +8,7 @@ import 'package:customer/screen_ui/auth_screens/login_screen.dart';
 import 'package:customer/screen_ui/on_demand_service/on_demand_details_screen.dart';
 import 'package:customer/service/fire_store_utils.dart';
 import 'package:customer/themes/app_them_data.dart';
+import 'package:customer/widget/provider_verified_chip.dart';
 import 'package:customer/themes/round_button_fill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -132,11 +133,17 @@ class FavouriteOndemandScreen extends StatelessWidget {
                                                         crossAxisAlignment: CrossAxisAlignment.start,
                                                         children: [
                                                           Expanded(
-                                                            child: Text(
-                                                              provider.title ?? "",
-                                                              maxLines: 1,
-                                                              overflow: TextOverflow.ellipsis,
-                                                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black),
+                                                            child: Wrap(
+                                                              crossAxisAlignment: WrapCrossAlignment.center,
+                                                              children: [
+                                                                Text(
+                                                                  provider.title ?? "",
+                                                                  maxLines: 1,
+                                                                  overflow: TextOverflow.ellipsis,
+                                                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black),
+                                                                ),
+                                                                ProviderVerifiedChip(verified: provider.authorDocumentVerify == true),
+                                                              ],
                                                             ),
                                                           ),
                                                           Obx(

@@ -78,3 +78,60 @@ testar os outros apps.
    `provider_orders/{orderId}/invoices/{fileName}`.
 3. Sem deploy deste repo (`firebase deploy --only firestore:rules` / `storage`
    não está configurado aqui de propósito).
+
+## Documentos KYC (`documents_verify`)
+
+Clientes **não** leem documentos de terceiros. Arquivos (antecedentes, RG, CRLV)
+ficam só no admin e no dono do uid. O app do cliente usa apenas
+`users.isDocumentVerify` para o selo público.
+
+### Firestore
+
+```
+match /documents_verify/{uid} {
+  function isOwner() {
+    return request.auth != null && request.auth.uid == uid;
+  }
+  function isAdmin() {
+    return request.auth != null
+      && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+  }
+
+  allow read: if isOwner() || isAdmin();
+
+  // Solicitante envia/substitui arquivos e volta status para pending.
+  allow create, update: if isOwner()
+    && request.resource.data.id == uid
+    && request.resource.data.pending == true
+    && request.resource.data.isDocumentVerify == null;
+
+  // Admin aprova/recusa (status, rejectReason, pending).
+  allow update: if isAdmin();
+  allow delete: if isAdmin();
+}
+```
+
+Não publique um arquivo deny-all. Se `users` já restringe `role`, ajuste
+`isAdmin()` ao campo que o painel Laravel usa.
+
+### Storage
+
+Path existente do motorista: `documents_verify/{uid}/{docId}_{front|back}.jpg`
+(prestador usa o mesmo prefixo). Driver legado também grava em
+`driverDocument/{uid}/`.
+
+```
+match /documents_verify/{uid}/{fileName} {
+  allow read, write: if request.auth != null && request.auth.uid == uid;
+  allow read: if request.auth != null
+    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+}
+
+match /driverDocument/{uid}/{fileName} {
+  allow read, write: if request.auth != null && request.auth.uid == uid;
+  allow read: if request.auth != null
+    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+}
+```
+
+O cliente **nunca** deve ter `allow read` nesses paths.

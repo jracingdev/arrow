@@ -323,6 +323,7 @@ const Map<String, String> enUS = {
   "Rejected": "Rejected",
   "Uploaded": "Uploaded",
   "Pending": "Pending",
+  "Motivo:": "Reason:",
   "Front": "Front",
   "And Back": "And Back",
   "Top up Wallet": "Top up Wallet",

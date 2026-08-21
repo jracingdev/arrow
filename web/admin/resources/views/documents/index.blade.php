@@ -221,12 +221,18 @@
             html.push("{{trans('lang.document_driver')}}");
         }else if(val.type == "vendor"){
             html.push("{{trans('lang.document_vendor')}}");
+        }else if(val.type == "store"){
+            html.push("{{trans('lang.document_store')}}");
+        }else if(val.type == "car"){
+            html.push("{{trans('lang.document_car')}}");
         }else if(val.type == "owner"){
             html.push("{{trans('lang.document_owner')}}");
         }else if(val.type == "provider"){
             html.push("{{trans('lang.document_provider')}}");
         }else if(val.type == "ondemand"){
             html.push("{{trans('lang.document_ondemand')}}");
+        }else{
+            html.push(val.type || '-');
         }
         if (val.enable) {
             html.push('<label class="switch"><input type="checkbox" checked id="' + val.id + '" name="isSwitch" dataUser="' + val.type + '"><span class="slider round"></span></label>');

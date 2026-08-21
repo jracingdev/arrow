@@ -1185,20 +1185,24 @@ class FireStoreUtils {
 
   static Future<List<DocumentModel>> getDocumentList() async {
     List<DocumentModel> documentList = [];
-    await fireStore
-        .collection(CollectionName.documents)
-        .where('type', isEqualTo: "vendor")
-        .where('enable', isEqualTo: true)
-        .get()
-        .then((value) {
-          for (var element in value.docs) {
-            DocumentModel documentModel = DocumentModel.fromJson(element.data());
-            documentList.add(documentModel);
-          }
-        })
-        .catchError((error) {
-          log(error.toString());
-        });
+    Future<void> addType(String docType) async {
+      await fireStore
+          .collection(CollectionName.documents)
+          .where('type', isEqualTo: docType)
+          .where('enable', isEqualTo: true)
+          .get()
+          .then((value) {
+            for (var element in value.docs) {
+              documentList.add(DocumentModel.fromJson(element.data()));
+            }
+          })
+          .catchError((error) {
+            log(error.toString());
+          });
+    }
+
+    await addType('vendor');
+    await addType('store');
     return documentList;
   }
 

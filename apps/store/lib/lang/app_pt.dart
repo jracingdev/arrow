@@ -313,6 +313,7 @@ const Map<String, String> ptPO = {
   "Accepted": "Aceito",
   "Completed": "Concluído",
   "Rejected": "Rejeitado",
+  "Motivo:": "Motivo:",
   "New Orders Not found": "Nenhum pedido novo encontrado",
   "Accepted Orders Not found": "Nenhum pedido aceito encontrado",
   "Completed Orders Not found": "Nenhum pedido concluído encontrado",

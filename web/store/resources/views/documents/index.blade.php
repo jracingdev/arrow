@@ -68,7 +68,7 @@
     var id = "<?php echo $id;?>";
     var database = firebase.firestore();
     var ref = database.collection('users').where("id", "==", id);
-    var docsRef = database.collection('documents').where('enable', '==', true).where('type','==','vendor');
+    var docsRef = database.collection('documents').where('enable', '==', true);
   
     var docref = database.collection('documents_verify').doc(id);
    
@@ -114,6 +114,7 @@
                
                 documents.forEach((ele) => {
                     var doc = ele.data();
+                    if (doc.type !== 'vendor' && doc.type !== 'store') return;
                     var docRefs = database.collection('documents_verify').doc(id);
                   
                     docRefs.get().then(async function (docrefSnapshot) {
@@ -139,6 +140,9 @@
                             display_status = '<span class="badge badge-success py-2 px-3 font-weight-bold text-capitalize">' + status + '</span>';
                         } else if (status == "rejected") {
                             display_status = '<span class="badge badge-danger py-2 px-3 font-weight-boldtext-capitalize">' + status + '</span>';
+                            if (docRef && docRef.rejectReason) {
+                                display_status += '<div class="small text-danger mt-1">Motivo: ' + $('<div>').text(docRef.rejectReason).html() + '</div>';
+                            }
                         } else if (status == "uploaded") {
                             display_status = '<span class="badge badge-primary py-2 px-3 font-weight-bold text-capitalize">' + status + '</span>';
                         } else if (status == "pending") {

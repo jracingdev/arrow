@@ -14,6 +14,7 @@ import '../../themes/show_toast_dialog.dart';
 import '../multi_vendor_service/chat_screens/chat_screen.dart';
 import 'on_demand_payment_screen.dart';
 import 'on_demand_review_screen.dart';
+import '../../widget/arrow_protection_note.dart';
 import '../../widget/hourly_elapsed_text.dart';
 import '../../widget/provider_verified_chip.dart';
 import '../../widget/report_problem_sheet.dart';
@@ -133,6 +134,8 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                           providerLat: controller.providerUser.value?.location?.latitude ?? controller.providerUser.value?.latitude,
                           providerLng: controller.providerUser.value?.location?.longitude ?? controller.providerUser.value?.longitude,
                         ),
+                        const SizedBox(height: 10),
+                        ArrowProtectionNote(isDark: isDark),
                         SizedBox(height: 10),
                         Container(
                           decoration: BoxDecoration(
@@ -430,7 +433,7 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                                                       controller.providerUser.value?.fullName() ?? '',
                                                       style: TextStyle(color: isDark ? Colors.white : Colors.black, fontFamily: AppThemeData.regular, fontSize: 14, fontWeight: FontWeight.bold),
                                                     ),
-                                                    ProviderVerifiedChip(verified: controller.providerUser.value?.isDocumentVerify == true),
+                                                    ProviderVerifiedChip(verified: controller.providerUser.value?.isDocumentVerify == true, compact: false),
                                                   ],
                                                 ),
                                                 const SizedBox(height: 5),

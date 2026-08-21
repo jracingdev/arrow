@@ -87,6 +87,7 @@ class DetailsUploadController extends GetxController {
     documents.value.backImage = backImage.value;
     documents.value.documentId = documentModel.value.id;
     documents.value.status = "uploaded";
+    documents.value.rejectReason = '';
 
     await FireStoreUtils.uploadDriverDocument(documents.value).then((value) {
       if (value) {

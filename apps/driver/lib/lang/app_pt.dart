@@ -323,6 +323,7 @@ const Map<String, String> ptPO = {
   "Rejected": "Rejeitado",
   "Uploaded": "Enviado",
   "Pending": "Pendente",
+  "Motivo:": "Motivo:",
   "Front": "Frente",
   "And Back": "E Verso",
   "Top up Wallet": "Recarregar Carteira",

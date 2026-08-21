@@ -100,6 +100,14 @@ class VerificationScreen extends StatelessWidget {
                                             fontFamily: AppThemeData.regular,
                                           ),
                                         ),
+                                        if (documents.status == "rejected" && (documents.rejectReason?.isNotEmpty == true))
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 4),
+                                            child: Text(
+                                              "${'Motivo:'.tr} ${documents.rejectReason}",
+                                              style: TextStyle(color: Colors.red, fontFamily: AppThemeData.regular, fontSize: 13),
+                                            ),
+                                          ),
                                       ],
                                     ),
                                   ),

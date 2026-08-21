@@ -1,4 +1,5 @@
 import 'package:arrow_shared/arrow_production_config.dart';
+import 'package:arrow_shared/document_verification.dart';
 import 'package:arrow_shared/rating_average.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/constant/collection_name.dart';
@@ -65,6 +66,11 @@ void main() {
       FireStoreUtils.invoiceStoragePath('order123', 'file-uuid', 'pdf'),
       'provider_orders/order123/invoices/file-uuid.pdf',
     );
+  });
+
+  test('selo público só após aprovação do admin', () {
+    expect(DocumentVerification.isVerifiedForPublic(isDocumentVerify: true), isTrue);
+    expect(DocumentVerification.isVerifiedForPublic(isAutoVerify: true), isFalse);
   });
 
   test('média de avaliações e rótulo de pagamento', () {

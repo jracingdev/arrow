@@ -466,6 +466,11 @@
         var chatViewRoute = "{{ route('providers.chat', ':id') }}".replace(':id', val.id);
         var unreadHtml = '';            
         var actionHtml='<span class="action-btn">';
+        if(val.isAutoVerify !== true){
+            var document_list_view = "{{ route('providers.document', ':id') }}";
+            document_list_view = document_list_view.replace(':id', val.id);
+            actionHtml += '<a href="' + document_list_view + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.document') }}"><i class="fa fa-file"></i></a>';
+        }
         var planRoute="{{route('subscription.subscriptionPlanHistory',':id')}}";
         planRoute=planRoute.replace(':id',val.id);
         if(val.hasOwnProperty('subscription_plan')) {

@@ -138,6 +138,9 @@
                             display_status = '<span class="badge badge-success py-2 px-3">' + status + '</span>';
                         } else if (status == "rejected") {
                             display_status = '<span class="badge badge-danger py-2 px-3">' + status + '</span>';
+                            if (docRef && docRef.rejectReason) {
+                                display_status += '<div class="small text-danger mt-1">{{trans("lang.document_reject_reason")}}: ' + $('<div>').text(docRef.rejectReason).html() + '</div>';
+                            }
                         } else if (status == "uploaded") {
                             display_status = '<span class="badge badge-primary py-2 px-3">' + status + '</span>';
                         } else if (status == "pending") {
@@ -182,9 +185,24 @@
         var url = $(this).attr('data-url');
         window.location.href = url;
     });
+    function promptRejectReason() {
+        var reason = prompt("{{trans('lang.document_reject_reason_prompt')}}");
+        if (reason === null) return null;
+        reason = (reason || '').trim();
+        if (!reason) {
+            alert("{{trans('lang.document_reject_reason_required')}}");
+            return null;
+        }
+        return reason;
+    }
     $(document).on('click', '.verify-doc', function () {
-        jQuery("#data-table_processing").show();
         var status = $(this).attr('id') == "approve-doc" ? "approved" : "rejected";
+        var rejectReason = '';
+        if (status === 'rejected') {
+            rejectReason = promptRejectReason();
+            if (rejectReason === null) return;
+        }
+        jQuery("#data-table_processing").show();
         var docId = $(this).attr('data-id');
         var docTitle = $(this).attr('data-title');
         var docRefsTmp = database.collection('documents_verify').doc(id);
@@ -195,9 +213,12 @@
                 var objects = doc.data().documents;
                 var objectToupdate = objects[keydataId];
                 objectToupdate.status = status;
+                objectToupdate.rejectReason = status === 'rejected' ? rejectReason : '';
                 objects[keydataId] = objectToupdate;
                 database.collection('documents_verify').doc(id).update({
-                    documents: objects
+                    documents: objects,
+                    rejectReason: status === 'rejected' ? rejectReason : '',
+                    pending: status !== 'approved'
                 }).then(async function () {
                     var enableDocIds = await getDocId();
                     await ref.get().then( async function(snapshotsVendor){

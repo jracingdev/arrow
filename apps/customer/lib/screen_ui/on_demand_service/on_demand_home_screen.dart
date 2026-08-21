@@ -14,6 +14,7 @@ import 'package:customer/themes/app_them_data.dart';
 import 'package:customer/themes/round_button_fill.dart';
 import 'package:customer/themes/show_toast_dialog.dart';
 import 'package:customer/utils/network_image_widget.dart';
+import 'package:customer/widget/provider_verified_chip.dart';
 import 'package:customer/widget/osm_map/map_picker_page.dart';
 import 'package:customer/widget/place_picker/location_picker_screen.dart';
 import 'package:customer/widget/place_picker/selected_location_model.dart';
@@ -432,11 +433,17 @@ class ServiceView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: Text(
-                            provider.title ?? "",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black),
+                          child: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                provider.title ?? "",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black),
+                              ),
+                              ProviderVerifiedChip(verified: provider.authorDocumentVerify == true),
+                            ],
                           ),
                         ),
                         if (controller != null)
@@ -534,13 +541,27 @@ class ServiceView extends StatelessWidget {
     if (provider.reviewsCount != null && provider.reviewsCount != 0) {
       rating = (provider.reviewsSum ?? 0) / (provider.reviewsCount ?? 1);
     }
-    return Container(
-      decoration: BoxDecoration(color: AppThemeData.warning400, borderRadius: BorderRadius.circular(12)),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [const Icon(Icons.star, size: 14, color: Colors.white), const SizedBox(width: 3), Text(rating.toStringAsFixed(1), style: const TextStyle(fontSize: 12, color: Colors.white))],
-      ),
+    final count = provider.reviewsCount ?? 0;
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(color: AppThemeData.warning400, borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [const Icon(Icons.star, size: 14, color: Colors.white), const SizedBox(width: 3), Text(rating.toStringAsFixed(1), style: const TextStyle(fontSize: 12, color: Colors.white))],
+          ),
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            '$count ${'avaliações'.tr}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black54),
+          ),
+        ),
+      ],
     );
   }
 }

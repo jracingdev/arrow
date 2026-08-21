@@ -10,12 +10,28 @@ import '../../models/provider_serivce_model.dart';
 import '../../controllers/on_demand_details_controller.dart';
 import '../../themes/app_them_data.dart';
 import '../../themes/round_button_fill.dart';
+import '../../widget/arrow_protection_note.dart';
 import '../auth_screens/login_screen.dart';
 import 'on_demand_booking_screen.dart';
 import '../../widget/provider_verified_chip.dart';
 
 class OnDemandDetailsScreen extends StatelessWidget {
   const OnDemandDetailsScreen({super.key});
+
+  void _openBooking(OnDemandDetailsController controller, {required bool asap}) {
+    if (Constant.userModel == null) {
+      Get.offAll(const LoginScreen());
+      return;
+    }
+    Get.to(
+      () => const OnDemandBookingScreen(),
+      arguments: {
+        'providerModel': controller.provider,
+        'categoryTitle': controller.categoryTitle.value,
+        'asap': asap,
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,28 +42,29 @@ class OnDemandDetailsScreen extends StatelessWidget {
       builder: (controller) {
         return Scaffold(
           body: buildSliverScrollView(context, controller, controller.provider, controller.userModel, isDark),
-          bottomNavigationBar:
-              controller.isOpen.value == false
-                  ? SizedBox()
-                  : Padding(
-                    padding: const EdgeInsets.all(20.0),
+          bottomNavigationBar: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        RoundedButtonFill(
-                          title: "Book Now".tr,
-                          color: AppThemeData.primary300,
-                          textColor: AppThemeData.grey50,
-                          onPress: () async {
-                            if (Constant.userModel == null) {
-                              Get.offAll(const LoginScreen());
-                            } else {
-                              print("providerModel ::::::::${controller.provider.title ?? 'No provider'}");
-                              print("categoryTitle ::::::: ${controller.categoryTitle.value}");
-                              Get.to(() => OnDemandBookingScreen(), arguments: {'providerModel': controller.provider, 'categoryTitle': controller.categoryTitle.value});
-                            }
-                          },
+                        ArrowProtectionNote(isDark: isDark),
+                        const SizedBox(height: 10),
+                        if (controller.isOpen.value)
+                          RoundedButtonFill(
+                            title: "Pedir agora".tr,
+                            color: AppThemeData.primary300,
+                            textColor: AppThemeData.grey50,
+                            onPress: () => _openBooking(controller, asap: true),
+                          ),
+                        if (controller.isOpen.value) const SizedBox(height: 8),
+                        OutlinedButton(
+                          onPressed: () => _openBooking(controller, asap: false),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(48),
+                            foregroundColor: AppThemeData.primary300,
+                          ),
+                          child: Text("Agendar".tr),
                         ),
                       ],
                     ),
@@ -299,7 +316,7 @@ class OnDemandDetailsScreen extends StatelessWidget {
                                       crossAxisAlignment: WrapCrossAlignment.center,
                                       children: [
                                         Text(user.fullName(), style: TextStyle(color: isDark ? Colors.white : Colors.black, fontFamily: AppThemeData.regular, fontSize: 14, fontWeight: FontWeight.bold)),
-                                        ProviderVerifiedChip(verified: user.isDocumentVerify == true),
+                                        ProviderVerifiedChip(verified: user.isDocumentVerify == true, compact: false),
                                       ],
                                     ),
                                     const SizedBox(height: 5),

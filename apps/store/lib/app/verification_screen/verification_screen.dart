@@ -94,6 +94,14 @@ class VerificationScreen extends StatelessWidget {
                                             "${documentModel.frontSide == true ? "Front".tr : ""} ${documentModel.backSide == true ? "And Back".tr : ""} ${'Photo'.tr}",
                                             style: TextStyle(color: isDark ? AppThemeData.grey300 : AppThemeData.grey600, fontFamily: AppThemeData.regular),
                                           ),
+                                          if (documents.status == "rejected" && (documents.rejectReason?.isNotEmpty == true))
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 4),
+                                              child: Text(
+                                                "${'Motivo:'.tr} ${documents.rejectReason}",
+                                                style: TextStyle(color: Colors.red, fontFamily: AppThemeData.regular, fontSize: 13),
+                                              ),
+                                            ),
                                         ],
                                       ),
                                     ),
