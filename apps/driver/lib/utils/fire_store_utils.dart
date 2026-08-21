@@ -8,6 +8,7 @@ import 'package:driver/app/chat_screens/chat_video_container.dart';
 import 'package:driver/constant/collection_name.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
+import 'package:get/get.dart';
 import 'package:driver/firebase_options.dart';
 import 'package:driver/models/cab_order_model.dart';
 import 'package:driver/models/car_makes.dart';

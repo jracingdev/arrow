@@ -17,6 +17,7 @@ import 'package:vendor/app/chat_screens/chat_video_container.dart';
 import 'package:vendor/constant/collection_name.dart';
 import 'package:vendor/constant/constant.dart';
 import 'package:vendor/constant/show_toast_dialog.dart';
+import 'package:get/get.dart';
 import 'package:vendor/firebase_options.dart';
 import 'package:vendor/models/attributes_model.dart';
 import 'package:vendor/models/section_model.dart';

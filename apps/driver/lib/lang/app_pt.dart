@@ -462,7 +462,5 @@ const Map<String, String> ptPO = {
   'Invalid order details': 'Detalhes do pedido inválidos',
   'Order data not found': 'Dados do pedido não encontrados',
   'You have to allow location permission to use your location': 'É preciso permitir o acesso à localização para usar este recurso',
-  'Order details not available': 'Detalhes do pedido indisponíveis',
   'User not found': 'Usuário não encontrado',
-  'Please collect the payment from the customer through the app.': 'Cobre o pagamento do cliente pelo aplicativo.',
 };

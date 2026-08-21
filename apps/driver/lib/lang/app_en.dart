@@ -451,7 +451,5 @@ const Map<String, String> enUS = {
   'Invalid order details': 'Invalid order details',
   'Order data not found': 'Order data not found',
   'You have to allow location permission to use your location': 'You have to allow location permission to use your location',
-  'Order details not available': 'Order details not available',
   'User not found': 'User not found',
-  'Please collect the payment from the customer through the app.': 'Please collect the payment from the customer through the app.',
 };
