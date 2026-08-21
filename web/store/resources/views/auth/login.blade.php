@@ -330,7 +330,7 @@
         @include('partials.firebase-init')
         <script src="{{ asset('js/firestore-safe.js') }}"></script>
         <script src="{{ asset('js/jquery.validate.js') }}"></script>
-        <script src="{{ asset('js/arrow-phone-otp.js') }}?v=4"></script>
+        <script src="{{ asset('js/arrow-phone-otp.js') }}?v=5"></script>
 
         <script type="text/javascript">
             var database = firebase.firestore();
@@ -587,6 +587,13 @@
                                 message = "{{ trans('lang.network_error') }}";
                                 break;
 
+                            case 'auth/multi-factor-auth-required':
+                            case 'auth/second-factor-required':
+                                message = window.ArrowPhoneOtp && ArrowPhoneOtp.authErrorMessage
+                                    ? ArrowPhoneOtp.authErrorMessage(error)
+                                    : 'Desative Autenticação multifator por SMS no Firebase. O login Arrow não usa MFA.';
+                                break;
+
                             default:
                                 message = "{{ trans('lang.login_failed_try_again') }}";
                         }
@@ -597,18 +604,11 @@
                 return false;
             }
 
-            var provider = new firebase.auth.PhoneAuthProvider();
-
             function loginWithPhoneClick() {
                 jQuery("#login-box").hide();
                 jQuery("#login-with-phone-box").show();
                 jQuery("#phone-box").show();
-                jQuery("#recaptcha-container").show();
                 jQuery("#sendotp_btn").show();
-                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                    'size': 'invisible',
-                    'callback': (response) => {}
-                });
             }
 
             function loginBackClick() {
@@ -630,7 +630,6 @@
                             ArrowPhoneOtp.send(phoneNumber, window.arrowOtpSession)
                                 .then(function() {
                                     jQuery("#phone-box").hide();
-                                    jQuery("#recaptcha-container").hide();
                                     jQuery("#otp-box").show();
                                     jQuery("#verify_btn").show();
                                 })

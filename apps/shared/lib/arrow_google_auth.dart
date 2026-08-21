@@ -1,3 +1,4 @@
+import 'package:arrow_shared/arrow_auth_errors.dart';
 import 'package:arrow_shared/arrow_production_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -189,6 +190,10 @@ class ArrowGoogleAuth {
     }
 
     if (error is FirebaseAuthException) {
+      final mfa = ArrowAuthErrors.messageFor(error);
+      if (mfa != null) {
+        return mfa;
+      }
       final code = error.code;
       if (code == 'invalid-cert-hash' || code.contains('cert-hash')) {
         return developerErrorToast;

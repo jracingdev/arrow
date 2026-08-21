@@ -157,7 +157,7 @@ foreach ($countries as $keycountry => $valuecountry) {
 @include('partials.firebase-init')
 <script src="{{ asset('js/firestore-safe.js') }}"></script>
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
-<script src="{{ asset('js/arrow-phone-otp.js') }}?v=4"></script>
+<script src="{{ asset('js/arrow-phone-otp.js') }}?v=5"></script>
 <script type="text/javascript">
     var createdAt = firebase.firestore.FieldValue.serverTimestamp();
     var database = firebase.firestore();
@@ -456,11 +456,6 @@ foreach ($countries as $keycountry => $valuecountry) {
         $('#send-code').show();
         $('#btn-signup-email').show();
         jQuery("#otp-box").hide();
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-            'size': 'invisible',
-            'callback': (response) => {
-            }
-        });
     }
 
     function signupWithEmail() {
@@ -530,7 +525,6 @@ foreach ($countries as $keycountry => $valuecountry) {
                                 $('#referral_div').hide();
                                 $('#btn-signup-phone').hide();
                                 $('#btn-sign-up').hide();
-                                jQuery("#recaptcha-container").hide();
                                 $("#otp_error").html('');
                                 jQuery("#otp-box").show();
                                 $('#verificationcode').attr('required', 'true');

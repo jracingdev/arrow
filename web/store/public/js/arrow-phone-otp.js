@@ -41,10 +41,19 @@
         el.innerHTML = 'Seu código neste aparelho: <strong style="letter-spacing:2px;font-size:1.25rem">' + code + '</strong><br><small>Enviado como notificação neste dispositivo. Não é SMS.</small>';
     }
 
+    function authErrorMessage(error) {
+        var code = (error && error.code) || '';
+        if (code === 'auth/multi-factor-auth-required' || code === 'auth/second-factor-required') {
+            return 'O Firebase pediu verificação extra por SMS (MFA). O login Arrow não usa MFA. No console Authentication, desative Autenticação multifator por SMS.';
+        }
+        return (error && error.message) || 'Falha na autenticação.';
+    }
+
     global.ArrowPhoneOtp = {
         endpoint: DEFAULT_ENDPOINT,
         newSessionId: uuid,
         showDisplayCode: showDisplayCode,
+        authErrorMessage: authErrorMessage,
         send: function (phone, sessionId) {
             return postJson(this.endpoint + '/send', {
                 phone: phone,
@@ -63,13 +72,18 @@
             });
         },
         signIn: function (session) {
+            var go;
             if (session && session.customToken) {
-                return firebase.auth().signInWithCustomToken(session.customToken);
+                go = firebase.auth().signInWithCustomToken(session.customToken);
+            } else if (session && session.email && session.password) {
+                go = firebase.auth().signInWithEmailAndPassword(session.email, session.password);
+            } else {
+                return Promise.reject(new Error((session && session.message) || 'Sessão Firebase inválida.'));
             }
-            if (session && session.email && session.password) {
-                return firebase.auth().signInWithEmailAndPassword(session.email, session.password);
-            }
-            return Promise.reject(new Error((session && session.message) || 'Sessão Firebase inválida.'));
+            return go.catch(function (error) {
+                throw new Error(authErrorMessage(error));
+            });
         }
+    };
     };
 })(window);

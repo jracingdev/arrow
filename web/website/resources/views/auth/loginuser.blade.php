@@ -136,7 +136,7 @@ foreach ($countries as $keycountry => $valuecountry) {
 @include('partials.firebase-init')
 <script src="{{ asset('js/firestore-safe.js') }}"></script>
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
-<script src="{{ asset('js/arrow-phone-otp.js') }}?v=4"></script>
+<script src="{{ asset('js/arrow-phone-otp.js') }}?v=5"></script>
 <script type="text/javascript">
     var database = firebase.firestore();
 
@@ -196,8 +196,10 @@ foreach ($countries as $keycountry => $valuecountry) {
             })
         })
         .catch(function (error) {
-                //$(".password_error").html('<p class="error">' + error.message + '</p>').show();
-                //  $("#password_required").html(error.message);
+                if (window.ArrowPhoneOtp && ArrowPhoneOtp.authErrorMessage) {
+                    $("#password_required").html(ArrowPhoneOtp.authErrorMessage(error)).css("color", "red");
+                    return;
+                }
                 $("#password_required").html("{{trans('lang.the_entered_password_is_invalid_please_check_and_try_again')}}").css("color", "red");
         });
         return false;
@@ -207,13 +209,7 @@ foreach ($countries as $keycountry => $valuecountry) {
         jQuery("#login-box").hide();
         jQuery("#login-with-phone-box").show();
         jQuery("#phone-box").show();
-        jQuery("#recaptcha-container").show();
         jQuery("#sendotp_btn").show();
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-            'size': 'invisible',
-            'callback': (response) => {
-            }
-        });
     }
 
     function loginBackClick() {
@@ -234,7 +230,6 @@ foreach ($countries as $keycountry => $valuecountry) {
                         ArrowPhoneOtp.send(phoneNumber, window.arrowOtpSession)
                             .then(function () {
                                 jQuery("#phone-box").hide();
-                                jQuery("#recaptcha-container").hide();
                                 jQuery("#otp-box").show();
                                 jQuery("#verify_btn").show();
                             })
@@ -296,7 +291,11 @@ foreach ($countries as $keycountry => $valuecountry) {
                     }
                 })
             }).catch(function (error) {
-            jQuery("#password_required_new1").html(error.message);
+            if (window.ArrowPhoneOtp && ArrowPhoneOtp.authErrorMessage) {
+                jQuery("#password_required_new1").html(ArrowPhoneOtp.authErrorMessage(error));
+            } else {
+                jQuery("#password_required_new1").html(error.message);
+            }
         });
     }
 

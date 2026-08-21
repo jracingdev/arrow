@@ -289,7 +289,7 @@
         @include('partials.firebase-init')
         <script src="{{ asset('js/firestore-safe.js') }}"></script>
         <script src="{{ asset('js/jquery.validate.js') }}"></script>
-        <script src="{{ asset('js/arrow-phone-otp.js') }}?v=4"></script>
+        <script src="{{ asset('js/arrow-phone-otp.js') }}?v=5"></script>
 
         <script type="text/javascript">
             var database = firebase.firestore();
@@ -382,16 +382,6 @@
 
 
             function sendOTP() {
-                if (!window.recaptchaVerifier) {
-                    jQuery("#recaptcha-container").show();
-
-                    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                        'size': 'invisible',
-                        'callback': (response) => {
-
-                        }
-                    });
-                }
                 var firstName = $('#firstName').val();
                 var lastName = $('#lastName').val();
                 var email = $('#email').val();
@@ -432,7 +422,6 @@
                                     $('#lastName_div').hide();
                                     $('#email_div').hide();
                                     $('#phone-box').hide();
-                                    jQuery("#recaptcha-container").hide();
                                     jQuery("#verify_btn").show();
                                     jQuery("#otp-box").show();
                                 })

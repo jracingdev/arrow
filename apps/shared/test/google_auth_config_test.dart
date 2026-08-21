@@ -119,6 +119,9 @@ void main() {
     final firebaseNotAllowed = FirebaseAuthException(code: 'operation-not-allowed');
     expect(ArrowGoogleAuth.userMessage(firebaseNotAllowed), contains('desativado'));
 
+    final firebaseMfa = FirebaseAuthException(code: 'multi-factor-auth-required');
+    expect(ArrowGoogleAuth.userMessage(firebaseMfa), contains('desative Autenticação multifator por SMS'));
+
     final certHash = FirebaseAuthException(code: 'invalid-cert-hash');
     expect(ArrowGoogleAuth.userMessage(certHash), ArrowGoogleAuth.developerErrorToast);
     expect(ArrowGoogleAuth.userMessage(certHash), isNot(ArrowGoogleAuth.userCanceledToast));

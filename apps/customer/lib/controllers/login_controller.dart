@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:arrow_shared/arrow_auth_errors.dart';
 import 'package:arrow_shared/arrow_google_auth.dart';
 import 'package:customer/screen_ui/location_enable_screens/location_permission_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -76,7 +77,10 @@ class LoginController extends GetxController {
         Get.offAll(() => const LoginScreen());
       }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
+      final mfa = ArrowAuthErrors.messageFor(e);
+      if (mfa != null) {
+        ShowToastDialog.showToast(mfa);
+      } else if (e.code == 'user-not-found') {
         ShowToastDialog.showToast("No user found for that email.".tr);
       } else if (e.code == 'wrong-password' || e.code == 'invalid-credential' || e.code == 'INVALID_LOGIN_CREDENTIALS') {
         ShowToastDialog.showToast("Wrong password provided.".tr);

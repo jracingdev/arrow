@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:arrow_shared/arrow_auth_errors.dart';
 import 'package:arrow_shared/arrow_production_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
@@ -72,15 +73,23 @@ class ArrowPhoneOtp {
       throw ArrowOtpException(json['message'] as String? ?? 'Código inválido.');
     }
 
-    final token = json['customToken'] as String? ?? '';
-    if (token.isNotEmpty) {
-      return FirebaseAuth.instance.signInWithCustomToken(token);
-    }
+    try {
+      final token = json['customToken'] as String? ?? '';
+      if (token.isNotEmpty) {
+        return await FirebaseAuth.instance.signInWithCustomToken(token);
+      }
 
-    final email = json['email'] as String? ?? '';
-    final password = json['password'] as String? ?? '';
-    if (email.isNotEmpty && password.isNotEmpty) {
-      return FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+      final email = json['email'] as String? ?? '';
+      final password = json['password'] as String? ?? '';
+      if (email.isNotEmpty && password.isNotEmpty) {
+        return await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+      }
+    } on FirebaseAuthException catch (e) {
+      final mfa = ArrowAuthErrors.messageFor(e);
+      if (mfa != null) {
+        throw ArrowOtpException(mfa);
+      }
+      rethrow;
     }
 
     throw ArrowOtpException('Sessão Firebase inválida.');
