@@ -26,6 +26,10 @@ class ProviderOrderModel {
   ProviderServiceModel provider;
   Map<String, dynamic>? address;
   List<OrderInvoiceModel> invoices;
+  String dispatchMode;
+  String requestedCategoryId;
+  double radiusKm;
+  List<String> rejectedBy;
 
   ProviderOrderModel({
     this.id = '',
@@ -50,9 +54,14 @@ class ProviderOrderModel {
     ProviderServiceModel? provider,
     this.address,
     List<OrderInvoiceModel>? invoices,
+    this.dispatchMode = '',
+    this.requestedCategoryId = '',
+    this.radiusKm = 0,
+    List<String>? rejectedBy,
   })  : author = author ?? UserModel(),
         provider = provider ?? ProviderServiceModel(),
-        invoices = invoices ?? const [];
+        invoices = invoices ?? const [],
+        rejectedBy = rejectedBy ?? const [];
 
   factory ProviderOrderModel.fromJson(Map<String, dynamic> json) {
     return ProviderOrderModel(
@@ -80,8 +89,18 @@ class ProviderOrderModel {
           : ProviderServiceModel(),
       address: json['address'] is Map ? Map<String, dynamic>.from(json['address'] as Map) : null,
       invoices: OrderInvoiceModel.listFrom(json['invoices']),
+      dispatchMode: json['dispatchMode']?.toString() ?? '',
+      requestedCategoryId: json['requestedCategoryId']?.toString() ?? '',
+      radiusKm: double.tryParse('${json['radiusKm'] ?? 0}') ?? 0,
+      rejectedBy: json['rejectedBy'] is List
+          ? List<String>.from((json['rejectedBy'] as List).map((e) => e.toString()))
+          : const [],
     );
   }
+
+  bool get isBroadcast => dispatchMode == 'broadcast';
+
+  bool get hasAssignedProvider => provider.author.trim().isNotEmpty;
 
   String addressLine() {
     if (address == null) return '';
@@ -90,5 +109,21 @@ class ProviderOrderModel {
       address!['landmark'],
     ].where((e) => e != null && e.toString().trim().isNotEmpty).map((e) => e.toString());
     return parts.join(' · ');
+  }
+
+  double? customerLat() {
+    final loc = address?['location'];
+    if (loc is Map) {
+      return double.tryParse('${loc['latitude'] ?? ''}');
+    }
+    return double.tryParse('${address?['latitude'] ?? ''}');
+  }
+
+  double? customerLng() {
+    final loc = address?['location'];
+    if (loc is Map) {
+      return double.tryParse('${loc['longitude'] ?? ''}');
+    }
+    return double.tryParse('${address?['longitude'] ?? ''}');
   }
 }

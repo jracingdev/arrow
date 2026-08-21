@@ -31,6 +31,10 @@ class Constant {
 
   static const String bookingCreditNote = 'On-demand booking credited';
   static const String extraCreditNote = 'Extra Charge Amount Credited';
+  static const String dispatchBroadcast = 'broadcast';
+  static const String dispatchDirect = 'direct';
+  static const Duration broadcastLookback = Duration(hours: 6);
+  static const double defaultBroadcastRadiusKm = 25;
 
   static bool canUploadInvoice(String status) {
     return status == orderOngoing || status == inTransit || status == orderCompleted;
@@ -55,6 +59,19 @@ class Constant {
     }
     if (paid == true) return 'Pago · $gateway';
     return 'A pagar · $gateway';
+  }
+
+  static bool canReportOrder(String status) {
+    return status == orderAssigned ||
+        status == orderOngoing ||
+        status == orderCompleted ||
+        status == orderCancelled ||
+        status == orderAccepted ||
+        status == inTransit;
+  }
+
+  static bool canSosOrder(String status) {
+    return status == orderOngoing || status == inTransit || status == orderAssigned;
   }
 
   static String statusLabel(String status) {

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:arrow_shared/geo_distance.dart';
 import 'package:arrow_shared/hourly_service_billing.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -297,6 +298,14 @@ class FireStoreUtils {
     return ProviderDocumentModel.fromJson(snap.data()!);
   }
 
+  static Stream<ProviderDocumentModel?> watchDocumentsVerify(String uid) {
+    if (uid.isEmpty) return Stream.value(null);
+    return _db.collection(CollectionName.documentsVerify).doc(uid).snapshots().map((snap) {
+      if (!snap.exists || snap.data() == null) return null;
+      return ProviderDocumentModel.fromJson(snap.data()!);
+    });
+  }
+
   static Future<String> uploadVerifyImage({required File file, required String docId, required String side}) async {
     final uid = getCurrentUid();
     final path = 'documents_verify/$uid/${docId}_$side.jpg';
@@ -319,6 +328,7 @@ class FireStoreUtils {
       id: uid,
       type: 'provider',
       pending: true,
+      rejectReason: '',
       documents: docs,
     );
     await _db.collection(CollectionName.documentsVerify).doc(uid).set(model.toJson(), SetOptions(merge: true));
@@ -406,4 +416,177 @@ class FireStoreUtils {
       ),
     );
   }
+
+  static Future<void> updateUserLocation(String uid, double latitude, double longitude) async {
+    if (uid.isEmpty) return;
+    final hash = GeoDistance.geohash(latitude, longitude);
+    await _db.collection(CollectionName.users).doc(uid).set({
+      'location': {'latitude': latitude, 'longitude': longitude},
+      'latitude': latitude,
+      'longitude': longitude,
+      'g': {'geohash': hash, 'geopoint': GeoPoint(latitude, longitude)},
+    }, SetOptions(merge: true));
+    try {
+      final services = await _db.collection(CollectionName.providersServices).where('author', isEqualTo: uid).get();
+      if (services.docs.isEmpty) return;
+      final batch = _db.batch();
+      for (final doc in services.docs) {
+        batch.set(
+          doc.reference,
+          {
+            'latitude': latitude,
+            'longitude': longitude,
+            'g': {'geohash': hash, 'geopoint': GeoPoint(latitude, longitude)},
+          },
+          SetOptions(merge: true),
+        );
+      }
+      await batch.commit();
+    } catch (_) {}
+  }
+
+  static Stream<List<ProviderOrderModel>> watchNearbyBroadcast({
+    required String uid,
+    required List<ProviderServiceModel> myServices,
+    required double? lat,
+    required double? lng,
+  }) {
+    return _db.collection(CollectionName.providerOrders).where('dispatchMode', isEqualTo: Constant.dispatchBroadcast).snapshots().map((snap) {
+      final now = DateTime.now();
+      final categories = myServices.where((s) => s.publish).map((s) => s.categoryId).where((id) => id.isNotEmpty).toSet();
+      final list = <ProviderOrderModel>[];
+      for (final doc in snap.docs) {
+        final order = ProviderOrderModel.fromJson(doc.data());
+        if (order.status != Constant.orderPlaced) continue;
+        if (order.hasAssignedProvider) continue;
+        if (order.rejectedBy.contains(uid)) continue;
+        if (order.createdAt != null && now.difference(order.createdAt!.toDate()) > Constant.broadcastLookback) continue;
+        final requested = order.requestedCategoryId.isNotEmpty ? order.requestedCategoryId : order.provider.categoryId;
+        if (requested.isNotEmpty && categories.isNotEmpty && !categories.contains(requested)) continue;
+        final radius = order.radiusKm > 0 ? order.radiusKm : Constant.defaultBroadcastRadiusKm;
+        final distance = GeoDistance.km(fromLat: lat, fromLng: lng, toLat: order.customerLat(), toLng: order.customerLng());
+        if (distance != null && distance > radius) continue;
+        list.add(order);
+      }
+      list.sort((a, b) {
+        final da = GeoDistance.km(fromLat: lat, fromLng: lng, toLat: a.customerLat(), toLng: a.customerLng());
+        final db = GeoDistance.km(fromLat: lat, fromLng: lng, toLat: b.customerLat(), toLng: b.customerLng());
+        return GeoDistance.compareKm(da, db);
+      });
+      return list;
+    });
+  }
+
+  static Future<void> acceptBroadcast({
+    required String orderId,
+    required ProviderServiceModel service,
+    required UserModel providerUser,
+  }) async {
+    final uid = getCurrentUid();
+    final ref = _db.collection(CollectionName.providerOrders).doc(orderId);
+    await _db.runTransaction((tx) async {
+      final snap = await tx.get(ref);
+      if (!snap.exists || snap.data() == null) {
+        throw Exception('Pedido não encontrado.');
+      }
+      final data = snap.data()!;
+      final current = ProviderOrderModel.fromJson(data);
+      if (current.status != Constant.orderPlaced || current.hasAssignedProvider) {
+        throw BroadcastTakenException();
+      }
+      if (current.rejectedBy.contains(uid)) {
+        throw Exception('Você já recusou este pedido.');
+      }
+      final snapshot = service.toJson();
+      snapshot['author'] = uid;
+      snapshot['authorName'] = providerUser.fullName();
+      snapshot['authorProfilePic'] = providerUser.profilePictureURL ?? '';
+      snapshot['phoneNumber'] = providerUser.phoneNumber ?? service.phoneNumber;
+      tx.update(ref, {
+        'provider': snapshot,
+        'status': Constant.orderAccepted,
+        'dispatchAcceptedAt': Timestamp.now(),
+      });
+    });
+  }
+
+  static Future<void> declineBroadcast(String orderId) async {
+    final uid = getCurrentUid();
+    if (uid.isEmpty || orderId.isEmpty) return;
+    await _db.collection(CollectionName.providerOrders).doc(orderId).update({
+      'rejectedBy': FieldValue.arrayUnion([uid]),
+    });
+  }
+
+  static ProviderServiceModel? matchingService(List<ProviderServiceModel> services, ProviderOrderModel order) {
+    final requested = order.requestedCategoryId.isNotEmpty ? order.requestedCategoryId : order.provider.categoryId;
+    final published = services.where((s) => s.publish).toList();
+    if (requested.isNotEmpty) {
+      final match = published.where((s) => s.categoryId == requested).toList();
+      if (match.isNotEmpty) return match.first;
+    }
+    return published.isEmpty ? null : published.first;
+  }
+
+  static Future<void> submitComplaint({
+    required String orderId,
+    required String reporterId,
+    required String reporterRole,
+    required String reporterName,
+    required String reportedId,
+    required String reportedRole,
+    required String reportedName,
+    required String category,
+    required String description,
+    String priority = 'normal',
+  }) async {
+    final id = '${orderId}_$reporterId';
+    final existing = await _db.collection(CollectionName.complaints).doc(id).get();
+    if (existing.exists && priority != 'high') {
+      throw Exception('Você já enviou uma denúncia neste pedido.');
+    }
+    final customerIsReporter = reporterRole == 'customer';
+    await _db.collection(CollectionName.complaints).doc(id).set({
+      'id': id,
+      'createdAt': existing.exists ? (existing.data()?['createdAt'] ?? Timestamp.now()) : Timestamp.now(),
+      'orderId': orderId,
+      'serviceType': 'ondemand-service',
+      'reporterId': reporterId,
+      'reporterRole': reporterRole,
+      'reportedId': reportedId,
+      'reportedRole': reportedRole,
+      'category': category,
+      'description': description,
+      'title': category,
+      'status': 'Initiated',
+      'priority': priority,
+      'evidenceUrls': const <String>[],
+      'customerId': customerIsReporter ? reporterId : reportedId,
+      'customerName': customerIsReporter ? reporterName : reportedName,
+      'driverId': customerIsReporter ? reportedId : reporterId,
+      'driverName': customerIsReporter ? reportedName : reporterName,
+    }, SetOptions(merge: true));
+  }
+
+  static Future<void> submitSos({
+    required String orderId,
+    required String reporterId,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final id = '${orderId}_$reporterId';
+    await _db.collection(CollectionName.sos).doc(id).set({
+      'id': id,
+      'orderId': orderId,
+      'status': 'Initiated',
+      'serviceType': 'ondemand-service',
+      'reporterId': reporterId,
+      'reporterRole': 'provider',
+      'priority': 'high',
+      'latLong': {'latitude': latitude, 'longitude': longitude},
+      'createdAt': Timestamp.now(),
+    }, SetOptions(merge: true));
+  }
 }
+
+class BroadcastTakenException implements Exception {}

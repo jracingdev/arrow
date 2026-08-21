@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../models/onprovider_order_model.dart';
 import '../models/provider_serivce_model.dart';
+import '../screen_ui/on_demand_service/on_demand_broadcast_waiting_screen.dart';
 import '../screen_ui/on_demand_service/on_demand_dashboard_screen.dart';
 import '../screen_ui/on_demand_service/on_demand_payment_screen.dart';
 import '../service/fire_store_utils.dart';
@@ -18,6 +19,8 @@ import 'on_demand_dashboard_controller.dart';
 class OnDemandBookingController extends GetxController {
   Rxn<ProviderServiceModel> provider = Rxn<ProviderServiceModel>();
   RxString categoryTitle = ''.obs;
+  RxString categoryId = ''.obs;
+  RxBool isBroadcast = false.obs;
 
   RxInt quantity = 1.obs;
   Rx<TextEditingController> descriptionController = TextEditingController().obs;
@@ -46,12 +49,32 @@ class OnDemandBookingController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final Map<String, dynamic>? args = Get.arguments;
+    final raw = Get.arguments;
+    final Map<String, dynamic>? args = raw is Map ? Map<String, dynamic>.from(raw) : null;
     if (args != null) {
-      provider.value = args['providerModel'];
+      isBroadcast.value = args['broadcast'] == true;
       categoryTitle.value = args['categoryTitle'] ?? '';
+      categoryId.value = args['categoryId']?.toString() ?? '';
+      if (args['providerModel'] is ProviderServiceModel) {
+        provider.value = args['providerModel'] as ProviderServiceModel;
+      }
+      if (isBroadcast.value && (provider.value == null || (provider.value?.author ?? '').isEmpty)) {
+        provider.value = ProviderServiceModel(
+          author: '',
+          authorName: '',
+          title: categoryTitle.value,
+          categoryId: categoryId.value,
+          sectionId: Constant.sectionConstantModel?.id,
+          publish: true,
+          price: '',
+          disPrice: '0',
+        );
+      }
     }
     selectedAddress.value = Constant.selectedLocation;
+    if (isBroadcast.value && dateTimeController.value.text.isEmpty) {
+      setDateTime(DateTime.now());
+    }
     fetchCoupons();
     calculatePrice();
   }
@@ -150,8 +173,14 @@ class OnDemandBookingController extends GetxController {
       ShowToastDialog.showToast("Please enter address".tr);
     } else if (dateTimeController.value.text.isEmpty) {
       ShowToastDialog.showToast("Please select time slot.".tr);
+    } else if (isBroadcast.value) {
+      await _placeBroadcastRequest();
     } else {
       UserModel? providerUser = await FireStoreUtils.getUserProfile(provider.value!.author!);
+      if (!FireStoreUtils.isAccountActive(providerUser)) {
+        ShowToastDialog.showToast('Este prestador está indisponível.'.tr);
+        return;
+      }
 
       if (!HourlyServiceBilling.isHourly(provider.value?.priceUnit)) {
         OnProviderOrderModel onDemandOrderModel = OnProviderOrderModel(
@@ -179,6 +208,7 @@ class OnDemandBookingController extends GetxController {
           taxModel: Constant.orderProductTaxList,
           platformFee: Constant.platformFeeModel?.fee ?? '0.0',
           platformTax: Constant.platformTaxList,
+          dispatchMode: Constant.dispatchDirect,
         );
         print('totalAmount ::::::: ${double.tryParse(Constant.amountShow(amount: totalAmount.value.toString())) ?? 0.0}');
         print('totalAmount value ::::::: ${totalAmount.value}');
@@ -209,6 +239,7 @@ class OnDemandBookingController extends GetxController {
           taxModel: Constant.orderProductTaxList,
           platformFee: Constant.platformFeeModel?.fee ?? '0.0',
           platformTax: Constant.platformTaxList,
+          dispatchMode: Constant.dispatchDirect,
         );
 
         await FireStoreUtils.onDemandOrderPlace(onDemandOrder, 0.0);
@@ -226,5 +257,53 @@ class OnDemandBookingController extends GetxController {
         ShowToastDialog.showToast("OnDemand Service successfully booked".tr);
       }
     }
+  }
+
+  Future<void> _placeBroadcastRequest() async {
+    if (Constant.userModel == null) {
+      ShowToastDialog.showToast("Please enter address".tr);
+      return;
+    }
+    ShowToastDialog.showLoader("Please wait...".tr);
+    final template = provider.value ??
+        ProviderServiceModel(
+          author: '',
+          authorName: '',
+          title: categoryTitle.value,
+          categoryId: categoryId.value,
+          sectionId: Constant.sectionConstantModel?.id,
+          publish: true,
+        );
+    template.author = '';
+    template.authorName = '';
+    if ((template.title ?? '').isEmpty) template.title = categoryTitle.value;
+    if ((template.categoryId ?? '').isEmpty) template.categoryId = categoryId.value;
+
+    final order = OnProviderOrderModel(
+      otp: Constant.getReferralCode(),
+      authorID: FireStoreUtils.getCurrentUid(),
+      author: Constant.userModel!,
+      sectionId: Constant.sectionConstantModel!.id,
+      address: selectedAddress.value,
+      status: Constant.orderPlaced,
+      createdAt: Timestamp.now(),
+      quantity: 1,
+      provider: template,
+      extraPaymentStatus: true,
+      paymentStatus: false,
+      scheduleDateTime: Timestamp.fromDate(selectedDateTime.value),
+      notes: descriptionController.value.text,
+      taxModel: Constant.orderProductTaxList,
+      platformFee: Constant.platformFeeModel?.fee ?? '0.0',
+      platformTax: Constant.platformTaxList,
+      dispatchMode: Constant.dispatchBroadcast,
+      requestedCategoryId: categoryId.value.isNotEmpty ? categoryId.value : template.categoryId,
+      radiusKm: FireStoreUtils.nearbyRadiusKm(),
+      rejectedBy: const [],
+    );
+
+    await FireStoreUtils.onDemandOrderPlace(order, 0.0);
+    ShowToastDialog.closeLoader();
+    Get.to(() => const OnDemandBroadcastWaitingScreen(), arguments: order);
   }
 }

@@ -15,6 +15,8 @@ class ProviderServiceModel {
   String categoryId;
   num reviewsCount;
   num reviewsSum;
+  double latitude;
+  double longitude;
 
   ProviderServiceModel({
     this.id = '',
@@ -33,6 +35,8 @@ class ProviderServiceModel {
     this.categoryId = '',
     this.reviewsCount = 0,
     this.reviewsSum = 0,
+    this.latitude = 0,
+    this.longitude = 0,
   });
 
   factory ProviderServiceModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +57,8 @@ class ProviderServiceModel {
       categoryId: json['categoryId']?.toString() ?? '',
       reviewsCount: num.tryParse('${json['reviewsCount'] ?? 0}') ?? 0,
       reviewsSum: num.tryParse('${json['reviewsSum'] ?? 0}') ?? 0,
+      latitude: double.tryParse('${json['latitude'] ?? 0}') ?? 0,
+      longitude: double.tryParse('${json['longitude'] ?? 0}') ?? 0,
     );
   }
 
@@ -74,6 +80,8 @@ class ProviderServiceModel {
       'categoryId': categoryId,
       'reviewsCount': reviewsCount,
       'reviewsSum': reviewsSum,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 }

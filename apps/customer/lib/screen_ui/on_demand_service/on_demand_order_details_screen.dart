@@ -16,6 +16,8 @@ import 'on_demand_payment_screen.dart';
 import 'on_demand_review_screen.dart';
 import '../../widget/hourly_elapsed_text.dart';
 import '../../widget/provider_verified_chip.dart';
+import '../../widget/report_problem_sheet.dart';
+import '../../widget/service_location_map.dart';
 import 'package:arrow_shared/hourly_service_billing.dart';
 
 class OnDemandOrderDetailsScreen extends StatelessWidget {
@@ -120,6 +122,16 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                               ],
                             ),
                           ),
+                        ),
+                        SizedBox(height: 10),
+                        ServiceLocationMap(
+                          address: controller.onProviderOrder.value?.address?.getFullAddress() ?? '',
+                          latitude: controller.onProviderOrder.value?.address?.location?.latitude,
+                          longitude: controller.onProviderOrder.value?.address?.location?.longitude,
+                          isDark: isDark,
+                          showProvider: controller.canSos(controller.onProviderOrder.value?.status),
+                          providerLat: controller.providerUser.value?.location?.latitude ?? controller.providerUser.value?.latitude,
+                          providerLng: controller.providerUser.value?.location?.longitude ?? controller.providerUser.value?.longitude,
                         ),
                         SizedBox(height: 10),
                         Container(
@@ -742,6 +754,31 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 20),
+                        controller.onProviderOrder.value?.isBroadcast == true &&
+                                controller.onProviderOrder.value?.hasAssignedProvider == true &&
+                                !HourlyServiceBilling.isHourly(controller.onProviderOrder.value?.provider.priceUnit) &&
+                                controller.onProviderOrder.value?.paymentStatus != true &&
+                                (controller.onProviderOrder.value?.status == Constant.orderAccepted ||
+                                    controller.onProviderOrder.value?.status == Constant.orderPlaced)
+                            ? Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: RoundedButtonFill(
+                                title: 'Pay Now'.tr,
+                                color: AppThemeData.primary300,
+                                textColor: AppThemeData.grey50,
+                                onPress: () async {
+                                  Get.to(
+                                    () => OnDemandPaymentScreen(),
+                                    arguments: {
+                                      'onDemandOrderModel': controller.onProviderOrder,
+                                      'totalAmount': controller.totalAmount.value,
+                                      'isExtra': false,
+                                    },
+                                  );
+                                },
+                              ),
+                            )
+                            : const SizedBox(),
                         controller.onProviderOrder.value?.extraPaymentStatus == false && controller.onProviderOrder.value?.status == Constant.orderOngoing
                             ? Padding(
                               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -782,6 +819,40 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                               ),
                             )
                             : SizedBox(),
+                        if (controller.canSos(controller.onProviderOrder.value?.status)) ...[
+                          const SizedBox(height: 8),
+                          RoundedButtonFill(
+                            title: 'Estou em risco / Denunciar agora'.tr,
+                            color: AppThemeData.danger300,
+                            textColor: AppThemeData.grey50,
+                            onPress: () {
+                              showOnDemandReportSheet(
+                                sos: true,
+                                onSubmit: (category, description) => controller.submitReport(category: category, description: description, sos: true),
+                              );
+                            },
+                          ),
+                        ],
+                        if (controller.canReport(controller.onProviderOrder.value?.status)) ...[
+                          const SizedBox(height: 8),
+                          RoundedButtonFill(
+                            title: 'Reportar problema'.tr,
+                            color: AppThemeData.grey200,
+                            textColor: AppThemeData.grey900,
+                            onPress: () {
+                              showOnDemandReportSheet(
+                                onSubmit: (category, description) => controller.submitReport(category: category, description: description),
+                              );
+                            },
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 8),
+                            child: Text(
+                              'Denúncias verificadas e reincidentes podem levar à suspensão da conta.'.tr,
+                              style: AppThemeData.regularTextStyle(fontSize: 12, color: isDark ? AppThemeData.greyDark400 : AppThemeData.grey500),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

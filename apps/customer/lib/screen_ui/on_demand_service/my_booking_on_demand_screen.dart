@@ -10,6 +10,7 @@ import '../../models/onprovider_order_model.dart';
 import '../../models/worker_model.dart';
 import '../../themes/app_them_data.dart';
 import '../../widget/hourly_elapsed_text.dart';
+import 'on_demand_broadcast_waiting_screen.dart';
 import 'on_demand_order_details_screen.dart';
 
 class MyBookingOnDemandScreen extends StatelessWidget {
@@ -68,6 +69,10 @@ class MyBookingOnDemandScreen extends StatelessWidget {
 
                                 return InkWell(
                                   onTap: () {
+                                    if (onProviderOrder.isBroadcast && !onProviderOrder.hasAssignedProvider) {
+                                      Get.to(() => const OnDemandBroadcastWaitingScreen(), arguments: onProviderOrder);
+                                      return;
+                                    }
                                     Get.to(() => OnDemandOrderDetailsScreen(), arguments: onProviderOrder);
                                   },
                                   child: Container(
@@ -86,7 +91,7 @@ class MyBookingOnDemandScreen extends StatelessWidget {
                                             Padding(
                                               padding: const EdgeInsets.symmetric(horizontal: 10),
                                               child: CachedNetworkImage(
-                                                imageUrl: onProviderOrder.provider.photos.first,
+                                                imageUrl: onProviderOrder.provider.photos.isNotEmpty ? onProviderOrder.provider.photos.first : Constant.placeHolderImage,
                                                 height: 80,
                                                 width: 80,
                                                 imageBuilder:
@@ -110,7 +115,12 @@ class MyBookingOnDemandScreen extends StatelessWidget {
                                                     Container(
                                                       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                                                       decoration: BoxDecoration(color: AppThemeData.info50, border: Border.all(color: AppThemeData.info300), borderRadius: BorderRadius.circular(12)),
-                                                      child: Text(Constant.orderStatusLabel(onProviderOrder.status), style: AppThemeData.boldTextStyle(fontSize: 14, color: AppThemeData.info500)),
+                                                      child: Text(
+                                                        onProviderOrder.isBroadcast && !onProviderOrder.hasAssignedProvider
+                                                            ? "Procurando prestador próximo…".tr
+                                                            : Constant.orderStatusLabel(onProviderOrder.status),
+                                                        style: AppThemeData.boldTextStyle(fontSize: 14, color: AppThemeData.info500),
+                                                      ),
                                                     ),
                                                     Padding(
                                                       padding: const EdgeInsets.only(top: 6),
@@ -176,7 +186,7 @@ class MyBookingOnDemandScreen extends StatelessWidget {
           children: [
             detailRow("Date & Time", DateFormat('dd-MM-yyyy HH:mm').format(order.scheduleDateTime!.toDate()), isDark),
             const Divider(thickness: 1),
-            detailRow("Provider", order.provider.authorName.toString(), isDark),
+            detailRow("Provider", order.isBroadcast && !order.hasAssignedProvider ? "Procurando…".tr : order.provider.authorName.toString(), isDark),
 
             if (order.provider.priceUnit == "Hourly") ...[
               if (order.startTime != null) ...[const Divider(thickness: 1), detailRow("Start Time", DateFormat('dd-MM-yyyy HH:mm').format(order.startTime!.toDate()), isDark)],

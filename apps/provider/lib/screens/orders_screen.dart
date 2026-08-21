@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/constant/constant.dart';
 import 'package:provider/models/provider_order_model.dart';
 import 'package:provider/screens/home_shell_controller.dart';
+import 'package:provider/screens/nearby_requests_screen.dart';
 import 'package:provider/screens/order_detail_screen.dart';
 import 'package:provider/service/fire_store_utils.dart';
 import 'package:provider/themes/app_theme.dart';
@@ -49,7 +50,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final uid = FireStoreUtils.getCurrentUid();
     final shell = Get.find<HomeShellController>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Pedidos')),
+      appBar: AppBar(
+        title: const Text('Pedidos'),
+        actions: [
+          IconButton(
+            tooltip: 'Pedidos próximos',
+            onPressed: () => Get.to(() => const NearbyRequestsScreen()),
+            icon: const Icon(Icons.near_me_outlined),
+          ),
+        ],
+      ),
       body: Obx(() {
         final tab = shell.ordersTab.value;
         return Column(

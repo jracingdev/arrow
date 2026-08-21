@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/constant/constant.dart';
+import 'package:provider/models/provider_document_model.dart';
 import 'package:provider/models/provider_order_model.dart';
+import 'package:provider/models/provider_service_model.dart';
 import 'package:provider/models/user_model.dart';
 import 'package:provider/screens/documents_screen.dart';
 import 'package:provider/screens/home_shell_controller.dart';
+import 'package:provider/screens/nearby_requests_screen.dart';
 import 'package:provider/screens/order_detail_screen.dart';
 import 'package:provider/screens/ratings_screen.dart';
 import 'package:provider/screens/services_screen.dart';
@@ -64,7 +67,20 @@ class DashboardScreen extends StatelessWidget {
               final wallet = user?.walletAmount ?? 0;
               final avg = RatingAverage.formatted(user?.reviewsSum, user?.reviewsCount);
 
-              return CustomScrollView(
+              return StreamBuilder<List<ProviderServiceModel>>(
+                stream: FireStoreUtils.watchMyServices(uid),
+                builder: (context, serviceSnap) {
+                  final services = serviceSnap.data ?? const <ProviderServiceModel>[];
+                  return StreamBuilder<List<ProviderOrderModel>>(
+                    stream: FireStoreUtils.watchNearbyBroadcast(
+                      uid: uid,
+                      myServices: services,
+                      lat: user?.latitude,
+                      lng: user?.longitude,
+                    ),
+                    builder: (context, nearbySnap) {
+                      final nearby = nearbySnap.data ?? const <ProviderOrderModel>[];
+                      return CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
                     child: Container(
@@ -83,7 +99,13 @@ class DashboardScreen extends StatelessWidget {
                                   style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w700),
                                 ),
                               ),
-                              _VerifyBadge(verified: verified),
+                              StreamBuilder<ProviderDocumentModel?>(
+                                stream: FireStoreUtils.watchDocumentsVerify(uid),
+                                builder: (context, verifySnap) {
+                                  final rejected = verified != true && (verifySnap.data?.hasRejected == true);
+                                  return _VerifyBadge(verified: verified, rejected: rejected);
+                                },
+                              ),
                             ],
                           ),
                           const SizedBox(height: 6),
@@ -150,6 +172,11 @@ class DashboardScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Row(
                         children: [
+                          _QuickAction(
+                            icon: Icons.near_me_outlined,
+                            label: 'Próximos',
+                            onTap: () => Get.to(() => const NearbyRequestsScreen()),
+                          ),
                           _QuickAction(
                             icon: Icons.calendar_today_outlined,
                             label: 'Agenda',
@@ -222,6 +249,38 @@ class DashboardScreen extends StatelessWidget {
                       child: Row(
                         children: [
                           const Expanded(
+                            child: Text('Pedidos próximos', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          ),
+                          TextButton(
+                            onPressed: () => Get.to(() => const NearbyRequestsScreen()),
+                            child: Text(nearby.isEmpty ? 'Ver inbox' : 'Ver todos (${nearby.length})'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (nearby.isEmpty)
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Text('Nenhum chamado próximo no momento.', style: TextStyle(color: AppTheme.grey500)),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      sliver: SliverList.separated(
+                        itemCount: nearby.take(3).length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
+                        itemBuilder: (context, i) => NearbyRequestCard(order: nearby[i], services: services, user: user),
+                      ),
+                    ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+                      child: Row(
+                        children: [
+                          const Expanded(
                             child: Text('Pedidos para aceitar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                           ),
                           TextButton(
@@ -250,6 +309,10 @@ class DashboardScreen extends StatelessWidget {
                     ),
                 ],
               );
+                    },
+                  );
+                },
+              );
             },
           );
         },
@@ -259,29 +322,30 @@ class DashboardScreen extends StatelessWidget {
 }
 
 class _VerifyBadge extends StatelessWidget {
-  const _VerifyBadge({required this.verified});
+  const _VerifyBadge({required this.verified, this.rejected = false});
 
   final bool verified;
+  final bool rejected;
 
   @override
   Widget build(BuildContext context) {
+    final color = verified ? AppTheme.success : (rejected ? const Color(0xFFB91C1C) : AppTheme.warning);
+    final label = verified ? 'Verificado' : (rejected ? 'Recusado' : 'Pendente');
+    final icon = verified ? Icons.verified : (rejected ? Icons.cancel_outlined : Icons.hourglass_top);
     return InkWell(
       onTap: verified ? null : () => Get.to(() => const DocumentsScreen()),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: (verified ? AppTheme.success : AppTheme.warning).withValues(alpha: 0.18),
+          color: color.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(verified ? Icons.verified : Icons.hourglass_top, size: 16, color: verified ? AppTheme.success : AppTheme.warning),
+            Icon(icon, size: 16, color: color),
             const SizedBox(width: 6),
-            Text(
-              verified ? 'Verificado' : 'Pendente',
-              style: TextStyle(color: verified ? AppTheme.success : AppTheme.warning, fontWeight: FontWeight.w600, fontSize: 12),
-            ),
+            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12)),
           ],
         ),
       ),

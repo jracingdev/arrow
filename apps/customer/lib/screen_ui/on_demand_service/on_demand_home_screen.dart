@@ -1,3 +1,4 @@
+import 'package:arrow_shared/geo_distance.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/controllers/theme_controller.dart';
@@ -453,6 +454,25 @@ class ServiceView extends StatelessWidget {
                     ),
 
                     const SizedBox(height: 4),
+
+                    // Distance
+                    Builder(
+                      builder: (_) {
+                        final origin = Constant.selectedLocation.location;
+                        final km = GeoDistance.km(
+                          fromLat: origin?.latitude,
+                          fromLng: origin?.longitude,
+                          toLat: provider.latitude,
+                          toLng: provider.longitude,
+                        );
+                        final label = GeoDistance.formatKm(km);
+                        if (label.isEmpty) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : AppThemeData.primary300)),
+                        );
+                      },
+                    ),
 
                     // Category
                     if (controller != null)

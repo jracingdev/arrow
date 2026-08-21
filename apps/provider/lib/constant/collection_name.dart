@@ -12,4 +12,6 @@ class CollectionName {
   static const String itemsReview = 'items_review';
   static const String chat = 'chat';
   static const String payouts = 'payouts';
+  static const String complaints = ArrowFirestoreCollections.complaints;
+  static const String sos = ArrowFirestoreCollections.sos;
 }

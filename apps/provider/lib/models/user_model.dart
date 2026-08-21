@@ -21,6 +21,9 @@ class UserModel {
   bool? isAutoVerify;
   num? reviewsCount;
   num? reviewsSum;
+  Map<String, dynamic>? location;
+  double? latitude;
+  double? longitude;
 
   UserModel({
     this.id,
@@ -43,6 +46,9 @@ class UserModel {
     this.isAutoVerify,
     this.reviewsCount,
     this.reviewsSum,
+    this.location,
+    this.latitude,
+    this.longitude,
   });
 
   String fullName() => '${firstName ?? ''} ${lastName ?? ''}'.trim();
@@ -70,6 +76,15 @@ class UserModel {
     isAutoVerify = json['isAutoVerify'] == true;
     reviewsCount = num.tryParse(json['reviewsCount']?.toString() ?? '0') ?? 0;
     reviewsSum = num.tryParse(json['reviewsSum']?.toString() ?? '0') ?? 0;
+    if (json['location'] is Map) {
+      location = Map<String, dynamic>.from(json['location'] as Map);
+    }
+    latitude = double.tryParse('${json['latitude'] ?? ''}');
+    longitude = double.tryParse('${json['longitude'] ?? ''}');
+    if (location != null) {
+      latitude ??= double.tryParse('${location!['latitude'] ?? ''}');
+      longitude ??= double.tryParse('${location!['longitude'] ?? ''}');
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -96,6 +111,10 @@ class UserModel {
       'isAutoVerify': isAutoVerify ?? false,
       'reviewsCount': reviewsCount ?? 0,
       'reviewsSum': reviewsSum ?? 0,
+      'latitude': latitude,
+      'longitude': longitude,
+      if (latitude != null && longitude != null)
+        'location': {'latitude': latitude, 'longitude': longitude},
     };
   }
 }

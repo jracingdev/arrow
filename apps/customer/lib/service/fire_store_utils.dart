@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:arrow_shared/brazil_phone.dart';
+import 'package:arrow_shared/geo_distance.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/collection_name.dart';
 import 'package:customer/firebase_options.dart';
@@ -2237,11 +2238,119 @@ class FireStoreUtils {
           .catchError((error) {
             log('Error fetching providers: $error');
           });
+
+      await _mergePublishedProvidersWithoutGeo(collectionReference, providerList);
+      await rankProvidersByProximity(providerList);
+      await hideInactiveProviderAuthors(providerList);
     } catch (e) {
       log('Error in getProviderFuture: $e');
     }
 
     return providerList;
+  }
+
+  static Future<void> _mergePublishedProvidersWithoutGeo(
+    Query<Map<String, dynamic>> collectionReference,
+    List<ProviderServiceModel> providerList,
+  ) async {
+    try {
+      final snap = await collectionReference.get();
+      final seen = providerList.map((e) => e.id).toSet();
+      for (final doc in snap.docs) {
+        final model = ProviderServiceModel.fromJson(doc.data());
+        if (model.id == null || model.id!.isEmpty || seen.contains(model.id)) continue;
+        if (Constant.isSubscriptionModelApplied == true || Constant.sectionConstantModel?.adminCommision?.isEnabled == true) {
+          if (model.subscriptionPlan == null ||
+              Constant.isExpireDate(expiryDay: (model.subscriptionPlan?.expiryDay == '-1'), subscriptionExpiryDate: model.subscriptionExpiryDate) == true) {
+            continue;
+          }
+          if (model.subscriptionTotalOrders != '-1' && model.subscriptionTotalOrders == '0') continue;
+        }
+        seen.add(model.id);
+        providerList.add(model);
+      }
+    } catch (e) {
+      log('Error merging providers without geo: $e');
+    }
+  }
+
+  static Future<void> rankProvidersByProximity(List<ProviderServiceModel> providerList) async {
+    if (providerList.isEmpty) return;
+    final origin = Constant.selectedLocation.location;
+    final missingAuthors = providerList
+        .where((p) => _coordsOf(p) == null)
+        .map((p) => p.author)
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
+    final authorCoords = <String, ({double lat, double lng})>{};
+    for (final id in missingAuthors) {
+      final user = await getUserProfile(id);
+      if (user == null) continue;
+      final coords = GeoDistance.resolve(
+        userLat: user.location?.latitude,
+        userLng: user.location?.longitude,
+        vendorLat: user.latitude,
+        vendorLng: user.longitude,
+      );
+      if (coords != null) authorCoords[id] = coords;
+    }
+
+    final radius = nearbyRadiusKm();
+    providerList.removeWhere((service) {
+      final coords = _coordsOf(service) ?? authorCoords[service.author ?? ''];
+      if (coords == null) return false;
+      if (!GeoDistance.isValid(origin?.latitude, origin?.longitude)) return false;
+      final distance = GeoDistance.km(
+        fromLat: origin?.latitude,
+        fromLng: origin?.longitude,
+        toLat: coords.lat,
+        toLng: coords.lng,
+      );
+      if (distance == null) return false;
+      return distance > radius;
+    });
+
+    for (final service in providerList) {
+      final coords = _coordsOf(service) ?? authorCoords[service.author ?? ''];
+      if (coords == null) continue;
+      service.latitude = coords.lat;
+      service.longitude = coords.lng;
+    }
+
+    providerList.sort((a, b) {
+      final da = GeoDistance.km(
+        fromLat: origin?.latitude,
+        fromLng: origin?.longitude,
+        toLat: a.latitude,
+        toLng: a.longitude,
+      );
+      final db = GeoDistance.km(
+        fromLat: origin?.latitude,
+        fromLng: origin?.longitude,
+        toLat: b.latitude,
+        toLng: b.longitude,
+      );
+      return GeoDistance.compareKm(da, db);
+    });
+  }
+
+  static ({double lat, double lng})? _coordsOf(ProviderServiceModel service) {
+    return GeoDistance.resolve(
+      serviceLat: service.latitude,
+      serviceLng: service.longitude,
+      geoLat: service.geoFireData.geoPoint is GeoPoint ? (service.geoFireData.geoPoint as GeoPoint).latitude : null,
+      geoLng: service.geoFireData.geoPoint is GeoPoint ? (service.geoFireData.geoPoint as GeoPoint).longitude : null,
+    );
+  }
+
+  static double nearbyRadiusKm() {
+    final raw = Constant.sectionConstantModel?.nearByRadius;
+    if (raw == null || raw <= 0) return 25;
+    final value = raw.toDouble();
+    if (value > 200) return value / 1000.0;
+    return value;
   }
 
   static Future<List<ProviderServiceModel>> getAllProviderServiceByAuthorId(String authId) async {
@@ -2469,6 +2578,31 @@ class FireStoreUtils {
     } catch (e) {
       print("Error updating OnDemand order: $e");
       rethrow;
+    }
+  }
+
+  static Future<bool> cancelUnassignedBroadcast(String orderId, {String reason = ''}) async {
+    if (orderId.isEmpty) return false;
+    final ref = fireStore.collection(CollectionName.providerOrders).doc(orderId);
+    try {
+      await fireStore.runTransaction((tx) async {
+        final snap = await tx.get(ref);
+        if (!snap.exists || snap.data() == null) {
+          throw Exception('Pedido não encontrado');
+        }
+        final data = snap.data()!;
+        final author = (data['provider'] is Map ? (data['provider'] as Map)['author'] : '')?.toString() ?? '';
+        if (author.trim().isNotEmpty) {
+          throw StateError('accepted');
+        }
+        tx.update(ref, {
+          'status': Constant.orderCancelled,
+          'reason': reason.isEmpty ? 'Cliente cancelou a busca' : reason,
+        });
+      });
+      return true;
+    } on StateError {
+      return false;
     }
   }
 
@@ -3009,5 +3143,82 @@ class FireStoreUtils {
     final docId = (inboxModel.senderReceiverId?.contains('admin') == false) ? inboxModel.orderId : inboxModel.senderId;
     await collection.doc(docId).set(inboxModel.toJson());
     return inboxModel;
+  }
+
+  static bool isAccountActive(UserModel? user) {
+    return user != null && (user.active == true || user.isActive == true);
+  }
+
+  static Future<void> hideInactiveProviderAuthors(List<ProviderServiceModel> providerList) async {
+    final ids = providerList.map((p) => p.author).whereType<String>().where((id) => id.isNotEmpty).toSet();
+    if (ids.isEmpty) return;
+    final inactive = <String>{};
+    for (final id in ids) {
+      try {
+        final user = await getUserProfile(id);
+        if (user == null || !isAccountActive(user)) inactive.add(id);
+      } catch (_) {}
+    }
+    providerList.removeWhere((p) => inactive.contains(p.author));
+  }
+
+  static Future<void> setOnDemandComplaint({
+    required String orderId,
+    required String reporterId,
+    required String reporterRole,
+    required String reporterName,
+    required String reportedId,
+    required String reportedRole,
+    required String reportedName,
+    required String category,
+    required String description,
+    String priority = 'normal',
+  }) async {
+    final id = '${orderId}_$reporterId';
+    final existing = await fireStore.collection(CollectionName.complaints).doc(id).get();
+    if (existing.exists && priority != 'high') {
+      throw Exception('Your complaint is already submitted');
+    }
+    final customerIsReporter = reporterRole == 'customer';
+    await fireStore.collection(CollectionName.complaints).doc(id).set({
+      'id': id,
+      'createdAt': existing.exists ? (existing.data()?['createdAt'] ?? Timestamp.now()) : Timestamp.now(),
+      'orderId': orderId,
+      'serviceType': 'ondemand-service',
+      'reporterId': reporterId,
+      'reporterRole': reporterRole,
+      'reportedId': reportedId,
+      'reportedRole': reportedRole,
+      'category': category,
+      'description': description,
+      'title': category,
+      'status': 'Initiated',
+      'priority': priority,
+      'evidenceUrls': const <String>[],
+      'customerId': customerIsReporter ? reporterId : reportedId,
+      'customerName': customerIsReporter ? reporterName : reportedName,
+      'driverId': customerIsReporter ? reportedId : reporterId,
+      'driverName': customerIsReporter ? reportedName : reporterName,
+    }, SetOptions(merge: true));
+  }
+
+  static Future<void> setOnDemandSos({
+    required String orderId,
+    required String reporterId,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final id = '${orderId}_$reporterId';
+    await fireStore.collection(CollectionName.sos).doc(id).set({
+      'id': id,
+      'orderId': orderId,
+      'status': 'Initiated',
+      'serviceType': 'ondemand-service',
+      'reporterId': reporterId,
+      'reporterRole': 'customer',
+      'priority': 'high',
+      'latLong': {'latitude': latitude, 'longitude': longitude},
+      'createdAt': Timestamp.now(),
+    }, SetOptions(merge: true));
   }
 }

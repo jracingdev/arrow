@@ -47,7 +47,7 @@ class OnDemandBookingScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Text("Book Service".tr, style: AppThemeData.boldTextStyle(fontSize: 18, color: AppThemeData.grey900)),
+                  Text(controller.isBroadcast.value ? "Pedir prestador próximo".tr : "Book Service".tr, style: AppThemeData.boldTextStyle(fontSize: 18, color: AppThemeData.grey900)),
                 ],
               ),
             ),
@@ -98,12 +98,19 @@ class OnDemandBookingScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           color: Colors.grey.shade300,
-                          image: controller.provider.value!.photos.isNotEmpty ? DecorationImage(image: NetworkImage(controller.provider.value?.photos.first), fit: BoxFit.cover) : null,
+                          image: (controller.provider.value?.photos.isNotEmpty ?? false) ? DecorationImage(image: NetworkImage(controller.provider.value?.photos.first), fit: BoxFit.cover) : null,
                         ),
                       ),
                     ],
                   ),
                 ),
+                if (controller.isBroadcast.value) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    "O preço é definido pelo prestador que aceitar. Para preço fixo, você paga depois da aceitação.".tr,
+                    style: AppThemeData.mediumTextStyle(fontSize: 13, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey500),
+                  ),
+                ],
                 const SizedBox(height: 15),
                 Container(
                   padding: const EdgeInsets.all(8),
@@ -253,7 +260,12 @@ class OnDemandBookingScreen extends StatelessWidget {
           ),
           bottomNavigationBar: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: RoundedButtonFill(title: "Confirm".tr, color: AppThemeData.primary300, textColor: AppThemeData.grey50, onPress: () => controller.confirmBooking(context)),
+            child: RoundedButtonFill(
+              title: controller.isBroadcast.value ? "Pedir prestador próximo".tr : "Confirm".tr,
+              color: AppThemeData.primary300,
+              textColor: AppThemeData.grey50,
+              onPress: () => controller.confirmBooking(context),
+            ),
           ),
         );
       },

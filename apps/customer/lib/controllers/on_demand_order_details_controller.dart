@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:arrow_shared/hourly_service_billing.dart';
+import 'package:arrow_shared/report_strikes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/models/coupon_model.dart';
 import 'package:customer/models/user_model.dart';
@@ -16,6 +17,7 @@ import '../models/worker_model.dart';
 import '../service/fire_store_utils.dart';
 import '../service/send_notification.dart';
 import '../themes/show_toast_dialog.dart';
+import '../utils/utils.dart';
 
 class OnDemandOrderDetailsController extends GetxController {
   Rx<UserModel?> providerUser = Rx<UserModel?>(null);
@@ -42,6 +44,7 @@ class OnDemandOrderDetailsController extends GetxController {
 
   final RxBool isLoading = false.obs;
   StreamSubscription? _invoiceSub;
+  StreamSubscription? _providerLocSub;
 
   @override
   void onInit() {
@@ -53,30 +56,39 @@ class OnDemandOrderDetailsController extends GetxController {
     }
     getData();
     _watchOrder();
+    _watchProviderLocation();
   }
 
   void _watchOrder() {
     final id = onProviderOrder.value?.id;
     if (id == null || id.isEmpty) return;
     _invoiceSub = FireStoreUtils.fireStore.collection(CollectionName.providerOrders).doc(id).snapshots().listen((snap) {
-      final current = onProviderOrder.value;
-      if (!snap.exists || snap.data() == null || current == null) return;
-      final data = snap.data()!;
-      current.invoices = OrderInvoiceModel.listFrom(data['invoices']);
-      current.startTime = data['startTime'] is Timestamp ? data['startTime'] as Timestamp : current.startTime;
-      current.endTime = data['endTime'] is Timestamp ? data['endTime'] as Timestamp : (data.containsKey('endTime') && data['endTime'] == null ? null : current.endTime);
-      current.status = data['status']?.toString() ?? current.status;
-      current.paymentStatus = data['paymentStatus'] as bool? ?? current.paymentStatus;
-      current.extraPaymentStatus = data['extraPaymentStatus'] as bool? ?? current.extraPaymentStatus;
-      current.quantity = double.tryParse('${data['quantity'] ?? current.quantity}') ?? current.quantity;
-      onProviderOrder.refresh();
+      if (!snap.exists || snap.data() == null) return;
+      final next = OnProviderOrderModel.fromJson(snap.data()!);
+      onProviderOrder.value = next;
       calculatePrice();
+      final authorId = next.provider.author ?? '';
+      if (authorId.isNotEmpty && providerUser.value?.id != authorId) {
+        FireStoreUtils.getUserProfile(authorId).then((user) {
+          if (user != null) providerUser.value = user;
+        });
+      }
+    });
+  }
+
+  void _watchProviderLocation() {
+    final id = onProviderOrder.value?.provider.author;
+    if (id == null || id.isEmpty) return;
+    _providerLocSub = FireStoreUtils.fireStore.collection(CollectionName.users).doc(id).snapshots().listen((snap) {
+      if (!snap.exists || snap.data() == null) return;
+      providerUser.value = UserModel.fromJson(snap.data()!);
     });
   }
 
   @override
   void onClose() {
     _invoiceSub?.cancel();
+    _providerLocSub?.cancel();
     super.onClose();
   }
 
@@ -324,6 +336,60 @@ class OnDemandOrderDetailsController extends GetxController {
     final uri = Uri.tryParse(url);
     if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       ShowToastDialog.showToast('Não foi possível abrir a nota fiscal.'.tr);
+    }
+  }
+
+  bool canReport(String? status) {
+    return status == Constant.orderAssigned ||
+        status == Constant.orderOngoing ||
+        status == Constant.orderCompleted ||
+        status == Constant.orderCancelled ||
+        status == Constant.orderAccepted ||
+        status == Constant.orderInTransit;
+  }
+
+  bool canSos(String? status) {
+    return status == Constant.orderOngoing || status == Constant.orderAssigned || status == Constant.orderInTransit;
+  }
+
+  Future<void> submitReport({required String category, required String description, bool sos = false}) async {
+    final order = onProviderOrder.value;
+    if (order == null) return;
+    final reportedId = order.provider.author ?? '';
+    ShowToastDialog.showLoader("Please wait...".tr);
+    try {
+      if (sos) {
+        double? lat;
+        double? lng;
+        try {
+          final pos = await Utils.getCurrentLocation();
+          lat = pos?.latitude;
+          lng = pos?.longitude;
+        } catch (_) {}
+        await FireStoreUtils.setOnDemandSos(
+          orderId: order.id,
+          reporterId: FireStoreUtils.getCurrentUid(),
+          latitude: lat,
+          longitude: lng,
+        );
+      }
+      await FireStoreUtils.setOnDemandComplaint(
+        orderId: order.id,
+        reporterId: FireStoreUtils.getCurrentUid(),
+        reporterRole: 'customer',
+        reporterName: Constant.userModel?.fullName() ?? '',
+        reportedId: reportedId,
+        reportedRole: 'provider',
+        reportedName: providerUser.value?.fullName() ?? order.provider.authorName ?? '',
+        category: sos ? ReportCategories.abuse : category,
+        description: description,
+        priority: sos ? 'high' : 'normal',
+      );
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast('A plataforma vai analisar sua denúncia.'.tr);
+    } catch (e) {
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast(e.toString().tr);
     }
   }
 }

@@ -44,6 +44,8 @@ abstract final class ArrowIosBundleIds {
 abstract final class ArrowFirestoreCollections {
   static const providerOrders = 'provider_orders';
   static const providersWorkers = 'providers_workers';
+  static const complaints = 'complaints';
+  static const sos = 'SOS';
 }
 
 /// Debug keystore fingerprints of **this machine** — USB/`flutter run` builds

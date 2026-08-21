@@ -45,6 +45,8 @@ void main() {
     expect(CollectionName.itemsReview, 'items_review');
     expect(CollectionName.chat, 'chat');
     expect(CollectionName.payouts, 'payouts');
+    expect(CollectionName.complaints, 'complaints');
+    expect(CollectionName.sos, 'SOS');
     expect(Constant.statusLabel(Constant.orderPlaced), 'Pedido realizado');
     expect(Constant.statusLabel(Constant.orderAccepted), 'Pedido aceito');
     expect(Constant.statusLabel(Constant.orderAssigned), 'Pedido atribuído');
@@ -54,6 +56,8 @@ void main() {
     expect(Constant.canUploadInvoice(Constant.orderCompleted), isTrue);
     expect(Constant.canUploadInvoice(Constant.orderPlaced), isFalse);
     expect(Constant.invoiceTypeNfse, 'nfs-e');
+    expect(Constant.dispatchBroadcast, 'broadcast');
+    expect(Constant.dispatchDirect, 'direct');
   });
 
   test('path de storage da NFS-e da reserva', () {

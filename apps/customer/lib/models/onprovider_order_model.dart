@@ -36,6 +36,10 @@ class OnProviderOrderModel {
   String? platformFee;
   List<TaxModel>? platformTax;
   List<OrderInvoiceModel> invoices;
+  String? dispatchMode;
+  String? requestedCategoryId;
+  double? radiusKm;
+  List<String> rejectedBy;
 
   OnProviderOrderModel({
     this.sectionId = '',
@@ -70,11 +74,16 @@ class OnProviderOrderModel {
     this.platformFee,
     this.platformTax,
     List<OrderInvoiceModel>? invoices,
+    this.dispatchMode,
+    this.requestedCategoryId,
+    this.radiusKm,
+    List<String>? rejectedBy,
   }) : author = author ?? UserModel(),
        createdAt = createdAt ?? Timestamp.now(),
        provider = provider ?? ProviderServiceModel(),
        scheduleDateTime = scheduleDateTime ?? Timestamp.now(),
-       invoices = invoices ?? const [];
+       invoices = invoices ?? const [],
+       rejectedBy = rejectedBy ?? const [];
 
   factory OnProviderOrderModel.fromJson(Map<String, dynamic> parsedJson) {
     List<TaxModel>? taxList;
@@ -124,7 +133,20 @@ class OnProviderOrderModel {
       platformFee: parsedJson['platformFee'],
       platformTax: platformTax,
       invoices: OrderInvoiceModel.listFrom(parsedJson['invoices']),
+      dispatchMode: parsedJson['dispatchMode']?.toString(),
+      requestedCategoryId: parsedJson['requestedCategoryId']?.toString(),
+      radiusKm: double.tryParse('${parsedJson['radiusKm'] ?? ''}'),
+      rejectedBy: parsedJson['rejectedBy'] is List
+          ? List<String>.from((parsedJson['rejectedBy'] as List).map((e) => e.toString()))
+          : const [],
     );
+  }
+
+  bool get isBroadcast => dispatchMode == 'broadcast';
+
+  bool get hasAssignedProvider {
+    final author = provider.author ?? '';
+    return author.trim().isNotEmpty;
   }
 
   Map<String, dynamic> toJson() {
@@ -160,6 +182,10 @@ class OnProviderOrderModel {
       'extraChargesDescription': extraChargesDescription,
       'platformFee': platformFee,
       'platformTax': platformTax?.map((v) => v.toJson()).toList(),
+      'dispatchMode': dispatchMode,
+      'requestedCategoryId': requestedCategoryId,
+      'radiusKm': radiusKm,
+      'rejectedBy': rejectedBy,
     };
   }
 }

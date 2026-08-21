@@ -46,6 +46,8 @@ void main() {
   test('provider Firestore collections are the on-demand names', () {
     expect(ArrowFirestoreCollections.providerOrders, 'provider_orders');
     expect(ArrowFirestoreCollections.providersWorkers, 'providers_workers');
+    expect(ArrowFirestoreCollections.complaints, 'complaints');
+    expect(ArrowFirestoreCollections.sos, 'SOS');
   });
 
   test('local debug SHA-1 is E1:95; release Arrow is 1C:CF, not Console 4D:D8', () {

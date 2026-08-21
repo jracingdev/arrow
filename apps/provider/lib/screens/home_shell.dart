@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/constant/constant.dart';
@@ -6,9 +7,11 @@ import 'package:provider/screens/agenda_screen.dart';
 import 'package:provider/screens/dashboard_screen.dart';
 import 'package:provider/screens/documents_screen.dart';
 import 'package:provider/screens/home_shell_controller.dart';
+import 'package:provider/screens/login_screen.dart';
 import 'package:provider/screens/orders_screen.dart';
 import 'package:provider/screens/profile_screen.dart';
 import 'package:provider/service/fire_store_utils.dart';
+import 'package:provider/service/location_service.dart';
 import 'package:provider/themes/app_theme.dart';
 
 class HomeShell extends StatefulWidget {
@@ -27,6 +30,18 @@ class _HomeShellState extends State<HomeShell> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    ProviderLocationService.start();
+  }
+
+  @override
+  void dispose() {
+    ProviderLocationService.stop();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final shell = Get.put(HomeShellController());
     final uid = FireStoreUtils.getCurrentUid();
@@ -35,6 +50,14 @@ class _HomeShellState extends State<HomeShell> {
       builder: (context, snapshot) {
         final user = snapshot.data ?? Constant.userModel;
         if (user != null) Constant.userModel = user;
+        if (user != null && user.active != true) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            Constant.userModel = null;
+            await FirebaseAuth.instance.signOut();
+            if (!mounted) return;
+            Get.offAll(() => const LoginScreen());
+          });
+        }
         final showBanner = user?.needsDocumentVerification == true;
         return Obx(() {
           final index = shell.index.value;
