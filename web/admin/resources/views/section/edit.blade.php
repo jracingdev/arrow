@@ -325,7 +325,7 @@
                     var data = listval.data();
                     $('#service_type').append($("<option></option>")
                         .attr("value", data.name).attr("flag", data.flag)
-                        .text(data.name));
+                        .text(ArrowI18n.serviceTypeLabel(data.flag, data.name)));
                 })
             })
             ref.get().then(async function(snapshots) {

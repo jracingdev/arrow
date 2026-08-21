@@ -249,22 +249,25 @@ class VehicleInformationController extends GetxController {
   String getReadableServiceType(String key) {
     switch (key) {
       case 'cab-service':
-        return 'Cab Service';
+        return 'Corridas';
       case 'parcel_delivery':
-        return 'Parcel Service';
+        return 'Encomendas';
       case 'rental-service':
-        return 'Rental Service';
+        return 'Aluguel';
       default:
-        return 'Delivery Service';
+        return 'Entrega';
     }
   }
 
   String getServiceTypeKey(String name) {
     switch (name) {
+      case 'Corridas':
       case 'Cab Service':
         return 'cab-service';
+      case 'Encomendas':
       case 'Parcel Service':
         return 'parcel_delivery';
+      case 'Aluguel':
       case 'Rental Service':
         return 'rental-service';
       default:

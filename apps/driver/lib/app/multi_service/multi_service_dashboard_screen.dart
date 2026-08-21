@@ -52,25 +52,25 @@ class MultiServiceDashboardScreen extends StatelessWidget {
         return const BottomNavigationBarItem(
           icon: Icon(Icons.local_taxi_outlined),
           activeIcon: Icon(Icons.local_taxi),
-          label: 'Cab',
+          label: 'Corridas',
         );
       case 'parcel_delivery':
         return const BottomNavigationBarItem(
           icon: Icon(Icons.inventory_2_outlined),
           activeIcon: Icon(Icons.inventory_2),
-          label: 'Parcel',
+          label: 'Encomendas',
         );
       case 'rental-service':
         return const BottomNavigationBarItem(
           icon: Icon(Icons.car_rental_outlined),
           activeIcon: Icon(Icons.car_rental),
-          label: 'Rental',
+          label: 'Aluguel',
         );
       default:
         return const BottomNavigationBarItem(
           icon: Icon(Icons.delivery_dining_outlined),
           activeIcon: Icon(Icons.delivery_dining),
-          label: 'Delivery',
+          label: 'Entrega',
         );
     }
   }

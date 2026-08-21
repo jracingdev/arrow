@@ -212,7 +212,7 @@
 
         ref_sections.get().then(async function (snapshots) {
 
-            $("#section_id").append('<optgroup label="Multivendor Delivery Service"></optgroup');
+            $("#section_id").append('<optgroup label="' + ArrowI18n.serviceType("delivery-service") + '"></optgroup>');
 
             snapshots.docs.forEach((listval) => {
                 var data = listval.data();
@@ -227,7 +227,7 @@
 
             })
 
-            $("#section_id").append('<optgroup label="Ecommerce Service"><optgroup');
+            $("#section_id").append('<optgroup label="' + ArrowI18n.serviceType("ecommerce-service") + '"></optgroup>');
 
             snapshots.docs.forEach((listval) => {
                 var data = listval.data();
@@ -240,7 +240,7 @@
                 }
             })
 
-            $("#section_id").append('<optgroup label="Parcel Delivery Service"><optgroup');
+            $("#section_id").append('<optgroup label="' + ArrowI18n.serviceType("parcel_delivery") + '"></optgroup>');
             snapshots.docs.forEach((listval) => {
                 var data = listval.data();
                 if (data.serviceTypeFlag == "parcel_delivery") {
@@ -251,7 +251,7 @@
                 }
             })
 
-            $("#section_id").append('<optgroup label="Cab Service"><optgroup');
+            $("#section_id").append('<optgroup label="' + ArrowI18n.serviceType("cab-service") + '"></optgroup>');
             snapshots.docs.forEach((listval) => {
                 var data = listval.data();
                 if (data.serviceTypeFlag == "cab-service") {
@@ -262,7 +262,7 @@
                 }
             })
 
-            $("#section_id").append('<optgroup label="On Demand Service"><optgroup');
+            $("#section_id").append('<optgroup label="' + ArrowI18n.serviceType("ondemand-service") + '"></optgroup>');
             snapshots.docs.forEach((listval) => {
                 var data = listval.data();
                 if (data.serviceTypeFlag == "ondemand-service") {

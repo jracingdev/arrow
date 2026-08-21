@@ -79,13 +79,13 @@ class DriverCreateController extends GetxController {
   String serviceFlagLabel(String? flag) {
     switch (flag) {
       case 'cab-service':
-        return 'Cab';
+        return 'Corridas';
       case 'parcel_delivery':
-        return 'Parcel';
+        return 'Encomendas';
       case 'rental-service':
-        return 'Rental';
+        return 'Aluguel';
       default:
-        return 'Delivery';
+        return 'Entrega';
     }
   }
 

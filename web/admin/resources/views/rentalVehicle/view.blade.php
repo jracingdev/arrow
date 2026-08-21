@@ -91,11 +91,11 @@
     });
 
     const serviceLabels = {
-        "cab-service": "Cab Service",
-        "parcel_delivery": "Parcel Delivery Service",
-        "rental-service": "Rental Service",
-        "delivery-service": "Delivery Service",
-        "ecommerce-service": "Ecommerce Service"
+        "cab-service": ArrowI18n.serviceType("cab-service"),
+        "parcel_delivery": ArrowI18n.serviceType("parcel_delivery"),
+        "rental-service": ArrowI18n.serviceType("rental-service"),
+        "delivery-service": ArrowI18n.serviceType("delivery-service"),
+        "ecommerce-service": ArrowI18n.serviceType("ecommerce-service")
     };
     
     $(document).ready(async function () {

@@ -293,10 +293,10 @@ foreach ($countries as $keycountry => $valuecountry) {
 
         loadActiveSections().then((snapshots) => {
             const groups = {
-                "cab-service": "Cab Service",
-                "delivery-service": "Multivendor Delivery Service",
-                "parcel_delivery": "Parcel Delivery Service",
-                "rental-service": "Rental Service",
+                "cab-service": ArrowI18n.serviceType("cab-service"),
+                "delivery-service": ArrowI18n.serviceType("delivery-service"),
+                "parcel_delivery": ArrowI18n.serviceType("parcel_delivery"),
+                "rental-service": ArrowI18n.serviceType("rental-service"),
             };
             let html = "";
             for (const key in groups) {

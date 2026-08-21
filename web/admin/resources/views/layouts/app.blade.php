@@ -426,7 +426,7 @@
             docs.forEach(doc => {
                 var data = doc.data() || {};
                 var sectionName = data.name || 'Unnamed Section';
-                var sectionDescription = data.description || data.serviceType || '';
+                var sectionDescription = data.description || ArrowI18n.serviceTypeLabel(data.serviceTypeFlag, data.serviceType) || '';
                 var sectionImage = data.sectionImage || placeholderImage;
                 var sectionId = data.id || doc.id;
                 var sectionType = data.serviceTypeFlag || '';

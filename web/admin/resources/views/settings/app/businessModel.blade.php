@@ -214,13 +214,15 @@
 
                         var data = listval.data();
 
-                        var $optgroup = $('#section').find("optgroup[label='" + data.serviceType +
+                        var serviceTypeLabel = ArrowI18n.serviceTypeLabel(data.serviceTypeFlag, data.serviceType);
+
+                        var $optgroup = $('#section').find("optgroup[label='" + serviceTypeLabel +
 
                             "']");
 
                         if ($optgroup.length === 0) {
 
-                            $optgroup = $("<optgroup></optgroup>").attr("label", data.serviceType);
+                            $optgroup = $("<optgroup></optgroup>").attr("label", serviceTypeLabel);
 
                             $('#section').append($optgroup);
 
