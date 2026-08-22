@@ -59,7 +59,17 @@ class PermissionMiddleware
                 return $next($request);
             }
 
+            // Compat: listagem antiga usava routes "documents.list"
+            if ($permission === 'documents' && $routes === 'documents.list' && in_array('documents', $permission_has_routes, true)) {
+                return $next($request);
+            }
+
             abort(403, 'unauthorized access');
+        }
+
+        // Quem gerencia verificação de documentos também pode cadastrar tipos (prestador / sob demanda)
+        if ($permission === 'documents' && in_array('document-verification', $role_has_permissions, true)) {
+            return $next($request);
         }
 
         abort(403, 'unauthorized access');

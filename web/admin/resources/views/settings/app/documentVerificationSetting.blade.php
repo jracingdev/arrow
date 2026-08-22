@@ -13,6 +13,12 @@
         </div>
     </div>
         <div class="card-body">
+      	  <div class="alert alert-info">
+            <strong>{{ trans('lang.document_types_admin_hint_title') }}</strong>
+            <p class="mb-2">{{ trans('lang.document_types_admin_hint_body') }}</p>
+            <a class="btn btn-sm btn-primary mr-2" href="{{ route('documents') }}">{{ trans('lang.document_plural') }}</a>
+            <a class="btn btn-sm btn-outline-primary" href="{{ route('documents.create') }}">{{ trans('lang.document_create') }}</a>
+          </div>
       	  <div class="row vendor_payout_create">
             <div class="vendor_payout_create-inner">
               <fieldset>

@@ -2152,6 +2152,8 @@ return [
     'document_applicant' => 'Solicitante',
     'document_files' => 'Arquivos',
     'document_types_examples' => 'Exemplos: Certidão de antecedentes criminais, RG/CNH, comprovante de endereço, CRLV. Só o administrador vê os arquivos.',
+    'document_types_admin_hint_title' => 'Tipos de documento obrigatórios',
+    'document_types_admin_hint_body' => 'Esta tela só liga ou desliga a verificação. Para cadastrar os documentos exigidos dos prestadores (tipos Prestador e Sob demanda), use Documentos → Criar documento. Marque Ativo e selecione frente e/ou verso.',
     'provider_document_details' => 'Documentos do prestador',
     'frontside' => 'Frente',
     'backside' => 'Verso',

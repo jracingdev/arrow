@@ -734,7 +734,7 @@
                                                         <strong>{{ trans('lang.document_plural') }}</strong>
                                                     </td>
                                                     <td>
-                                                        <input type="checkbox" id="documents-list" value="documents.list" name="documents[]" class="permission">
+                                                        <input type="checkbox" id="documents-list" value="documents" name="documents[]" class="permission">
                                                         <label class=" control-label2" for="documents-list">{{ trans('lang.list') }}</label>
                                                         <input type="checkbox" id="documents-create" value="documents.create" name="documents[]" class="permission">
                                                         <label class=" control-label2" for="documents-create">{{ trans('lang.create') }}</label>

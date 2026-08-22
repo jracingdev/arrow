@@ -2,6 +2,9 @@
 $user = Auth::user();
 $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->pluck('permission')->toArray();
 $service_type = @$_COOKIE['service_type'];
+$can_manage_documents = (int) $user->role_id === 1
+    || in_array('documents', $role_has_permission, true)
+    || in_array('document-verification', $role_has_permission, true);
 @endphp
 
 <div class="sidebar-search">
@@ -348,9 +351,15 @@ $service_type = @$_COOKIE['service_type'];
         in_array('gift-cards', $role_has_permission) ||
         in_array('coupons', $role_has_permission) ||
         in_array('advertisements', $role_has_permission) || 
-        in_array('documents', $role_has_permission)
+        ($can_manage_documents && $service_type != "ondemand-service")
         )
-            @if($service_type != "ondemand-service" || in_array('documents', $role_has_permission))
+            @if($service_type != "ondemand-service" || (
+                in_array('orders', $role_has_permission) ||
+                in_array('deliveryman', $role_has_permission) ||
+                in_array('gift-cards', $role_has_permission) ||
+                in_array('coupons', $role_has_permission) ||
+                in_array('advertisements', $role_has_permission)
+            ))
             <li class="nav-subtitle">
                 <span class="nav-subtitle-span">
                     @if($service_type == "delivery-service" || $service_type == "ecommerce-service")
@@ -417,7 +426,7 @@ $service_type = @$_COOKIE['service_type'];
             @endif
             @endif
             
-            @if (in_array('documents', $role_has_permission))
+            @if ($can_manage_documents && $service_type != "ondemand-service")
                 <li><a class="waves-effect waves-dark" href="{!! route('documents.pending') !!}" aria-expanded="false">
                         <i class="ri-file-check-fill"></i>
                         <span class="hide-menu">{{ trans('lang.document_pending_queue') }}</span>
@@ -429,6 +438,25 @@ $service_type = @$_COOKIE['service_type'];
                     </a>
                 </li>
             @endif
+        @endif
+
+        @if($service_type == "ondemand-service" && $can_manage_documents)
+        <li class="nav-subtitle"><span class="nav-subtitle-span">{{ trans('lang.document_management') }}</span></li>
+        <li><a class="waves-effect waves-dark" href="{!! route('documents.pending') !!}" aria-expanded="false">
+                <i class="ri-file-check-fill"></i>
+                <span class="hide-menu">{{ trans('lang.document_pending_queue') }}</span>
+            </a>
+        </li>
+        <li><a class="waves-effect waves-dark" href="{!! route('documents') !!}" aria-expanded="false">
+                <i class="ri-file-pdf-fill"></i>
+                <span class="hide-menu">{{ trans('lang.document_plural') }}</span>
+            </a>
+        </li>
+        <li><a class="waves-effect waves-dark" href="{!! route('documents.create') !!}" aria-expanded="false">
+                <i class="ri-file-add-fill"></i>
+                <span class="hide-menu">{{ trans('lang.document_create') }}</span>
+            </a>
+        </li>
         @endif
 
         @if (in_array('general-notifications', $role_has_permission) || in_array('dynamic-notifications', $role_has_permission))

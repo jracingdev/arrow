@@ -2,6 +2,9 @@
 $user = Auth::user();
 $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->pluck('permission')->toArray();
 $service_type = @$_COOKIE['service_type'];
+$can_manage_documents = (int) $user->role_id === 1
+    || in_array('documents', $role_has_permission, true)
+    || in_array('document-verification', $role_has_permission, true);
 @endphp
 
 <div class="navbar-header position-relative">
@@ -69,6 +72,7 @@ $service_type = @$_COOKIE['service_type'];
         in_array('privacy', $role_has_permission) ||
         in_array('home-page', $role_has_permission) ||
         in_array('footer', $role_has_permission) || in_array('settings-maintenance', $role_has_permission)
+        || $can_manage_documents
         )
         <li id="activeSection" class="text-light nav-item dropdown">
                 <a class="nav-link dropdown-toggle waves-effect waves-dark" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -109,6 +113,11 @@ $service_type = @$_COOKIE['service_type'];
                     @endif
                     @if (in_array('document-verification', $role_has_permission))
                     <li><a class="nav-link"href="{!! route('settings.app.documentVerification') !!}"><i class="mdi mdi-file-document"></i> {{ trans('lang.document_verification') }}</a></li>
+                    @endif
+                    @if ($can_manage_documents)
+                    <li><a class="nav-link" href="{!! route('documents') !!}"><i class="mdi mdi-file-document-box-multiple"></i> {{ trans('lang.document_plural') }}</a></li>
+                    <li><a class="nav-link" href="{!! route('documents.create') !!}"><i class="mdi mdi-file-plus"></i> {{ trans('lang.document_create') }}</a></li>
+                    <li><a class="nav-link" href="{!! route('documents.pending') !!}"><i class="mdi mdi-file-check"></i> {{ trans('lang.document_pending_queue') }}</a></li>
                     @endif
                     @if (in_array('language', $role_has_permission))
                     <li><a class="nav-link"href="{!! route('settings.app.languages') !!}"><i class="mdi mdi-translate"></i> {{ trans('lang.languages') }}</a></li>

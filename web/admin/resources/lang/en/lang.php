@@ -2152,6 +2152,8 @@ return [
     'document_applicant' => 'Applicant',
     'document_files' => 'Files',
     'document_types_examples' => 'Examples: criminal-record certificate, ID/driver license, proof of address, vehicle registration. Only admins see the files.',
+    'document_types_admin_hint_title' => 'Required document types',
+    'document_types_admin_hint_body' => 'This page only toggles verification on/off. To define required provider documents (Provider and On-demand types), go to Documents → Create document. Enable the document and select front and/or back side.',
     'provider_document_details' => 'Provider documents',
     'frontside' => 'Front Side',
     'backside' => 'Back Side',
