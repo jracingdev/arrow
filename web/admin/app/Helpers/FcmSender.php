@@ -46,8 +46,17 @@ class FcmSender
         return 'j-arrow';
     }
 
+    /** @var array<string, array{token: string, exp: int}> */
+    private static array $accessTokenCache = [];
+
     public static function accessToken(array $scopes): ?string
     {
+        $cacheKey = implode(' ', $scopes);
+        $cached = self::$accessTokenCache[$cacheKey] ?? null;
+        if (is_array($cached) && ($cached['token'] ?? '') !== '' && time() < (int) ($cached['exp'] ?? 0)) {
+            return $cached['token'];
+        }
+
         $creds = self::credentials();
         if (!$creds) {
             return null;
@@ -58,8 +67,18 @@ class FcmSender
         $client->addScope($scopes);
         $client->refreshTokenWithAssertion();
         $token = $client->getAccessToken();
+        $access = $token['access_token'] ?? null;
+        if (!is_string($access) || $access === '') {
+            return null;
+        }
 
-        return $token['access_token'] ?? null;
+        $expiresIn = (int) ($token['expires_in'] ?? 3500);
+        self::$accessTokenCache[$cacheKey] = [
+            'token' => $access,
+            'exp' => time() + max(60, $expiresIn - 60),
+        ];
+
+        return $access;
     }
 
     /**
@@ -187,6 +206,14 @@ class FcmSender
             return 'Falha ao enviar pelo FCM.';
         }
 
+        $lower = strtolower($error);
+        if (str_contains($lower, 'senderid mismatch') || str_contains($lower, 'sender_id_mismatch') || str_contains($lower, 'sender id mismatch')) {
+            return 'Token de outro projeto Firebase (SenderId mismatch). O usuário precisa abrir o app atualizado do projeto j-arrow.';
+        }
+        if (str_contains($lower, 'notregistered') || str_contains($lower, 'unregistered') || str_contains($lower, 'requested entity was not found')) {
+            return 'Token expirado ou app desinstalado (NotRegistered). Peça para abrir o app e aceitar notificações.';
+        }
+
         $error = preg_replace('/Bearer\s+[A-Za-z0-9._\-~+\/]+=*/i', 'Bearer [redacted]', $error) ?? $error;
         $error = preg_replace('/private_key[^,]{0,40}/i', 'private_key [redacted]', $error) ?? $error;
 
@@ -263,6 +290,8 @@ class FcmSender
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['message' => $message]));
         $result = curl_exec($ch);
         if ($result === false) {

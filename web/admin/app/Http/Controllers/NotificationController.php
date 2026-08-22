@@ -108,7 +108,13 @@ class NotificationController extends Controller
         $skipped = 0;
         $errors = [];
 
-        if ($tokens !== []) {
+        // Broadcasts go to FCM topics (apps subscribe on login). Firestore tokens are often
+        // stale (NotRegistered) or from another Firebase project (SenderId mismatch).
+        if (in_array($audience, ['all', 'role', 'topic'], true)) {
+            $tokens = [];
+        }
+
+        if ($audience === 'user' && $tokens !== []) {
             $tokenResult = FcmSender::sendToTokens($tokens, $subject, $message, $data);
             $sent += $tokenResult['sent'];
             $failed += $tokenResult['failed'];
@@ -116,7 +122,7 @@ class NotificationController extends Controller
             $errors = array_merge($errors, $tokenResult['errors']);
         }
 
-        if ($topics !== [] && $tokens === []) {
+        if ($topics !== []) {
             $topicResult = FcmSender::sendToTopics($topics, $subject, $message, $data);
             $sent += $topicResult['sent'];
             $failed += $topicResult['failed'];
@@ -140,11 +146,15 @@ class NotificationController extends Controller
             ]);
         }
 
-        $messageText = $success
-            ? 'Notificação enviada com sucesso ('.$sent.' envio(s)).'
-            : ($partial
-                ? 'Envio parcial: '.$sent.' ok, '.$failed.' falha(s).'
-                : 'Falha ao enviar notificação ('.$failed.' falha(s)).');
+        if ($success && $topics !== []) {
+            $messageText = 'Notificação enviada aos tópicos: '.implode(', ', $topics).'. Quem abriu o app recente (e aceitou notificações) deve receber.';
+        } else {
+            $messageText = $success
+                ? 'Notificação enviada com sucesso ('.$sent.' envio(s)).'
+                : ($partial
+                    ? 'Envio parcial: '.$sent.' ok, '.$failed.' falha(s).'
+                    : 'Falha ao enviar notificação ('.$failed.' falha(s)).');
+        }
 
         if ($errors !== []) {
             $messageText .= ' '.implode(' ', array_slice($errors, 0, 3));

@@ -124,7 +124,6 @@ var id = "<?php echo $id;?>";
 var database = firebase.firestore();
 var selectedUserToken = '';
 var selectedUserLabel = '';
-var BROADCAST_ROLES = ['customer', 'vendor', 'driver', 'provider', 'worker'];
 
 function showError(text) {
     $(".success_top").hide();
@@ -149,27 +148,6 @@ function toggleAudienceFields() {
         $("#user_search_result").text("");
     }
     $("#recipient_hint").text("");
-}
-
-async function collectTokens(audience, role) {
-    if (audience === "user") {
-        return selectedUserToken ? [selectedUserToken] : [];
-    }
-    if (audience === "topic") {
-        return [];
-    }
-    var roles = audience === "all" ? BROADCAST_ROLES : [role];
-    var tokens = [];
-    await Promise.all(roles.map(async function (r) {
-        var snap = await database.collection("users").where("role", "==", r).get();
-        snap.docs.forEach(function (doc) {
-            var token = ((doc.data().fcmToken || "") + "").trim();
-            if (token) {
-                tokens.push(token);
-            }
-        });
-    }));
-    return Array.from(new Set(tokens));
 }
 
 async function findUser(query) {
@@ -248,29 +226,16 @@ $(document).ready(function () {
         }
 
         jQuery("#data-table_processing").show();
-        $("#recipient_hint").text("{{trans('lang.notification_collecting_tokens')}}");
 
         var tokens = [];
-        try {
-            tokens = await collectTokens(audience, role);
-        } catch (err) {
-            tokens = [];
-        }
-
-        if (tokens.length > 400) {
-            tokens = [];
-            $("#recipient_hint").text("{{trans('lang.notification_topic_fallback')}}");
+        if (audience === "user") {
+            tokens = selectedUserToken ? [selectedUserToken] : [];
+            $("#recipient_hint").text("{{trans('lang.notification_sending_user')}}");
         } else {
-            $("#recipient_hint").text(tokens.length
-                ? (tokens.length + " {{trans('lang.notification_tokens_found')}}")
-                : "{{trans('lang.notification_topic_fallback')}}");
+            $("#recipient_hint").text("{{trans('lang.notification_sending_topics')}}");
         }
 
-        var chunks = tokens.length ? [] : [[]];
-        var size = 80;
-        for (var i = 0; i < tokens.length; i += size) {
-            chunks.push(tokens.slice(i, i + size));
-        }
+        var chunks = tokens.length ? [tokens] : [[]];
 
         var totalSent = 0;
         var totalFailed = 0;

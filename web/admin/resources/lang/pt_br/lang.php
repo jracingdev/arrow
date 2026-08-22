@@ -311,7 +311,7 @@ return [
     'notification_audience_role' => 'Por papel',
     'notification_audience_topic' => 'Por tópico FCM',
     'notification_audience_user' => 'Usuário específico',
-    'notification_audience_help' => 'Todos e por papel incluem o app do prestador (role=provider, tópico provider).',
+    'notification_audience_help' => 'Todos e por papel enviam pelos tópicos FCM (customer, vendor, driver, provider). Tokens antigos no Firestore (outro projeto ou app desinstalado) são ignorados de propósito.',
     'notification_topic_name' => 'Tópico FCM',
     'notification_user_search' => 'Buscar usuário',
     'notification_user_searching' => 'Buscando…',
@@ -323,6 +323,8 @@ return [
     'notification_collecting_tokens' => 'Coletando tokens FCM…',
     'notification_tokens_found' => 'token(s) FCM encontrado(s), incluindo prestador se houver.',
     'notification_topic_fallback' => 'Nenhum token no Firestore; o envio usará tópicos FCM (inclui provider).',
+    'notification_sending_topics' => 'Enviando pelos tópicos FCM (quem abriu o app recente recebe). Isso evita tokens NotRegistered / SenderId mismatch.',
+    'notification_sending_user' => 'Enviando para o token FCM deste usuário…',
     //---------------------------------------OOOO---------------------------------------
     'old_password' => "Senha Antiga",
     'old_password_help' => 'Insira sua senha antiga',

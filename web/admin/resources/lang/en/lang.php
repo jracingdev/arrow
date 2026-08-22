@@ -311,7 +311,7 @@ return [
     'notification_audience_role' => 'By role',
     'notification_audience_topic' => 'By FCM topic',
     'notification_audience_user' => 'Specific user',
-    'notification_audience_help' => 'All and by role include the provider app (role=provider, topic provider).',
+    'notification_audience_help' => 'All and by role send via FCM topics (customer, vendor, driver, provider). Stale Firestore tokens (wrong project or uninstalled app) are skipped on purpose.',
     'notification_topic_name' => 'FCM topic',
     'notification_user_search' => 'Search user',
     'notification_user_searching' => 'Searching…',
@@ -323,6 +323,8 @@ return [
     'notification_collecting_tokens' => 'Collecting FCM tokens…',
     'notification_tokens_found' => 'FCM token(s) found, including provider if present.',
     'notification_topic_fallback' => 'No Firestore tokens; send will use FCM topics (includes provider).',
+    'notification_sending_topics' => 'Sending via FCM topics (users who recently opened the app). This avoids NotRegistered / SenderId mismatch tokens.',
+    'notification_sending_user' => 'Sending to this user’s FCM token…',
     //---------------------------------------OOOO---------------------------------------
     'old_password' => "Old Password",
     'old_password_help' => 'Insert your old password',
