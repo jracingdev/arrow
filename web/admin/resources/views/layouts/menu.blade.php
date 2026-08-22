@@ -346,12 +346,14 @@ $can_manage_documents = (int) $user->role_id === 1
         @endif
 
         @if (
+        $service_type != "ondemand-service" && (
         in_array('orders', $role_has_permission) ||
         in_array('deliveryman', $role_has_permission) ||
         in_array('gift-cards', $role_has_permission) ||
         in_array('coupons', $role_has_permission) ||
-        in_array('advertisements', $role_has_permission) || 
-        ($can_manage_documents && $service_type != "ondemand-service")
+        in_array('advertisements', $role_has_permission) ||
+        $can_manage_documents
+        )
         )
             @if($service_type != "ondemand-service" || (
                 in_array('orders', $role_has_permission) ||
