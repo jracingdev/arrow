@@ -26,8 +26,8 @@ class ServiceMapCard extends StatelessWidget {
   Future<void> _open() {
     return ServiceNavigation.open(
       name: title,
-      latitude: latitude,
-      longitude: longitude,
+      latitude: _hasCoords ? latitude : null,
+      longitude: _hasCoords ? longitude : null,
       address: address,
     );
   }

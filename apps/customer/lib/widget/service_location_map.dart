@@ -1,12 +1,9 @@
 import 'package:arrow_shared/geo_distance.dart';
-import 'package:customer/themes/show_toast_dialog.dart';
+import 'package:customer/utils/service_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:map_launcher/map_launcher.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../utils/utils.dart';
 
 class ServiceLocationMap extends StatelessWidget {
   const ServiceLocationMap({
@@ -32,37 +29,13 @@ class ServiceLocationMap extends StatelessWidget {
 
   bool get _hasProvider => showProvider && GeoDistance.isValid(providerLat, providerLng);
 
-  Future<void> _open() async {
-    if (_hasDest) {
-      try {
-        await Utils.redirectMap(
-          name: address.isEmpty ? 'Local do serviço' : address,
-          latitude: latitude!,
-          longLatitude: longitude!,
-        );
-        return;
-      } catch (_) {}
-      try {
-        final maps = await MapLauncher.installedMaps;
-        if (maps.isNotEmpty) {
-          await maps.first.showDirections(
-            destination: Coords(latitude!, longitude!),
-            destinationTitle: address,
-            directionsMode: DirectionsMode.driving,
-          );
-          return;
-        }
-      } catch (_) {}
-      final web = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude');
-      await launchUrl(web, mode: LaunchMode.externalApplication);
-      return;
-    }
-    if (address.trim().isEmpty) {
-      ShowToastDialog.showToast('Endereço indisponível'.tr);
-      return;
-    }
-    final web = Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address)}');
-    await launchUrl(web, mode: LaunchMode.externalApplication);
+  Future<void> _open() {
+    return ServiceNavigation.open(
+      name: address.isEmpty ? 'Local do serviço' : address,
+      latitude: _hasDest ? latitude : null,
+      longitude: _hasDest ? longitude : null,
+      address: address,
+    );
   }
 
   MapOptions _mapOptions() {

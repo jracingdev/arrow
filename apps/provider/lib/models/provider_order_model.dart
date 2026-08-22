@@ -113,16 +113,18 @@ class ProviderOrderModel {
 
   double? customerLat() {
     final loc = address?['location'];
+    if (loc is GeoPoint) return loc.latitude;
     if (loc is Map) {
-      return double.tryParse('${loc['latitude'] ?? ''}');
+      return double.tryParse('${loc['latitude'] ?? loc['lat'] ?? ''}');
     }
     return double.tryParse('${address?['latitude'] ?? ''}');
   }
 
   double? customerLng() {
     final loc = address?['location'];
+    if (loc is GeoPoint) return loc.longitude;
     if (loc is Map) {
-      return double.tryParse('${loc['longitude'] ?? ''}');
+      return double.tryParse('${loc['longitude'] ?? loc['lng'] ?? loc['lon'] ?? ''}');
     }
     return double.tryParse('${address?['longitude'] ?? ''}');
   }

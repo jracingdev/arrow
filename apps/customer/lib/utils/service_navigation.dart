@@ -1,10 +1,10 @@
 import 'package:arrow_shared/geo_distance.dart';
+import 'package:customer/themes/show_toast_dialog.dart';
+import 'package:get/get.dart';
 import 'package:map_launcher/map_launcher.dart';
-import 'package:provider/constant/show_toast_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Abre Google Maps ou Waze em navegação turno a turno (GPS atual → destino).
-/// Não usa chave Google; o pin OSM no app continua só para visualização.
+/// Mesmo deep link do prestador: Google Maps / Waze em navegação, sem chave Google.
 class ServiceNavigation {
   ServiceNavigation._();
 
@@ -22,23 +22,20 @@ class ServiceNavigation {
         : (address.trim().isEmpty ? name.trim() : address.trim());
 
     if (destination.isEmpty) {
-      ShowToastDialog.showToast(noMapsToast);
+      ShowToastDialog.showToast(noMapsToast.tr);
       return;
     }
 
     final encoded = Uri.encodeComponent(destination);
 
-    // 1) Intent nativo do Google Maps — inicia a navegação, não só o mapa.
     if (await _tryLaunch(Uri.parse('google.navigation:q=$encoded'))) return;
 
-    // 2) Waze com navigate=yes
     if (hasCoords) {
       if (await _tryLaunch(Uri.parse('waze://?ll=${latitude!},${longitude!}&navigate=yes'))) return;
     } else if (await _tryLaunch(Uri.parse('waze://?q=$encoded&navigate=yes'))) {
       return;
     }
 
-    // 3) Google Maps com dir_action=navigate (preview sozinho não começa a rota).
     if (await _tryLaunch(Uri.parse(
       'https://www.google.com/maps/dir/?api=1&destination=$encoded&travelmode=driving&dir_action=navigate',
     ))) {
@@ -47,7 +44,7 @@ class ServiceNavigation {
 
     if (hasCoords && await _tryMapLauncher(latitude!, longitude!, name, address)) return;
 
-    ShowToastDialog.showToast(noMapsToast);
+    ShowToastDialog.showToast(noMapsToast.tr);
   }
 
   static Future<bool> _tryLaunch(Uri uri) async {
