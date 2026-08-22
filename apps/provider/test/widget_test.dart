@@ -119,6 +119,26 @@ void main() {
     expect(CollectionName.providersServices, 'providers_services');
   });
 
+  test('saque do prestador usa vendorID e PIX como o painel', () {
+    expect(CollectionName.withdrawMethod, 'withdraw_method');
+    expect(CollectionName.payouts, 'payouts');
+    final pix = FireStoreUtils.payoutRequestFields(
+      id: 'p1',
+      uid: 'provider-uid',
+      amount: 80,
+      note: 'PIX',
+      pix: const {'pixKey': '12345678901', 'pixKeyType': 'cpf'},
+    );
+    expect(pix['vendorID'], 'provider-uid');
+    expect(pix['withdrawMethod'], 'pix');
+    expect(pix['pixKey'], '12345678901');
+    expect(pix['pixKeyType'], 'cpf');
+    expect(pix['currency'], 'BRL');
+    expect(pix['role'], 'provider');
+    expect(pix['paymentStatus'], 'Pending');
+    expect(FireStoreUtils.payoutRequestFields(id: 'p2', uid: 'u', amount: 1, note: '')['withdrawMethod'], 'bank');
+  });
+
   test('média de avaliações e rótulo de pagamento', () {
     expect(RatingAverage.of(9, 2), 4.5);
     expect(RatingAverage.formatted(10, 2), '5.0');

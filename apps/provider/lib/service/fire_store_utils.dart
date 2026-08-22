@@ -140,6 +140,11 @@ class FireStoreUtils {
     });
   }
 
+  static Future<List<ProviderServiceModel>> getMyServices(String uid) async {
+    final snap = await _db.collection(CollectionName.providersServices).where('author', isEqualTo: uid).get();
+    return snap.docs.map((d) => ProviderServiceModel.fromJson(d.data())).toList();
+  }
+
   static Future<void> setServicePublish(String serviceId, bool publish) {
     return _db.collection(CollectionName.providersServices).doc(serviceId).update({'publish': publish});
   }
@@ -537,6 +542,44 @@ class FireStoreUtils {
     });
   }
 
+  static Future<Map<String, String>?> getPixWithdrawMethod(String uid) async {
+    if (uid.isEmpty) return null;
+    final snap = await _db.collection(CollectionName.withdrawMethod).where('userId', isEqualTo: uid).limit(1).get();
+    if (snap.docs.isEmpty) return null;
+    final pix = snap.docs.first.data()['pix'];
+    if (pix is! Map) return null;
+    final key = (pix['chave'] ?? pix['key'] ?? '').toString().trim();
+    if (key.isEmpty) return null;
+    return {
+      'pixKey': key,
+      'pixKeyType': (pix['tipo'] ?? pix['type'] ?? 'cpf').toString(),
+    };
+  }
+
+  /// Contrato do painel: `payouts.vendorID` + PIX (`withdraw_method.userId`).
+  static Map<String, dynamic> payoutRequestFields({
+    required String id,
+    required String uid,
+    required double amount,
+    required String note,
+    Map<String, String>? pix,
+  }) {
+    return {
+      'id': id,
+      'vendorID': uid,
+      'amount': amount.toString(),
+      'note': note,
+      'paymentStatus': 'Pending',
+      'role': 'provider',
+      'withdrawMethod': pix == null ? 'bank' : 'pix',
+      'currency': 'BRL',
+      if (pix != null) ...{
+        'pixKey': pix['pixKey'],
+        'pixKeyType': pix['pixKeyType'],
+      },
+    };
+  }
+
   static Future<void> requestPayout({required double amount, required String note}) async {
     final uid = getCurrentUid();
     if (uid.isEmpty) throw Exception('Faça login novamente.');
@@ -544,16 +587,14 @@ class FireStoreUtils {
     final user = await getUserProfile(uid);
     final wallet = (user?.walletAmount ?? 0).toDouble();
     if (amount > wallet) throw Exception('Saldo insuficiente na carteira.');
+    final pix = await getPixWithdrawMethod(uid);
+    if (pix == null) {
+      throw Exception('Cadastre uma chave PIX no painel (Método de saque) antes de solicitar.');
+    }
     final id = Constant.getUuid();
     await _db.collection(CollectionName.payouts).doc(id).set({
-      'id': id,
-      'vendorID': uid,
-      'amount': amount.toString(),
-      'note': note,
+      ...payoutRequestFields(id: id, uid: uid, amount: amount, note: note, pix: pix),
       'paidDate': Timestamp.now(),
-      'paymentStatus': 'Pending',
-      'role': 'provider',
-      'withdrawMethod': 'bank',
     });
     await updateUserWallet(amount: (-amount).toString(), userId: uid);
     await setWalletTransaction(

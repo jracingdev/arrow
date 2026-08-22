@@ -1223,6 +1223,44 @@
         return h;
     }
 
+    function isCodPayment(method) {
+        var m = String(method || '').toLowerCase();
+        return m === 'cod' || m === 'cash on delivery' || m === 'dinheiro';
+    }
+
+    function creditCodOnComplete() {
+        var method = paymentMethod || orderPaymentMethod;
+        if (!isCodPayment(method) || !providerAuthor) return Promise.resolve();
+        return database.collection('wallet').where('user_id', '==', providerAuthor).where('order_id', '==', id).get().then(function (snap) {
+            var already = snap.docs.some(function (d) {
+                var data = d.data() || {};
+                return data.transactionUser === 'provider' && data.isTopUp === true && String(data.note || '').toLowerCase().indexOf('extra') < 0;
+            });
+            if (already) return;
+            var amount = parseFloat(orderPayableAmount) || 0;
+            if (amount <= 0) return;
+            var txId = database.collection('tmp').doc().id;
+            return database.collection('wallet').doc(txId).set({
+                id: txId,
+                user_id: providerAuthor,
+                payment_method: 'wallet',
+                amount: amount,
+                isTopUp: true,
+                order_id: id,
+                payment_status: 'success',
+                date: firebase.firestore.FieldValue.serverTimestamp(),
+                transactionUser: 'provider',
+                note: 'On-demand booking credited',
+                serviceType: 'ondemand-service'
+            }).then(function () {
+                return database.collection('users').doc(providerAuthor).get();
+            }).then(function (userSnap) {
+                var wallet = parseFloat((userSnap.data() || {}).wallet_amount) || 0;
+                return database.collection('users').doc(providerAuthor).update({ wallet_amount: wallet + amount });
+            });
+        });
+    }
+
     async function callWalletTransaction(status) {
         var orderStatus = status;
 
@@ -1501,6 +1539,7 @@
                 'extraPaymentStatus': true ,
                 'paymentStatus':true
             }).then(async function (result) {
+                await creditCodOnComplete();
                 callAjax('Order Completed');
             })
         } else {

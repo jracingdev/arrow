@@ -266,7 +266,7 @@ class OnDemandOrderDetailsController extends GetxController {
             isTopup: true,
             orderId: order.id,
             note: 'Booking Amount Refund',
-            paymentStatus: "success".tr,
+            paymentStatus: "success",
           ),
         );
 
@@ -284,7 +284,7 @@ class OnDemandOrderDetailsController extends GetxController {
               isTopup: false,
               orderId: order.id,
               note: 'Booking Amount Refund',
-              paymentStatus: "success".tr,
+              paymentStatus: "success",
             ),
           );
         }
@@ -305,7 +305,7 @@ class OnDemandOrderDetailsController extends GetxController {
             isTopup: true,
             orderId: order.id,
             note: 'Admin commission refund',
-            paymentStatus: "success".tr,
+            paymentStatus: "success",
           ),
         );
       }

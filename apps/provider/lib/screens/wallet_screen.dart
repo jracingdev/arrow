@@ -134,7 +134,7 @@ Future<void> _requestPayout(BuildContext context, double wallet) async {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'O administrador analisa o pedido na mesma fila de repasses dos outros apps.',
+              'O saque sai por PIX, na mesma fila do painel da loja. Cadastre a chave em Método de saque antes de enviar.',
               style: TextStyle(color: AppTheme.grey500, fontSize: 13),
             ),
             const SizedBox(height: 12),

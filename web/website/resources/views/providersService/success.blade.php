@@ -161,8 +161,10 @@
                             'id': id_order,
                             'newScheduleDateTime': null,
                             "notes": order_json.notes,
-                            'paymentStatus': (order_json.paymentStatus == "true" || order_json.paymentStatus == true) ? true : false,
+                            'paymentStatus': (order_json.paymentStatus == "true" || order_json.paymentStatus == true) && payment_method !== 'cod' && payment_method !== 'cash on delivery',
                             'payment_method': payment_method,
+                            'dispatchMode': 'direct',
+                            'extraPaymentStatus': true,
                             'provider': serviceDetails,
                             "quantity": parseInt(order_json.quantity),
                             'reason': null,
@@ -176,7 +178,34 @@
                             'taxScope': taxScope,
                             'platformFee': platformCharge,
                             'platformTax': platformTax,
-                        }).then(function (result) {
+                        }).then(async function (result) {
+                            var paidAmount = parseFloat(order_json.total_pay || cart.total_price || cart.total_pay || 0);
+                            if (payment_method !== 'cod' && payment_method !== 'cash on delivery' && paidAmount > 0 && provider_id) {
+                                var existing = await database.collection('wallet').where('user_id', '==', provider_id).where('order_id', '==', id_order).get();
+                                var already = existing.docs.some(function (d) {
+                                    var data = d.data() || {};
+                                    return data.transactionUser === 'provider' && data.isTopUp === true && String(data.note || '').toLowerCase().indexOf('extra') < 0;
+                                });
+                                if (!already) {
+                                    var creditId = database.collection('tmp').doc().id;
+                                    await database.collection('wallet').doc(creditId).set({
+                                        amount: paidAmount,
+                                        date: firebase.firestore.FieldValue.serverTimestamp(),
+                                        id: creditId,
+                                        isTopUp: true,
+                                        order_id: id_order,
+                                        payment_method: 'wallet',
+                                        payment_status: 'success',
+                                        serviceType: 'ondemand-service',
+                                        transactionUser: 'provider',
+                                        user_id: provider_id,
+                                        note: 'On-demand booking credited'
+                                    });
+                                    var providerUserSnap = await database.collection('users').doc(provider_id).get();
+                                    var providerWallet = parseFloat((providerUserSnap.data() || {}).wallet_amount) || 0;
+                                    await database.collection('users').doc(provider_id).update({ wallet_amount: providerWallet + paidAmount });
+                                }
+                            }
                             $.ajax({
                                 type: 'POST',
                                 url: "<?php echo route('ondemand-order-complete'); ?>",

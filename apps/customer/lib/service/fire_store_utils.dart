@@ -432,13 +432,13 @@ class FireStoreUtils {
   }
 
   static Future addProviderInbox(InboxModel inboxModel) async {
-    return await fireStore.collection("chat_provider").doc(inboxModel.orderId).set(inboxModel.toJson()).then((document) {
+    return await fireStore.collection(CollectionName.chat).doc(inboxModel.orderId).set(inboxModel.toJson()).then((document) {
       return inboxModel;
     });
   }
 
   static Future addProviderChat(ConversationModel conversationModel) async {
-    return await fireStore.collection("chat_provider").doc(conversationModel.orderId).collection("thread").doc(conversationModel.id).set(conversationModel.toJson()).then((document) {
+    return await fireStore.collection(CollectionName.chat).doc(conversationModel.orderId).collection("thread").doc(conversationModel.id).set(conversationModel.toJson()).then((document) {
       return conversationModel;
     });
   }

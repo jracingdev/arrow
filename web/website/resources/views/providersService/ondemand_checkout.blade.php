@@ -673,6 +673,38 @@
         }
     }
 
+    function isCodPayment(method) {
+        var m = String(method || '').toLowerCase();
+        return m === 'cod' || m === 'cash on delivery' || m === 'dinheiro';
+    }
+
+    async function creditProviderOnDemandBooking(providerId, orderId, amount, method, paid) {
+        if (!providerId || !orderId || !(parseFloat(amount) > 0) || isCodPayment(method) || paid !== true) return;
+        var snap = await database.collection('wallet').where('user_id', '==', providerId).where('order_id', '==', orderId).get();
+        var already = snap.docs.some(function (d) {
+            var data = d.data() || {};
+            return data.transactionUser === 'provider' && data.isTopUp === true && String(data.note || '').toLowerCase().indexOf('extra') < 0;
+        });
+        if (already) return;
+        var walletId = database.collection('tmp').doc().id;
+        await database.collection('wallet').doc(walletId).set({
+            amount: parseFloat(amount),
+            date: firebase.firestore.FieldValue.serverTimestamp(),
+            id: walletId,
+            isTopUp: true,
+            order_id: orderId,
+            payment_method: 'wallet',
+            payment_status: 'success',
+            serviceType: 'ondemand-service',
+            transactionUser: 'provider',
+            user_id: providerId,
+            note: 'On-demand booking credited'
+        });
+        var userSnap = await database.collection('users').doc(providerId).get();
+        var wallet = parseFloat((userSnap.data() || {}).wallet_amount) || 0;
+        await database.collection('users').doc(providerId).update({ wallet_amount: wallet + parseFloat(amount) });
+    }
+
     async function getProviderUser(providerId) {
         var provider = '';
         userproviderDetailsRef.where('id', "==", provider_id).get().then(async function(Snapshots) {
@@ -744,7 +776,7 @@
                         var paymentStatus = false;
                     } else {
                         payment_method = $('input[name="payment_method"]:checked').val();
-                        var paymentStatus = true;
+                        var paymentStatus = !(payment_method === 'cod' || payment_method === 'cash on delivery' || payment_method === 'dinheiro');
                     }
                     var status = 'Order Placed';
                     var quantity = parseInt($('#quantity_' + service_id).val());
@@ -797,6 +829,7 @@
                         message: message,
                         provider_id: provider_id,
                         service_id: service_id,
+                        total_pay: total_pay,
                     }
                     if (payment_method == "razorpay") {
                         var razorpayKey = $("#razorpayKey").val();
@@ -1157,6 +1190,7 @@
                             "notes": notes,
                             'paymentStatus': paymentStatus,
                             'payment_method': payment_method,
+                            'dispatchMode': 'direct',
                             'provider': serviceDetails,
                             'quantity': quantity,
                             'reason': null,
@@ -1204,8 +1238,10 @@
                                                 'payment_method': "Wallet",
                                                 'payment_status': 'success',
                                                 'serviceType': 'ondemand-service',
+                                                'transactionUser': 'customer',
                                                 'user_id': authorID
                                             }).then(async function(result) {
+                                                await creditProviderOnDemandBooking(provider_id, id_order, total_pay, payment_method, paymentStatus);
 
                                                 $('#service_cart_list').html(data.html);
                                                 loadcurrencynew();

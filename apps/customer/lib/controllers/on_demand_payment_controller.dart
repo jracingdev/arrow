@@ -96,7 +96,7 @@ class OnDemandPaymentController extends GetxController {
       isTopup: true,
       orderId: orderId,
       note: note,
-      paymentStatus: "success".tr,
+      paymentStatus: "success",
     );
     await FireStoreUtils.setWalletTransaction(transactionModel).then((value) async {
       if (value == true) {
@@ -148,7 +148,7 @@ class OnDemandPaymentController extends GetxController {
           isTopup: false,
           orderId: onDemandOrderModel.value!.id,
           note: "Booking Amount debited".tr,
-          paymentStatus: "success".tr,
+          paymentStatus: "success",
         );
 
         await FireStoreUtils.setWalletTransaction(transactionModel).then((value) async {
@@ -181,7 +181,7 @@ class OnDemandPaymentController extends GetxController {
           isTopup: false,
           orderId: onDemandOrderModel.value!.id,
           note: "Booking Extra charge debited",
-          paymentStatus: "success".tr,
+          paymentStatus: "success",
         );
 
         await FireStoreUtils.setWalletTransaction(transactionModel).then((value) async {
