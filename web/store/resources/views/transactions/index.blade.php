@@ -35,6 +35,27 @@
         </div> 
     
        </div>
+       <div id="provider_wallet_card" class="card border mb-3 d-none">
+            <div class="card-body">
+                <p class="text-muted mb-1">{{ trans('lang.my_wallet') }}</p>
+                <h2 class="mb-2" id="provider_wallet_amount">R$ 0,00</h2>
+                <p class="text-muted">{{ trans('lang.provider_wallet_help') }}</p>
+                <div class="form-row align-items-end">
+                    <div class="form-group col-md-4 mb-2">
+                        <label>{{ trans('lang.vendors_payout_amount') }}</label>
+                        <input type="number" min="0" step="0.01" class="form-control" id="payout_amount">
+                    </div>
+                    <div class="form-group col-md-5 mb-2">
+                        <label>{{ trans('lang.vendors_payout_note') }}</label>
+                        <input type="text" class="form-control" id="payout_note">
+                    </div>
+                    <div class="form-group col-md-3 mb-2">
+                        <button type="button" class="btn btn-primary btn-block" id="request_payout_btn">{{ trans('lang.request_payout') }}</button>
+                    </div>
+                </div>
+                <div id="payout_error" class="text-danger"></div>
+            </div>
+       </div>
        <div class="table-list">
        <div class="row">
            <div class="col-12">
@@ -87,6 +108,70 @@
     var user_number = [];
     var vendorId = "<?php echo $id; ?>";
     var refData = database.collection('wallet').where('user_id', '==', vendorId).orderBy('date', 'desc');
+    var providerWallet = 0;
+
+    function formatBrl(value) {
+        var n = Number(value) || 0;
+        return 'R$ ' + n.toFixed(2).replace('.', ',');
+    }
+    function newPayoutId() {
+        if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    database.collection('users').doc(vendorId).get().then(function (snap) {
+        var user = snap.data() || {};
+        if (user.role !== 'provider') return;
+        providerWallet = parseFloat(user.wallet_amount) || 0;
+        $('#provider_wallet_card').removeClass('d-none');
+        $('#provider_wallet_amount').text(formatBrl(providerWallet));
+        if (providerWallet > 0) $('#payout_amount').val(providerWallet.toFixed(2));
+    });
+
+    $('#request_payout_btn').on('click', function () {
+        var amount = parseFloat(String($('#payout_amount').val() || '').replace(',', '.'));
+        var note = ($('#payout_note').val() || '').trim();
+        if (!amount || amount <= 0 || amount > providerWallet) {
+            $('#payout_error').text("{{ trans('lang.payout_invalid_amount') }}");
+            return;
+        }
+        var payoutId = newPayoutId();
+        var txId = newPayoutId();
+        $("#data-table_processing").show();
+        database.collection('payouts').doc(payoutId).set({
+            id: payoutId,
+            vendorID: vendorId,
+            amount: String(amount),
+            note: note,
+            paidDate: firebase.firestore.Timestamp.now(),
+            paymentStatus: 'Pending',
+            role: 'provider',
+            withdrawMethod: 'bank'
+        }).then(function () {
+            return database.collection('users').doc(vendorId).update({ wallet_amount: providerWallet - amount });
+        }).then(function () {
+            return database.collection('wallet').doc(txId).set({
+                id: txId,
+                user_id: vendorId,
+                payment_method: 'wallet',
+                amount: amount,
+                isTopUp: false,
+                payment_status: 'pending',
+                date: firebase.firestore.Timestamp.now(),
+                transactionUser: 'provider',
+                note: note || "{{ trans('lang.request_payout') }}"
+            });
+        }).then(function () {
+            $("#data-table_processing").hide();
+            window.location = "{{ route('payments') }}";
+        }).catch(function (err) {
+            $("#data-table_processing").hide();
+            $('#payout_error').text(err && err.message ? err.message : "{{ trans('lang.payout_invalid_amount') }}");
+        });
+    });
     var search = jQuery("#search").val();
 
     $(document.body).on('keyup', '#search', function () {

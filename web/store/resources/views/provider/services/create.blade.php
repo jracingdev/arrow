@@ -160,7 +160,7 @@
     $('#address').on('input', function () {
         var query = this.value;
         if (query.length < 3) { $('#autocomplete-list').empty(); return; }
-        fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(query) + '&format=json&addressdetails=1')
+        fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(query) + '&format=json&addressdetails=1&countrycodes=br&accept-language=pt-BR')
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 $('#autocomplete-list').empty();

@@ -88,14 +88,21 @@
             modal.find('#docImage').attr('src', img);
         });
         ref.get().then(async function (snapshots) {
-            var vendor = snapshots.docs[0].data();
-            if (vendor.hasOwnProperty('fcmToken') && vendor.fcmToken != "" && vendor.fcmToken != null) {
-                fcmToken = vendor.fcmToken;
+            if (snapshots.docs.length) {
+                var vendor = snapshots.docs[0].data();
+                window.arrowUserRole = vendor.role || '';
+                if (vendor.hasOwnProperty('fcmToken') && vendor.fcmToken != "" && vendor.fcmToken != null) {
+                    fcmToken = vendor.fcmToken;
+                }
             }
+            loadDocumentTable();
+        }).catch(function () {
+            loadDocumentTable();
         });
     });
         var html = '';
         var count = 0;
+     function loadDocumentTable() {
      docsRef.get().then(async function (docSnapshot) {
             html += '<table id="taxTable" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">';
             html += "<thead>";
@@ -110,11 +117,21 @@
             html += '</table>';
        
             if (docSnapshot.docs.length) {
-                var documents = docSnapshot.docs;
+                var allowedTypes = (window.arrowUserRole === 'provider')
+                    ? ['provider', 'ondemand', 'driver']
+                    : ['vendor', 'store', 'restaurant'];
+                var documents = docSnapshot.docs.filter(function (ele) {
+                    var docType = ((ele.data() || {}).type || '').toString().toLowerCase();
+                    return allowedTypes.indexOf(docType) >= 0;
+                });
+                if (!documents.length) {
+                    $(".doc-body").append('<p class="text-muted">' + (window.arrowUserRole === 'provider' ? "{{ trans('lang.provider_documents_empty') }}" : "{{ trans('lang.no_record_found') }}") + '</p>');
+                    jQuery("#data-table_processing").hide();
+                    return;
+                }
                
                 documents.forEach((ele) => {
                     var doc = ele.data();
-                    if (doc.type !== 'vendor' && doc.type !== 'store') return;
                     var docRefs = database.collection('documents_verify').doc(id);
                   
                     docRefs.get().then(async function (docrefSnapshot) {
@@ -150,14 +167,14 @@
                         }
                         trhtml += '<td>' + display_status + '</td>';
                         trhtml += '<td class="action-btn">';
-                        if(status=="pending" || status=="rejected"){
+                        if(status=="pending" || status=="rejected" || status=="uploaded"){
                         trhtml += '<a href="' + (`/document/upload/` + doc.id.trim()) + '" data-id="' + doc.id + '"><i class="fa fa-edit"></i></a>&nbsp;';
                         }
                         trhtml += '</td>';
                         trhtml += '</tr>';
                         $("tbody").append(trhtml);
                         count = count + 1;
-                        if (count == docSnapshot.docs.length) {
+                        if (count == documents.length) {
                             $('#taxTable').DataTable({
                                 order: [[0, 'asc']],
                                 columnDefs: [
@@ -171,6 +188,7 @@
             $(".doc-body").append(html);
             jQuery("#data-table_processing").hide();
         });
+     }
     $(document.body).on('click', '.redirecttopage', function () {
         var url = $(this).attr('data-url');
         window.location.href = url;

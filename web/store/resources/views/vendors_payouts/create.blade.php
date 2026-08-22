@@ -156,6 +156,10 @@
 
     async function remainingPrice(vendorID) {
         var remaining = 0;
+        var providerSnap = await database.collection('users').doc(vendorID).get();
+        if (providerSnap.exists && (providerSnap.data().role === 'provider')) {
+            return parseFloat(providerSnap.data().wallet_amount) || 0;
+        }
 
         await database.collection('users').where("vendorID", "==", vendorID).get().then(async function (snapshotss) {
             if (snapshotss.docs.length) {
@@ -295,7 +299,7 @@
                 vendorId = data;
                 var remaining = 0;
 
-                remainingPrice(vendorId).then(data => {
+                remainingPrice(vendorId).then(async function (data) {
 
                     var remaining = data;
                     var withdrawMethod=$('#withdraw_method').val();
@@ -323,6 +327,11 @@
                         $(".error_top").append("<p>{{trans('lang.select_withdrawal_method')}}</p>");
                     }else {
                         $("#data-table_processing").show();
+                        var payoutRole = 'vendor';
+                        var payoutUserSnap = await database.collection('users').doc(vendorUserId).get();
+                        if (payoutUserSnap.exists && payoutUserSnap.data().role === 'provider') {
+                            payoutRole = 'provider';
+                        }
                         database.collection('payouts').doc(payoutId).set({
                             'vendorID': vendorId,
                             'amount': amount,
@@ -330,7 +339,8 @@
                             'id': payoutId,
                             'paymentStatus': 'Pending',
                             'paidDate': date,
-                            'withdrawMethod':withdrawMethod
+                            'withdrawMethod':withdrawMethod,
+                            'role': payoutRole
                         }).then(async function () {
 
                             if (vendorId != '' && (amount != '' || amount != NaN)) {
@@ -340,6 +350,20 @@
                                     price = amount;
                                 }
                                 database.collection('users').doc(vendorUserId).update({ 'wallet_amount': price });
+                                if (payoutRole === 'provider') {
+                                    var debitId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : payoutId + '-wallet';
+                                    database.collection('wallet').doc(debitId).set({
+                                        id: debitId,
+                                        user_id: vendorUserId,
+                                        payment_method: 'wallet',
+                                        amount: amount,
+                                        isTopUp: false,
+                                        payment_status: 'pending',
+                                        date: firebase.firestore.Timestamp.now(),
+                                        transactionUser: 'provider',
+                                        note: note || "{{ trans('lang.request_payout') }}"
+                                    });
+                                }
                             }
                             
                             if (currencyAtRight) {
@@ -392,12 +416,15 @@
     })
 
     async function getVendorId(vendorUser) {
+        var userSnap = await database.collection('users').doc(vendorUser).get();
+        if (userSnap.exists && userSnap.data().role === 'provider') {
+            return vendorUser;
+        }
         var vendorId = '';
-        var ref;
         await database.collection('vendors').where('author', "==", vendorUser).get().then(async function (vendorSnapshots) {
+            if (!vendorSnapshots.docs.length) return;
             var vendorData = vendorSnapshots.docs[0].data();
             vendorId = vendorData.id;
-
         });
 
         return vendorId;

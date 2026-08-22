@@ -58,7 +58,7 @@
         "Order Accepted": "{{ trans('lang.accept') }}",
         "Order Assigned": "{{ trans('lang.order_assigned') }}",
         "Order Ongoing": "{{ trans('lang.order_ongoing') }}",
-        "In Transit": "In Transit",
+        "In Transit": "{{ trans('lang.in_transit') }}",
         "Order Completed": "{{ trans('lang.provider_completed_bookings') }}",
         "Order Cancelled": "{{ trans('lang.provider_cancelled_bookings') }}",
         "Order Rejected": "{{ trans('lang.reject') }}",

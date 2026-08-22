@@ -9,6 +9,24 @@
                 <h3 class="text-themecolor">{{ trans('lang.provider_dashboard') }}</h3>
             </div>
         </div>
+        <div id="kyc_banner" class="alert alert-warning d-none">
+            <a href="{{ route('vendors.document') }}" class="text-dark d-block">
+                <strong>{{ trans('lang.document_verification') }}.</strong>
+                <span id="kyc_banner_text">{{ trans('lang.provider_kyc_banner') }}</span>
+            </a>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body d-flex flex-wrap align-items-center justify-content-between">
+                <div>
+                    <div class="font-weight-bold">{{ trans('lang.provider_online') }}</div>
+                    <small class="text-muted" id="online_help">{{ trans('lang.provider_online_off') }}</small>
+                </div>
+                <label class="switch mb-0">
+                    <input type="checkbox" id="provider_online">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
         <div class="row business-analytics_list">
             <div class="col-sm-6 col-lg-3 mb-3">
                 <a href="{{ route('provider.bookings') }}">
@@ -39,6 +57,14 @@
                     <div class="card"><div class="card-body">
                         <h2 class="h4 mb-1" id="count_workers">0</h2>
                         <p class="mb-0">{{ trans('lang.worker_plural') }}</p>
+                    </div></div>
+                </a>
+            </div>
+            <div class="col-sm-6 col-lg-3 mb-3">
+                <a href="{{ route('wallettransaction.index') }}">
+                    <div class="card"><div class="card-body">
+                        <h2 class="h4 mb-1" id="wallet_balance">R$ 0,00</h2>
+                        <p class="mb-0">{{ trans('lang.my_wallet') }}</p>
                     </div></div>
                 </a>
             </div>
@@ -75,15 +101,43 @@
         "Order Accepted": "{{ trans('lang.accept') }}",
         "Order Assigned": "{{ trans('lang.order_assigned') }}",
         "Order Ongoing": "{{ trans('lang.order_ongoing') }}",
-        "In Transit": "In Transit",
+        "In Transit": "{{ trans('lang.in_transit') }}",
         "Order Completed": "{{ trans('lang.provider_completed_bookings') }}",
         "Order Cancelled": "{{ trans('lang.provider_cancelled_bookings') }}",
         "Order Rejected": "{{ trans('lang.reject') }}",
         "Driver Rejected": "{{ trans('lang.reject') }}"
     };
 
+    function formatBrl(value) {
+        var n = Number(value) || 0;
+        return 'R$ ' + n.toFixed(2).replace('.', ',');
+    }
+
     $(function () {
         $("#data-table_processing").show();
+        Promise.all([
+            database.collection('users').doc(providerId).get(),
+            database.collection('documents_verify').doc(providerId).get()
+        ]).then(function (snaps) {
+            var user = snaps[0].data() || {};
+            var verified = user.isDocumentVerify === true;
+            var auto = user.isAutoVerify === true;
+            var verifyData = snaps[1].data() || {};
+            var docs = Array.isArray(verifyData.documents) ? verifyData.documents : [];
+            var rejected = docs.some(function (d) { return (d.status || '').toLowerCase() === 'rejected'; }) || !!verifyData.rejectReason;
+            if (!verified && !auto) {
+                $('#kyc_banner').removeClass('d-none');
+                if (rejected) $('#kyc_banner_text').text("{{ trans('lang.provider_kyc_rejected') }}");
+            }
+            $('#provider_online').prop('checked', user.online === true);
+            $('#online_help').text(user.online === true ? "{{ trans('lang.provider_online_on') }}" : "{{ trans('lang.provider_online_off') }}");
+            $('#wallet_balance').text(formatBrl(user.wallet_amount));
+        });
+        $('#provider_online').on('change', function () {
+            var online = $(this).is(':checked');
+            $('#online_help').text(online ? "{{ trans('lang.provider_online_on') }}" : "{{ trans('lang.provider_online_off') }}");
+            database.collection('users').doc(providerId).set({ online: online }, { merge: true });
+        });
         Promise.all([
             database.collection('provider_orders').where('provider.author', '==', providerId).get(),
             database.collection('providers_services').where('author', '==', providerId).get(),

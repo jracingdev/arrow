@@ -22,6 +22,9 @@
                 <p><strong>{{ trans('lang.service_plural') }}:</strong> <span id="service_title"></span></p>
                 <p><strong>{{ trans('lang.user') }}:</strong> <span id="customer_name"></span></p>
                 <p><strong>{{ trans('lang.phone') }}:</strong> <span id="customer_phone"></span></p>
+                <p><strong>{{ trans('lang.payment_methods') }}:</strong> <span id="payment_label"></span></p>
+                <p id="hourly_rate_wrap" class="d-none"><strong>{{ trans('lang.hourly_rate') }}:</strong> <span id="hourly_rate"></span></p>
+                <p id="billed_hours_wrap" class="d-none"><strong>{{ trans('lang.billed_hours') }}:</strong> <span id="billed_hours"></span></p>
                 <p><strong>{{ trans('lang.date') }}:</strong> <span id="schedule_date"></span></p>
                 <p><strong>{{ trans('lang.vendor_address') }}:</strong> <span id="address"></span></p>
                 <p><strong>OTP:</strong> <span id="otp_code"></span></p>
@@ -75,7 +78,7 @@
         "Order Accepted": "{{ trans('lang.accept') }}",
         "Order Assigned": "{{ trans('lang.order_assigned') }}",
         "Order Ongoing": "{{ trans('lang.order_ongoing') }}",
-        "In Transit": "In Transit",
+        "In Transit": "{{ trans('lang.in_transit') }}",
         "Order Completed": "{{ trans('lang.provider_completed_bookings') }}",
         "Order Cancelled": "{{ trans('lang.provider_cancelled_bookings') }}",
         "Order Rejected": "{{ trans('lang.reject') }}",
@@ -93,7 +96,7 @@
         } else if (order.status === 'Order Assigned') {
             html += '<button type="button" class="btn btn-info" id="start_btn">{{ trans("lang.start_service") }}</button>';
         } else if (order.status === 'Order Ongoing' || order.status === 'In Transit') {
-            if (priceUnit !== 'Hourly' || storedEndTime) {
+            if (!isHourly(priceUnit) || storedEndTime) {
                 $('#complete_wrap').show();
             }
         }
@@ -187,6 +190,87 @@
         });
     }
 
+    function isHourly(unit) {
+        var u = (unit || '').toString().trim().toLowerCase();
+        return u === 'hourly' || u === 'hour' || u === 'por hora';
+    }
+    function isCod(method) {
+        var m = (method || '').toString().trim().toLowerCase();
+        return m === 'cod' || m === 'cash on delivery' || m === 'dinheiro';
+    }
+    function unitPrice(price, disPrice) {
+        var discounted = parseFloat(disPrice);
+        if (discounted > 0) return discounted;
+        return parseFloat(price) || 0;
+    }
+    function billableHours(start, end) {
+        var hours = Math.abs(end - start) / (1000 * 60 * 60);
+        if (hours <= 0 || hours < 1) return 1;
+        return parseFloat(hours.toFixed(2));
+    }
+    function formatBrl(value) {
+        var n = Number(value) || 0;
+        return 'R$ ' + n.toFixed(2).replace('.', ',');
+    }
+    function paymentLabel(method, paid) {
+        if (isCod(method)) return paid === true ? "{{ trans('lang.cod_paid') }}" : "{{ trans('lang.cod_unpaid') }}";
+        var gateway = (method || '').toString().trim();
+        if (paid === true) return gateway ? ('{{ trans("lang.paid") }} · ' + gateway) : '{{ trans("lang.paid") }}';
+        return gateway ? ('{{ trans("lang.pending") }} · ' + gateway) : '{{ trans("lang.pending") }}';
+    }
+    function scheduleBlocksStart() {
+        var when = order && (order.newScheduleDateTime || order.scheduleDateTime);
+        if (!when || !when.toDate) return false;
+        return when.toDate().getTime() > Date.now();
+    }
+    function newId() {
+        if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+        return invoiceFileId();
+    }
+    function creditCodOnComplete() {
+        if (!isCod(order.paymentMethod)) return Promise.resolve();
+        return database.collection('wallet').where('user_id', '==', providerId).where('order_id', '==', id).get().then(function (snap) {
+            var already = snap.docs.some(function (d) {
+                var data = d.data();
+                if (data.transactionUser !== 'provider' || data.isTopUp !== true) return false;
+                return String(data.note || '').toLowerCase().indexOf('extra') < 0;
+            });
+            if (already) return;
+            var rate = unitPrice((order.provider && order.provider.price) || 0, (order.provider && order.provider.disPrice) || 0);
+            var hours = isHourly(priceUnit) ? ((order.quantity > 0) ? Number(order.quantity) : 1) : 1;
+            var amount = rate * hours;
+            var extra = parseFloat(order.extraCharges) || 0;
+            if (extra > 0) {
+                var extraAlready = snap.docs.some(function (d) {
+                    var data = d.data();
+                    if (data.transactionUser !== 'provider' || data.isTopUp !== true) return false;
+                    return String(data.note || '').toLowerCase().indexOf('extra') >= 0;
+                });
+                if (!extraAlready) amount += extra;
+            }
+            if (amount <= 0) return;
+            var txId = newId();
+            return database.collection('wallet').doc(txId).set({
+                id: txId,
+                user_id: providerId,
+                payment_method: 'wallet',
+                amount: amount,
+                isTopUp: true,
+                order_id: id,
+                payment_status: 'success',
+                date: firebase.firestore.Timestamp.now(),
+                transactionUser: 'provider',
+                note: 'On-demand booking credited',
+                serviceType: 'ondemand-service'
+            }).then(function () {
+                return database.collection('users').doc(providerId).get();
+            }).then(function (userSnap) {
+                var wallet = parseFloat((userSnap.data() || {}).wallet_amount) || 0;
+                return database.collection('users').doc(providerId).update({ wallet_amount: wallet + amount });
+            });
+        });
+    }
+
     function pad(n) {
         return n < 10 ? '0' + n : '' + n;
     }
@@ -201,7 +285,7 @@
     }
 
     function renderTimer() {
-        if (priceUnit !== 'Hourly' || order.status !== 'Order Ongoing' || !storedStartTime) {
+        if (!isHourly(priceUnit) || order.status !== 'Order Ongoing' || !storedStartTime) {
             $('#timer_wrap').addClass('d-none');
             return;
         }
@@ -245,7 +329,17 @@
             $('#schedule_date').text(sched && sched.toDate ? ArrowDateTime.formatDate(sched.toDate()) + ' ' + ArrowDateTime.formatTime(sched.toDate()) : '');
             $('#address').text((order.address && (order.address.address || order.address.locality)) || '');
             $('#otp_code').text(order.otp || '');
+            $('#payment_label').text(paymentLabel(order.paymentMethod, order.paymentStatus));
             priceUnit = (order.provider && order.provider.priceUnit) ? order.provider.priceUnit : '';
+            if (isHourly(priceUnit)) {
+                var rate = unitPrice(order.provider.price, order.provider.disPrice);
+                $('#hourly_rate').text(formatBrl(rate));
+                $('#hourly_rate_wrap').removeClass('d-none');
+                if (order.quantity) {
+                    $('#billed_hours').text(Number(order.quantity).toFixed(2));
+                    $('#billed_hours_wrap').removeClass('d-none');
+                }
+            }
             storedStartTime = (order.startTime && order.startTime.toDate) ? order.startTime.toDate() : null;
             storedEndTime = (order.endTime && order.endTime.toDate) ? order.endTime.toDate() : null;
             renderActions();
@@ -276,21 +370,24 @@
             database.collection('provider_orders').doc(id).update({ status: 'Order Assigned', workerId: worker }).then(function () { location.reload(); });
         });
         $(document).on('click', '#start_btn', function () {
+            if (scheduleBlocksStart()) {
+                var when = order.newScheduleDateTime || order.scheduleDateTime;
+                var whenText = when && when.toDate ? ArrowDateTime.formatDate(when.toDate()) + ' ' + ArrowDateTime.formatTime(when.toDate()) : '';
+                $('.error_top').html('<p>{{ trans("lang.schedule_blocks_start") }} ' + whenText + '</p>').show();
+                return;
+            }
             var payload = {
                 status: 'Order Ongoing',
                 startTime: firebase.firestore.FieldValue.serverTimestamp()
             };
-            if (priceUnit === 'Hourly') {
+            if (isHourly(priceUnit)) {
                 payload.endTime = null;
             }
             database.collection('provider_orders').doc(id).update(payload).then(function () { location.reload(); });
         });
         $(document).on('click', '#stop_timer_btn', function () {
             if (!storedStartTime) { return; }
-            var now = new Date();
-            var hours = Math.abs(now - storedStartTime) / (1000 * 60 * 60);
-            hours = parseFloat(hours.toFixed(2));
-            if (hours < 1) hours = 1;
+            var hours = billableHours(storedStartTime, new Date());
             database.collection('provider_orders').doc(id).update({
                 endTime: firebase.firestore.FieldValue.serverTimestamp(),
                 quantity: hours
@@ -302,19 +399,32 @@
                 $('.error_top').html('<p>{{ trans("lang.please_enter_otp") }}</p>').show();
                 return;
             }
-            if (priceUnit === 'Hourly' && !storedEndTime) {
+            var hourly = isHourly(priceUnit);
+            if (hourly && !storedEndTime) {
                 $('.error_top').html('<p>{{ trans("lang.stop_the_timer") }}</p>').show();
+                return;
+            }
+            if (hourly && order.paymentStatus !== true && !isCod(order.paymentMethod)) {
+                $('.error_top').html('<p>{{ trans("lang.hourly_wait_payment") }}</p>').show();
                 return;
             }
             var payload = {
                 status: 'Order Completed',
                 extraPaymentStatus: true,
-                paymentStatus: priceUnit === 'Hourly' ? (order.paymentStatus === true) : true
+                paymentStatus: hourly ? (order.paymentStatus === true || isCod(order.paymentMethod)) : true
             };
-            if (priceUnit !== 'Hourly') {
+            if (hourly) {
+                if (storedStartTime) {
+                    payload.endTime = order.endTime || firebase.firestore.FieldValue.serverTimestamp();
+                    payload.quantity = billableHours(storedStartTime, storedEndTime || new Date());
+                    order.quantity = payload.quantity;
+                }
+            } else {
                 payload.endTime = firebase.firestore.FieldValue.serverTimestamp();
             }
-            database.collection('provider_orders').doc(id).update(payload).then(function () { location.reload(); });
+            database.collection('provider_orders').doc(id).update(payload).then(function () {
+                return creditCodOnComplete();
+            }).then(function () { location.reload(); });
         });
 
         $(document).on('click', '.invoice-replace', function () {

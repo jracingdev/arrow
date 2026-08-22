@@ -38,8 +38,12 @@
     <script>
         var docId = "{{$id}}";
         var id = "{{$vendorId}}";
-        var allVendor = database.collection('users').where('id', '==', id);
         var database = firebase.firestore();
+        var allVendor = database.collection('users').where('id', '==', id);
+        window.arrowDocRole = '';
+        database.collection('users').doc(id).get().then(function (snap) {
+            window.arrowDocRole = (snap.data() || {}).role || '';
+        });
         var storageRef = firebase.storage().ref('images');
         var storage = firebase.storage();
         var docref = database.collection('documents_verify').doc(id);
@@ -211,9 +215,13 @@
             })(f);
             reader.readAsDataURL(f);
         }
-        $(document).on('click', '.save-doc', function () {
-            var status = 'uploaded';
-            var type='restaurant';
+        $(document).on('click', '.save-doc', async function () {
+            if (!window.arrowDocRole) {
+                var roleSnap = await database.collection('users').doc(id).get();
+                window.arrowDocRole = (roleSnap.data() || {}).role || '';
+            }
+            var status = (window.arrowDocRole === 'provider') ? 'pending' : 'uploaded';
+            var type = (window.arrowDocRole === 'provider') ? 'provider' : 'restaurant';
             var docId = $("#docId").val();
             var isAdd = $("#isAdd").val();
             var keydata = $("#keydata").val();
@@ -236,13 +244,19 @@
                         database.collection('documents_verify').doc(id).set({
                             id: id,
                             type: type,
+                            pending: true,
+                            rejectReason: '',
                             documents: firebase.firestore.FieldValue.arrayUnion({
                                 backImage: IMG.back_img ? IMG.back_img : '',
                                 documentId: docId.trim(),
                                 frontImage: IMG.front_img ? IMG.front_img : '',
                                 status: status,
+                                rejectReason: '',
                             })
                         }, { merge: true }).then(async function (result) {
+                            if (window.arrowDocRole === 'provider') {
+                                await database.collection('users').doc(id).set({ isDocumentVerify: false }, { merge: true });
+                            }
                             var enableDocIds = await getDocId();
                             await allVendor.get().then(async function (snapshotsvendor) {
                                 if (snapshotsvendor.docs.length > 0) {
@@ -276,10 +290,17 @@
                                 objectToupdate.documentId = docId.trim();
                                 objectToupdate.frontImage = IMG.front_img ? IMG.front_img : null;
                                 objectToupdate.status = status;
+                                objectToupdate.rejectReason = '';
                                 objects[keydata] = objectToupdate;
                                 database.collection('documents_verify').doc(id).update({
-                                    documents: objects
+                                    documents: objects,
+                                    pending: true,
+                                    rejectReason: '',
+                                    type: type
                                 }).then(async function () {
+                                    if (window.arrowDocRole === 'provider') {
+                                        await database.collection('users').doc(id).set({ isDocumentVerify: false }, { merge: true });
+                                    }
                                     var enableDocIds = await getDocId();
                                     await allVendor.get().then(async function (snapshotsvendor) {
                                         if (snapshotsvendor.docs.length > 0) {
@@ -330,10 +351,13 @@
         });
         async function getDocId() {
             var enableDocIds = [];
-            await database.collection('documents').where('type', '==', 'restaurant').where('enable', "==", true).get().then(async function (snapshots) {
-                await snapshots.forEach((doc) => {
-                    enableDocIds.push(doc.data().id);
-                });
+            var typeQuery = window.arrowDocRole === 'provider' ? 'provider' : 'restaurant';
+            var snaps = await database.collection('documents').where('type', '==', typeQuery).where('enable', "==", true).get();
+            if (window.arrowDocRole === 'provider' && snaps.empty) {
+                snaps = await database.collection('documents').where('type', '==', 'ondemand').where('enable', "==", true).get();
+            }
+            snaps.forEach(function (doc) {
+                enableDocIds.push(doc.data().id);
             });
             return enableDocIds;
         }

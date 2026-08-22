@@ -161,7 +161,13 @@
             checkVendor = userData.vendorID;
         }
         if(userData.role == "provider"){
-            newLi += `<li class="{{ request()->routeIs('provider.bookings') || request()->routeIs('provider.bookings.edit') ? 'active' : '' }}">
+            newLi += `<li class="{{ request()->routeIs('vendors.document') ? 'active' : '' }}">
+                    <a class="waves-effect waves-dark" href="{!! route('vendors.document') !!}" aria-expanded="false">
+                        <i class="mdi mdi-file-document"></i>
+                        <span class="hide-menu">{{ trans('lang.document_plural') }}</span>
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('provider.bookings') || request()->routeIs('provider.bookings.edit') ? 'active' : '' }}">
                     <a class="waves-effect waves-dark" href="{!! route('provider.bookings') !!}" aria-expanded="false">
                         <i class="mdi mdi-calendar-clock"></i>
                         <span class="hide-menu">{{ trans('lang.booking_plural') }}</span>
@@ -183,6 +189,18 @@
                     <a class="waves-effect waves-dark" href="{!! route('wallettransaction.index') !!}" aria-expanded="false">
                         <i class="mdi mdi-swap-horizontal"></i>
                         <span class="hide-menu">{{ trans('lang.wallet_transaction_plural') }}</span>
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('payments') ? 'active' : '' }}">
+                    <a class="waves-effect waves-dark" href="{!! route('payments') !!}" aria-expanded="false">
+                        <i class="mdi mdi-wallet"></i>
+                        <span class="hide-menu">{{ trans('lang.payouts_plural') }}</span>
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('withdraw-method') ? 'active' : '' }}">
+                    <a class="waves-effect waves-dark" href="{!! route('withdraw-method') !!}" aria-expanded="false">
+                        <i class="fa fa-credit-card"></i>
+                        <span class="hide-menu">{{ trans('lang.withdrawal_method') }}</span>
                     </a>
                 </li>
                 <li class="{{ request()->routeIs('user.profile') ? 'active' : '' }}">
