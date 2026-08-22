@@ -9,7 +9,12 @@ void main() {
     expect(ArrowCurrency.parseSymbol({'symbol': r'$'}), r'R$');
     expect(ArrowCurrency.parseSymbol({'symbol': r'R$'}), r'R$');
     expect(ArrowCurrency.parseCode({'code': 'USD'}), 'BRL');
+    expect(ArrowCurrency.parseCode({'code': 'BRL'}), 'BRL');
     expect(ArrowCurrency.normalizeSymbol(''), r'R$');
     expect(ArrowCurrency.normalizeSymbol(r'$'), r'R$');
+    expect(ArrowCurrency.code, 'BRL');
+    expect(ArrowCurrency.symbol, r'R$');
+    expect(ArrowCurrency.decimals, 2);
+    expect(ArrowCurrency.parseSymbolAtRight({'symbolAtRight': true}), isTrue);
   });
 }

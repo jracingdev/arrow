@@ -12,6 +12,14 @@
     "cms:payments": "node ../../scripts/seed-contact-payments-br.js",
     "cms:onboarding": "node ../../scripts/update-onboarding-ptbr.js",
     "cms:all": "node ../../scripts/run-cms-br-all.js",
-    "cms:all:br": "node ../../scripts/run-cms-br-all.js --activate-br"
+    "cms:all:br": "node ../../scripts/run-cms-br-all.js --activate-br",
+    "seed:joelson": "node ../../scripts/seed_provider_joelson.js",
+    "seed:e2e": "node ../../scripts/seed_platform_e2e.js",
+    "seed:e2e:dry": "node ../../scripts/seed_platform_e2e.js --dry-run",
+    "cleanup:demo": "node ../../scripts/cleanup_demo_data.js",
+    "cleanup:demo:yes": "node ../../scripts/cleanup_demo_data.js --yes",
+    "test:firestore": "node ../../scripts/firestore_contract_test.js",
+    "test:smoke": "node ../../scripts/e2e_smoke.mjs",
+    "test:e2e": "node ../../scripts/firestore_contract_test.js && node ../../scripts/e2e_smoke.mjs"
   }
 }

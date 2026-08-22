@@ -11,7 +11,11 @@ void main() {
     expect(ArrowPaymentLabel.gateway('stripe'), 'Cartão');
     expect(ArrowPaymentLabel.gateway('online'), 'Pagamento online');
     expect(ArrowPaymentLabel.withStatus(method: 'cod', paid: false), 'Dinheiro · A pagar');
+    expect(ArrowPaymentLabel.withStatus(method: 'cod', paid: true), 'Dinheiro · Pago');
     expect(ArrowPaymentLabel.withStatus(method: 'wallet', paid: true), 'Pago · Carteira');
+    expect(ArrowPaymentLabel.withStatus(method: 'pix', paid: false), 'A pagar · PIX');
     expect(ArrowPaymentLabel.isCod('Cash on Delivery'), isTrue);
+    expect(ArrowPaymentLabel.gateway('paypal'), 'PayPal');
+    expect(ArrowPaymentLabel.gateway('tax'), 'Taxa');
   });
 }

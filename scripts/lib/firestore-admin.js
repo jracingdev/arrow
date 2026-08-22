@@ -67,21 +67,79 @@ function loadServiceAccount(credPath) {
   return sa;
 }
 
-function initFirestore() {
-  let admin;
+function loadFirebaseAdmin() {
   try {
-    admin = require('firebase-admin');
+    return require('firebase-admin');
   } catch (e) {
-    throw new Error(
-      'firebase-admin não encontrado. Rode: cd firebase/import-export && npm i'
-    );
+    const local = path.join(__dirname, '..', '..', 'firebase', 'import-export', 'node_modules', 'firebase-admin');
+    try {
+      return require(local);
+    } catch (e2) {
+      throw new Error(
+        'firebase-admin não encontrado. Rode: cd firebase/import-export && npm i'
+      );
+    }
   }
+}
+
+function initFirestore() {
+  const admin = loadFirebaseAdmin();
   const credPath = resolveCredentialsPath();
   const serviceAccount = loadServiceAccount(credPath);
   if (!admin.apps.length) {
     admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
   }
   return { admin, db: admin.firestore(), credPath };
+}
+
+/** Igual a initFirestore, mas não lança se faltar service account (testes de contrato). */
+function tryInitFirestore() {
+  try {
+    return { ok: true, ...initFirestore() };
+  } catch (err) {
+    return { ok: false, error: err, message: err && err.message ? err.message : String(err) };
+  }
+}
+
+function encodeGeohash(latitude, longitude, precision) {
+  precision = precision || 9;
+  const BASE32 = '0123456789bcdefghjkmnpqrstuvwxyz';
+  let idx = 0;
+  let bit = 0;
+  let even = true;
+  let geohash = '';
+  let latMin = -90;
+  let latMax = 90;
+  let lonMin = -180;
+  let lonMax = 180;
+  while (geohash.length < precision) {
+    if (even) {
+      const mid = (lonMin + lonMax) / 2;
+      if (longitude > mid) {
+        idx = idx * 2 + 1;
+        lonMin = mid;
+      } else {
+        idx = idx * 2;
+        lonMax = mid;
+      }
+    } else {
+      const mid = (latMin + latMax) / 2;
+      if (latitude > mid) {
+        idx = idx * 2 + 1;
+        latMin = mid;
+      } else {
+        idx = idx * 2;
+        latMax = mid;
+      }
+    }
+    even = !even;
+    if (++bit === 5) {
+      geohash += BASE32.charAt(idx);
+      bit = 0;
+      idx = 0;
+    }
+  }
+  return geohash;
 }
 
 function parseArgs(argv = process.argv.slice(2)) {
@@ -106,6 +164,8 @@ function parseArgs(argv = process.argv.slice(2)) {
             'list',
             'help',
             'h',
+            'yes',
+            'include-joelson',
           ].includes(key)
         ) {
           flags.add(key);
@@ -122,6 +182,9 @@ function parseArgs(argv = process.argv.slice(2)) {
 
 module.exports = {
   initFirestore,
+  tryInitFirestore,
   parseArgs,
   resolveCredentialsPath,
+  looksUsableServiceAccount,
+  encodeGeohash,
 };
