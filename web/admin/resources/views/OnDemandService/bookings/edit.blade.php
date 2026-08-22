@@ -1228,14 +1228,20 @@
         return m === 'cod' || m === 'cash on delivery' || m === 'dinheiro';
     }
 
-    function creditCodOnComplete() {
-        var method = paymentMethod || orderPaymentMethod;
-        if (!isCodPayment(method) || !providerAuthor) return Promise.resolve();
+    function hasProviderBookingCredit() {
+        if (!providerAuthor) return Promise.resolve(false);
         return database.collection('wallet').where('user_id', '==', providerAuthor).where('order_id', '==', id).get().then(function (snap) {
-            var already = snap.docs.some(function (d) {
+            return snap.docs.some(function (d) {
                 var data = d.data() || {};
                 return data.transactionUser === 'provider' && data.isTopUp === true && String(data.note || '').toLowerCase().indexOf('extra') < 0;
             });
+        });
+    }
+
+    function creditCodOnComplete() {
+        var method = paymentMethod || orderPaymentMethod;
+        if (!isCodPayment(method) || !providerAuthor) return Promise.resolve();
+        return hasProviderBookingCredit().then(function (already) {
             if (already) return;
             var amount = parseFloat(orderPayableAmount) || 0;
             if (amount <= 0) return;
@@ -1263,6 +1269,10 @@
 
     async function callWalletTransaction(status) {
         var orderStatus = status;
+        if (!isCodPayment(paymentMethod || orderPaymentMethod) && await hasProviderBookingCredit()) {
+            callAjax(orderStatus);
+            return;
+        }
 
         var date = firebase.firestore.FieldValue.serverTimestamp();
         var wId = database.collection('temp').doc().id;

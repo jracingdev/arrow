@@ -72,9 +72,9 @@
     var uploadBase = "{{ url('document/upload') }}";
     window.arrowUserRole = authRole || '';
 
-    function allowedDocumentTypes(role) {
+    function allowedDocumentTypes(role, includeDriverFallback) {
         if (role === 'provider') {
-            return ['provider', 'ondemand', 'driver'];
+            return includeDriverFallback ? ['provider', 'ondemand', 'driver'] : ['provider', 'ondemand'];
         }
         if (role === 'vendor' || role === 'employee') {
             return ['vendor', 'store', 'restaurant'];
@@ -123,26 +123,39 @@
                 console.warn('documents full query failed', err);
             }
         }
-        return collected.filter(function (doc) {
-            var docId = (doc.id || '').toString();
-            if (!docId || seen[docId]) return false;
-            var docType = (doc.type || '').toString().toLowerCase().replace(/[\s_-]/g, '');
-            var aliases = {
-                ondemand: 'ondemand',
-                ondemandervice: 'ondemand',
-                provider: 'provider',
-                prestador: 'provider',
-                driver: 'driver',
-                vendor: 'vendor',
-                store: 'store',
-                restaurant: 'restaurant'
-            };
-            var normalized = aliases[docType] || docType;
-            if (types.indexOf(normalized) < 0) return false;
-            if (!isEnabledDoc(doc) && collected.some(isEnabledDoc)) return false;
-            seen[docId] = true;
-            return true;
+        function matchTypes(allowed) {
+            var matched = [];
+            var used = {};
+            collected.forEach(function (doc) {
+                var docId = (doc.id || '').toString();
+                if (!docId || seen[docId] || used[docId]) return;
+                var docType = (doc.type || '').toString().toLowerCase().replace(/[\s_-]/g, '');
+                var aliases = {
+                    ondemand: 'ondemand',
+                    ondemandervice: 'ondemand',
+                    provider: 'provider',
+                    prestador: 'provider',
+                    driver: 'driver',
+                    vendor: 'vendor',
+                    store: 'store',
+                    restaurant: 'restaurant'
+                };
+                var normalized = aliases[docType] || docType;
+                if (allowed.indexOf(normalized) < 0) return;
+                if (!isEnabledDoc(doc) && collected.some(isEnabledDoc)) return;
+                used[docId] = true;
+                matched.push(doc);
+            });
+            return matched;
+        }
+        var filtered = matchTypes(types);
+        if (role === 'provider' && !filtered.length) {
+            filtered = matchTypes(allowedDocumentTypes(role, true));
+        }
+        filtered.forEach(function (doc) {
+            seen[(doc.id || '').toString()] = true;
         });
+        return filtered;
     }
 
     function findUpload(uploaded, docId) {

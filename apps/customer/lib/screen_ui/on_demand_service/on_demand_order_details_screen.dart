@@ -151,6 +151,13 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                           providerLng: controller.providerUser.value?.location?.longitude ?? controller.providerUser.value?.longitude,
                         ),
                         const SizedBox(height: 10),
+                        RoundedButtonFill(
+                          title: 'Compartilhar localização'.tr,
+                          color: AppThemeData.grey200,
+                          textColor: AppThemeData.grey900,
+                          onPress: () => controller.shareLocation(),
+                        ),
+                        const SizedBox(height: 10),
                         ArrowProtectionNote(isDark: isDark),
                         SizedBox(height: 10),
                         Container(

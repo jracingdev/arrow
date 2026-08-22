@@ -771,12 +771,10 @@
                         notes = '';
                     }
                     var priceUnit = $('#price_unit').val();
-                    if (priceUnit == 'Hourly') {
-                        payment_method = '';
-                        var paymentStatus = false;
-                    } else {
-                        payment_method = $('input[name="payment_method"]:checked').val();
-                        var paymentStatus = !(payment_method === 'cod' || payment_method === 'cash on delivery' || payment_method === 'dinheiro');
+                    payment_method = $('input[name="payment_method"]:checked').val();
+                    var paymentStatus = false;
+                    if (priceUnit != 'Hourly') {
+                        paymentStatus = !(payment_method === 'cod' || payment_method === 'cash on delivery' || payment_method === 'dinheiro');
                     }
                     var status = 'Order Placed';
                     var quantity = parseInt($('#quantity_' + service_id).val());

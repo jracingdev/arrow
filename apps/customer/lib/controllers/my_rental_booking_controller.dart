@@ -137,7 +137,7 @@ class MyRentalBookingController extends GetxController {
           isTopup: false,
           orderId: selectedOrder.value.id,
           note: "Rental Amount debited".tr,
-          paymentStatus: "success".tr,
+          paymentStatus: "success",
           serviceType: Constant.parcelServiceType,
         );
 
@@ -201,7 +201,7 @@ class MyRentalBookingController extends GetxController {
           // refund
           orderId: order.id,
           note: "Refund for cancelled booking".tr,
-          paymentStatus: "success".tr,
+          paymentStatus: "success",
           serviceType: Constant.parcelServiceType,
         );
 

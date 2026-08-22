@@ -473,7 +473,7 @@ class CartController extends GetxController {
         isTopup: false,
         orderId: orderModel.id,
         note: "Order Amount debited".tr,
-        paymentStatus: "success".tr,
+        paymentStatus: "success",
       );
 
       await FireStoreUtils.setWalletTransaction(transactionModel).then((value) async {

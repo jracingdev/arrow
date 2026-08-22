@@ -128,7 +128,7 @@ class GiftCardController extends GetxController {
         isTopup: false,
         orderId: giftCardsOrderModel.id,
         note: "Gift card purchase amount debited".tr,
-        paymentStatus: "success".tr,
+        paymentStatus: "success",
       );
 
       await FireStoreUtils.setWalletTransaction(transactionModel).then((value) async {

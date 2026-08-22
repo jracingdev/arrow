@@ -95,16 +95,18 @@ class _HomeShellState extends State<HomeShell> {
                 Expanded(child: IndexedStack(index: index, children: _pages)),
               ],
             ),
-            bottomNavigationBar: BottomNavigationBar(
-              currentIndex: index,
-              onTap: shell.goTo,
-              selectedItemColor: AppTheme.primary,
-              items: [
-                const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Início'),
-                BottomNavigationBarItem(icon: _PedidosNavIcon(uid: uid, user: user), label: 'Pedidos'),
-                const BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: 'Agenda'),
-                const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
-              ],
+            bottomNavigationBar: SafeArea(
+              child: BottomNavigationBar(
+                currentIndex: index,
+                onTap: shell.goTo,
+                selectedItemColor: AppTheme.primary,
+                items: [
+                  const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Início'),
+                  BottomNavigationBarItem(icon: _PedidosNavIcon(uid: uid, user: user), label: 'Pedidos'),
+                  const BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: 'Agenda'),
+                  const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
+                ],
+              ),
             ),
           );
         });

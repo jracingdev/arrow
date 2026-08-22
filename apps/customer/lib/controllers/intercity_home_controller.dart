@@ -447,7 +447,7 @@ class IntercityHomeController extends GetxController {
           isTopup: false,
           orderId: currentOrder.value.id,
           note: "Cab Amount debited".tr,
-          paymentStatus: "success".tr,
+          paymentStatus: "success",
           serviceType: Constant.parcelServiceType,
         );
 

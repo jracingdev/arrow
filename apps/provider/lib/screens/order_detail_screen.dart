@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:arrow_shared/geo_distance.dart';
 import 'package:arrow_shared/hourly_service_billing.dart';
+import 'package:arrow_shared/share_location.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:provider/constant/constant.dart';
 import 'package:provider/constant/show_toast_dialog.dart';
 import 'package:provider/models/order_invoice_model.dart';
@@ -73,6 +76,36 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       ),
     );
     return go == true;
+  }
+
+  Future<void> _shareLocation(ProviderOrderModel order) async {
+    final address = order.addressLine();
+    final lat = order.customerLat();
+    final lng = order.customerLng();
+    if (address.trim().isEmpty && ShareLocationMessage.mapsUrl(lat: lat, lng: lng).isEmpty) {
+      ShowToastDialog.showToast('Não há localização para compartilhar.');
+      return;
+    }
+    final when = order.newScheduleDateTime ?? order.scheduleDateTime;
+    final schedule = when == null ? '' : DateFormat('dd/MM/yyyy HH:mm').format(when.toDate());
+    final me = Constant.userModel;
+    final live = ShareLocationMessage.isLiveJob(order.status) && GeoDistance.isValid(me?.latitude, me?.longitude);
+    try {
+      await Share.share(
+        ShareLocationMessage.build(
+          who: me?.fullName() ?? order.provider.authorName,
+          address: address,
+          schedule: schedule,
+          lat: lat,
+          lng: lng,
+          liveEnRoute: live,
+          fromProvider: true,
+        ),
+        subject: 'Compartilhar localização',
+      );
+    } catch (_) {
+      ShowToastDialog.showToast('Não foi possível compartilhar a localização.');
+    }
   }
 
   Future<void> _accept(ProviderOrderModel order) async {
@@ -223,8 +256,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           final when = order.newScheduleDateTime ?? order.scheduleDateTime;
+          final bottomInset = MediaQuery.paddingOf(context).bottom;
           return ListView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomInset),
             children: [
               Text(order.provider.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
@@ -268,6 +302,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   longitude: order.customerLng(),
                 ),
               ],
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => _shareLocation(order),
+                icon: const Icon(Icons.ios_share),
+                label: const Text('Compartilhar localização'),
+              ),
               const SizedBox(height: 12),
               const Text(
                 'Proteção Arrow: documentação verificada pela plataforma. Use denúncia se houver problema no pedido.',

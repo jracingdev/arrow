@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:arrow_shared/geo_distance.dart';
 import 'package:arrow_shared/hourly_service_billing.dart';
+import 'package:arrow_shared/share_location.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/models/coupon_model.dart';
 import 'package:customer/models/user_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../constant/collection_name.dart';
 import '../constant/constant.dart';
@@ -337,6 +341,38 @@ class OnDemandOrderDetailsController extends GetxController {
     final uri = Uri.tryParse(url);
     if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       ShowToastDialog.showToast('Não foi possível abrir a nota fiscal.'.tr);
+    }
+  }
+
+  Future<void> shareLocation() async {
+    final order = onProviderOrder.value;
+    if (order == null) return;
+    final address = order.address?.getFullAddress() ?? '';
+    final lat = order.customerLat();
+    final lng = order.customerLng();
+    if (address.trim().isEmpty && ShareLocationMessage.mapsUrl(lat: lat, lng: lng).isEmpty) {
+      ShowToastDialog.showToast('Não há localização para compartilhar.'.tr);
+      return;
+    }
+    final when = order.newScheduleDateTime ?? order.scheduleDateTime;
+    final schedule = when == null ? '' : DateFormat('dd/MM/yyyy HH:mm').format(when.toDate());
+    final liveLat = providerUser.value?.location?.latitude ?? providerUser.value?.latitude;
+    final liveLng = providerUser.value?.location?.longitude ?? providerUser.value?.longitude;
+    final live = ShareLocationMessage.isLiveJob(order.status) && GeoDistance.isValid(liveLat, liveLng);
+    try {
+      await Share.share(
+        ShareLocationMessage.build(
+          who: providerUser.value?.fullName() ?? order.provider.authorName ?? '',
+          address: address,
+          schedule: schedule,
+          lat: lat,
+          lng: lng,
+          liveEnRoute: live,
+        ),
+        subject: 'Compartilhar localização'.tr,
+      );
+    } catch (_) {
+      ShowToastDialog.showToast('Não foi possível compartilhar a localização.'.tr);
     }
   }
 
