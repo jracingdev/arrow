@@ -363,7 +363,7 @@
                 order_items += '<td class="total_product_price text-right">' + products_price + '</td>';
                 order_items += '</tr>';
                 $("#booking-id").html(order_number);
-                $("#booking-status").html('<span class="order_placed py-2 px-3">' + order_status + '</span>');
+                $("#booking-status").html('<span class="order_placed py-2 px-3">' + ArrowI18n.status(order_status) + '</span>');
                 $('#service-name').html(orderDetails.provider.title);
                 if (orderDetails.hasOwnProperty('discount') && orderDetails.discount) {
                     order_discount = orderDetails.discount;

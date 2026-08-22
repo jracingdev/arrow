@@ -840,5 +840,13 @@ return [
     'click_here_to_request_another' => 'اضغط هنا لطلب واحد آخر',
     'dine_in_restaurants' => 'مطاعم تناول الطعام داخل المطعم',
     'type_comment' => 'اكتب تعليق...',
+    'per_hour_suffix' => '/ساعة',
+    'days_not_added' => 'لم تتم إضافة الأيام.',
+    'no_more_services' => 'لا توجد خدمات أخرى.',
+    'no_more_stores' => 'لا توجد متاجر أخرى.',
+    'select_date_time' => 'اختر التاريخ والوقت',
+    'pickup_date' => 'تاريخ الاستلام',
+    'dropoff_date' => 'تاريخ التسليم',
+    'address_line2_help' => 'رقم المنزل والشارع والمعلم',
 ];
 

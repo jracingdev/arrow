@@ -2,7 +2,7 @@
 <meta name="viewport"
       content="width=device-width, initial-scale=1"> <!-- Ensures optimal rendering on mobile devices -->
 @include('layouts.header')
-<script src="https://www.paypal.com/sdk/js?client-id=<?php echo $paypalKey; ?>&currency=<?php echo $cart_order['currencyData']['code'] ?? 'USD'; ?>"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=<?php echo $paypalKey; ?>&currency=<?php echo $cart_order['currencyData']['code'] ?? 'BRL'; ?>"></script>
 <div class="siddhi-checkout siddhi-checkout-payment">
     <div class="container position-relative">
         <div class="py-5 row">

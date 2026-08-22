@@ -118,6 +118,17 @@
     window.ArrowI18n.searchPlaceholder = @json(trans('lang.search_here'));
     window.ArrowI18n.perHourSuffix = @json(trans('lang.per_hour_suffix'));
     window.ArrowI18n.viewDetails = @json(trans('lang.view_details'));
+    window.ArrowI18n.openLabel = @json(trans('lang.open'));
+    window.ArrowI18n.closedLabel = @json(trans('lang.closed'));
+    window.ArrowI18n.dayMap = Object.assign({}, window.ArrowI18n.dayMap || {}, {
+        Sunday: @json(trans('lang.sunday')),
+        Monday: @json(trans('lang.monday')),
+        Tuesday: @json(trans('lang.tuesday')),
+        Wednesday: @json(trans('lang.wednesday')),
+        Thursday: @json(trans('lang.thursday')),
+        Friday: @json(trans('lang.friday')),
+        Saturday: @json(trans('lang.saturday'))
+    });
     (function (i18n) {
         var map = {
             'rental-service': 'Aluguel',
@@ -1327,7 +1338,7 @@
         var platformFeeText = formatCurrency(platformFee, currencyData);
         var totalAmountText = formatCurrency(order_total, currencyData);
         
-        var priceUnit = (serviceDetails.priceUnit == 'Hourly') ? ' /Hour' : '';
+        var priceUnit = (serviceDetails.priceUnit == 'Hourly') ? (' ' + (window.ArrowI18n && ArrowI18n.perHourSuffix ? ArrowI18n.perHourSuffix : '/hora')) : '';
         var price_item = formatCurrency(basePrice, currencyData);
         var totalProductPrice = formatCurrency(itemGross, currencyData);
         

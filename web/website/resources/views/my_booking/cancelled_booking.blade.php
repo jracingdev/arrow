@@ -379,7 +379,7 @@
                     order_discount_val = currentCurrency + "" + parseFloat(order_discount).toFixed(decimal_degits);
                 }
                 $("#booking-id").html(order_number);
-                $("#booking-status").html('<span class="py-2 px-3 order_rejected">' + order_status + '<span>');
+                $("#booking-status").html('<span class="py-2 px-3 order_rejected">' + ArrowI18n.status(order_status) + '<span>');
                 $('#service-name').html(orderDetails.provider.title);
                 $("#order-items").html('<table class="order-list">' + order_items + '</table>');
                 $("#order-subtotal").html(booking_subtotal_val);

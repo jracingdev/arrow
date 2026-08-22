@@ -62,6 +62,24 @@
   w.ArrowI18n.searchPlaceholder = w.ArrowI18n.searchPlaceholder || 'Buscar aqui...';
   w.ArrowI18n.perHourSuffix = w.ArrowI18n.perHourSuffix || '/hora';
   w.ArrowI18n.viewDetails = w.ArrowI18n.viewDetails || 'Ver detalhes';
+  w.ArrowI18n.openLabel = w.ArrowI18n.openLabel || 'Aberto';
+  w.ArrowI18n.closedLabel = w.ArrowI18n.closedLabel || 'Fechado';
+
+  var DEFAULT_DAYS = {
+    Sunday: 'Domingo',
+    Monday: 'Segunda-feira',
+    Tuesday: 'Terça-feira',
+    Wednesday: 'Quarta-feira',
+    Thursday: 'Quinta-feira',
+    Friday: 'Sexta-feira',
+    Saturday: 'Sábado'
+  };
+  w.ArrowI18n.dayMap = Object.assign({}, DEFAULT_DAYS, w.ArrowI18n.dayMap || {});
+  w.ArrowI18n.dayLabel = function (d) {
+    if (d == null || d === '') return '';
+    var key = String(d).trim();
+    return (this.dayMap && this.dayMap[key]) || key;
+  };
 
   function serviceTypeMapOf(ctx) {
     return (ctx && ctx.serviceTypeMap) || (w.ArrowI18n && w.ArrowI18n.serviceTypeMap) || DEFAULT_SERVICE_TYPE || {};

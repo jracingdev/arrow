@@ -393,10 +393,10 @@
                     reviewsCount = val.reviewsCount;
                 }
                 var getServiceTimeFlag = getServiceTime(val);
-                var status = 'Closed';
+                var status = "{{ trans('lang.closed') }}";
                 var statusclass = "closed";
                 if (getServiceTimeFlag.checkFlag == true) {
-                    status = 'Open';
+                    status = "{{ trans('lang.open') }}";
                     statusclass = "open";
                 }
                 html = html + '<div class="col-md-3 product-list"><div class="list-card position-relative"><div class="list-card-image"><div class="member-plan position-absolute"><span class="badge badge-dark ' + statusclass + '">' + status + '</span></div>';

@@ -312,10 +312,10 @@
             count++;
             html = html + '<div class="col-md-3 pb-3"><div class="list-card bg-white h-100 rounded overflow-hidden position-relative shadow-sm"><div class="list-card-image">';
             var getServiceTimeFlag = getServiceTime(val);
-            var status = 'Closed';
+            var status = "{{ trans('lang.closed') }}";
             var statusclass = "closed";
             if (getServiceTimeFlag.checkFlag == true) {
-                status = 'Open';
+                status = "{{ trans('lang.open') }}";
                 statusclass = "open";
             }
             if (val.photos && val.photos.length > 0) {

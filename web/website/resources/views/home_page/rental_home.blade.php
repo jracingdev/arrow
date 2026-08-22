@@ -27,7 +27,7 @@
                         <div class="row align-items-center form-row">
                             <div class="col-sm-12">
                                 <label>{{trans('lang.pickup_location')}}</label>
-                                <input type="text" class="form-control pickLocation" id="pickLocation" placeholder="Pick-up location" onchange="pickLocation()">
+                                <input type="text" class="form-control pickLocation" id="pickLocation" placeholder="{{ trans('lang.pickup_location') }}" onchange="pickLocation()">
                             </div>
                         </div>
                         <div class="row align-items-center form-row">

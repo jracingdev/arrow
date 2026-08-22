@@ -190,7 +190,7 @@
                 datas.id = listval.id;
                 alldata.push(datas);
             }
-            var status = 'Closed';
+            var status = "{{ trans('lang.closed') }}";
             var statusclass = "closed";
             var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             var currentdate = new Date();
@@ -210,7 +210,7 @@
                         for (j = 0; j < val.workingHours[i]['timeslot'].length; j++) {
                             var timeslot = val.workingHours[i]['timeslot'][j];
                             if (currentHours >= timeslot[`from`] && currentHours <= timeslot[`to`]) {
-                                status = 'Open';
+                                status = "{{ trans('lang.open') }}";
                                 statusclass = "open";
                             }
                         }

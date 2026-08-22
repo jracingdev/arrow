@@ -189,7 +189,7 @@
                                     </div>
                                     <div class="inputField col-md-6">
                                         <input type="datetime-local" class="form-control senderArrive" required=""
-                                               placeholder="Select date & time">
+                                               placeholder="{{ trans('lang.select_date_time') }}">
                                         <span for="exampleFormControlTextarea1">{{trans('lang.when_pickup_address')}}</span>
                                     </div>
                                     <div class="inputField col-md-6">
@@ -637,19 +637,19 @@
     globalSettingsRef.get().then(async function (snapshot) {
         var globalSettings = snapshot.data();
        
+        var defaultPhoneCode = '55';
         if (globalSettings && globalSettings.defaultCountryCode) {
-            var defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim();
+            defaultPhoneCode = globalSettings.defaultCountryCode.replace('+', '').trim() || '55';
+        }
 
-            // Find the option with matching phoneCode
-            var $option = $(".country_selector option").filter(function() {
-                return $(this).val() === defaultPhoneCode;
-            });
+        var $option = $(".country_selector option").filter(function() {
+            return $(this).val() === defaultPhoneCode;
+        });
 
-            if ($option.length > 0) {
-                $(".country_selector").val(defaultPhoneCode).trigger('change');
-            } else {
-                console.warn("Default country code not found in list:", defaultPhoneCode);
-            }
+        if ($option.length > 0) {
+            $(".country_selector").val(defaultPhoneCode).trigger('change');
+        } else if ($(".country_selector option[value='55']").length) {
+            $(".country_selector").val('55').trigger('change');
         }
     }).catch(function (error) {
         console.error("Error fetching global settings: ", error);

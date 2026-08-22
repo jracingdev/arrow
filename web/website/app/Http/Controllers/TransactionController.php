@@ -372,7 +372,7 @@ class TransactionController extends Controller
         $user_wallet = Session::get('user_wallet', []);
         if ($user_wallet['data'] && $input['token_id']) {
             if ($user_wallet['data']['stripeKey'] && $user_wallet['data']['stripeSecret']) {
-                $currency = @$user_wallet['data']['currency'] ?: 'usd';
+                $currency = @$user_wallet['data']['currency'] ?: 'brl';
                 $stripeSecret = $user_wallet['data']['stripeSecret'];
                 $stripe = new \Stripe\StripeClient($stripeSecret);
                 $description = env('APP_NAME', 'Foodie') . ' Order';
@@ -408,7 +408,7 @@ class TransactionController extends Controller
         $user_wallet = Session::get('cart', []);
         if (@$user_wallet['data'] && $input['token_id']) {
             if ($user_wallet['data']['PublicKey'] && $user_wallet['data']['AccessToken']) {
-                $currency = @$user_wallet['data']['currency'] ?: 'usd';
+                $currency = @$user_wallet['data']['currency'] ?: 'brl';
                 $mercadopagoAccess = $user_wallet['data']['AccessToken'];
                 $name = $input['name'];
                 $urladdress = "https://api.mercadopago.com/checkout/preferences";

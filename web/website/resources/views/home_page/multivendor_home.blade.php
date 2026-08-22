@@ -120,7 +120,7 @@
                 <div class="most_sale1" id="all_stores"></div>
                 <div class="row fu-loadmore-btn">
                     <a class="page-link loadmore-btn" href="javascript:void(0);" onclick="moreload()" data-dt-idx="0" tabindex="0" id="loadmore">{{ trans('lang.see') }} {{ trans('lang.more') }}</a>
-                    <p style="display: none;color: red" id="noMoreCoupons">No More Store found..</p>
+                    <p style="display: none;color: red" id="noMoreCoupons">{{ trans('lang.no_more_stores') }}</p>
                 </div>
             </div>
         </section>
@@ -594,10 +594,10 @@
                         rating = Math.round(rating * 10) / 10;
                         reviewsCount = val.reviewsCount;
                     }
-                    var status = 'Closed';
+                    var status = "{{ trans('lang.closed') }}";
                     var statusclass = "closed";
                     if (val.hasOwnProperty('reststatus') && val.reststatus) {
-                        status = 'Open';
+                        status = "{{ trans('lang.open') }}";
                         statusclass = "open";
                     }
                     var vendor_id_single = val.id;
@@ -784,10 +784,10 @@
                     popularItemCount++;
                     popularStoresList.push(val.id);
                 }
-                var status = 'Closed';
+                var status = "{{ trans('lang.closed') }}";
                 var statusclass = "closed";
                 if (val.hasOwnProperty('reststatus') && val.reststatus) {
-                    status = 'Open';
+                    status = "{{ trans('lang.open') }}";
                     statusclass = "open";
                 }
                 var vendor_id_single = val.id;
@@ -866,10 +866,10 @@
                 html = html + '<div class="row">';
                 alldata.forEach((listval) => {
                     var val = listval;
-                    var status = 'Closed';
+                    var status = "{{ trans('lang.closed') }}";
                     var statusclass = "closed";
                     if (val.hasOwnProperty('reststatus') && val.reststatus) {
-                        status = 'Open';
+                        status = "{{ trans('lang.open') }}";
                         statusclass = "open";
                     }
                     var vendor_id_single = val.vendorID;
@@ -952,10 +952,10 @@
                     rating = Math.round(rating * 10) / 10;
                     reviewsCount = val.reviewsCount;
                 }
-                var status = 'Closed';
+                var status = "{{ trans('lang.closed') }}";
                 var statusclass = "closed";
                 if (val.hasOwnProperty('reststatus') && val.reststatus) {
-                    status = 'Open';
+                    status = "{{ trans('lang.open') }}";
                     statusclass = "open";
                 }
                 html = html + '<div class="col-md-3 pro-list">' +

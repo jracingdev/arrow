@@ -76,7 +76,7 @@
                 <div class="all_services" id="all_services"></div>
                 <div class="row fu-loadmore-btn">
                     <a class="page-link loadmore-btn" href="javascript:void(0);" onclick="moreload()" data-dt-idx="0" tabindex="0" id="loadmore">{{ trans('lang.see') }} {{ trans('lang.more') }}</a>
-                    <p style="display: none;color: red" id="noMoreServices">No More Store found..</p>
+                    <p style="display: none;color: red" id="noMoreServices">{{ trans('lang.no_more_services') }}</p>
                 </div>
             </div>
         </section>
@@ -177,11 +177,11 @@
                     html += '<div class="banner-img">';
                     var redirect_id = 'javascript::void()';
                     if (banner.redirect_type != '') {
-                        if (banner.redirect_type == "store") {
-                            redirect_id = "{{ route('vendor', ':id') }}";
+                        if (banner.redirect_type == "provider" || banner.redirect_type == "store") {
+                            redirect_id = "{{ route('ondemand-providerdetail', ':id') }}";
                             redirect_id = redirect_id.replace(':id', banner.redirect_id);
-                        } else if (banner.redirect_type == "product") {
-                            redirect_id = "{{ route('productdetail', ':id') }}";
+                        } else if (banner.redirect_type == "service" || banner.redirect_type == "product") {
+                            redirect_id = "{{ route('service', ':id') }}";
                             redirect_id = redirect_id.replace(':id', banner.redirect_id);
                         } else if (banner.redirect_type == "external_link") {
                             redirect_id = banner.redirect_id;
@@ -205,11 +205,11 @@
                     html += '<div class="banner-img">';
                     var redirect_id = 'javascript::void()';
                     if (banner.redirect_type != '') {
-                        if (banner.redirect_type == "store") {
-                            redirect_id = "{{ route('vendor', ':id') }}";
+                        if (banner.redirect_type == "provider" || banner.redirect_type == "store") {
+                            redirect_id = "{{ route('ondemand-providerdetail', ':id') }}";
                             redirect_id = redirect_id.replace(':id', banner.redirect_id);
-                        } else if (banner.redirect_type == "product") {
-                            redirect_id = "{{ route('productdetail', ':id') }}";
+                        } else if (banner.redirect_type == "service" || banner.redirect_type == "product") {
+                            redirect_id = "{{ route('service', ':id') }}";
                             redirect_id = redirect_id.replace(':id', banner.redirect_id);
                         } else if (banner.redirect_type == "external_link") {
                             redirect_id = banner.redirect_id;
@@ -353,10 +353,10 @@
                     view_service_details = view_service_details.replace(':id', service_id_single);
                     count++;
                     var getServiceTimeFlag = getServiceTime(val);
-                    var status = 'Closed';
+                    var status = "{{ trans('lang.closed') }}";
                     var statusclass = "closed";
                     if (getServiceTimeFlag.checkFlag == true) {
-                        status = 'Open';
+                        status = "{{ trans('lang.open') }}";
                         statusclass = "open";
                     }
                     html = html + '<div class="col-md-3 pro-list"><div class="list-card"><div class="list-card-image"><div class=" member-plan position-relative"><span class="badge badge-dark ' + statusclass + '">' + status + '</span></div>';
@@ -557,10 +557,10 @@
                 view_service_details = view_service_details.replace(':id', service_id_single);
                 count++;
                 var getServiceTimeFlag = getServiceTime(val);
-                var status = 'Closed';
+                var status = "{{ trans('lang.closed') }}";
                 var statusclass = "closed";
                 if (getServiceTimeFlag.checkFlag == true) {
-                    status = 'Open';
+                    status = "{{ trans('lang.open') }}";
                     statusclass = "open";
                 }
                 html = html + '<div class="col-md-3 pro-list"><div class="list-card"><div class="list-card-image"><div class=" member-plan position-relative"><span class="badge badge-dark ' + statusclass + '">' + status + '</span></div>';

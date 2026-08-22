@@ -476,7 +476,7 @@
             var price_unit = '';
             if (serviceData.hasOwnProperty('priceUnit')) {
                 if (serviceData.priceUnit == 'Hourly') {
-                    price_unit = ' / hour';
+                    price_unit = ArrowI18n.perHourSuffix || '/hora';
                 }
             }
             if (serviceData.hasOwnProperty('disPrice') && serviceData.disPrice != '' && serviceData.disPrice != '0') {
@@ -523,10 +523,10 @@
                 '                              id="vendor_shop_status">{{trans("lang.service_days")}} :| </span>';
             if (serviceData.days.length > 0) {
                 $.each(serviceData.days, function (index, val) {
-                    html += '<span class="text-dark-50 font-weight-bold time"> ' + val + (index < serviceData.days.length - 1 ? ' ||' : '') + ' </span>';
+                    html += '<span class="text-dark-50 font-weight-bold time"> ' + (ArrowI18n.dayLabel ? ArrowI18n.dayLabel(val) : val) + (index < serviceData.days.length - 1 ? ' ||' : '') + ' </span>';
                 });
             } else {
-                html += '<span class="text-dark-50 font-weight-bold time "> Days are not added.</span>';
+                html += '<span class="text-dark-50 font-weight-bold time ">{{ trans("lang.days_not_added") }}</span>';
             }
             html += '</a></div>';
             html = html + '<div class="description mt-2 mb-3">';
@@ -557,7 +557,7 @@
                 html += '<input type="hidden" id="sub_category_id_' + serviceData.id + '" name="sub_category_id_' + serviceData.id + '" value="' + serviceData.subCategoryId + '">';
                 html += '<input type="hidden" id="provider_id_' + serviceData.id + '" name="provider_id_' + serviceData.id + '" value="' + serviceData.author + '">';
                 html += '<input type="hidden" id="price_unit_' + serviceData.id + '" name="price_unit_' + serviceData.id + '" value="' + serviceData.priceUnit + '">';
-                html += "<button data-id='" + String(serviceData.id) + "' type='button' class='col-md-12 add-to-cart btn btn-primary text-center btn-lg btn-block booknow' >Book Now</button>";
+                html += "<button data-id='" + String(serviceData.id) + "' type='button' class='col-md-12 add-to-cart btn btn-primary text-center btn-lg btn-block booknow' >{{ trans('lang.checkout_book_now') }}</button>";
                 html = html + '</div>';
             }
             return html;
@@ -679,10 +679,10 @@
                 reviewsCount = val.reviewsCount;
             }
             var getServiceTimeFlag = getServiceTime(val);
-            var status = 'Closed';
+            var status = "{{ trans('lang.closed') }}";
             var statusclass = "closed";
             if (getServiceTimeFlag.checkFlag == true) {
-                status = 'Open';
+                status = "{{ trans('lang.open') }}";
                 statusclass = "open";
             }
             html = html + '<div class="col-md-3 product-list"><div class="list-card"><div class="list-card-image"><div class=" member-plan position-relative"><span class="badge badge-dark ' + statusclass + '">' + status + '</span></div>';

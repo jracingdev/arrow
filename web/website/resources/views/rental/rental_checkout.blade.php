@@ -263,7 +263,7 @@
         var couponRef = database.collection('rental_coupons').where('sectionId', '==', sectionid).where('expiresAt', '>=', date);
         var couponHtml = '';
         let menuHtmlx = couponRef.get().then(async function (couponRefSnapshots) {
-            couponHtml += '<div class="coupon-code"><label>Select Available Coupons to apply</label><span></span></div>';
+            couponHtml += '<div class="coupon-code"><label>{{ trans("lang.select_available_coupon") }}</label><span></span></div>';
             couponHtml += '<div class="copupon-list">';
             couponHtml += '<ul>';
             couponRefSnapshots.docs.forEach((doc) => {

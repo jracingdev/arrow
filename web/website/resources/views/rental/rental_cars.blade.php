@@ -39,14 +39,14 @@ session_start();
                         <input type="hidden" id="driverRate" value="0"/>
                         <input type="hidden" id="adminCommission" value=""/>
                         <input type="hidden" id="adminCommissionType" value=""/>
-                        <input type="text" name="pick-up-date" placeholder="Pick-up date"
+                        <input type="text" name="pick-up-date" placeholder="{{ trans('lang.pickup_date') }}"
                                class="form-control date_picker pick-up-date" value="<?php
                         if (@$rentalCarsData && @$rentalCarsData['startDate']) {
                             echo $rentalCarsData['startDate'];
                         }?>" id="pick-up-date">
                     </div>
                     <div class="col-md-3">
-                        <input type="text" name="drop-off-date" placeholder="Drop-off date"
+                        <input type="text" name="drop-off-date" placeholder="{{ trans('lang.dropoff_date') }}"
                                class="form-control date_picker drop-off-date" value="<?php
                         if (@$rentalCarsData && @$rentalCarsData['endDate']) {
                             echo $rentalCarsData['endDate'];

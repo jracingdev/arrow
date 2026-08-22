@@ -181,11 +181,11 @@
                             <div class="form-row">
                                 <div class="form-group col-6">
                                     <label>{{trans('lang.min')}} </label>
-                                    <input class="form-control" placeholder="$0" type="number">
+                                    <input class="form-control" placeholder="R$ 0" type="number">
                                 </div>
                                 <div class="form-group text-right col-6">
                                     <label>{{trans('lang.max')}} </label>
-                                    <input class="form-control" placeholder="$1,0000" type="number">
+                                    <input class="form-control" placeholder="R$ 1.000" type="number">
                                 </div>
                             </div>
                         </div>

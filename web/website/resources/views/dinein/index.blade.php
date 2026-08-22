@@ -124,10 +124,10 @@
                 rating = Math.round(rating * 10) / 10;
                 reviewsCount = val.reviewsCount;
             }
-            var status = 'Closed';
+            var status = "{{ trans('lang.closed') }}";
             var statusclass = "closed";
             if (val.hasOwnProperty('reststatus') && val.reststatus) {
-                status = 'Open';
+                status = "{{ trans('lang.open') }}";
                 statusclass = "open";
             }
             var vendor_id_single = val.id;

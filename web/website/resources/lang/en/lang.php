@@ -963,5 +963,13 @@ return [
     'max_power' => 'Max power',
     'top_speed' => 'Top speed',
     'car_info' => 'Car info',
+    'per_hour_suffix' => '/hour',
+    'days_not_added' => 'Days are not added.',
+    'no_more_services' => 'No more services found.',
+    'no_more_stores' => 'No more stores found.',
+    'select_date_time' => 'Select date and time',
+    'pickup_date' => 'Pick-up date',
+    'dropoff_date' => 'Drop-off date',
+    'address_line2_help' => 'House number, street, complement and landmark',
 ];
 

@@ -524,7 +524,7 @@
                 }
                 $('#extra_charges').html(extraCharge_val);
                 $("#booking-id").html(order_number);
-                $("#booking-status").html('<span class="py-2 px-3 order_ongoing">' + order_status + '<span>');
+                $("#booking-status").html('<span class="py-2 px-3 order_ongoing">' + ArrowI18n.status(order_status) + '<span>');
                 $('#service-name').html(orderDetails.provider.title);
                 $("#order-items").html('<table class="order-list">' + order_items + '</table>');
                 $("#order-subtotal").html(booking_subtotal_val);

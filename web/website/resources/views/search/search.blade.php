@@ -253,10 +253,10 @@
                 checkVendorExist(val.id);
                 var rating = 0;
                 var reviewsCount = 0;
-                var status = 'Closed';
+                var status = "{{ trans('lang.closed') }}";
                 var statusclass = "closed";
                 if (val.hasOwnProperty('reststatus') && val.reststatus) {
-                    status = 'Open';
+                    status = "{{ trans('lang.open') }}";
                     statusclass = "open";
                 }
                 if (val.hasOwnProperty('reviewsSum') && val.reviewsSum > 0 && val.hasOwnProperty('reviewsCount') && val.reviewsCount > 0) {
