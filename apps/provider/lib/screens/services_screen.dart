@@ -85,6 +85,10 @@ class ServicesScreen extends StatelessWidget {
                         Text('$avg (${service.reviewsCount})', style: const TextStyle(color: AppTheme.grey500, fontSize: 12)),
                       ],
                     ),
+                    TextButton(
+                      onPressed: () => Get.to(() => CreateServiceScreen(existing: service)),
+                      child: const Text('Editar título e preço'),
+                    ),
                   ],
                 ),
                 value: service.publish,

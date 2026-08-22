@@ -20,5 +20,6 @@ void main() {
     expect(currency.decimalDigits, 2);
     expect(Constant.paymentLabel(method: 'cod'), contains('Dinheiro'));
     expect(ArrowPaymentLabel.gateway('wallet'), 'Carteira');
+    expect(ArrowPaymentLabel.gateway('mercadoPago'), 'PIX');
   });
 }

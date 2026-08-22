@@ -1,4 +1,6 @@
 import 'package:arrow_shared/arrow_currency.dart';
+import 'package:arrow_shared/arrow_i18n.dart';
+import 'package:arrow_shared/arrow_payment_label.dart';
 import 'package:arrow_shared/arrow_production_config.dart';
 import 'package:arrow_shared/published_service_visibility.dart';
 import 'package:customer/models/currency_model.dart';
@@ -25,5 +27,8 @@ void main() {
     expect(currency.code, ArrowCurrency.code);
     expect(currency.symbol, ArrowCurrency.symbol);
     expect(currency.decimal, 2);
+    expect(ArrowPaymentLabel.gateway('mercadoPago'), 'PIX');
+    expect(ArrowI18n.dayLabel('Monday'), 'Segunda-feira');
+    expect(ArrowCurrency.normalizeSymbol(r'$'), r'R$');
   });
 }

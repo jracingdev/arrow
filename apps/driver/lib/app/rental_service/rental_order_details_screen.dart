@@ -593,7 +593,7 @@ class RentalOrderDetailsScreen extends StatelessWidget {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "Note : Admin commission will be debited from your wallet balance. \n \nAdmin commission will apply on your booking Amount minus Discount(if applicable).",
+                                          "Note : Admin commission will be debited from your wallet balance. \n \nAdmin commission will apply on your booking Amount minus Discount(if applicable).".tr,
                                           style: AppThemeData.boldTextStyle(fontSize: 16, color: isDark ? AppThemeData.danger300 : AppThemeData.danger300),
                                         ),
                                       ],

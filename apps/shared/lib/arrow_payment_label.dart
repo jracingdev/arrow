@@ -17,14 +17,13 @@ class ArrowPaymentLabel {
       case 'wallet':
         return 'Carteira';
       case 'pix':
+      case 'mercadopago':
+      case 'mercado pago':
         return 'PIX';
       case 'stripe':
         return 'Cartão';
       case 'paypal':
         return 'PayPal';
-      case 'mercadopago':
-      case 'mercado pago':
-        return 'Mercado Pago';
       case 'online':
         return 'Pagamento online';
       case 'tax':

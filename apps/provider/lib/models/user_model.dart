@@ -25,6 +25,9 @@ class UserModel {
   double? latitude;
   double? longitude;
   bool online = false;
+  String? address;
+  String? cep;
+  List<Map<String, dynamic>> shippingAddress = const [];
 
   UserModel({
     this.id,
@@ -51,7 +54,40 @@ class UserModel {
     this.latitude,
     this.longitude,
     this.online = false,
+    this.address,
+    this.cep,
+    this.shippingAddress = const [],
   });
+
+  String profileAddressLine() {
+    final direct = (address ?? '').trim();
+    if (direct.isNotEmpty) return direct;
+    for (final item in shippingAddress) {
+      final line = [
+        item['address'],
+        item['addressAsString'],
+        item['locality'],
+        item['landmark'],
+      ].map((e) => (e ?? '').toString().trim()).where((e) => e.isNotEmpty).join(', ');
+      if (line.isNotEmpty) return line;
+    }
+    final loc = location;
+    if (loc != null) {
+      final line = [loc['address'], loc['locality']].map((e) => (e ?? '').toString().trim()).where((e) => e.isNotEmpty).join(', ');
+      if (line.isNotEmpty) return line;
+    }
+    return '';
+  }
+
+  String profileCep() {
+    final direct = (cep ?? '').trim();
+    if (direct.isNotEmpty) return direct;
+    for (final item in shippingAddress) {
+      final value = (item['cep'] ?? item['postalCode'] ?? item['zipCode'] ?? '').toString().trim();
+      if (value.isNotEmpty) return value;
+    }
+    return (location?['cep'] ?? location?['postalCode'] ?? '').toString().trim();
+  }
 
   String fullName() => '${firstName ?? ''} ${lastName ?? ''}'.trim();
 
@@ -88,6 +124,14 @@ class UserModel {
       latitude ??= double.tryParse('${location!['latitude'] ?? ''}');
       longitude ??= double.tryParse('${location!['longitude'] ?? ''}');
     }
+    address = json['address']?.toString();
+    cep = (json['cep'] ?? json['postalCode'] ?? json['zipCode'])?.toString();
+    if (json['shippingAddress'] is List) {
+      shippingAddress = (json['shippingAddress'] as List)
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -117,6 +161,9 @@ class UserModel {
       'latitude': latitude,
       'longitude': longitude,
       'online': online,
+      if (address != null) 'address': address,
+      if (cep != null) 'cep': cep,
+      if (shippingAddress.isNotEmpty) 'shippingAddress': shippingAddress,
       if (latitude != null && longitude != null)
         'location': {'latitude': latitude, 'longitude': longitude},
     };

@@ -50,7 +50,7 @@ class CabBookingScreen extends StatelessWidget {
                   ? Constant.loader()
                   : Stack(
                     children: [
-                      Constant.selectedMapType == "osm"
+                      Constant.useOsmMap
                           ? flutterMap.FlutterMap(
                             mapController: controller.mapOsmController,
                             options: flutterMap.MapOptions(

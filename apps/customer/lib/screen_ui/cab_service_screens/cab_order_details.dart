@@ -184,7 +184,7 @@ class CabOrderDetails extends StatelessWidget {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(15),
                             child:
-                                Constant.selectedMapType == "osm"
+                                Constant.useOsmMap
                                     ? fm.FlutterMap(
                                       options: fm.MapOptions(
                                         initialCenter: osm.LatLng(controller.cabOrder.value.sourceLocation!.latitude!, controller.cabOrder.value.sourceLocation!.longitude!),

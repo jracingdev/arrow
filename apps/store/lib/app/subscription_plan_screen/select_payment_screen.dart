@@ -1,3 +1,4 @@
+import 'package:arrow_shared/arrow_payment_label.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:vendor/themes/theme_controller.dart';
@@ -238,7 +239,7 @@ class SelectPaymentScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                value.name.capitalizeString(),
+                                ArrowPaymentLabel.gateway(value.name),
                                 textAlign: TextAlign.start,
                                 style: TextStyle(fontFamily: AppThemeData.medium, fontSize: 16, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900),
                               ),
@@ -252,7 +253,7 @@ class SelectPaymentScreen extends StatelessWidget {
                         )
                       : Expanded(
                           child: Text(
-                            value.name.capitalizeString(),
+                            ArrowPaymentLabel.gateway(value.name),
                             textAlign: TextAlign.start,
                             style: TextStyle(fontFamily: AppThemeData.medium, fontSize: 16, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900),
                           ),

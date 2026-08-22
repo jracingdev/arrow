@@ -1,3 +1,4 @@
+import 'package:arrow_shared/arrow_payment_label.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -224,7 +225,7 @@ class OnDemandPaymentScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              value.name.capitalizeString(),
+                              ArrowPaymentLabel.gateway(value.name),
                               textAlign: TextAlign.start,
                               style: AppThemeData.semiBoldTextStyle(fontSize: 16, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900),
                             ),
@@ -238,7 +239,7 @@ class OnDemandPaymentScreen extends StatelessWidget {
                       )
                       : Expanded(
                         child: Text(
-                          value.name.capitalizeString(),
+                          ArrowPaymentLabel.gateway(value.name),
                           textAlign: TextAlign.start,
                           style: AppThemeData.semiBoldTextStyle(fontSize: 16, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900),
                         ),

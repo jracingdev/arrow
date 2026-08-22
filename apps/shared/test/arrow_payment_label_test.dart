@@ -6,6 +6,8 @@ void main() {
     expect(ArrowPaymentLabel.gateway('cod'), 'Dinheiro');
     expect(ArrowPaymentLabel.gateway('wallet'), 'Carteira');
     expect(ArrowPaymentLabel.gateway('pix'), 'PIX');
+    expect(ArrowPaymentLabel.gateway('mercadoPago'), 'PIX');
+    expect(ArrowPaymentLabel.gateway('Mercado Pago'), 'PIX');
     expect(ArrowPaymentLabel.gateway('stripe'), 'Cartão');
     expect(ArrowPaymentLabel.gateway('online'), 'Pagamento online');
     expect(ArrowPaymentLabel.withStatus(method: 'cod', paid: false), 'Dinheiro · A pagar');

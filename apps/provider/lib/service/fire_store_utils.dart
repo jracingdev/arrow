@@ -243,10 +243,12 @@ class FireStoreUtils {
       'phoneNumber': user.phoneNumber ?? '',
       'description': description.trim(),
       'subCategoryId': subCategoryId,
-      'address': address.trim(),
+      'address': address.trim().isNotEmpty ? address.trim() : user.profileAddressLine(),
       'latitude': lat,
       'longitude': lng,
-      'photos': const <String>[],
+      'photos': [
+        if ((user.profilePictureURL ?? '').trim().isNotEmpty) user.profilePictureURL!.trim(),
+      ],
       'days': const ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
       'startTime': '08:00',
       'endTime': '18:00',
@@ -271,6 +273,29 @@ class FireStoreUtils {
       }, SetOptions(merge: true));
     }
     return id;
+  }
+
+  static Future<void> updateMyService({
+    required String serviceId,
+    required String title,
+    required String description,
+    required String price,
+    required String priceUnit,
+    required bool publish,
+    String address = '',
+  }) async {
+    if (serviceId.isEmpty) throw Exception('Serviço inválido.');
+    if (title.trim().isEmpty || price.trim().isEmpty) {
+      throw Exception('Preencha título e preço.');
+    }
+    await _db.collection(CollectionName.providersServices).doc(serviceId).update({
+      'title': title.trim(),
+      'description': description.trim(),
+      'price': price.trim(),
+      'priceUnit': priceUnit,
+      'publish': publish,
+      if (address.trim().isNotEmpty) 'address': address.trim(),
+    });
   }
 
   static Stream<List<WorkerModel>> watchMyWorkers(String uid) {

@@ -63,6 +63,25 @@ void main() {
     expect(Constant.dispatchDirect, 'direct');
   });
 
+  test('perfil copia CEP/endereço e foto quando o store já tem', () {
+    final user = UserModel.fromJson({
+      'address': 'Av. Paulista, 1578',
+      'cep': '01310-200',
+      'profilePictureURL': 'https://example.com/foto.jpg',
+      'shippingAddress': [
+        {'address': 'Rua Augusta, 100', 'locality': 'São Paulo', 'cep': '01305-000'},
+      ],
+    });
+    expect(user.profileAddressLine(), 'Av. Paulista, 1578');
+    expect(user.profileCep(), '01310-200');
+    expect(user.profilePictureURL, contains('foto.jpg'));
+    expect(UserModel.fromJson({
+      'shippingAddress': [
+        {'address': 'Rua Augusta, 100', 'locality': 'São Paulo'},
+      ],
+    }).profileAddressLine(), 'Rua Augusta, 100, São Paulo');
+  });
+
   test('prestador disponível usa users.online', () {
     expect(UserModel(online: true).online, isTrue);
     expect(UserModel.fromJson({'online': true}).online, isTrue);

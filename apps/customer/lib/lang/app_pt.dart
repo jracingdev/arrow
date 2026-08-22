@@ -862,4 +862,11 @@ const Map<String, String> ptBR = {
   'Pedido cancelado': 'Pedido cancelado',
   'Procurando…': 'Procurando…',
   'O preço é definido pelo prestador que aceitar. Para preço fixo, você paga depois da aceitação.': 'O preço é definido pelo prestador que aceitar. Para preço fixo, você paga depois da aceitação.',
+  'Could not get your location. Enable GPS and try again, or set from map.': 'Não foi possível obter sua localização. Ative o GPS e tente de novo, ou escolha no mapa.',
+  'Please Enter Amount': 'Informe o valor',
+  'Tax amount': 'Valor do imposto',
+  'Platform fee': 'Taxa da plataforma',
+  'mercadoPago': 'PIX',
+  'MercadoPago': 'PIX',
+  'mercadopago': 'PIX',
 };

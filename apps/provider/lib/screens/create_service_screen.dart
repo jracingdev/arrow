@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/constant/constant.dart';
+import 'package:provider/models/provider_service_model.dart';
 import 'package:provider/models/user_model.dart';
 import 'package:provider/service/fire_store_utils.dart';
 import 'package:provider/themes/app_theme.dart';
 
 class CreateServiceScreen extends StatefulWidget {
-  const CreateServiceScreen({super.key});
+  const CreateServiceScreen({super.key, this.existing});
+
+  final ProviderServiceModel? existing;
 
   @override
   State<CreateServiceScreen> createState() => _CreateServiceScreenState();
@@ -33,6 +36,8 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
 
   UserModel? get _user => Constant.userModel;
 
+  bool get _editing => widget.existing != null && widget.existing!.id.isNotEmpty;
+
   Set<String> get _sectionIds => _sections.map((s) => (s['id'] ?? '').toString()).where((id) => id.isNotEmpty).toSet();
 
   Set<String> get _categoryIds => _categories.map((c) => (c['id'] ?? '').toString()).where((id) => id.isNotEmpty).toSet();
@@ -40,7 +45,25 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
   @override
   void initState() {
     super.initState();
-    _sectionId = _user?.sectionId ?? '';
+    final existing = widget.existing;
+    final user = _user;
+    if (existing != null) {
+      _title.text = existing.title;
+      _description.text = existing.description;
+      _price.text = existing.price;
+      _address.text = existing.address;
+      _priceUnit = existing.priceUnit.isEmpty ? 'Hourly' : existing.priceUnit;
+      _sectionId = existing.sectionId;
+      _categoryId = existing.categoryId;
+      _publish = existing.publish;
+    } else {
+      _sectionId = user?.sectionId ?? '';
+      final profileAddress = [
+        if ((user?.profileCep() ?? '').isNotEmpty) user!.profileCep(),
+        user?.profileAddressLine() ?? '',
+      ].where((e) => e.isNotEmpty).join(' — ');
+      _address.text = profileAddress;
+    }
     _load();
   }
 
@@ -65,11 +88,16 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
         sectionId = (sections.first['id'] ?? '').toString();
       }
       final categories = sectionId.isEmpty ? const <Map<String, dynamic>>[] : await FireStoreUtils.getProviderCategories(sectionId: sectionId);
+      List<Map<String, dynamic>> subs = const [];
+      if (sectionId.isNotEmpty && _categoryId.isNotEmpty) {
+        subs = await FireStoreUtils.getProviderCategories(sectionId: sectionId, parentCategoryId: _categoryId);
+      }
       if (!mounted) return;
       setState(() {
         _sections = sections;
         _sectionId = sectionId;
         _categories = categories;
+        _subCategories = subs;
         _loading = false;
       });
     } catch (e) {
@@ -114,20 +142,32 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
       _error = null;
     });
     try {
-      await FireStoreUtils.createMyService(
-        user: user,
-        title: _title.text,
-        description: _description.text,
-        price: _price.text,
-        priceUnit: _priceUnit,
-        sectionId: _sectionId,
-        categoryId: _categoryId,
-        subCategoryId: _subCategoryId,
-        publish: _publish,
-        address: _address.text,
-        latitude: user.latitude,
-        longitude: user.longitude,
-      );
+      if (_editing) {
+        await FireStoreUtils.updateMyService(
+          serviceId: widget.existing!.id,
+          title: _title.text,
+          description: _description.text,
+          price: _price.text,
+          priceUnit: _priceUnit,
+          publish: _publish,
+          address: _address.text,
+        );
+      } else {
+        await FireStoreUtils.createMyService(
+          user: user,
+          title: _title.text,
+          description: _description.text,
+          price: _price.text,
+          priceUnit: _priceUnit,
+          sectionId: _sectionId,
+          categoryId: _categoryId,
+          subCategoryId: _subCategoryId,
+          publish: _publish,
+          address: _address.text,
+          latitude: user.latitude,
+          longitude: user.longitude,
+        );
+      }
       if (!mounted) return;
       Get.back();
     } catch (e) {
@@ -141,8 +181,9 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final photo = (_user?.profilePictureURL ?? '').trim();
     return Scaffold(
-      appBar: AppBar(title: const Text('Novo serviço')),
+      appBar: AppBar(title: Text(_editing ? 'Editar serviço' : 'Novo serviço')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -153,6 +194,15 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Text(_error!, style: const TextStyle(color: AppTheme.danger)),
                   ),
+                if (photo.isNotEmpty) ...[
+                  const Text('Foto do perfil (usada no serviço)', style: TextStyle(fontSize: 13, color: AppTheme.grey500)),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(photo, height: 88, width: 88, fit: BoxFit.cover),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 TextField(
                   controller: _title,
                   decoration: const InputDecoration(labelText: 'Título', border: OutlineInputBorder()),
@@ -165,9 +215,11 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                   items: _sections
                       .map((s) => DropdownMenuItem(value: (s['id'] ?? '').toString(), child: Text((s['name'] ?? s['id'] ?? '').toString())))
                       .toList(),
-                  onChanged: _saving ? null : (v) {
-                    if (v != null) _onSection(v);
-                  },
+                  onChanged: _saving || _editing
+                      ? null
+                      : (v) {
+                          if (v != null) _onSection(v);
+                        },
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
@@ -177,9 +229,11 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                   items: _categories
                       .map((c) => DropdownMenuItem(value: (c['id'] ?? '').toString(), child: Text((c['title'] ?? c['id'] ?? '').toString())))
                       .toList(),
-                  onChanged: _saving ? null : (v) {
-                    if (v != null) _onCategory(v);
-                  },
+                  onChanged: _saving || _editing
+                      ? null
+                      : (v) {
+                          if (v != null) _onCategory(v);
+                        },
                 ),
                 if (_sectionId.isNotEmpty && _categories.isEmpty)
                   const Padding(
@@ -199,7 +253,7 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                       const DropdownMenuItem(value: '', child: Text('Nenhuma')),
                       ..._subCategories.map((c) => DropdownMenuItem(value: (c['id'] ?? '').toString(), child: Text((c['title'] ?? c['id'] ?? '').toString()))),
                     ],
-                    onChanged: _saving ? null : (v) => setState(() => _subCategoryId = v ?? ''),
+                    onChanged: _saving || _editing ? null : (v) => setState(() => _subCategoryId = v ?? ''),
                   ),
                 ],
                 const SizedBox(height: 12),
@@ -228,8 +282,8 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                 TextField(
                   controller: _address,
                   decoration: const InputDecoration(
-                    labelText: 'Endereço (opcional)',
-                    helperText: 'A localização publicada usa a do seu perfil.',
+                    labelText: 'CEP / endereço',
+                    helperText: 'Se o perfil já tiver endereço, ele é copiado. A localização publicada usa lat/lng do perfil.',
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -243,7 +297,7 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: _saving ? null : _save,
-                  child: Text(_saving ? 'Salvando…' : 'Criar e publicar'),
+                  child: Text(_saving ? 'Salvando…' : (_editing ? 'Salvar alterações' : 'Criar e publicar')),
                 ),
               ],
             ),

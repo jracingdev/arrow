@@ -1,3 +1,5 @@
+import 'package:arrow_shared/arrow_currency.dart';
+import 'package:arrow_shared/arrow_payment_label.dart';
 import 'package:driver/constant/constant.dart';
 import 'package:driver/constant/show_toast_dialog.dart';
 import 'package:driver/controllers/wallet_controller.dart';
@@ -48,7 +50,7 @@ class PaymentListScreen extends StatelessWidget {
                       textInputType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                       prefix: Padding(
                         padding: const EdgeInsets.all(12.0),
-                        child: Text(Constant.currencyModel!.symbol.toString(), style: TextStyle(fontSize: 20, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900)),
+                        child: Text(ArrowCurrency.normalizeSymbol(Constant.currencyModel?.symbol), style: TextStyle(fontSize: 20, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900)),
                       ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp('[0-9]')),
@@ -207,7 +209,7 @@ class PaymentListScreen extends StatelessWidget {
               ),
               Expanded(
                 child: Text(
-                  value.name,
+                  ArrowPaymentLabel.gateway(value.name),
                   textAlign: TextAlign.start,
                   style: TextStyle(
                     fontFamily: AppThemeData.medium,

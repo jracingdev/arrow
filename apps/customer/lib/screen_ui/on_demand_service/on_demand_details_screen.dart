@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:arrow_shared/arrow_i18n.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/screen_ui/on_demand_service/provider_screen.dart';
 import 'package:flutter/material.dart';
@@ -496,7 +497,7 @@ class OnDemandDetailsScreen extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6), side: BorderSide(color: isDark ? const Color(0XFF3c3a2e) : const Color(0XFFC3C5D1), width: 1)),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 20),
-                            child: Text(day, style: TextStyle(color: isDark ? const Color(0XFFa5a292) : const Color(0XFF5A5D6D))),
+                            child: Text(ArrowI18n.dayLabel(day), style: TextStyle(color: isDark ? const Color(0XFFa5a292) : const Color(0XFF5A5D6D))),
                           ),
                         ),
                       )

@@ -184,13 +184,13 @@ class MyBookingOnDemandScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Column(
           children: [
-            detailRow("Date & Time", DateFormat('dd-MM-yyyy HH:mm').format(order.scheduleDateTime!.toDate()), isDark),
+            detailRow("Date & Time".tr, DateFormat('dd-MM-yyyy HH:mm').format(order.scheduleDateTime!.toDate()), isDark),
             const Divider(thickness: 1),
-            detailRow("Provider", order.isBroadcast && !order.hasAssignedProvider ? "Procurando…".tr : order.provider.authorName.toString(), isDark),
+            detailRow("Provider".tr, order.isBroadcast && !order.hasAssignedProvider ? "Procurando…".tr : order.provider.authorName.toString(), isDark),
 
             if (order.provider.priceUnit == "Hourly") ...[
-              if (order.startTime != null) ...[const Divider(thickness: 1), detailRow("Start Time", DateFormat('dd-MM-yyyy HH:mm').format(order.startTime!.toDate()), isDark)],
-              if (order.endTime != null) ...[const Divider(thickness: 1), detailRow("End Time", DateFormat('dd-MM-yyyy HH:mm').format(order.endTime!.toDate()), isDark)],
+              if (order.startTime != null) ...[const Divider(thickness: 1), detailRow("Start Time".tr, DateFormat('dd-MM-yyyy HH:mm').format(order.startTime!.toDate()), isDark)],
+              if (order.endTime != null) ...[const Divider(thickness: 1), detailRow("End Time".tr, DateFormat('dd-MM-yyyy HH:mm').format(order.endTime!.toDate()), isDark)],
               if (HourlyServiceBilling.isHourly(order.provider.priceUnit) &&
                   order.status == Constant.orderOngoing &&
                   order.startTime != null &&

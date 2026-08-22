@@ -19,5 +19,7 @@ void main() {
     expect(currency.symbol, ArrowCurrency.symbol);
     expect(Constant.paymentLabel(method: 'cod', paid: false), 'Dinheiro · A pagar');
     expect(ArrowPaymentLabel.gateway('online'), 'Pagamento online');
+    expect(ArrowPaymentLabel.gateway('mercadoPago'), 'PIX');
+    expect(ArrowPaymentLabel.isCod('Cash on Delivery'), isTrue);
   });
 }

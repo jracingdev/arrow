@@ -109,6 +109,16 @@ class Constant {
   static const globalUrl = kAdminApiBaseUrl;
 
   static String mapAPIKey = "";
+
+  static bool get hasUsableGoogleMapsKey {
+    final key = mapAPIKey.trim();
+    return key.isNotEmpty && !key.toUpperCase().contains('YOUR_API_KEY');
+  }
+
+  static bool get useOsmMap {
+    if ((selectedMapType ?? 'osm') == 'osm') return true;
+    return !hasUsableGoogleMapsKey;
+  }
   static String placeHolderImage = "";
   /// DDI padrão BR (+55). Sobrescrito por Firestore quando configurado.
   static String defaultCountryCode = BrazilPhone.dialCode;

@@ -1,3 +1,5 @@
+import 'package:arrow_shared/arrow_currency.dart';
+import 'package:arrow_shared/arrow_payment_label.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/controllers/wallet_controller.dart';
 import 'package:customer/payment/create_razor_pay_order_model.dart';
@@ -40,7 +42,7 @@ class PaymentListScreen extends StatelessWidget {
                     hintText: 'Enter Amount'.tr,
                     controller: controller.topUpAmountController.value,
                     textInputType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                    prefix: Padding(padding: const EdgeInsets.all(12.0), child: Text(Constant.currencyModel!.symbol.toString(), style: const TextStyle(fontSize: 20, color: AppThemeData.grey800))),
+                    prefix: Padding(padding: const EdgeInsets.all(12.0), child: Text(ArrowCurrency.normalizeSymbol(Constant.currencyModel?.symbol), style: const TextStyle(fontSize: 20, color: AppThemeData.grey800))),
                     inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9]'))],
                   ),
                 ),
@@ -159,7 +161,7 @@ class PaymentListScreen extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  value.name.capitalizeString(),
+                  ArrowPaymentLabel.gateway(value.name),
                   textAlign: TextAlign.start,
                   style: TextStyle(fontFamily: AppThemeData.medium, fontSize: 16, color: isDark ? AppThemeData.grey50 : AppThemeData.grey900),
                 ),
