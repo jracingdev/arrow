@@ -1,7 +1,7 @@
 name: customer
 description: "A new Flutter project."
 
-version: 1.0.6+11
+version: 1.0.7+12
 
 environment:
   sdk: ^3.7.2
