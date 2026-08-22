@@ -42,6 +42,11 @@ class OnProviderOrderModel {
   String? requestedCategoryId;
   double? radiusKm;
   List<String> rejectedBy;
+  List<String> offeredTo;
+  String? dispatchOfferedTo;
+  Timestamp? dispatchExpiresAt;
+  Timestamp? dispatchOfferExpiresAt;
+  String? cancelReason;
 
   OnProviderOrderModel({
     this.sectionId = '',
@@ -82,12 +87,18 @@ class OnProviderOrderModel {
     this.requestedCategoryId,
     this.radiusKm,
     List<String>? rejectedBy,
+    List<String>? offeredTo,
+    this.dispatchOfferedTo,
+    this.dispatchExpiresAt,
+    this.dispatchOfferExpiresAt,
+    this.cancelReason,
   }) : author = author ?? UserModel(),
        createdAt = createdAt ?? Timestamp.now(),
        provider = provider ?? ProviderServiceModel(),
        scheduleDateTime = scheduleDateTime ?? Timestamp.now(),
        invoices = invoices ?? const [],
-       rejectedBy = rejectedBy ?? const [];
+       rejectedBy = rejectedBy ?? const [],
+       offeredTo = offeredTo ?? const [];
 
   factory OnProviderOrderModel.fromJson(Map<String, dynamic> parsedJson) {
     List<TaxModel>? taxList;
@@ -145,6 +156,13 @@ class OnProviderOrderModel {
       rejectedBy: parsedJson['rejectedBy'] is List
           ? List<String>.from((parsedJson['rejectedBy'] as List).map((e) => e.toString()))
           : const [],
+      offeredTo: parsedJson['offeredTo'] is List
+          ? List<String>.from((parsedJson['offeredTo'] as List).map((e) => e.toString()))
+          : const [],
+      dispatchOfferedTo: parsedJson['dispatchOfferedTo']?.toString(),
+      dispatchExpiresAt: parsedJson['dispatchExpiresAt'] is Timestamp ? parsedJson['dispatchExpiresAt'] as Timestamp : null,
+      dispatchOfferExpiresAt: parsedJson['dispatchOfferExpiresAt'] is Timestamp ? parsedJson['dispatchOfferExpiresAt'] as Timestamp : null,
+      cancelReason: parsedJson['cancelReason']?.toString(),
     );
   }
 
@@ -194,6 +212,15 @@ class OnProviderOrderModel {
       'requestedCategoryId': requestedCategoryId,
       'radiusKm': radiusKm,
       'rejectedBy': rejectedBy,
+      'offeredTo': offeredTo,
+      'dispatchOfferedTo': dispatchOfferedTo,
+      'dispatchExpiresAt': dispatchExpiresAt,
+      'dispatchOfferExpiresAt': dispatchOfferExpiresAt,
+      'cancelReason': cancelReason,
     };
   }
+
+  double? customerLat() => address?.location?.latitude;
+
+  double? customerLng() => address?.location?.longitude;
 }

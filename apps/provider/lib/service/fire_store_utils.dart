@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:arrow_shared/dispatch_offer.dart';
 import 'package:arrow_shared/geo_distance.dart';
 import 'package:arrow_shared/hourly_service_billing.dart';
+import 'package:provider/service/broadcast_dispatch.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -664,7 +666,11 @@ class FireStoreUtils {
         if (order.status != Constant.orderPlaced) continue;
         if (order.hasAssignedProvider) continue;
         if (order.rejectedBy.contains(uid)) continue;
-        if (order.createdAt != null && now.difference(order.createdAt!.toDate()) > Constant.broadcastLookback) continue;
+        if (DispatchOffer.isJobExpired(
+          createdAt: order.createdAt?.toDate(),
+          dispatchExpiresAt: order.dispatchExpiresAt?.toDate(),
+          now: now,
+        )) continue;
         final requested = order.requestedCategoryId.isNotEmpty ? order.requestedCategoryId : order.provider.categoryId;
         if (requested.isNotEmpty && categories.isNotEmpty && !categories.contains(requested)) continue;
         final radius = order.radiusKm > 0 ? order.radiusKm : Constant.defaultBroadcastRadiusKm;
@@ -715,11 +721,7 @@ class FireStoreUtils {
   }
 
   static Future<void> declineBroadcast(String orderId) async {
-    final uid = getCurrentUid();
-    if (uid.isEmpty || orderId.isEmpty) return;
-    await _db.collection(CollectionName.providerOrders).doc(orderId).update({
-      'rejectedBy': FieldValue.arrayUnion([uid]),
-    });
+    await BroadcastDispatch.rejectAndAdvance(orderId);
   }
 
   static ProviderServiceModel? matchingService(List<ProviderServiceModel> services, ProviderOrderModel order) {

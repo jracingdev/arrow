@@ -8,6 +8,7 @@ import 'package:provider/models/provider_order_model.dart';
 import 'package:provider/models/provider_service_model.dart';
 import 'package:provider/models/user_model.dart';
 import 'package:provider/screens/order_detail_screen.dart';
+import 'package:provider/service/broadcast_dispatch.dart';
 import 'package:provider/service/fire_store_utils.dart';
 import 'package:provider/themes/app_theme.dart';
 import 'package:provider/utils/service_navigation.dart';
@@ -140,7 +141,7 @@ class NearbyRequestCard extends StatelessWidget {
                   child: OutlinedButton(
                     onPressed: () async {
                       try {
-                        await FireStoreUtils.declineBroadcast(order.id);
+                        await BroadcastDispatch.rejectAndAdvance(order.id);
                       } catch (_) {}
                     },
                     style: OutlinedButton.styleFrom(foregroundColor: AppTheme.danger, minimumSize: const Size.fromHeight(40)),

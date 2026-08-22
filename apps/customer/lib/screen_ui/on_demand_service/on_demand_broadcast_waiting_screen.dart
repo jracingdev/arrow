@@ -15,24 +15,45 @@ class OnDemandBroadcastWaitingScreen extends StatelessWidget {
       init: OnDemandBroadcastWaitingController(),
       builder: (OnDemandBroadcastWaitingController controller) {
         final order = controller.order.value;
+        final expired = controller.noProvider.value;
         return Scaffold(
           appBar: AppBar(
             backgroundColor: AppThemeData.primary300,
             automaticallyImplyLeading: false,
-            title: Text("Procurando prestador próximo…".tr, style: AppThemeData.boldTextStyle(fontSize: 18, color: AppThemeData.grey900)),
+            title: Text(
+              expired ? "Nenhum prestador disponível".tr : "Procurando prestador próximo…".tr,
+              style: AppThemeData.boldTextStyle(fontSize: 18, color: AppThemeData.grey900),
+            ),
           ),
           body: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
                 const SizedBox(height: 24),
-                const CircularProgressIndicator(),
+                if (expired)
+                  const Icon(Icons.person_off_outlined, size: 64, color: AppThemeData.grey500)
+                else
+                  const CircularProgressIndicator(),
                 const SizedBox(height: 24),
                 Text(
-                  "Estamos avisando prestadores próximos. O primeiro que aceitar fica com o pedido.".tr,
+                  expired
+                      ? "Ninguém aceitou seu pedido em 10 minutos.".tr
+                      : "Avisamos o prestador mais próximo. Se ele não responder, chamamos o seguinte.".tr,
                   textAlign: TextAlign.center,
                   style: AppThemeData.mediumTextStyle(fontSize: 16, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey800),
                 ),
+                if (!expired) ...[
+                  const SizedBox(height: 20),
+                  Text(
+                    controller.countdownLabel(),
+                    style: AppThemeData.boldTextStyle(fontSize: 36, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Tempo restante".tr,
+                    style: AppThemeData.mediumTextStyle(fontSize: 13, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey500),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 Text(
                   order?.provider.title ?? '',
@@ -49,10 +70,10 @@ class OnDemandBroadcastWaitingScreen extends StatelessWidget {
                 ],
                 const Spacer(),
                 RoundedButtonFill(
-                  title: "Cancelar busca".tr,
+                  title: expired ? "Voltar".tr : "Cancelar busca".tr,
                   color: AppThemeData.grey200,
                   textColor: AppThemeData.grey900,
-                  onPress: controller.cancelSearch,
+                  onPress: expired ? controller.leave : controller.cancelSearch,
                 ),
               ],
             ),

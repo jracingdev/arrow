@@ -30,6 +30,11 @@ class ProviderOrderModel {
   String requestedCategoryId;
   double radiusKm;
   List<String> rejectedBy;
+  List<String> offeredTo;
+  String dispatchOfferedTo;
+  Timestamp? dispatchExpiresAt;
+  Timestamp? dispatchOfferExpiresAt;
+  String cancelReason;
 
   ProviderOrderModel({
     this.id = '',
@@ -58,10 +63,16 @@ class ProviderOrderModel {
     this.requestedCategoryId = '',
     this.radiusKm = 0,
     List<String>? rejectedBy,
+    List<String>? offeredTo,
+    this.dispatchOfferedTo = '',
+    this.dispatchExpiresAt,
+    this.dispatchOfferExpiresAt,
+    this.cancelReason = '',
   })  : author = author ?? UserModel(),
         provider = provider ?? ProviderServiceModel(),
         invoices = invoices ?? const [],
-        rejectedBy = rejectedBy ?? const [];
+        rejectedBy = rejectedBy ?? const [],
+        offeredTo = offeredTo ?? const [];
 
   factory ProviderOrderModel.fromJson(Map<String, dynamic> json) {
     return ProviderOrderModel(
@@ -95,6 +106,13 @@ class ProviderOrderModel {
       rejectedBy: json['rejectedBy'] is List
           ? List<String>.from((json['rejectedBy'] as List).map((e) => e.toString()))
           : const [],
+      offeredTo: json['offeredTo'] is List
+          ? List<String>.from((json['offeredTo'] as List).map((e) => e.toString()))
+          : const [],
+      dispatchOfferedTo: json['dispatchOfferedTo']?.toString() ?? '',
+      dispatchExpiresAt: json['dispatchExpiresAt'] is Timestamp ? json['dispatchExpiresAt'] as Timestamp : null,
+      dispatchOfferExpiresAt: json['dispatchOfferExpiresAt'] is Timestamp ? json['dispatchOfferExpiresAt'] as Timestamp : null,
+      cancelReason: json['cancelReason']?.toString() ?? '',
     );
   }
 

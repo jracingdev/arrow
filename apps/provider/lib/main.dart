@@ -7,6 +7,7 @@ import 'package:provider/firebase_options.dart';
 import 'package:provider/screens/splash_screen.dart';
 import 'package:provider/service/notification_service.dart';
 import 'package:provider/themes/app_theme.dart';
+import 'package:provider/widgets/dispatch_incoming_overlay.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,7 +60,7 @@ class _ProviderAppState extends State<ProviderApp> {
       locale: const Locale('pt', 'BR'),
       fallbackLocale: const Locale('pt', 'BR'),
       theme: AppTheme.light(),
-      builder: (context, child) => EasyLoading.init()(context, child),
+      builder: (context, child) => DispatchIncomingScope(child: EasyLoading.init()(context, child)),
       home: const SplashScreen(),
     );
   }

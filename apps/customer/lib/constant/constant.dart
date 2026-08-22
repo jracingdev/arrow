@@ -156,8 +156,10 @@ class Constant {
   static const String orderAssigned = "Order Assigned";
   static const String orderOngoing = "Order Ongoing";
   static const String bookingPlaced = "booking_placed";
+  static const String bookingCancelled = "booking_cancelled";
   static const String dispatchBroadcast = "broadcast";
   static const String dispatchDirect = "direct";
+  static const String providerDispatchOffer = "provider_dispatch_offer";
 
   static CurrencyModel? currencyModel;
   static List<VendorModel>? restaurantList = [];

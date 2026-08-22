@@ -1,3 +1,4 @@
+import 'package:arrow_shared/dispatch_offer.dart';
 import 'package:arrow_shared/hourly_service_billing.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/constant.dart';
@@ -11,6 +12,7 @@ import '../models/provider_serivce_model.dart';
 import '../screen_ui/on_demand_service/on_demand_broadcast_waiting_screen.dart';
 import '../screen_ui/on_demand_service/on_demand_dashboard_screen.dart';
 import '../screen_ui/on_demand_service/on_demand_payment_screen.dart';
+import '../service/broadcast_dispatch.dart';
 import '../service/fire_store_utils.dart';
 import '../service/send_notification.dart';
 import '../themes/show_toast_dialog.dart';
@@ -305,9 +307,22 @@ class OnDemandBookingController extends GetxController {
       requestedCategoryId: categoryId.value.isNotEmpty ? categoryId.value : template.categoryId,
       radiusKm: FireStoreUtils.nearbyRadiusKm(),
       rejectedBy: const [],
+      offeredTo: const [],
+      dispatchExpiresAt: Timestamp.fromDate(DateTime.now().add(DispatchOffer.jobTtl)),
     );
 
     await FireStoreUtils.onDemandOrderPlace(order, 0.0);
+    try {
+      final next = await BroadcastDispatch.advance(order.id);
+      if (next != null && (next.fcmToken ?? '').isNotEmpty) {
+        await SendNotification.sendOneNotification(
+          token: next.fcmToken!,
+          title: 'Novo pedido próximo',
+          body: '${order.provider.title ?? 'Serviço'} · ${order.address?.getFullAddress() ?? ''}'.trim(),
+          payload: {'type': DispatchOffer.fcmTypeOffer, 'orderId': order.id},
+        );
+      }
+    } catch (_) {}
     ShowToastDialog.closeLoader();
     Get.to(() => const OnDemandBroadcastWaitingScreen(), arguments: order);
   }

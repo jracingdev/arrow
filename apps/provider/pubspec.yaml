@@ -30,6 +30,7 @@ dependencies:
   get: ^4.7.3
   flutter_easyloading: ^3.0.5
   flutter_local_notifications: ^21.0.0
+  flutter_ringtone_player: ^4.0.0+4
   intl: ^0.20.2
   shared_preferences: ^2.5.4
   cached_network_image: ^3.4.1

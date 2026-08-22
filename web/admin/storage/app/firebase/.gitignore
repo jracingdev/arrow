@@ -1,2 +1,5 @@
 *
 !.gitignore
+!providerDispatchTick.js
+!scheduleRide.js
+!schedule_ondemand_service.js

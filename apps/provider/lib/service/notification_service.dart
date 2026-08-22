@@ -36,7 +36,8 @@ class NotificationService {
   Future<void> setupInteractedMessage() async {
     FirebaseMessaging.onBackgroundMessage(firebaseMessageBackgroundHandle);
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      if (message.notification != null) {
+      final type = message.data['type']?.toString() ?? '';
+      if (message.notification != null || type == 'provider_dispatch_offer' || type == 'provider_order') {
         display(message);
       }
     });
@@ -58,24 +59,33 @@ class NotificationService {
 
   void display(RemoteMessage message) async {
     try {
-      const channel = AndroidNotificationChannel(
-        'arrow-provider',
-        'Arrow Prestador',
-        description: 'Notificações do prestador',
+      final type = message.data['type']?.toString() ?? '';
+      final incoming = type == 'provider_dispatch_offer' || type == 'provider_order';
+      final channel = AndroidNotificationChannel(
+        incoming ? 'provider_dispatch_offer' : 'arrow-provider',
+        incoming ? 'Pedidos próximos' : 'Arrow Prestador',
+        description: incoming ? 'Chamado de prestador próximo' : 'Notificações do prestador',
         importance: Importance.max,
+        playSound: true,
       );
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
       final androidDetails = AndroidNotificationDetails(
         channel.id,
         channel.name,
         channelDescription: channel.description,
-        importance: Importance.high,
-        priority: Priority.high,
+        importance: Importance.max,
+        priority: Priority.max,
+        playSound: true,
+        category: AndroidNotificationCategory.call,
+        fullScreenIntent: incoming,
       );
       const iosDetails = DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true);
       await FlutterLocalNotificationsPlugin().show(
         id: 0,
-        title: message.notification?.title,
-        body: message.notification?.body,
+        title: message.notification?.title ?? (incoming ? 'Novo pedido próximo' : 'Arrow Prestador'),
+        body: message.notification?.body ?? (incoming ? 'Um cliente pediu um prestador próximo.' : ''),
         notificationDetails: NotificationDetails(android: androidDetails, iOS: iosDetails),
         payload: jsonEncode(message.data),
       );

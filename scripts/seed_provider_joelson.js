@@ -366,6 +366,9 @@ function pickCategory(categories, needles, used) {
     requestedCategoryId: extra.requestedCategoryId || extra.provider.categoryId || '',
     radiusKm: extra.radiusKm || 25,
     rejectedBy: extra.rejectedBy || [],
+    offeredTo: extra.offeredTo || [],
+    dispatchOfferedTo: extra.dispatchOfferedTo || '',
+    dispatchExpiresAt: extra.dispatchExpiresAt || null,
   });
 
   const broadcastProvider = { ...limpeza, author: '', authorName: '', phoneNumber: '' };
@@ -377,7 +380,8 @@ function pickCategory(categories, needles, used) {
       requestedCategoryId: limpeza.categoryId,
       notes: 'Chamado próximo (broadcast) — aceitar no app Prestador.',
       scheduleDateTime: ts(20 * 60 * 1000),
-      createdAt: ts(-10 * 60 * 1000),
+      createdAt: ts(-1 * 60 * 1000),
+      dispatchExpiresAt: ts(9 * 60 * 1000),
     }),
     orderDoc(`${PREFIX}order_accepted`, {
       status: 'Order Accepted',
