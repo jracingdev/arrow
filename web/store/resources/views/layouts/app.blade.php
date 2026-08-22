@@ -559,6 +559,85 @@
                     "sortDescending": ": {{ trans('lang.sort_desc') }}"
                 }
             };
+
+            function formatCurrency(amount, currency) {
+                currency = currency || {};
+                const symbol = currency.symbol || 'R$';
+                const decimals = currency.decimal_degits ?? 2;
+                const symbolAtRight = Boolean(currency.symbolAtRight);
+                const num = Number.parseFloat(amount);
+                const safe = Number.isFinite(num) ? num : 0;
+                const formatted = safe.toLocaleString('pt-BR', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                });
+                return symbolAtRight
+                    ? formatted + ' ' + symbol
+                    : symbol + ' ' + formatted;
+            }
+
+            function formatBrl(value) {
+                return formatCurrency(value, { symbol: 'R$', decimal_degits: 2, symbolAtRight: false });
+            }
+
+            function fillPixDetails(details) {
+                if (!details) return;
+                if (details.pixKeyType) $('#pix_key_type').val(details.pixKeyType);
+                if (details.pixKey) $('#pix_key').val(details.pixKey);
+            }
+
+            async function upsertWithdrawMethodPix(database, userId, pixKeyType, pixKey) {
+                if (!database || !userId || !pixKey) return;
+                var payload = { name: 'PIX', chave: pixKey, tipo: pixKeyType || 'cpf', enable: true };
+                var snap = await database.collection('withdraw_method').where('userId', '==', userId).get();
+                if (!snap.empty) {
+                    await database.collection('withdraw_method').doc(snap.docs[0].id).set({ pix: payload }, { merge: true });
+                    return snap.docs[0].id;
+                }
+                var id = database.collection('tmp').doc().id;
+                await database.collection('withdraw_method').doc(id).set({
+                    id: id,
+                    userId: userId,
+                    pix: payload
+                });
+                return id;
+            }
+
+            function payoutMethodLabel(val) {
+                if (!val) return '—';
+                var method = (val.withdrawMethod || val.paymentMethod || '').toString().toLowerCase();
+                if (method === 'pix') {
+                    var key = val.pixKey || (val.pix && (val.pix.chave || val.pix.key)) || '';
+                    var type = val.pixKeyType || (val.pix && val.pix.tipo) || '';
+                    return key ? ('PIX (' + (type ? type + ': ' : '') + key + ')') : 'PIX';
+                }
+                if (method === 'bank') return "{{ trans('lang.bank_transfer') }}";
+                if (method === 'wallet') return "{{ trans('lang.my_wallet') }}";
+                return val.withdrawMethod || val.paymentMethod || '—';
+            }
+
+            function payoutStatusLabel(status) {
+                var raw = (status || '').toString().toLowerCase();
+                if (raw === 'success' || raw === 'paid' || raw === 'successo') return "{{ trans('lang.payout_status_paid') }}";
+                if (raw === 'reject' || raw === 'rejected') return "{{ trans('lang.payout_status_reject') }}";
+                if (raw === 'pending') return "{{ trans('lang.payout_status_pending') }}";
+                return status || '—';
+            }
+
+            async function loadWalletByUserId(database, userId) {
+                if (!database || !userId) return [];
+                try {
+                    var snap = await database.collection('wallet').where('user_id', '==', userId).get();
+                    return snap.docs.map(function (doc) {
+                        var data = doc.data() || {};
+                        data.id = data.id || doc.id;
+                        return data;
+                    });
+                } catch (err) {
+                    console.warn('wallet query failed', err);
+                    return [];
+                }
+            }
         </script>
 
         <script src="{{ asset('js/chosen.jquery.js') }}"></script>
@@ -1296,7 +1375,8 @@
                 return data?.address?.country || '';
             }
 
-            function formatCurrency(amount, currency = {}) {
+            function formatCurrency(amount, currency) {
+                currency = currency || {};
                 const symbol = currency.symbol || 'R$';
                 const decimals = currency.decimal_degits ?? 2;
                 const symbolAtRight = Boolean(currency.symbolAtRight);

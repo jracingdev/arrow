@@ -45,14 +45,19 @@
                         <label>{{ trans('lang.vendors_payout_amount') }}</label>
                         <input type="number" min="0" step="0.01" class="form-control" id="payout_amount">
                     </div>
-                    <div class="form-group col-md-5 mb-2">
+                    <div class="form-group col-md-4 mb-2">
                         <label>{{ trans('lang.vendors_payout_note') }}</label>
                         <input type="text" class="form-control" id="payout_note">
+                    </div>
+                    <div class="form-group col-md-4 mb-2">
+                        <label>{{ trans('lang.pix_key') }}</label>
+                        <input type="text" class="form-control" id="payout_pix_key" readonly>
                     </div>
                     <div class="form-group col-md-3 mb-2">
                         <button type="button" class="btn btn-primary btn-block" id="request_payout_btn">{{ trans('lang.request_payout') }}</button>
                     </div>
                 </div>
+                <p class="small text-muted mb-0">{{ trans('lang.pix_key_help') }} <a href="{{ route('withdraw-method') }}">{{ trans('lang.withdraw_method') }}</a></p>
                 <div id="payout_error" class="text-danger"></div>
             </div>
        </div>
@@ -107,13 +112,9 @@
     var start = null;
     var user_number = [];
     var vendorId = "<?php echo $id; ?>";
-    var refData = database.collection('wallet').where('user_id', '==', vendorId).orderBy('date', 'desc');
     var providerWallet = 0;
+    var pixMethod = null;
 
-    function formatBrl(value) {
-        var n = Number(value) || 0;
-        return 'R$ ' + n.toFixed(2).replace('.', ',');
-    }
     function newPayoutId() {
         if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -129,6 +130,18 @@
         $('#provider_wallet_card').removeClass('d-none');
         $('#provider_wallet_amount').text(formatBrl(providerWallet));
         if (providerWallet > 0) $('#payout_amount').val(providerWallet.toFixed(2));
+        if (user.userBankDetails && user.userBankDetails.pixKey) {
+            pixMethod = { chave: user.userBankDetails.pixKey, tipo: user.userBankDetails.pixKeyType || 'cpf' };
+            $('#payout_pix_key').val(pixMethod.chave);
+        }
+    });
+    database.collection('withdraw_method').where('userId', '==', vendorId).get().then(function (snap) {
+        if (snap.empty) return;
+        var method = snap.docs[0].data() || {};
+        if (method.pix && method.pix.chave) {
+            pixMethod = method.pix;
+            $('#payout_pix_key').val(method.pix.chave);
+        }
     });
 
     $('#request_payout_btn').on('click', function () {
@@ -136,6 +149,10 @@
         var note = ($('#payout_note').val() || '').trim();
         if (!amount || amount <= 0 || amount > providerWallet) {
             $('#payout_error').text("{{ trans('lang.payout_invalid_amount') }}");
+            return;
+        }
+        if (!pixMethod || !pixMethod.chave) {
+            $('#payout_error').text("{{ trans('lang.pix_method_missing') }}");
             return;
         }
         var payoutId = newPayoutId();
@@ -149,7 +166,10 @@
             paidDate: firebase.firestore.Timestamp.now(),
             paymentStatus: 'Pending',
             role: 'provider',
-            withdrawMethod: 'bank'
+            withdrawMethod: 'pix',
+            pixKey: pixMethod.chave,
+            pixKeyType: pixMethod.tipo || 'cpf',
+            currency: 'BRL'
         }).then(function () {
             return database.collection('users').doc(vendorId).update({ wallet_amount: providerWallet - amount });
         }).then(function () {
@@ -162,7 +182,8 @@
                 payment_status: 'pending',
                 date: firebase.firestore.Timestamp.now(),
                 transactionUser: 'provider',
-                note: note || "{{ trans('lang.request_payout') }}"
+                note: note || "{{ trans('lang.request_payout') }}",
+                serviceType: 'ondemand-service'
             });
         }).then(function () {
             $("#data-table_processing").hide();
@@ -247,8 +268,8 @@
                 }
 
                 try {
-                    const querySnapshot = await refData.get();
-                    if (!querySnapshot || querySnapshot.empty) {
+                    const walletRows = await loadWalletByUserId(database, vendorId);
+                    if (!walletRows.length) {
                         $('.total_count').text(0);
                         $('#data-table_processing').hide();
                         callback({
@@ -263,9 +284,7 @@
                     let records = [];
                     let filteredRecords = [];
 
-                    await Promise.all(querySnapshot.docs.map(async (doc) => {
-                        let childData = doc.data();
-                        childData.id = doc.id;
+                    await Promise.all(walletRows.map(async (childData) => {
                        
                         var date = '';
                         var time = '';
@@ -358,7 +377,7 @@
                 },
                 {targets: 0, type: "html-num-fmt"},
             ],
-            "language": datatableLang,
+            "language": Object.assign({}, datatableLang || {}, { emptyTable: "{{ trans('lang.wallet_empty') }}" }),
             dom: 'lfrtipB',
             buttons: [
                 {
@@ -422,32 +441,19 @@
     async function buildHTML(val) {
         var html = [];
 
-        amount = val.amount;
-        if (!isNaN(amount)) {
-            amount = parseFloat(amount).toFixed(decimal_degits);
-        }
+        var amount = parseFloat(val.amount);
+        if (!Number.isFinite(amount)) amount = 0;
+        var digits = decimal_degits || 2;
+        var money = (typeof formatCurrency === 'function')
+            ? formatCurrency(amount, { symbol: currentCurrency || 'R$', decimal_degits: digits, symbolAtRight: currencyAtRight })
+            : formatBrl(amount);
 
         if (val.hasOwnProperty('isTopUp') && val.isTopUp) {
-
-            if (currencyAtRight) {
-                html.push('<td class="text-green" data-html="true" data-order="' + amount + '"><span class="text-green">' + parseFloat(amount).toFixed(decimal_degits) + '' + currentCurrency + '</span></td>');
-            } else {
-                html.push('<td class="text-green" data-html="true" data-order="' + amount + '"><span class="text-green">' + currentCurrency + '' + parseFloat(amount).toFixed(decimal_degits) + '</span></td>');
-            }
+            html.push('<td class="text-green" data-html="true" data-order="' + amount + '"><span class="text-green">' + money + '</span></td>');
         } else if (val.hasOwnProperty('isTopUp') && !val.isTopUp) {
-
-            if (currencyAtRight) {
-                html.push('<td class="text-red" data-html="true" data-order="' + amount + '"><span class="text-red">(' + parseFloat(amount).toFixed(decimal_degits) + '' + currentCurrency + ')</span></td>');
-            } else {
-                html.push('<td class="text-red" data-html="true" data-order="' + amount + '"><span class="text-red">(' + currentCurrency + '' + parseFloat(amount).toFixed(decimal_degits) + ')</span></td>');
-            }
-
+            html.push('<td class="text-red" data-html="true" data-order="' + amount + '"><span class="text-red">(' + money + ')</span></td>');
         } else {
-            if (currencyAtRight) {
-                html.push('<td class="" data-html="true" data-order="' + amount + '"><span class="text-green">' + parseFloat(amount).toFixed(decimal_degits) + '' + currentCurrency + '</span></td>');
-            } else {
-                html.push('<td class="" data-html="true" data-order="' + amount + '"><span class="text-green">' + currentCurrency + '' + parseFloat(amount).toFixed(decimal_degits) + '</span></td>');
-            }
+            html.push('<td class="" data-html="true" data-order="' + amount + '"><span class="text-green">' + money + '</span></td>');
         }
 
 
@@ -521,22 +527,23 @@
         }
 
         html.push('<td class="payment_images">' + payment_method + '</td>');
-        html.push('<td>' + val.note + '</td>');
+        html.push('<td>' + $('<div>').text(val.note || '').html() + '</td>');
 
-        if (val.payment_status == 'success') {
-            html.push('<td class="success"><span class="badge badge-success">' + val.payment_status + '</span></td>');
-        } else if (val.payment_status == 'undefined') {
-            html.push('<td class="undefined"><span class="badge badge-secondary">' + val.payment_status + '</span></td>');
-        } else if (val.payment_status == 'Refund success') {
+        var payStatus = (val.payment_status || '').toString().toLowerCase();
+        if (payStatus == 'success' || payStatus == 'paid') {
+            html.push('<td class="success"><span class="badge badge-success">' + payoutStatusLabel(val.payment_status) + '</span></td>');
+        } else if (payStatus == 'undefined' || payStatus === '') {
+            html.push('<td class="undefined"><span class="badge badge-secondary">—</span></td>');
+        } else if (payStatus.indexOf('refund') >= 0) {
             html.push('<td class="refund_success"><span class="badge badge-success">' + val.payment_status + '</span></td>');
         } else {
-            html.push('<td><span class="badge badge-info">' + val.payment_status + '</span></td>');
+            html.push('<td><span class="badge badge-info">' + payoutStatusLabel(val.payment_status) + '</span></td>');
         }
 
         if (val.hasOwnProperty('order_id') && val.order_id != null && val.order_id != "") {
-            var order_view = '{{route("orders.edit",":id")}}';
+            var order_view = '{{route("provider.bookings.edit",":id")}}';
             order_view = order_view.replace(':id', val.order_id);
-            html.push('<span class="action-btn"><a href="' + order_view + '"><i class="mdi mdi-eye"></i></a></span>');
+            html.push('<td class="action-btn"><a href="' + order_view + '"><i class="mdi mdi-eye"></i></a></td>');
         } else {
             html.push('<td></td>');
         }

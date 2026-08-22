@@ -76,7 +76,7 @@
     var stripeSettings = database.collection('settings').doc('stripeSettings');
     document.addEventListener("DOMContentLoaded", async function() {
         jQuery("#data-table_processing").show();
-        if(authRole === 'vendor'){
+        if(authRole === 'vendor' || authRole === 'provider'){
             correctVendorUserId = vendorUserId;
         }else{
             try {
@@ -93,26 +93,40 @@
                 console.error("Error fetching vendor:", error);
             }
         }
-        database.collection('withdraw_method').where('userId', '==', correctVendorUserId).get().then(async function (Snapshot) {
-            if (Snapshot.docs.length > 0) {
-                checkAlreadyExist = true;
-                var data = Snapshot.docs[0].data();
-                existId = data.id;
-                if (data.stripe) {
-                    stripeSetupDone = true;
-                }
-                if (data.razorpay) {
-                    razorpaySetupDone = true;
-                }
-                if (data.paypal) {
-                    paypalSetupDone = true;
-                }
-                if (data.flutterwave) {
-                    flutterwaveSetupDone = true;
-                }
+        var methodSnap = await database.collection('withdraw_method').where('userId', '==', correctVendorUserId).get();
+        if (methodSnap.docs.length > 0) {
+            checkAlreadyExist = true;
+            var data = methodSnap.docs[0].data();
+            existId = data.id;
+            if (data.stripe) {
+                stripeSetupDone = true;
             }
-        })
+            if (data.razorpay) {
+                razorpaySetupDone = true;
+            }
+            if (data.paypal) {
+                paypalSetupDone = true;
+            }
+            if (data.flutterwave) {
+                flutterwaveSetupDone = true;
+            }
+            if (data.pix) {
+                window.pixSetupDone = true;
+            }
+        }
     
+        var pixHtml = '';
+        pixHtml = pixHtml + '<div class="d-flex align-items-center mb-3 border-bottom pb-3">';
+        pixHtml = pixHtml + '<div class="image d-flex align-items-center"><h4 class="d-block text-center mt-2 text-dark">{{trans('lang.pix')}}</h4></div>';
+        pixHtml = pixHtml + '<div class="ml-auto">';
+        if (window.pixSetupDone) {
+            pixHtml = pixHtml + '<span class="badge badge-success p-3"><i class="fa fa-check-circle"></i> {{trans('lang.setup_done')}}</span>';
+        } else {
+            pixHtml = pixHtml + '<a href="javascript:void(0)" data-method="PIX" class="btn btn-danger setup_btn" name="setup_btn">{{trans('lang.setup')}}</a>';
+        }
+        pixHtml = pixHtml + '</div></div>';
+        $('#available_method').append(pixHtml);
+
         stripeSettings.get().then(async function (Snapshots) {
             var stripe = Snapshots.data();
             var html = '';
@@ -187,6 +201,16 @@
     });
     $(document).on("click", "a[name='setup_btn']", function (e) {
         var paymentMethod = $(this).attr('data-method');
+        if (paymentMethod == 'PIX') {
+            var html = '';
+            html = html + '<input type="hidden" value="PIX" id="method_name">';
+            html = html + '<div class="form-group row width-100"><label class="col-5 control-label">{{trans('lang.pix_key_type')}}</label><div class="col-12"><select class="form-control pix_key_type" id="pix_key_type"><option value="cpf">{{ trans('lang.cpf') }}</option><option value="cnpj">{{ trans('lang.cnpj') }}</option><option value="email">{{ trans('lang.email') }}</option><option value="phone">{{ trans('lang.user_phone') }}</option><option value="evp">{{ trans('lang.pix_key_evp') }}</option></select></div></div>';
+            html = html + '<div class="form-group row width-100"><label class="col-5 control-label">{{trans('lang.pix_key')}}</label><div class="col-12"><input type="text" class="form-control pix_key"><div class="form-text text-muted">{{ trans('lang.pix_key_help') }}</div></div></div>';
+            $('#addMethodModal').find("#method_title").text('PIX');
+            $('#append_fields').html(html);
+            $('#addMethodModal').modal('show');
+            return;
+        }
         if (paymentMethod == 'Stripe') {
             var html = '';
             html = html + '<input type="hidden" value="'+paymentMethod+'" id="method_name">';
@@ -256,7 +280,19 @@
         
         var id = (checkAlreadyExist == true) ? existId : database.collection('tmp').doc().id;
         
-        if (methodName == 'Stripe') {
+        if (methodName == 'PIX') {
+            var pixKey = $('.pix_key').val();
+            var pixKeyType = $('.pix_key_type').val() || 'cpf';
+            if (!pixKey) {
+                $(".error_top").show();
+                $(".error_top").html("<p>{{trans('lang.pix_key_required')}}</p>");
+                window.scrollTo(0, 0);
+            } else {
+                upsertWithdrawMethodPix(database, correctVendorUserId || vendorUserId, pixKeyType, pixKey).then(function () {
+                    window.location.href = '{{ route("withdraw-method")}}';
+                });
+            }
+        } else if (methodName == 'Stripe') {
             var accountId = $('.stripe_accountId').val();
             
             if (accountId == '') {

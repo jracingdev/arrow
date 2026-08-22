@@ -25,6 +25,7 @@
                             </ul>
                         </div>
                         <div class="card-body">
+                            <p class="text-muted">{{ trans('lang.document_upload_help') }}</p>
                             <div class="table-responsive m-t-10 doc-body"></div>
                             <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
                                  aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -63,135 +64,170 @@
         </div>
     </div>
 @endsection
-@section('scripts')z
+@section('scripts')
 <script>
     var id = "<?php echo $id;?>";
+    var authRole = "{{ $authRole }}";
     var database = firebase.firestore();
-    var ref = database.collection('users').where("id", "==", id);
-    var docsRef = database.collection('documents').where('enable', '==', true);
-  
-    var docref = database.collection('documents_verify').doc(id);
-   
-    var back_photo = '';
-    var front_photo = '';
-    var backFileName = '';
-    var frontFileName = '';
-    var backFileOld = '';
-    var frontFileOld = '';
-    var fcmToken = "";
-    $(document).ready( function () {
+    var uploadBase = "{{ url('document/upload') }}";
+    window.arrowUserRole = authRole || '';
+
+    function allowedDocumentTypes(role) {
+        if (role === 'provider') {
+            return ['provider', 'ondemand', 'driver'];
+        }
+        if (role === 'vendor' || role === 'employee') {
+            return ['vendor', 'store', 'restaurant'];
+        }
+        return ['provider', 'ondemand', 'driver', 'vendor', 'store', 'restaurant'];
+    }
+
+    function isEnabledDoc(doc) {
+        return doc.enable === true || doc.enable === 'true' || doc.enable === 1;
+    }
+
+    function statusLabel(status, hasFile) {
+        if (status === 'approved') return { text: "{{ trans('lang.document_status_approved') }}", cls: 'success' };
+        if (status === 'rejected') return { text: "{{ trans('lang.document_status_rejected') }}", cls: 'danger' };
+        if (status === 'uploaded' || hasFile) return { text: "{{ trans('lang.document_status_pending') }}", cls: 'warning' };
+        return { text: "{{ trans('lang.document_status_not_sent') }}", cls: 'secondary' };
+    }
+
+    function escapeHtml(value) {
+        return $('<div>').text(value || '').html();
+    }
+
+    async function loadCatalog(role) {
+        var types = allowedDocumentTypes(role);
+        var collected = [];
+        var seen = {};
+        try {
+            var enabledSnap = await database.collection('documents').where('enable', '==', true).get();
+            enabledSnap.docs.forEach(function (ele) {
+                var doc = ele.data() || {};
+                doc.id = doc.id || ele.id;
+                collected.push(doc);
+            });
+        } catch (err) {
+            console.warn('documents enable query failed', err);
+        }
+        if (!collected.length) {
+            try {
+                var allSnap = await database.collection('documents').get();
+                allSnap.docs.forEach(function (ele) {
+                    var doc = ele.data() || {};
+                    doc.id = doc.id || ele.id;
+                    collected.push(doc);
+                });
+            } catch (err) {
+                console.warn('documents full query failed', err);
+            }
+        }
+        return collected.filter(function (doc) {
+            var docId = (doc.id || '').toString();
+            if (!docId || seen[docId]) return false;
+            var docType = (doc.type || '').toString().toLowerCase().replace(/[\s_-]/g, '');
+            var aliases = {
+                ondemand: 'ondemand',
+                ondemandervice: 'ondemand',
+                provider: 'provider',
+                prestador: 'provider',
+                driver: 'driver',
+                vendor: 'vendor',
+                store: 'store',
+                restaurant: 'restaurant'
+            };
+            var normalized = aliases[docType] || docType;
+            if (types.indexOf(normalized) < 0) return false;
+            if (!isEnabledDoc(doc) && collected.some(isEnabledDoc)) return false;
+            seen[docId] = true;
+            return true;
+        });
+    }
+
+    function findUpload(uploaded, docId) {
+        if (!Array.isArray(uploaded)) return null;
+        return uploaded.filter(function (item) {
+            return item && String(item.documentId || '').trim() === String(docId || '').trim();
+        })[0] || null;
+    }
+
+    $(document).ready(function () {
         jQuery("#data-table_processing").show();
         $('#exampleModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
-            var img = button.data('image');
-            var modal = $(this);
-            modal.find('#docImage').attr('src', img);
+            $(this).find('#docImage').attr('src', button.data('image'));
         });
-        ref.get().then(async function (snapshots) {
-            if (snapshots.docs.length) {
-                var vendor = snapshots.docs[0].data();
-                window.arrowUserRole = vendor.role || '';
-                if (vendor.hasOwnProperty('fcmToken') && vendor.fcmToken != "" && vendor.fcmToken != null) {
-                    fcmToken = vendor.fcmToken;
-                }
+
+        database.collection('users').doc(id).get().then(function (snap) {
+            if (snap.exists) {
+                window.arrowUserRole = (snap.data() || {}).role || window.arrowUserRole;
             }
-            loadDocumentTable();
+            return loadDocumentTable();
         }).catch(function () {
-            loadDocumentTable();
+            return loadDocumentTable();
         });
     });
-        var html = '';
-        var count = 0;
-     function loadDocumentTable() {
-     docsRef.get().then(async function (docSnapshot) {
-            html += '<table id="taxTable" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">';
-            html += "<thead>";
-            html += '<tr>';
-            html += '<th>{{trans('lang.name')}}</th>';
-            html += '<th>{{trans('lang.status')}}</th>';
-            html += '<th>{{trans('lang.action')}}</th>';
-            html += '</tr>';
-            html += '</thead>';
-            html += '<tbody>';
-            html += '</tbody>';
-            html += '</table>';
-       
-            if (docSnapshot.docs.length) {
-                var allowedTypes = (window.arrowUserRole === 'provider')
-                    ? ['provider', 'ondemand', 'driver']
-                    : ['vendor', 'store', 'restaurant'];
-                var documents = docSnapshot.docs.filter(function (ele) {
-                    var docType = ((ele.data() || {}).type || '').toString().toLowerCase();
-                    return allowedTypes.indexOf(docType) >= 0;
-                });
-                if (!documents.length) {
-                    $(".doc-body").append('<p class="text-muted">' + (window.arrowUserRole === 'provider' ? "{{ trans('lang.provider_documents_empty') }}" : "{{ trans('lang.no_record_found') }}") + '</p>');
-                    jQuery("#data-table_processing").hide();
-                    return;
-                }
-               
-                documents.forEach((ele) => {
-                    var doc = ele.data();
-                    var docRefs = database.collection('documents_verify').doc(id);
-                  
-                    docRefs.get().then(async function (docrefSnapshot) {
-                        var docRef = docrefSnapshot.data() && docrefSnapshot.data().documents ? docrefSnapshot.data().documents.filter(docId => docId.documentId == doc.id)[0] : [];
-                        var trhtml = '';
-                        trhtml += '<tr>';
-                        if (docRef && docRef.hasOwnProperty('backImage') && docRef.hasOwnProperty('frontImage')) {
-                            if (docRef.backImage != '' && docRef.frontImage != '' && docRef.backImage!=null && docRef.frontImage != null  && doc.backSide && doc.frontSide  ) {
-                                                            trhtml += '<td>' + doc.title + '&nbsp;&nbsp;<a href="#" class="badge badge-info py-2 px-3 font-weight-bold" data-toggle="modal" data-target="#exampleModal" data-image="' + docRef.frontImage + '" data-id="front" class="open-image">{{trans('lang.view_front_image')}}</a>&nbsp;<a href="#" class="badge badge-info py-2 px-3 font-weight-bold" data-toggle="modal" data-target="#exampleModal"  data-image="' + docRef.backImage + '" data-id="back" class="open-image">{{trans('lang.view_back_image')}}</a></td>';
-                                                                                                                                                    } else if (docRef.backImage != '' && docRef.backImage != null  && doc.backSide ) {
-                                trhtml += '<td>' + doc.title + '&nbsp;<a href="#" data-toggle="modal" class="badge badge-info py-2 px-3 font-weight-bold" data-target="#exampleModal" data-id="back" data-image="' + docRef.backImage + '" class="open-image">{{trans('lang.view_back_image')}}</a></td>';
-                                                            } else if (docRef.frontImage != '' && docRef.frontImage != null  && doc.frontSide ) {
-                                trhtml += '<td>' + doc.title + '&nbsp;<a href="#" data-toggle="modal" class="badge badge-info py-2 px-3 font-weight-bold" data-target="#exampleModal" data-id="front" class="open-image" data-image="' + docRef.frontImage + '">{{trans('lang.view_front_image')}}</a></td>';
-                                                            } else {
-                                trhtml += '<td>' + doc.title + '</td>';
-                            }
-                        } else {
-                            trhtml += '<td>' + doc.title + '</td>';
-                        }
-                        var status = docRef  && docRef.status == "approved" ? 'approved' : ((docRef  && docRef.status == "rejected") ? "rejected" : ((docRef && docRef.status == "uploaded") ? 'uploaded' : 'pending'));
-                        var display_status = '';
-                        if (status == "approved") {
-                            display_status = '<span class="badge badge-success py-2 px-3 font-weight-bold text-capitalize">' + status + '</span>';
-                        } else if (status == "rejected") {
-                            display_status = '<span class="badge badge-danger py-2 px-3 font-weight-boldtext-capitalize">' + status + '</span>';
-                            if (docRef && docRef.rejectReason) {
-                                display_status += '<div class="small text-danger mt-1">Motivo: ' + $('<div>').text(docRef.rejectReason).html() + '</div>';
-                            }
-                        } else if (status == "uploaded") {
-                            display_status = '<span class="badge badge-primary py-2 px-3 font-weight-bold text-capitalize">' + status + '</span>';
-                        } else if (status == "pending") {
-                            display_status = '<span class="badge badge-warning py-2 px-3 font-weight-bold text-capitalize">' + status + '</span>';
-                        }
-                        trhtml += '<td>' + display_status + '</td>';
-                        trhtml += '<td class="action-btn">';
-                        if(status=="pending" || status=="rejected" || status=="uploaded"){
-                        trhtml += '<a href="' + (`/document/upload/` + doc.id.trim()) + '" data-id="' + doc.id + '"><i class="fa fa-edit"></i></a>&nbsp;';
-                        }
-                        trhtml += '</td>';
-                        trhtml += '</tr>';
-                        $("tbody").append(trhtml);
-                        count = count + 1;
-                        if (count == documents.length) {
-                            $('#taxTable').DataTable({
-                                order: [[0, 'asc']],
-                                columnDefs: [
-                                    {orderable: false, targets: [1, 2]}
-                                ],
-                            });
-                        }
-                    })
-                });
-            }
-            $(".doc-body").append(html);
+
+    async function loadDocumentTable() {
+        var role = window.arrowUserRole || authRole || '';
+        var documents = await loadCatalog(role);
+        var html = '<table id="taxTable" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0" width="100%">';
+        html += '<thead><tr>';
+        html += '<th>{{trans('lang.name')}}</th>';
+        html += '<th>{{trans('lang.status')}}</th>';
+        html += '<th>{{trans('lang.action')}}</th>';
+        html += '</tr></thead><tbody id="document-list-body"></tbody></table>';
+
+        if (!documents.length) {
+            $(".doc-body").html('<p class="text-muted">' + (role === 'provider'
+                ? "{{ trans('lang.provider_documents_empty') }}"
+                : "{{ trans('lang.no_record_found') }}") + '</p>');
             jQuery("#data-table_processing").hide();
+            return;
+        }
+
+        var verifySnap = await database.collection('documents_verify').doc(id).get();
+        var uploaded = (verifySnap.data() && verifySnap.data().documents) ? verifySnap.data().documents : [];
+        $(".doc-body").html(html);
+
+        documents.forEach(function (doc) {
+            var docRef = findUpload(uploaded, doc.id);
+            var hasFront = !!(docRef && docRef.frontImage);
+            var hasBack = !!(docRef && docRef.backImage);
+            var hasFile = hasFront || hasBack;
+            var rawStatus = ((docRef && docRef.status) || '').toString().toLowerCase();
+            if (rawStatus !== 'approved' && rawStatus !== 'rejected' && rawStatus !== 'uploaded') {
+                rawStatus = hasFile ? 'pending' : 'pending';
+            }
+            var label = statusLabel(rawStatus, hasFile);
+            var title = escapeHtml(doc.title || '');
+            if (hasFront && doc.frontSide) {
+                title += ' <a href="#" class="badge badge-info py-2 px-3 font-weight-bold" data-toggle="modal" data-target="#exampleModal" data-image="' + escapeHtml(docRef.frontImage) + '">{{trans('lang.view_front_image')}}</a>';
+            }
+            if (hasBack && doc.backSide) {
+                title += ' <a href="#" class="badge badge-info py-2 px-3 font-weight-bold" data-toggle="modal" data-target="#exampleModal" data-image="' + escapeHtml(docRef.backImage) + '">{{trans('lang.view_back_image')}}</a>';
+            }
+            var statusHtml = '<span class="badge badge-' + label.cls + ' py-2 px-3 font-weight-bold">' + label.text + '</span>';
+            if (rawStatus === 'rejected' && docRef && docRef.rejectReason) {
+                statusHtml += '<div class="small text-danger mt-1">{{ trans('lang.document_reject_reason') }}: ' + escapeHtml(docRef.rejectReason) + '</div>';
+            }
+            var actionLabel = hasFile ? "{{ trans('lang.document_replace_action') }}" : "{{ trans('lang.document_upload_action') }}";
+            var actionHtml = '';
+            if (rawStatus !== 'approved') {
+                actionHtml = '<a class="btn btn-sm btn-primary" href="' + uploadBase + '/' + encodeURIComponent(String(doc.id).trim()) + '"><i class="fa fa-upload"></i> ' + actionLabel + '</a>';
+            } else {
+                actionHtml = '<span class="text-muted">{{ trans('lang.document_status_approved') }}</span>';
+            }
+            $('#document-list-body').append('<tr><td>' + title + '</td><td>' + statusHtml + '</td><td class="action-btn">' + actionHtml + '</td></tr>');
         });
-     }
-    $(document.body).on('click', '.redirecttopage', function () {
-        var url = $(this).attr('data-url');
-        window.location.href = url;
-    });
-  </script>
+
+        $('#taxTable').DataTable({
+            order: [[0, 'asc']],
+            columnDefs: [{ orderable: false, targets: [1, 2] }],
+            language: (typeof datatableLang !== 'undefined') ? datatableLang : { emptyTable: "{{ trans('lang.no_record_found') }}" }
+        });
+        jQuery("#data-table_processing").hide();
+    }
+</script>
 @endsection

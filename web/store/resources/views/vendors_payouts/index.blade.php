@@ -277,7 +277,7 @@ error_reporting(E_ALL ^ E_NOTICE);
                     },
                     {orderable: false, targets: [4]},
                 ],
-                "language": datatableLang,
+                "language": Object.assign({}, datatableLang || {}, { emptyTable: "{{ trans('lang.no_record_found') }}" }),
                 dom: 'lfrtipB',
                 buttons: [
                     {
@@ -340,36 +340,26 @@ error_reporting(E_ALL ^ E_NOTICE);
 
 async function buildHTML(val) {
             html=[];
-            var price_val = 0;
-            if (currencyAtRight) {
-                price_val = parseFloat(val.amount).toFixed(decimal_degits) + "" + currentCurrency;
-            } else {
-                price_val = currentCurrency + "" + parseFloat(val.amount).toFixed(decimal_degits);
-            }
+            var amount = parseFloat(val.amount);
+            if (!Number.isFinite(amount)) amount = 0;
+            var price_val = (typeof formatCurrency === 'function')
+                ? formatCurrency(amount, { symbol: currentCurrency || 'R$', decimal_degits: decimal_degits || 2, symbolAtRight: currencyAtRight })
+                : formatBrl(amount);
             html.push('<td>' + price_val + '</td>');
-            var date = ArrowDateTime.formatDate(val.paidDate.toDate());
-            var time = ArrowDateTime.formatTime(val.paidDate.toDate());
+            var date = '';
+            var time = '';
+            try {
+                if (val.paidDate) {
+                    date = ArrowDateTime.formatDate(val.paidDate.toDate());
+                    time = ArrowDateTime.formatTime(val.paidDate.toDate());
+                }
+            } catch (err) {}
 
             html.push('<td>' + date + ' ' + time + '</td>');
-            if (val.note != undefined) {
-                html.push('<td>' + val.note + '</td>');
-            } else {
-                html.push('<td></td>');
-            }
-            if (val.adminNote != undefined) {
-                html.push('<td>' + val.adminNote + '</td>');
-            } else {
-                html.push('<td></td>');
-            }
-            
-            html.push('<td>' + val.paymentStatus + '</td>');
-
-            if (val.withdrawMethod) {
-                var selectedwithdrawMethod =  val.withdrawMethod == "bank" ? "Bank Transfer" : val.withdrawMethod;
-                html.push('<span style="text-transform:capitalize">' + selectedwithdrawMethod + '</span>');
-            } else {
-                html.push('<td></td>');
-            }
+            html.push('<td>' + $('<div>').text(val.note || '').html() + '</td>');
+            html.push('<td>' + $('<div>').text(val.adminNote || '').html() + '</td>');
+            html.push('<td>' + payoutStatusLabel(val.paymentStatus) + '</td>');
+            html.push('<td><span style="text-transform:capitalize">' + payoutMethodLabel(val) + '</span></td>');
         return html;
 }
 
@@ -481,21 +471,25 @@ async function buildHTML(val) {
     }
 
     async function getVendorId(vendorUser) {
+        var userSnap = await database.collection('users').doc(vendorUser).get();
+        if ((userSnap.exists && userSnap.data().role === 'provider') || authRole === 'provider') {
+            return vendorUser;
+        }
         var vendorId = '';
-        var ref;
         if(authRole == 'vendor'){
             await database.collection('vendors').where('author', "==", vendorUser).get().then(async function (vendorSnapshots) {
-                var vendorData = vendorSnapshots.docs[0].data();
-                vendorId = vendorData.id;
+                if (!vendorSnapshots.docs.length) return;
+                vendorId = vendorSnapshots.docs[0].data().id;
             })
         }else{
+            if (!empVendorId) return vendorUser;
             await database.collection('vendors').where('id', "==", empVendorId).get().then(async function(vendorSnapshots) {
-                var vendorData = vendorSnapshots.docs[0].data();
-                vendorId = vendorData.id;
+                if (!vendorSnapshots.docs.length) return;
+                vendorId = vendorSnapshots.docs[0].data().id;
             });
         }
 
-        return vendorId;
+        return vendorId || vendorUser;
     }
 
 

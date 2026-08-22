@@ -126,7 +126,7 @@
                 return;
             }
         }
-        if(authRole == 'vendor'){
+        if(authRole == 'vendor' || authRole == 'provider'){
             ref = database.collection('withdraw_method').where('userId', '==', vendorUserId);
         }else{
             try {
@@ -172,10 +172,14 @@
     async function getListData(snapshots) {
         var data = snapshots.docs[0].data();
         docId = data.id;
-        if (!data.hasOwnProperty('stripe') && !data.hasOwnProperty('razorpay') && !data.hasOwnProperty('paypal') && !data.hasOwnProperty('flutterwave')) {
+        if (!data.hasOwnProperty('stripe') && !data.hasOwnProperty('razorpay') && !data.hasOwnProperty('paypal') && !data.hasOwnProperty('flutterwave') && !data.hasOwnProperty('pix')) {
             return '<p class="text-center font-weight-bold">{{trans("lang.no_record_found")}}</p>';
         }
         var paymentMethodArr = {};
+        if (data.hasOwnProperty('pix') && data.pix) {
+            paymentMethodArr['pix'] = Object.assign({ name: 'PIX' }, data.pix);
+            window.pixObj = data.pix;
+        }
         if (data.hasOwnProperty('stripe') && stripeWithdrawEnabled) {
             paymentMethodArr['stripe'] = data.stripe;
             stripeObj = data.stripe;
@@ -239,6 +243,13 @@
                     window.location.href = '{{ route("withdraw-method")}}';
                 })
             }
+            if (name == 'PIX' || name == 'pix') {
+                database.collection('withdraw_method').doc(docId).update({
+                    'pix': firebase.firestore.FieldValue.delete(),
+                }).then(function (result) {
+                    window.location.href = '{{ route("withdraw-method")}}';
+                })
+            }
         }
     });
     $(document).on("click", "a[name='action_edit']", function (e) {
@@ -280,6 +291,19 @@
                     html = html + '</div>';
                 html = html + '</div>';
             html = html + '</div>';
+        } else if (paymentMethod == 'PIX' || paymentMethod == 'pix') {
+            var pix = window.pixObj || {};
+            var html = '';
+            html = html + '<input type="hidden" value="PIX" id="method_name">';
+            html = html + '<div class="form-group row width-100"><label class="col-5 control-label">{{trans('lang.pix_key_type')}}</label><div class="col-12"><select class="form-control pix_key_type" id="pix_key_type">';
+            html = html + '<option value="cpf">{{ trans('lang.cpf') }}</option><option value="cnpj">{{ trans('lang.cnpj') }}</option><option value="email">{{ trans('lang.email') }}</option><option value="phone">{{ trans('lang.user_phone') }}</option><option value="evp">{{ trans('lang.pix_key_evp') }}</option>';
+            html = html + '</select></div></div>';
+            html = html + '<div class="form-group row width-100"><label class="col-5 control-label">{{trans('lang.pix_key')}}</label><div class="col-12"><input type="text" class="form-control pix_key" value="' + (pix.chave || '') + '"><div class="form-text text-muted">{{ trans('lang.pix_key_help') }}</div></div></div>';
+            $('#addMethodModal').find("#method_title").text('PIX');
+            $('#append_fields').html(html);
+            if (pix.tipo) $('#pix_key_type').val(pix.tipo);
+            $('#addMethodModal').modal('show');
+            return;
         }else if (paymentMethod == 'FlutterWave') {
             var html = '';
             html = html + '<input type="hidden" value="'+paymentMethod+'" id="method_name">';
@@ -355,6 +379,20 @@
                 }).then(function (result) {
                     window.location.href = '{{ route("withdraw-method")}}';
                 })
+            }
+        } else if (methodName == 'PIX' || methodName == 'pix') {
+            var pixKey = $('.pix_key').val();
+            var pixKeyType = $('.pix_key_type').val() || 'cpf';
+            if (!pixKey) {
+                $(".error_top").show();
+                $(".error_top").html("<p>{{trans('lang.pix_key_required')}}</p>");
+                window.scrollTo(0, 0);
+            } else {
+                database.collection('withdraw_method').doc(id).set({
+                    pix: { name: 'PIX', chave: pixKey, tipo: pixKeyType, enable: true }
+                }, { merge: true }).then(function () {
+                    window.location.href = '{{ route("withdraw-method")}}';
+                });
             }
         } else if (methodName == 'FlutterWave') {
             

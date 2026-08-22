@@ -68,8 +68,28 @@
                         <label class="col-3 control-label">{{ trans('lang.withdrawal_method')}}</label>
                         <div class="col-7">
                             <select id="withdraw_method" class="form-control">
+                                 <option value="pix" selected>{{ trans('lang.pix') }}</option>
                                  <option value="">{{trans('lang.select_withdrawal_method')}}</option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="form-group row width-100 pix-fields">
+                        <label class="col-3 control-label">{{ trans('lang.pix_key_type') }}</label>
+                        <div class="col-7">
+                            <select id="pix_key_type" class="form-control">
+                                <option value="cpf">{{ trans('lang.cpf') }}</option>
+                                <option value="cnpj">{{ trans('lang.cnpj') }}</option>
+                                <option value="email">{{ trans('lang.email') }}</option>
+                                <option value="phone">{{ trans('lang.user_phone') }}</option>
+                                <option value="evp">{{ trans('lang.pix_key_evp') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row width-100 pix-fields">
+                        <label class="col-3 control-label">{{ trans('lang.pix_key') }}</label>
+                        <div class="col-7">
+                            <input type="text" class="form-control" id="pix_key">
+                            <div class="form-text text-muted">{{ trans('lang.pix_key_help') }}</div>
                         </div>
                     </div>
 
@@ -241,9 +261,13 @@
         });
 
         withdrawMethodRef.get().then(async function (snapshots) {
+            paymentMethodArr = [];
             if (snapshots.docs.length > 0) {
-                paymentMethodArr = [];
                 var data = snapshots.docs[0].data();
+                if (data.pix && data.pix.chave) {
+                    fillPixDetails({ pixKey: data.pix.chave, pixKeyType: data.pix.tipo });
+                    $('#withdraw_method').val('pix');
+                }
                 if (data.stripe && data.stripe.enable && stripeWithdrawEnabled) {
                     paymentMethodArr.push({ 'text': data.stripe.name, 'value': 'stripe' });
                 }
@@ -256,17 +280,30 @@
                 if (data.flutterwave && data.flutterwave.enable && flutterWaveWithdrawEnabled) {
                     paymentMethodArr.push({ 'text': data.flutterwave.name, 'value': 'flutterwave' });
                 }
-
-                $('#withdraw_method').append($("<option></option>")
-                        .attr("value", 'bank')
-                        .text('Bank Transfer'));
-                paymentMethodArr.forEach((listval) => {
-                    $('#withdraw_method').append($("<option></option>")
-                        .attr("value", listval.value)
-                        .text(listval.text));
-                })
             }
+            var userSnap = await database.collection('users').doc(vendorUserId).get();
+            if (userSnap.exists && userSnap.data().userBankDetails && userSnap.data().userBankDetails.pixKey) {
+                fillPixDetails(userSnap.data().userBankDetails);
+                if (!$('#withdraw_method').val()) $('#withdraw_method').val('pix');
+            }
+            $('#withdraw_method').append($("<option></option>")
+                    .attr("value", 'bank')
+                    .text("{{ trans('lang.bank_transfer') }}"));
+            paymentMethodArr.forEach((listval) => {
+                $('#withdraw_method').append($("<option></option>")
+                    .attr("value", listval.value)
+                    .text(listval.text));
+            });
+            togglePixFields();
         })
+        function togglePixFields() {
+            if ($('#withdraw_method').val() === 'pix') {
+                $('.pix-fields').show();
+            } else {
+                $('.pix-fields').hide();
+            }
+        }
+        $(document).on('change', '#withdraw_method', togglePixFields);
 
         emailSetting.get().then(async function (snapshots) {
             var emailSettingData = snapshots.data();
@@ -302,9 +339,11 @@
                 remainingPrice(vendorId).then(async function (data) {
 
                     var remaining = data;
-                    var withdrawMethod=$('#withdraw_method').val();
-                    var amount = parseFloat($(".payout_amount").val());
+                    var withdrawMethod=$('#withdraw_method').val() || 'pix';
+                    var amount = parseFloat(String($(".payout_amount").val() || '').replace(',', '.'));
                     var note = $(".payout_note").val();
+                    var pixKey = ($('#pix_key').val() || '').trim();
+                    var pixKeyType = $('#pix_key_type').val() || 'cpf';
                     var date = new Date(Date.now());
 
                     if (isNaN(amount) || amount == " " || amount == null) {
@@ -325,6 +364,12 @@
                         $(window).scrollTop(0);
                         $(".error_top").html("");
                         $(".error_top").append("<p>{{trans('lang.select_withdrawal_method')}}</p>");
+                    } else if (withdrawMethod === 'pix' && pixKey === '') {
+                        $("#data-table_processing").hide();
+                        $(".error_top").show();
+                        $(window).scrollTop(0);
+                        $(".error_top").html("");
+                        $(".error_top").append("<p>{{trans('lang.pix_key_required')}}</p>");
                     }else {
                         $("#data-table_processing").show();
                         var payoutRole = 'vendor';
@@ -340,7 +385,10 @@
                             'paymentStatus': 'Pending',
                             'paidDate': date,
                             'withdrawMethod':withdrawMethod,
-                            'role': payoutRole
+                            'role': payoutRole,
+                            'pixKey': pixKey,
+                            'pixKeyType': pixKeyType,
+                            'currency': 'BRL'
                         }).then(async function () {
 
                             if (vendorId != '' && (amount != '' || amount != NaN)) {
@@ -350,6 +398,9 @@
                                     price = amount;
                                 }
                                 database.collection('users').doc(vendorUserId).update({ 'wallet_amount': price });
+                                if (withdrawMethod === 'pix' && pixKey) {
+                                    await upsertWithdrawMethodPix(database, vendorUserId, pixKeyType, pixKey);
+                                }
                                 if (payoutRole === 'provider') {
                                     var debitId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : payoutId + '-wallet';
                                     database.collection('wallet').doc(debitId).set({

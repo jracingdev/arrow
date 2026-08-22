@@ -68,8 +68,9 @@
             docRef.get().then(async function (Snapshot) {
                 var docRef = Snapshot.data();
                 vendorDocRef.get().then(async function (docrefSnapshot) {
-                    var vendorDocRef = docrefSnapshot.data() && docrefSnapshot.data().documents ? docrefSnapshot.data().documents.filter((doc) => doc.documentId.trim() == docId.trim())[0] : [];
-                    var keydata = docrefSnapshot.data() && docrefSnapshot.data().documents ? docrefSnapshot.data().documents.findIndex((doc) => doc.documentId.trim() == docId.trim()) : '';
+                    var uploadedDocs = docrefSnapshot.data() && Array.isArray(docrefSnapshot.data().documents) ? docrefSnapshot.data().documents : [];
+                    var vendorDocRef = uploadedDocs.filter(function (doc) { return doc && String(doc.documentId || '').trim() == docId.trim(); })[0] || null;
+                    var keydata = uploadedDocs.findIndex(function (doc) { return doc && String(doc.documentId || '').trim() == docId.trim(); });
                     if (docRef.enable) {
                         html += '<fieldset><legend>' + docRef.title + '</legend>';
                         if (docRef.backSide) {
@@ -89,9 +90,14 @@
                             backFileOld = vendorDocRef && vendorDocRef.backImage ? vendorDocRef.backImage : '';
                             html += '<div class="form-group row width-50"><label class="col-3 control-label">' + "{{trans('lang.back_image')}}" + '<span class="required-field"></span></label><div class="col-7"><input type="file" onChange="handleBackFileSelect(event)" class="form-control image"><div class="placeholder_img_thumb back_image"><span class="image-item"><span class="remove-btn" id="back_image"><i class="fa fa-remove"></i></span><img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded" style="width:200px; height:auto" src="' + (vendorDocRef && vendorDocRef.backImage ? vendorDocRef.backImage : placeholderImage) + '" alt="image"></span></div><div id="uploding_image"></div></div></div>';
                         }
+                        if (docRef.expireAt) {
+                            var expireValue = vendorDocRef && vendorDocRef.expireAt ? vendorDocRef.expireAt : '';
+                            html += '<div class="form-group row width-100"><label class="col-3 control-label">{{ trans('lang.document_expire_at') }}<span class="required-field"></span></label><div class="col-7"><input type="date" class="form-control" id="expireAt" value="' + expireValue + '"><div class="form-text text-muted">{{ trans('lang.document_expire_help') }}</div></div></div>';
+                        }
                         html += '<input type="hidden" name="docId" id="docId" value="' + docRef.id + '">';
-                        html += '<input type="hidden" name="keydata" id="keydata" value="' + (keydata ? keydata : 0) + '">';
+                        html += '<input type="hidden" name="keydata" id="keydata" value="' + (keydata >= 0 ? keydata : -1) + '">';
                         html += '<input type="hidden" name="isAdd" id="isAdd" value="' + (vendorDocRef && vendorDocRef.documentId ? false : true) + '">';
+                        html += '<input type="hidden" name="requiresExpire" id="requiresExpire" value="' + (docRef.expireAt ? '1' : '0') + '">';
                         html += '</fieldset>';
                     }
                     $(".doc-body").html(html);
@@ -224,9 +230,17 @@
             var type = (window.arrowDocRole === 'provider') ? 'provider' : 'restaurant';
             var docId = $("#docId").val();
             var isAdd = $("#isAdd").val();
-            var keydata = $("#keydata").val();
+            var keydata = parseInt($("#keydata").val(), 10);
             var backSide = $("#backSide").val();
             var frontSide = $("#frontSide").val();
+            var expireAt = ($("#expireAt").val() || '').trim();
+            if ($("#requiresExpire").val() === '1' && !expireAt) {
+                $(".error_top").show();
+                $(".error_top").html("");
+                $(".error_top").append("<p>{{trans('lang.document_expire_help')}}</p>");
+                window.scrollTo(0, 0);
+                return;
+            }
             if (backSide && back_photo == "") {
                 $(".error_top").show();
                 $(".error_top").html("");
@@ -252,6 +266,7 @@
                                 frontImage: IMG.front_img ? IMG.front_img : '',
                                 status: status,
                                 rejectReason: '',
+                                expireAt: expireAt,
                             })
                         }, { merge: true }).then(async function (result) {
                             if (window.arrowDocRole === 'provider') {
@@ -284,14 +299,21 @@
                     } else {
                         database.collection('documents_verify').doc(id)
                             .get().then((doc) => {
-                                var objects = doc.data().documents;
-                                var objectToupdate = objects[keydata];
-                                objectToupdate.backImage = IMG.back_img ? IMG.back_img : null;
+                                var objects = (doc.data() && Array.isArray(doc.data().documents)) ? doc.data().documents.slice() : [];
+                                var updateIndex = objects.findIndex(function (item) { return item && String(item.documentId || '').trim() === String(docId).trim(); });
+                                if (updateIndex < 0 && keydata >= 0) updateIndex = keydata;
+                                var objectToupdate = updateIndex >= 0 ? (objects[updateIndex] || {}) : {};
+                                objectToupdate.backImage = IMG.back_img ? IMG.back_img : (objectToupdate.backImage || '');
                                 objectToupdate.documentId = docId.trim();
-                                objectToupdate.frontImage = IMG.front_img ? IMG.front_img : null;
+                                objectToupdate.frontImage = IMG.front_img ? IMG.front_img : (objectToupdate.frontImage || '');
                                 objectToupdate.status = status;
                                 objectToupdate.rejectReason = '';
-                                objects[keydata] = objectToupdate;
+                                objectToupdate.expireAt = expireAt;
+                                if (updateIndex >= 0) {
+                                    objects[updateIndex] = objectToupdate;
+                                } else {
+                                    objects.push(objectToupdate);
+                                }
                                 database.collection('documents_verify').doc(id).update({
                                     documents: objects,
                                     pending: true,
@@ -351,14 +373,13 @@
         });
         async function getDocId() {
             var enableDocIds = [];
-            var typeQuery = window.arrowDocRole === 'provider' ? 'provider' : 'restaurant';
-            var snaps = await database.collection('documents').where('type', '==', typeQuery).where('enable', "==", true).get();
-            if (window.arrowDocRole === 'provider' && snaps.empty) {
-                snaps = await database.collection('documents').where('type', '==', 'ondemand').where('enable', "==", true).get();
+            var types = window.arrowDocRole === 'provider' ? ['provider', 'ondemand'] : ['restaurant', 'vendor', 'store'];
+            for (var i = 0; i < types.length; i++) {
+                var snaps = await database.collection('documents').where('type', '==', types[i]).where('enable', "==", true).get();
+                snaps.forEach(function (doc) {
+                    if (enableDocIds.indexOf(doc.data().id) < 0) enableDocIds.push(doc.data().id);
+                });
             }
-            snaps.forEach(function (doc) {
-                enableDocIds.push(doc.data().id);
-            });
             return enableDocIds;
         }
         async function vendorDocVerification(enableDocIds, snapshotsvendor) {
