@@ -57,4 +57,9 @@ class ProviderController extends Controller
     {
         return view('provider.workers.edit')->with('id', $id)->with('providerId', $this->vendorUuid());
     }
+
+    public function ratings()
+    {
+        return view('provider.ratings.index')->with('id', $this->vendorUuid());
+    }
 }

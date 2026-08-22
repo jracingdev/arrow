@@ -185,6 +185,12 @@
                         <span class="hide-menu">{{ trans('lang.worker_plural') }}</span>
                     </a>
                 </li>
+                <li class="{{ request()->routeIs('provider.ratings') ? 'active' : '' }}">
+                    <a class="waves-effect waves-dark" href="{!! route('provider.ratings') !!}" aria-expanded="false">
+                        <i class="mdi mdi-star"></i>
+                        <span class="hide-menu">{{ trans('lang.provider_ratings') }}</span>
+                    </a>
+                </li>
                 <li class="{{ request()->routeIs('wallettransaction.index') ? 'active' : '' }}">
                     <a class="waves-effect waves-dark" href="{!! route('wallettransaction.index') !!}" aria-expanded="false">
                         <i class="mdi mdi-swap-horizontal"></i>

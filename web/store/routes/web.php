@@ -187,6 +187,7 @@ Route::middleware(['check.subscription'])->group(function () {
     Route::get('provider/workers', [App\Http\Controllers\ProviderController::class, 'workers'])->name('provider.workers');
     Route::get('provider/workers/create', [App\Http\Controllers\ProviderController::class, 'workersCreate'])->name('provider.workers.create');
     Route::get('provider/workers/edit/{id}', [App\Http\Controllers\ProviderController::class, 'workersEdit'])->name('provider.workers.edit');
+    Route::get('provider/ratings', [App\Http\Controllers\ProviderController::class, 'ratings'])->name('provider.ratings');
 
     Route::get('point-of-sale', [App\Http\Controllers\POSController::class, 'pointOfSale'])->name('point.of.sale');
     Route::get('pos-orders', [App\Http\Controllers\POSController::class, 'posOrder'])->name('pos.order');
