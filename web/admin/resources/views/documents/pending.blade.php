@@ -76,6 +76,12 @@
         ondemand: "{{trans('lang.document_ondemand')}}",
         car: "{{trans('lang.document_car')}}"
     };
+    var statusLabels = {
+        pending: "{{trans('lang.pending')}}",
+        uploaded: "{{trans('lang.document_status_uploaded')}}",
+        approved: "{{trans('lang.approved')}}",
+        rejected: "{{trans('lang.rejected')}}"
+    };
     function roleLabel(role) {
         return roleLabels[role] || role || '-';
     }
@@ -198,7 +204,7 @@
             html += '<td>' + roleLabel(row.userRole || row.role) + '</td>';
             html += '<td>' + $('<div>').text(row.title).html() + '</td>';
             html += '<td>' + files + '</td>';
-            html += '<td><span class="badge badge-' + badgeClass + ' py-2 px-3">' + row.status + '</span></td>';
+            html += '<td><span class="badge badge-' + badgeClass + ' py-2 px-3">' + (statusLabels[row.status] || row.status) + '</span></td>';
             html += '<td>' + $('<div>').text(row.rejectReason || '').html() + '</td>';
             html += '<td class="action-btn">' + actions + '</td>';
             html += '</tr>';

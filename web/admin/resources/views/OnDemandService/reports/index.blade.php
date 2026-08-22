@@ -77,6 +77,19 @@
     <script type="text/javascript">
         var database = firebase.firestore();
         var table = null;
+        var statusLabels = {
+            'Initiated': '{{ trans("lang.initiated") }}',
+            'Under Investigation': '{{ trans("lang.Under_investigation") }}',
+            'Resolved': '{{ trans("lang.resolved") }}',
+            'Dismissed': '{{ trans("lang.dismiss_report") }}'
+        };
+        var roleLabels = {
+            customer: '{{ trans("lang.customer") }}',
+            provider: '{{ trans("lang.provider") }}',
+            driver: '{{ trans("lang.driver") }}',
+            vendor: '{{ trans("lang.vendor") }}',
+            worker: '{{ trans("lang.worker") }}'
+        };
 
         $(document).ready(function () {
             loadReports();
@@ -136,9 +149,9 @@
             html += '<td>' + badge + '</td>';
             html += '<td>' + (val.category || val.title || '') + '</td>';
             html += '<td>' + (val.description || '') + '</td>';
-            html += '<td>' + (val.reporterRole || '') + ' · ' + (val.customerName && val.reporterRole === 'customer' ? val.customerName : (val.driverName || '')) + '</td>';
-            html += '<td>' + (val.reportedRole || '') + repeat + '</td>';
-            html += '<td>' + (val.status || '') + '</td>';
+            html += '<td>' + (roleLabels[val.reporterRole] || val.reporterRole || '') + ' · ' + (val.customerName && val.reporterRole === 'customer' ? val.customerName : (val.driverName || val.providerName || '')) + '</td>';
+            html += '<td>' + (roleLabels[val.reportedRole] || val.reportedRole || '') + repeat + '</td>';
+            html += '<td>' + (statusLabels[val.status] || val.status || '') + '</td>';
             html += '<td><a href="' + editRoute + '"><i class="mdi mdi-lead-pencil"></i></a></td>';
             html += '</tr>';
             return html;

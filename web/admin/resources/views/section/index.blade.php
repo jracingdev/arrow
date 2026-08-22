@@ -50,7 +50,7 @@
                                     cellspacing="0" width="100%">
                                     <thead>
                                     <tr>
-                                        <th>Sort</th>
+                                        <th>{{trans('lang.section_sort')}}</th>
                                         <th>{{trans('lang.section_info')}}</th>
                                         <th>{{trans('lang.service_type')}}</th>
                                         <th>{{trans('lang.status')}}</th>

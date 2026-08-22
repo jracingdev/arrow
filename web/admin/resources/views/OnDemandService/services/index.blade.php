@@ -106,7 +106,7 @@
                     @if($id=='')
                         <a class="btn-primary btn rounded-full" href="{!! route('ondemand.services.create') !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.service_create')}}</a>
                     @else
-                    <a class="btn-primary btn rounded-full" href="{!! route('ondemand.services.create','id='.$id) !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.service_create')}}</a>
+                    <a class="btn-primary btn rounded-full" href="{!! route('ondemand.services.create', ['id' => $id]) !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.service_create')}}</a>
                     @endif
                      </div>
                    </div>                
@@ -175,20 +175,26 @@
 
         }       
 
-        var currentCurrency = '';
+        var currentCurrency = 'R$';
         var currencyAtRight = false;
-        var decimal_degits = 0;
+        var decimal_degits = 2;
+        var currencyData = { symbol: 'R$', decimal_degits: 2, symbolAtRight: false };
 
         var refCurrency = database.collection('currencies').where('isActive', '==', true);
         refCurrency.get().then(async function (snapshots) {
-            var currencyData = snapshots.docs[0].data();
-            currentCurrency = currencyData.symbol;
-            currencyAtRight = currencyData.symbolAtRight;
-
+            if (!snapshots.docs.length) {
+                return;
+            }
+            currencyData = snapshots.docs[0].data() || currencyData;
+            currentCurrency = currencyData.symbol || 'R$';
+            currencyAtRight = Boolean(currencyData.symbolAtRight);
             if (currencyData.decimal_degits) {
                 decimal_degits = currencyData.decimal_degits;
             }
         });
+        function money(amount) {
+            return formatCurrency(amount, currencyData);
+        }
 
         var ctegoryRef = database.collection('provider_categories');
         var ref_sections = database.collection('sections').where('isActive', '==', true).orderBy('order');
@@ -551,34 +557,11 @@ var showProviderColumn = (id === '');
                 html.push('<td></td>');
             }
             
+            var hourSuffix = (val.priceUnit == "Hourly") ? ArrowI18n.perHourSuffix : '';
             if (val.disPrice == "0"){
-                if (val.priceUnit == "Hourly") {
-                    if (currencyAtRight) {
-                        html.push('<td data-html="true" data-order="' + val.price + '">' + parseFloat(val.price).toFixed(decimal_degits) + '' + currentCurrency + ArrowI18n.perHourSuffix + '</td>');
-                    }else {
-                        html.push('<td data-html="true" data-order="' + val.price + '">' + currentCurrency + parseFloat(val.price).toFixed(decimal_degits) + ArrowI18n.perHourSuffix + '</td>');
-                    }
-                } else {
-                    if (currencyAtRight) {
-                        html.push('<td data-html="true" data-order="' + val.price + '">' + parseFloat(val.price).toFixed(decimal_degits) +  '' + currentCurrency + '</td>');
-                    }else {
-                        html.push('<td data-html="true" data-order="' + val.price + '">' + currentCurrency + parseFloat(val.price).toFixed(decimal_degits) + '</td>');
-                    }
-                }
+                html.push('<td data-html="true" data-order="' + val.price + '">' + money(val.price) + hourSuffix + '</td>');
             }else {
-                if (val.priceUnit == "Hourly") {
-                    if (currencyAtRight) {
-                        html.push('<td data-html="true" data-order="' + val.disPrice + '">' + parseFloat(val.disPrice).toFixed(decimal_degits) + '' + currentCurrency + ArrowI18n.perHourSuffix + '  <s>' + parseFloat(val.price).toFixed(decimal_degits) + '' + currentCurrency + ArrowI18n.perHourSuffix + '</s></td>');
-                    } else {
-                        html.push('<td data-html="true" data-order="' + val.disPrice + '">' + '' + currentCurrency + parseFloat(val.disPrice).toFixed(decimal_degits) + ArrowI18n.perHourSuffix + '  <s>' + currentCurrency + '' + parseFloat(val.price).toFixed(decimal_degits) + ArrowI18n.perHourSuffix + '</s> </td>');
-                    }
-                } else {
-                    if (currencyAtRight) {
-                        html.push('<td data-html="true" data-order="' + val.disPrice + '">' + parseFloat(val.disPrice).toFixed(decimal_degits) + '' + currentCurrency + '  <s>' + parseFloat(val.price).toFixed(decimal_degits) + '' + currentCurrency + '</s></td>');
-                    } else {
-                        html.push('<td data-html="true" data-order="' + val.disPrice + '">' + '' + currentCurrency + parseFloat(val.disPrice).toFixed(decimal_degits) + ' <s>' + currentCurrency + '' + parseFloat(val.price).toFixed(decimal_degits) + '</s> </td>');
-                    }
-                }
+                html.push('<td data-html="true" data-order="' + val.disPrice + '">' + money(val.disPrice) + hourSuffix + '  <s>' + money(val.price) + hourSuffix + '</s></td>');
             }
 
 
@@ -635,12 +618,20 @@ var showProviderColumn = (id === '');
         });
 
         async function getProviderNameForFilter(providerId) {
-            await database.collection('users').where('id', '==', providerId).get().then(async function (snapshots) {
-                var providerData = snapshots.docs[0].data();
-                providerName = providerData.firstName + ' ' + providerData.lastName;
-                $('.PageTitle').html("{{trans('lang.service_plural')}} - " + providerName);
-            });
-
+            if (!providerId) {
+                return;
+            }
+            var snap = await database.collection('users').doc(providerId).get();
+            if (!snap.exists) {
+                var byField = await database.collection('users').where('id', '==', providerId).get();
+                if (byField.empty) {
+                    return;
+                }
+                snap = byField.docs[0];
+            }
+            var providerData = snap.data() || {};
+            providerName = ((providerData.firstName || '') + ' ' + (providerData.lastName || '')).trim();
+            $('.PageTitle').html("{{trans('lang.service_plural')}} - " + providerName);
         }
         async function deleteServiceData(serviceId){
             await database.collection('favorite_service').where('service_id', '==', serviceId).get().then(async function(snapshotsItem) {

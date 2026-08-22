@@ -604,11 +604,14 @@
     var storedEndTime = '';
     var storedStartTime = '';
 
-    var currencyData = '';
+    var currencyData = { symbol: 'R$', decimal_degits: 2, symbolAtRight: false };
     refCurrency.get().then(async function (snapshots) {
-        currencyData = snapshots.docs[0].data();
-        currentCurrency = currencyData.symbol;
-        currencyAtRight = currencyData.symbolAtRight;
+        if (!snapshots.docs.length) {
+            return;
+        }
+        currencyData = snapshots.docs[0].data() || currencyData;
+        currentCurrency = currencyData.symbol || 'R$';
+        currencyAtRight = Boolean(currencyData.symbolAtRight);
         if (currencyData.decimal_degits) {
             decimal_degits = currencyData.decimal_degits;
         }
@@ -1738,13 +1741,8 @@
 
         html += '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.price_detail")}}</span></td></tr>';
 
-        let subtotalDisplay = currencyAtRight
-            ? subtotal.toFixed(decimal_degits) + currentCurrency
-            : currentCurrency + subtotal.toFixed(decimal_degits);
-
-        let basePriceDisplay = currencyAtRight
-            ? basePrice.toFixed(decimal_degits) + currentCurrency
-            : currentCurrency + basePrice.toFixed(decimal_degits);
+        let subtotalDisplay = formatCurrency(subtotal, currencyData);
+        let basePriceDisplay = formatCurrency(basePrice, currencyData);
 
 
         // Price row
@@ -1760,9 +1758,7 @@
         if ((intRegex.test(totalDiscount) || floatRegex.test(totalDiscount))) { 
             html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.discount")}}</span></td></tr>';
             subtotal -= totalDiscount;
-            let discountDisplay = currencyAtRight
-                ? totalDiscount.toFixed(decimal_degits) + currentCurrency
-                : currentCurrency + totalDiscount.toFixed(decimal_degits);
+            let discountDisplay = formatCurrency(totalDiscount, currencyData);
 
             let couponHtml = couponCode ? `<br><small>{{trans("lang.coupon_codes")}} : ${couponCode}</small>` : '';
             html += `<tr><td class="label">{{trans("lang.discount")}} ${couponHtml}</td>
@@ -1770,9 +1766,7 @@
         }
 
         // Subtotal after discount
-        let subtotalDisplay2 = currencyAtRight
-            ? subtotal.toFixed(decimal_degits) + currentCurrency
-            : currentCurrency + subtotal.toFixed(decimal_degits);
+        let subtotalDisplay2 = formatCurrency(subtotal, currencyData);
 
         html += '<tr><td class="seprater" colspan="2"><hr><span>{{trans("lang.sub_total")}}</span></td></tr>';
         html += `<tr><td class="label">{{trans("lang.sub_total")}}</td><td>${subtotalDisplay2}</td></tr>`;
@@ -1813,9 +1807,7 @@
 
         // Extra charges
         if (extraCharges > 0) {
-            let extraDisplay = currencyAtRight
-                ? extraCharges.toFixed(decimal_degits) + currentCurrency
-                : currentCurrency + extraCharges.toFixed(decimal_degits);
+            let extraDisplay = formatCurrency(extraCharges, currencyData);
             html += `<tr><td class="label">{{trans("lang.extra_charges")}}</td><td style="color:green">+${extraDisplay}</td></tr>`;
         }
 
@@ -1827,8 +1819,8 @@
                 formatCurrency(platformFee, currencyData) + '</td></tr>';
 
         html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.tax_calculation') }}</span></td></tr>';
-        html = html + renderTaxSection('order', 'Tax on Order Total');
-        html = html + renderTaxSection('platform', 'Tax on Platform Fee');
+        html = html + renderTaxSection('order', '{{ trans('lang.tax_on_order_total') }}');
+        html = html + renderTaxSection('platform', '{{ trans('lang.tax_on_platform_fee') }}');
         html = html +'<tr><td class="label"><strong>{{ trans('lang.total_tax') }}</strong></td><td class="total_tax " id="greenColor"><strong>+' +
         formatCurrency(total_tax_amount, currencyData) + '</strong></td></tr>';
 

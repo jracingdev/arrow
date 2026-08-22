@@ -9,6 +9,9 @@
                                         <span class="icon mr-3"><img src="{{ asset('images/provider.png') }}"></span>
                                         <h3 class="mb-0">{{ trans('lang.provider_plural') }} - <span
                                                 class="itemTitle"></span></h3>
+                                        <a class="btn btn-primary btn-sm ml-3" href="{{ route('ondemand.services.create', ['id' => $id]) }}">
+                                            <i class="mdi mdi-plus mr-1"></i>{{ trans('lang.service_create') }}
+                                        </a>
                                     </div>
                                 </div>
                             </div>

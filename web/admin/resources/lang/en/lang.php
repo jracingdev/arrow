@@ -1427,6 +1427,8 @@ return [
     'salary' => 'Salary',
     'service_plural' => 'Services',
     'service_create' => 'Create a Service',
+    'provider_view_services' => 'View services',
+    'provider_create_service' => 'Create a service for this provider',
     'service_edit' => 'Edit a Service',
     'service_information' => 'Service Information',
     'service_name' => 'Service Name',
@@ -2137,6 +2139,8 @@ return [
     'document_owner' => 'Owner',
     'document_provider' => 'Provider',
     'document_ondemand' => 'On-demand',
+    'document_status_uploaded' => 'Uploaded',
+    'section_sort' => 'Sort',
     'document_car' => 'Vehicle (CRLV / insurance)',
     'document_store' => 'Store / integrator',
     'document_pending_queue' => 'Pending verifications',
@@ -2658,5 +2662,7 @@ return [
     'admin_approved_your_document' => 'Admin has approved your document',
     'please_submit_again' => 'Please submit again.',
     'nfse_invoice' => 'Service invoice (NFS-e)',
+    'nfse_attached' => 'NFS-e attached',
+    'nfse_missing' => 'No NFS-e',
 ];
 ?>

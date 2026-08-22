@@ -1427,6 +1427,8 @@ return [
     'salary' => 'Salário',
     'service_plural' => 'Serviços',
     'service_create' => 'Criar um Serviço',
+    'provider_view_services' => 'Ver serviços',
+    'provider_create_service' => 'Criar serviço para este prestador',
     'service_edit' => 'Editar Serviço',
     'service_information' => 'Informações do Serviço',
     'service_name' => 'Nome do Serviço',
@@ -2136,7 +2138,9 @@ return [
     'document_driver' => 'Motorista Individual',
     'document_owner' => 'Proprietário',
     'document_provider' => 'Prestador',
-    'document_ondemand' => 'On-demand',
+    'document_ondemand' => 'Sob demanda',
+    'document_status_uploaded' => 'Enviado',
+    'section_sort' => 'Ordem',
     'document_car' => 'Veículo (CRLV / seguro)',
     'document_store' => 'Loja / Integrador',
     'document_pending_queue' => 'Pendentes de verificação',
@@ -2682,5 +2686,7 @@ return [
     'admin_approved_your_document' => 'O administrador aprovou o documento',
     'please_submit_again' => 'Envie novamente.',
     'nfse_invoice' => 'Nota fiscal (NFS-e)',
+    'nfse_attached' => 'NFS-e anexada',
+    'nfse_missing' => 'Sem NFS-e',
 ];
 ?>

@@ -439,14 +439,18 @@
             completedBookingRef = completedBookingRef.where('sectionId', '==', section_id);
             cancelBookingRef = cancelBookingRef.where('sectionId', '==', section_id);
         }
-        var currentCurrency = '';
+        var currentCurrency = 'R$';
         var currencyAtRight = false;
-        var decimal_degits = 0;
+        var decimal_degits = 2;
+        var currencyData = { symbol: 'R$', decimal_degits: 2, symbolAtRight: false };
         var refCurrency = database.collection('currencies').where('isActive', '==', true);
         refCurrency.get().then(async function(snapshots) {
-            var currencyData = snapshots.docs[0].data();
-            currentCurrency = currencyData.symbol;
-            currencyAtRight = currencyData.symbolAtRight;
+            if (!snapshots.docs.length) {
+                return;
+            }
+            currencyData = snapshots.docs[0].data() || currencyData;
+            currentCurrency = currencyData.symbol || 'R$';
+            currencyAtRight = Boolean(currencyData.symbolAtRight);
             if (currencyData.decimal_degits) {
                 decimal_degits = currencyData.decimal_degits;
             }
@@ -628,12 +632,7 @@
                                 if (childData.provider.disPrice != null && childData.provider.disPrice != undefined && childData.provider.disPrice != '' && childData.provider.disPrice != '0') {
                                     perHourPrice = parseFloat(childData.provider.disPrice)
                                 }
-                                if (currencyAtRight) {
-                                    perHourPrice = perHourPrice.toFixed(decimal_degits) + "" + currentCurrency;
-                                } else {
-                                    perHourPrice = currentCurrency + "" + perHourPrice.toFixed(decimal_degits);
-                                }
-                                price = perHourPrice + ArrowI18n.perHourSuffix;
+                                price = formatCurrency(perHourPrice, currencyData) + ArrowI18n.perHourSuffix;
                             }
                             if (childData.hasOwnProperty("scheduleDateTime")) {
                                 childData.bookingDateTime = childData.scheduleDateTime;
@@ -773,7 +772,11 @@
                 html.push('<td class="delete-all"><input type="checkbox" id="is_open_' + id + '" class="is_open" dataId="' + id + '"><label class="col-3 control-label"\n' +
                     'for="is_open_' + id + '" ></label></td>');
             }
-            html.push('<td><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="' + val.id + '">' +(val.id.length > 8 ? val.id.substring(0, 8) + '...' : val.id) + '</a></td>');
+            var invoices = Array.isArray(val.invoices) ? val.invoices : [];
+            var nfseBadge = invoices.length
+                ? ' <span class="badge badge-info" title="{{ trans('lang.nfse_attached') }}">{{ trans('lang.nfse_invoice') }}</span>'
+                : '';
+            html.push('<td><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="' + val.id + '">' +(val.id.length > 8 ? val.id.substring(0, 8) + '...' : val.id) + '</a>' + nfseBadge + '</td>');
             html.push('<td><a href="' + userRoute + '">' + val.authorName + '<a/></td>');
             if (val.status == 'Order Placed') {
                 html.push('<td class="order_placed"><span class="badge badge-success">' + ArrowI18n.status(val.status) + '</span></td>');
@@ -980,20 +983,24 @@
 
             totalPrice = subtotal + extraCharges + platformFee + parseFloat(total_tax_amount);
 
-            // Format currency
-            let totalPriceDisplay = currencyAtRight
-                ? totalPrice.toFixed(decimal_degits) + currentCurrency
-                : currentCurrency + totalPrice.toFixed(decimal_degits);
-
-            return totalPriceDisplay;
+            return formatCurrency(totalPrice, currencyData);
         }
 
         async function getProviderNameForFilter(providerId) {
-            await database.collection('users').where('id', '==', providerId).get().then(async function(snapshots) {
-                var providerData = snapshots.docs[0].data();
-                providerName = providerData.firstName + ' ' + providerData.lastName;
-                $('.PageTitle').html("{{ trans('lang.booking_plural') }} - " + providerName);
-            });
+            if (!providerId) {
+                return;
+            }
+            var snap = await database.collection('users').doc(providerId).get();
+            if (!snap.exists) {
+                var byField = await database.collection('users').where('id', '==', providerId).get();
+                if (byField.empty) {
+                    return;
+                }
+                snap = byField.docs[0];
+            }
+            var providerData = snap.data() || {};
+            providerName = ((providerData.firstName || '') + ' ' + (providerData.lastName || '')).trim();
+            $('.PageTitle').html("{{ trans('lang.booking_plural') }} - " + providerName);
         }
         
         function clickLink(value) {

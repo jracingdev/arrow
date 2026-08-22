@@ -473,10 +473,14 @@
         }
         var planRoute="{{route('subscription.subscriptionPlanHistory',':id')}}";
         planRoute=planRoute.replace(':id',val.id);
+        var servicesRoute = '{{ route("ondemand.services.index", ":id") }}'.replace(':id', val.id);
+        var createServiceRoute = '{{ url("ondemand-service/create") }}?id=' + encodeURIComponent(val.id);
+        actionHtml += '<a href="' + servicesRoute + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.provider_view_services') }}"><i class="mdi mdi-briefcase"></i></a>';
+        actionHtml += '<a href="' + createServiceRoute + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.provider_create_service') }}"><i class="mdi mdi-plus-circle"></i></a>';
         if(val.hasOwnProperty('subscription_plan')) {
             actionHtml+='<a id="'+val.id+'"  href="'+planRoute+'" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.subscription_plans') }}"><i class="mdi mdi-crown"></i></a>';
         }
-        actionHtml = actionHtml + '<a href="'+trroute1+'" data-toggle="tooltip" data-bs-original-title="Wallet Transaction"><i class="mdi mdi-wallet"></i></a>';
+        actionHtml = actionHtml + '<a href="'+trroute1+'" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.wallet_transaction') }}"><i class="mdi mdi-wallet"></i></a>';
         actionHtml = actionHtml + '<a href="' + providerView + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.view') }}"><i class="mdi mdi-eye"></i></a>';
         actionHtml = actionHtml + '<a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="{{ trans('lang.edit') }}"><i class="mdi mdi-lead-pencil"></i></a>';
         if (checkDeletePermission) {

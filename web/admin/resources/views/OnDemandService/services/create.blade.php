@@ -230,6 +230,7 @@
         var subscriptionTotalOrders = '';
         var subscriptionTotalOrders = '';
         var isSectionIdExist = false;
+        var hasSubCategories = false;
         var section_id = getCookie('section_id');
         database.collection('settings').doc('DriverNearBy').get().then(async function(snapshots) {
             var data = snapshots.data();
@@ -278,11 +279,17 @@
             database.collection('sections').where('serviceTypeFlag', '==', 'ondemand-service').orderBy('order').get().then(async function(snapshots) {
                 snapshots.docs.forEach((listval) => {
                     var data = listval.data();
+                    var typeLabel = (window.ArrowI18n && typeof ArrowI18n.serviceTypeLabel === 'function')
+                        ? ArrowI18n.serviceTypeLabel(data.serviceTypeFlag, data.serviceType)
+                        : (data.serviceType || data.serviceTypeFlag || '');
                     $('#section_id').append($("<option></option>")
                         .attr("value", data.id)
                         .attr("data-type", data.serviceTypeFlag)
-                        .text(data.name + ' (' + data.serviceType + ')'));
+                        .text(data.name + (typeLabel ? ' (' + typeLabel + ')' : '')));
                 });
+                if (!provider_id && section_id) {
+                    $('#section_id').val(section_id).trigger('change');
+                }
             });
             if (provider_id != '') {
                 getProviderInfo(provider_id);
@@ -316,7 +323,8 @@
                 var categoryId = $(this).val();
                 if (categoryId) {
                     categories.where('parentCategoryId', '==', categoryId).get().then(async function(snapshots) {
-                        if (snapshots.docs.length > 0) {
+                        hasSubCategories = snapshots.docs.length > 0;
+                        if (hasSubCategories) {
                             $('#sub_category').html('<option value="">{{ trans('lang.select_sub_category') }}</option>');
                             snapshots.docs.forEach((listval) => {
                                 var data = listval.data();
@@ -444,7 +452,7 @@
                         $(".error_top").html("");
                         $(".error_top").append("<p>{{ trans('lang.select_service_category_error') }}</p>");
                         window.scrollTo(0, 0);
-                    } else if (sub_category == '') {
+                    } else if (hasSubCategories && sub_category == '') {
                         $(".error_top").show();
                         $(".error_top").html("");
                         $(".error_top").append("<p>{{ trans('lang.select_service_sub_category_error') }}</p>");
@@ -526,7 +534,7 @@
                                 'sectionId': section_id,
                                 'startTime': startTime,
                                 'endTime': endTime,
-                                'subCategoryId': sub_category,
+                                'subCategoryId': sub_category || '',
                                 'title': name,
                                 'coordinates': new firebase.firestore.GeoPoint(latitude, longitude),
                                 'g' : {
@@ -545,7 +553,8 @@
                                         commissionObj = snapshot.data().adminCommision;
                                         await database.collection('users').doc(providerId).update({
                                             'adminCommission': commissionObj,
-                                            'section_id': section_id
+                                            'section_id': section_id,
+                                            'sectionId': section_id
                                         });
                                     });
                                 }
@@ -600,16 +609,28 @@
             }
         });
         async function getProviderInfo(provider_id) {
-            await database.collection('users').where('id', '==', provider_id).get().then(async function(snapshot) {
-                var provider_data = snapshot.docs[0].data();
+            if (!provider_id) {
+                return;
+            }
+            var providerSnap = await database.collection('users').doc(provider_id).get();
+            if (!providerSnap.exists) {
+                var byField = await database.collection('users').where('id', '==', provider_id).get();
+                if (byField.empty) {
+                    return;
+                }
+                providerSnap = byField.docs[0];
+            }
+            await Promise.resolve(providerSnap).then(async function(snapshot) {
+                var provider_data = snapshot.data();
                 providerName = provider_data.firstName + ' ' + provider_data.lastName;
                 providerPic = provider_data.profilePictureURL;
                 providerPhone = provider_data.phoneNumber;
-                if (provider_data.hasOwnProperty('section_id') && provider_data.section_id != null && provider_data.section_id != '') {
-                    $('#section_id').val(provider_data.section_id).trigger('change');
+                var providerSection = provider_data.section_id || provider_data.sectionId || '';
+                if (providerSection) {
+                    $('#section_id').val(providerSection).trigger('change');
                     $('#section_id').prop('disabled', true);
                     isSectionIdExist = true;
-                    await database.collection('sections').doc(provider_data.section_id).get().then(
+                    await database.collection('sections').doc(providerSection).get().then(
                         async function(snapshot) {
                             if (snapshot.data().adminCommision != null && snapshot.data()
                                 .adminCommision != '') {
