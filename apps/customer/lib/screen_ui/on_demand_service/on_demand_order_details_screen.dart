@@ -58,7 +58,7 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
               controller.isLoading.value
                   ? Constant.loader()
                   : SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.paddingOf(context).bottom),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

@@ -96,7 +96,9 @@ class MultiServiceDashboardScreen extends StatelessWidget {
               index: controller.currentIndex.value,
               children: serviceTypes.map(_dashboardForService).toList(),
             ),
-            bottomNavigationBar: BottomNavigationBar(
+            bottomNavigationBar: SafeArea(
+              top: false,
+              child: BottomNavigationBar(
               currentIndex: controller.currentIndex.value,
               onTap: (index) {
                 controller.currentIndex.value = index;
@@ -119,6 +121,7 @@ class MultiServiceDashboardScreen extends StatelessWidget {
               unselectedItemColor: isDark ? AppThemeData.grey400 : AppThemeData.grey500,
               backgroundColor: isDark ? AppThemeData.grey900 : AppThemeData.grey50,
               items: serviceTypes.map(_navItemForService).toList(),
+            ),
             ),
           );
         });

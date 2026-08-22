@@ -35,7 +35,9 @@ class DashBoardScreen extends StatelessWidget {
               body: controller.isLoading.value ? Constant.loader() : controller.navigationItems[controller.selectedIndex.value].page,
               bottomNavigationBar: controller.isLoading.value
                   ? null
-                  : BottomNavigationBar(
+                  : SafeArea(
+                      top: false,
+                      child: BottomNavigationBar(
                       type: BottomNavigationBarType.fixed,
                       showUnselectedLabels: true,
                       showSelectedLabels: true,
@@ -51,6 +53,7 @@ class DashBoardScreen extends StatelessWidget {
                         controller.selectedIndex.value = index;
                       },
                       items: List.generate(controller.navigationItems.length, (index) => navigationBarItem(controller.navigationItems[index], index, controller, isDark)),
+                    ),
                     ),
             ),
           );

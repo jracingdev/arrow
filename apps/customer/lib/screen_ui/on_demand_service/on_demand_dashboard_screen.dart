@@ -21,7 +21,9 @@ class OnDemandDashboardScreen extends StatelessWidget {
         builder: (controller) {
           return Scaffold(
             body: controller.pageList[controller.selectedIndex.value],
-            bottomNavigationBar: BottomNavigationBar(
+            bottomNavigationBar: SafeArea(
+              top: false,
+              child: BottomNavigationBar(
               type: BottomNavigationBarType.fixed,
               showUnselectedLabels: true,
               showSelectedLabels: true,
@@ -54,6 +56,7 @@ class OnDemandDashboardScreen extends StatelessWidget {
                         navigationBarItem(isDark, index: 3, assetIcon: "assets/icons/ic_wallet_cab.svg", label: 'Wallet'.tr, controller: controller),
                         navigationBarItem(isDark, index: 4, assetIcon: "assets/icons/ic_profile.svg", label: 'Profile'.tr, controller: controller),
                       ],
+            ),
             ),
           );
         },

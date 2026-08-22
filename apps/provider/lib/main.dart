@@ -60,7 +60,9 @@ class _ProviderAppState extends State<ProviderApp> {
       locale: const Locale('pt', 'BR'),
       fallbackLocale: const Locale('pt', 'BR'),
       theme: AppTheme.light(),
-      builder: (context, child) => DispatchIncomingScope(child: EasyLoading.init()(context, child)),
+      builder: (context, child) => DispatchIncomingScope(
+        child: SafeArea(bottom: true, top: false, child: EasyLoading.init()(context, child)),
+      ),
       home: const SplashScreen(),
     );
   }

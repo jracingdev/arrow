@@ -96,6 +96,7 @@ class _HomeShellState extends State<HomeShell> {
               ],
             ),
             bottomNavigationBar: SafeArea(
+              top: false,
               child: BottomNavigationBar(
                 currentIndex: index,
                 onTap: shell.goTo,
