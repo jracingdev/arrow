@@ -927,6 +927,97 @@
                 ? formatted + ' ' + symbol
                 : symbol + ' ' + formatted;
         }
+
+        function collectPixDetails(base) {
+            var details = base || {};
+            details.pixKeyType = ($('#pix_key_type').val() || 'cpf').toString();
+            details.pixKey = ($('#pix_key').val() || '').toString().trim();
+            return details;
+        }
+
+        function fillPixDetails(details) {
+            if (!details) {
+                return;
+            }
+            if (details.pixKeyType) {
+                $('#pix_key_type').val(details.pixKeyType);
+            }
+            if (details.pixKey) {
+                $('#pix_key').val(details.pixKey);
+            }
+        }
+
+        async function upsertWithdrawMethodPix(database, userId, pixKeyType, pixKey) {
+            if (!database || !userId || !pixKey) {
+                return;
+            }
+            var payload = { name: 'PIX', chave: pixKey, tipo: pixKeyType || 'cpf' };
+            var snap = await database.collection('withdraw_method').where('userId', '==', userId).get();
+            if (!snap.empty) {
+                await database.collection('withdraw_method').doc(snap.docs[0].id).set({ pix: payload }, { merge: true });
+                return;
+            }
+            var id = database.collection('tmp').doc().id;
+            await database.collection('withdraw_method').doc(id).set({
+                id: id,
+                userId: userId,
+                pix: payload
+            });
+        }
+
+        function payoutMethodLabel(val) {
+            if (!val) {
+                return '—';
+            }
+            var method = (val.withdrawMethod || val.paymentMethod || '').toString().toLowerCase();
+            if (method === 'pix') {
+                var key = val.pixKey || (val.pix && (val.pix.chave || val.pix.key)) || '';
+                var type = val.pixKeyType || (val.pix && val.pix.tipo) || '';
+                return key ? ('PIX (' + (type ? type + ': ' : '') + key + ')') : 'PIX';
+            }
+            if (method === 'bank') {
+                return 'Bank Transfer';
+            }
+            if (method === 'stripe') {
+                return 'Stripe';
+            }
+            return val.withdrawMethod || val.paymentMethod || '—';
+        }
+
+        function serializeLgpdUser(user, extras) {
+            var skip = ['fcmToken', 'password', 'stripeCustomer', 'stripeAccountId'];
+            var out = {};
+            Object.keys(user || {}).forEach(function (key) {
+                if (skip.indexOf(key) !== -1) {
+                    return;
+                }
+                var value = user[key];
+                if (value && typeof value.toDate === 'function') {
+                    out[key] = value.toDate().toISOString();
+                } else if (value && typeof value.seconds === 'number') {
+                    out[key] = new Date(value.seconds * 1000).toISOString();
+                } else {
+                    out[key] = value;
+                }
+            });
+            Object.keys(extras || {}).forEach(function (key) {
+                out[key] = extras[key];
+            });
+            return out;
+        }
+
+        function nfseInvoiceLinks(invoices) {
+            var list = Array.isArray(invoices) ? invoices : [];
+            var html = '';
+            list.forEach(function (inv) {
+                if (!inv || !inv.url) {
+                    return;
+                }
+                var name = inv.fileName || 'NFS-e';
+                html += '<div><a href="' + inv.url + '" target="_blank" rel="noopener">' + name + '</a></div>';
+            });
+            return html;
+        }
         
         async function getCountryFromLatLng(lat, lng) {
             const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;

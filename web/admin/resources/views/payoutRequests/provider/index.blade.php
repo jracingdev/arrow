@@ -1014,7 +1014,7 @@
 
         if (val.withdrawMethod) {
 
-            var selectedwithdrawMethod = (val.withdrawMethod == "bank") ? "Bank Transfer" : val.withdrawMethod;
+            var selectedwithdrawMethod = payoutMethodLabel(val);
 
             html.push('<td><span style="text-transform:capitalize">' + selectedwithdrawMethod + '</span></td>');
 
@@ -1040,7 +1040,7 @@
 
 
 
-            if (val.withdrawMethod && val.withdrawMethod != "bank" && val.paymentStatus != "Reject" && val.paymentStatus != "Success") {
+            if (val.withdrawMethod && val.withdrawMethod != "bank" && val.withdrawMethod != "pix" && val.paymentStatus != "Reject" && val.paymentStatus != "Success") {
 
                
 

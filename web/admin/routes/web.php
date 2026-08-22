@@ -700,13 +700,14 @@ Route::middleware(['permission:ondemand-services,ondemand.services.index'])->gro
     Route::get('/ondemand-services/{id?}', [App\Http\Controllers\OnDemandServiceController::class, 'Services'])->name('ondemand.services.index');
 });
 Route::middleware(['permission:ondemand-services,ondemand.services.create'])->group(function () {
-    Route::get('/ondemand-service/create', [App\Http\Controllers\OnDemandServiceController::class, 'ServicesCreate'])->name('ondemand.services.create');
+    Route::get('/ondemand-service/create/{id?}', [App\Http\Controllers\OnDemandServiceController::class, 'ServicesCreate'])->name('ondemand.services.create');
 });
 Route::middleware(['permission:ondemand-services,ondemand.services.edit'])->group(function () {
     Route::get('/ondemand-services/edit/{id}', [App\Http\Controllers\OnDemandServiceController::class, 'ServicesEdit'])->name('ondemand.services.edit');
 });
 Route::middleware(['permission:ondemand-bookings,ondemand.bookings.index'])->group(function () {
     Route::get('/ondemand-bookings/{id?}', [App\Http\Controllers\OnDemandServiceController::class, 'Bookings'])->name('ondemand.bookings.index');
+    Route::get('/ondemand-nfse/{id?}', [App\Http\Controllers\OnDemandServiceController::class, 'invoices'])->name('ondemand.invoices.index');
     Route::get('/ondemand-reports', [App\Http\Controllers\OnDemandServiceController::class, 'reports'])->name('ondemand.reports.index');
     Route::get('/ondemand-reports/edit/{id}', [App\Http\Controllers\OnDemandServiceController::class, 'reportsEdit'])->name('ondemand.reports.edit');
 });

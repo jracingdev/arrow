@@ -73,6 +73,11 @@
                 <div class="card-header-title">
                     <h3 class="text-dark-2 mb-0 h4">{{trans('lang.user_details')}}</h3>
                 </div>
+                <div class="d-flex align-items-center">
+                    <a href="{{ route('privacyPolicy') }}" target="_blank" class="btn btn-outline-secondary btn-sm mr-2">{{ trans('lang.lgpd_privacy_link') }}</a>
+                    <button type="button" class="btn btn-outline-primary btn-sm mr-2" id="lgpd-export-btn">{{ trans('lang.lgpd_export') }}</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="lgpd-delete-btn">{{ trans('lang.lgpd_request_deletion') }}</button>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -98,6 +103,10 @@
                                         <li class="d-flex align-items-center mb-2 mr-1">
                                             <label class="mb-0 font-wi font-semibold text-dark-2">{{trans('lang.wallet_Balance')}}</label>
                                             <span class="wallet_balance"> </span>
+                                        </li>
+                                        <li class="d-flex align-items-center mb-2 mr-1" id="lgpd_status_row" style="display:none;">
+                                            <label class="mb-0 font-wi font-semibold text-dark-2">{{trans('lang.lgpd')}}</label>
+                                            <span class="lgpd_status"></span>
                                         </li>
                                       
                                     </ul>
@@ -194,20 +203,23 @@
         });
         var currency = database.collection('settings');
 
-        var currentCurrency = '';
+        var currentCurrency = 'R$';
         var currencyAtRight = false;
-        var decimal_degits = 0;
+        var decimal_degits = 2;
+        var currencyData = { symbol: 'R$', decimal_degits: 2, symbolAtRight: false };
+        var loadedUser = null;
+        var loadedOrdersCount = 0;
 
         var refCurrency = database.collection('currencies').where('isActive', '==', true);
         refCurrency.get().then(async function (snapshots) {
-            var currencyData = snapshots.docs[0].data();
-            currentCurrency = currencyData.symbol;
-            currencyAtRight = currencyData.symbolAtRight;
+            currencyData = snapshots.docs[0].data() || currencyData;
+            currentCurrency = currencyData.symbol || 'R$';
+            currencyAtRight = Boolean(currencyData.symbolAtRight);
 
             if (currencyData.decimal_degits) {
                 decimal_degits = currencyData.decimal_degits;
             }
-            $(".currentCurrency").text(currencyData.symbol);
+            $(".currentCurrency").text(currentCurrency);
         });
 
         var email_templates = database.collection('email_templates').where('type', '==', 'wallet_topup');
@@ -225,6 +237,7 @@
             ref.get().then(async function (snapshots) {
                 if(snapshots.docs.length>0){
                 var user = snapshots.docs[0].data();
+                loadedUser = user;
 
                 $(".user_name").text(user.firstName + ' ' + user.lastName);
 
@@ -249,13 +262,15 @@
                 if (user.hasOwnProperty('wallet_amount') && user.wallet_amount != null && !isNaN(user.wallet_amount)) {
                     wallet_balance = user.wallet_amount;
                 }
-                if (currencyAtRight) {
-                    wallet_balance = parseFloat(wallet_balance).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    wallet_balance = currentCurrency + "" + parseFloat(wallet_balance).toFixed(decimal_degits);
-                }
+                wallet_balance = formatCurrency(wallet_balance, currencyData);
 
                 $('.wallet_balance').html(wallet_balance);
+                if (user.deletionRequestedAt) {
+                    var requested = user.deletionRequestedAt.toDate ? ArrowDateTime.formatDate(user.deletionRequestedAt.toDate()) : user.deletionRequestedAt;
+                    $('.lgpd_status').text('{{ trans("lang.lgpd_deletion_requested") }} — ' + requested);
+                    $('#lgpd_status_row').show();
+                    $('#lgpd-delete-btn').prop('disabled', true);
+                }
 
                 var image = "";
                 if (user.profilePictureURL) {
@@ -406,8 +421,35 @@
 
         database.collection('vendor_orders').where('authorID', '==', id).where('section_id', '==', section_id).get().then(async function (orderSnapshots) {
             var paymentData = orderSnapshots.docs;
-            $("#total_orders").text(paymentData.length);
-        })
+            loadedOrdersCount = paymentData.length;
+            $("#total_orders").text(loadedOrdersCount);
+        });
+
+        $('#lgpd-export-btn').click(function () {
+            if (!loadedUser) {
+                return;
+            }
+            var payload = serializeLgpdUser(loadedUser, { ordersCount: loadedOrdersCount });
+            var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = 'user-' + id + '-lgpd.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+
+        $('#lgpd-delete-btn').click(async function () {
+            if (!loadedUser || !confirm("{{ trans('lang.lgpd_deletion_confirm') }}")) {
+                return;
+            }
+            await database.collection('users').doc(id).update({
+                deletionRequestedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                active: false,
+                isActive: false
+            });
+            window.location.reload();
+        });
 
 
     </script>

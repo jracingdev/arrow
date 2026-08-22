@@ -80,11 +80,58 @@
 
                     <div class="form-group row width-100">
 
-                        <label class="col-3 control-label">{{trans('lang.vendors_payout_amount')}}</label>
+                        <label class="col-3 control-label">{{trans('lang.payout_method')}}</label>
 
                         <div class="col-7">
 
-                            <input type="number" class="form-control payout_amount">
+                            <select id="payout_method" class="form-control">
+                                <option value="pix" selected>{{ trans('lang.pix') }}</option>
+                                <option value="bank">{{ trans('lang.bankdetails') }}</option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div class="form-group row width-100 pix-fields">
+
+                        <label class="col-3 control-label">{{trans('lang.pix_key_type')}}</label>
+
+                        <div class="col-7">
+
+                            <select id="pix_key_type" class="form-control">
+                                <option value="cpf">{{ trans('lang.cpf') }}</option>
+                                <option value="cnpj">{{ trans('lang.cnpj') }}</option>
+                                <option value="email">{{ trans('lang.email') }}</option>
+                                <option value="phone">{{ trans('lang.user_phone') }}</option>
+                                <option value="evp">{{ trans('lang.pix_key_evp') }}</option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div class="form-group row width-100 pix-fields">
+
+                        <label class="col-3 control-label">{{trans('lang.pix_key')}}</label>
+
+                        <div class="col-7">
+
+                            <input type="text" class="form-control" id="pix_key">
+
+                            <div class="form-text text-muted">{{ trans('lang.pix_key_help') }}</div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="form-group row width-100">
+
+                        <label class="col-3 control-label">{{trans('lang.payout_currency_brl')}}</label>
+
+                        <div class="col-7">
+
+                            <input type="number" step="0.01" min="0" class="form-control payout_amount">
 
                             <div class="form-text text-muted">
 
@@ -204,7 +251,38 @@
 
             })
             $('#select_provider').select2();
+            $('#select_provider').on('change', function() {
+                loadProviderPix($(this).val());
+            });
         });
+
+        async function loadProviderPix(providerId) {
+            if (!providerId) {
+                return;
+            }
+            var userSnap = await database.collection('users').doc(providerId).get();
+            var user = userSnap.exists ? userSnap.data() : null;
+            if (!user) {
+                var byField = await database.collection('users').where('id', '==', providerId).get();
+                if (!byField.empty) {
+                    user = byField.docs[0].data();
+                }
+            }
+            if (user && user.userBankDetails) {
+                fillPixDetails(user.userBankDetails);
+            }
+            var methodSnap = await database.collection('withdraw_method').where('userId', '==', providerId).get();
+            if (!methodSnap.empty) {
+                var method = methodSnap.docs[0].data();
+                if (method.pix) {
+                    fillPixDetails({ pixKey: method.pix.chave, pixKeyType: method.pix.tipo });
+                }
+            }
+        }
+
+        <?php if ($id != '') { ?>
+        loadProviderPix("<?php echo $id; ?>");
+        <?php } ?>
 
         $("#data-table_processing").hide();
 
@@ -231,8 +309,18 @@
                 var amount = parseFloat($(".payout_amount").val());
 
                 var note = $(".payout_note").val();
+                var payoutMethod = $('#payout_method').val() || 'pix';
+                var pixKey = ($('#pix_key').val() || '').trim();
+                var pixKeyType = $('#pix_key_type').val() || 'cpf';
 
                 var date = new Date(Date.now());
+
+                if (payoutMethod === 'pix' && pixKey === '') {
+                    $(".error_top").show();
+                    $(".error_top").html("<p>{{trans('lang.pix_key_required')}}</p>");
+                    $(window).scrollTop(0);
+                    return;
+                }
 
                 if (ProviderID != '' && $(".payout_amount").val() != '') {
 
@@ -243,7 +331,11 @@
                         'id': payoutId,
                         'paidDate': date,
                         'paymentStatus': 'Success',
-                        'role': 'provider'
+                        'role': 'provider',
+                        'withdrawMethod': payoutMethod,
+                        'pixKey': pixKey,
+                        'pixKeyType': pixKeyType,
+                        'currency': 'BRL'
                     }).then(function() {
 
                         price = remaining - amount;
@@ -254,6 +346,7 @@
                                 database.collection('users').doc(userdata.id).update({
                                     'wallet_amount': price
                                 }).then(async function(result) {
+                                    await upsertWithdrawMethodPix(database, ProviderID, pixKeyType, pixKey);
                                     if (currencyAtRight) {
                                         amount = parseInt(amount).toFixed(decimal_degits) + "" + currentCurrency;
                                     } else {

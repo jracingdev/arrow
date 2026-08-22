@@ -1,3 +1,4 @@
+@php $providerId = isset($id) && $id !== '' ? $id : request('id'); @endphp
 @extends('layouts.app')
 @section('content')
     <style>
@@ -23,10 +24,11 @@
             <div class="col-md-7 align-self-center">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ trans('lang.dashboard') }}</a></li>
-                    @if (!isset($_GET['id']))
+                    @php $providerId = $id ?: request('id'); @endphp
+                    @if (!$providerId)
                         <li class="breadcrumb-item"><a href="{!! route('ondemand.services.index') !!}">{{ trans('lang.service_plural') }}</a></li>
                     @else
-                        <li class="breadcrumb-item"><a href="{!! route('ondemand.services.index', @$_GET['id']) !!}">{{ trans('lang.service_plural') }}</a></li>
+                        <li class="breadcrumb-item"><a href="{!! route('ondemand.services.index', $providerId) !!}">{{ trans('lang.service_plural') }}</a></li>
                     @endif
                     <li class="breadcrumb-item active">{{ trans('lang.service_create') }}</li>
                 </ol>
@@ -50,7 +52,7 @@
                                     </div>
                                 </div>
                             </div>
-                            @if (!isset($_GET['id']))
+                            @if (!$providerId)
                                 <div class="form-group row width-50">
                                     <label class="col-3 control-label">{{ trans('lang.provider') }}</label>
                                     <div class="col-7">
@@ -188,10 +190,10 @@
                     <button type="button" class="btn btn-primary  save-form-btn"><i class="fa fa-save"></i>
                         {{ trans('lang.save') }}
                     </button>
-                    @if (!isset($_GET['id']))
+                    @if (!$providerId)
                         <a href="{!! route('ondemand.services.index') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{ trans('lang.cancel') }}</a>
                     @else
-                        <a href="{!! route('ondemand.services.index', $_GET['id']) !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{ trans('lang.cancel') }}</a>
+                        <a href="{!! route('ondemand.services.index', $providerId) !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{ trans('lang.cancel') }}</a>
                     @endif
                 </div>
             </div>
@@ -214,7 +216,7 @@
         var serviceImageCount = 0;
         var placeholderImage = '';
         var placeholder = database.collection('settings').doc('placeHolderImage');
-        var provider_id = "{{ @$_GET['id'] }}";
+        var provider_id = @json($providerId);
         var providerName = '';
         var providerPic = '';
         var providerPhone = '';
@@ -561,7 +563,7 @@
                                 if (provider_id == '') {
                                     window.location.href = '{{ route('ondemand.services.index') }}';
                                 } else {
-                                    window.location.href = '{{ route('ondemand.services.index', @$_GET['id']) }}';
+                                    window.location.href = '{{ $providerId ? route('ondemand.services.index', $providerId) : route('ondemand.services.index') }}';
                                 }
                             });
                         }).catch(err => {

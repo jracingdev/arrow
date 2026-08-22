@@ -47,7 +47,13 @@ class OnDemandServiceController extends Controller
 
     public function ServicesCreate($id = '')
     {
+        $id = $id !== '' && $id !== null ? $id : request('id', '');
         return view("OnDemandService.services.create")->with('id', $id);
+    }
+
+    public function invoices($id = '')
+    {
+        return view("OnDemandService.invoices.index")->with('id', $id);
     }
 
     public function ServicesEdit($id)

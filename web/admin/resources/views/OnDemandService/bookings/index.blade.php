@@ -57,6 +57,9 @@
                         </div>
                         <div class="d-flex top-title-right align-self-center">
                             <div class="select-box pl-3">
+                                <a class="btn btn-outline-primary" href="{{ $id ? route('ondemand.invoices.index', $id) : route('ondemand.invoices.index') }}">{{ trans('lang.nfse_queue') }}</a>
+                            </div>
+                            <div class="select-box pl-3">
                                 <select class="form-control status_selector " onchange="filterData()">
                                     <option value="" selected>{{ trans('lang.status') }}</option>
                                     <option value="Order Placed">{{ trans('lang.order_placed') }}</option>
@@ -773,9 +776,10 @@
                     'for="is_open_' + id + '" ></label></td>');
             }
             var invoices = Array.isArray(val.invoices) ? val.invoices : [];
+            var invoiceLinks = nfseInvoiceLinks(invoices);
             var nfseBadge = invoices.length
-                ? ' <span class="badge badge-info" title="{{ trans('lang.nfse_attached') }}">{{ trans('lang.nfse_invoice') }}</span>'
-                : '';
+                ? ' <span class="badge badge-info" title="{{ trans('lang.nfse_attached') }}">{{ trans('lang.nfse_invoice') }}</span>' + (invoiceLinks ? '<div class="small mt-1">' + invoiceLinks + '</div>' : '')
+                : ' <span class="badge badge-light" title="{{ trans('lang.nfse_missing') }}">{{ trans('lang.nfse_missing') }}</span>';
             html.push('<td><a href="' + route1 + '" data-toggle="tooltip" data-bs-original-title="' + val.id + '">' +(val.id.length > 8 ? val.id.substring(0, 8) + '...' : val.id) + '</a>' + nfseBadge + '</td>');
             html.push('<td><a href="' + userRoute + '">' + val.authorName + '<a/></td>');
             if (val.status == 'Order Placed') {

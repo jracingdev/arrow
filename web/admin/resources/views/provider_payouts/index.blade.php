@@ -91,6 +91,7 @@
                                     <th>{{ trans('lang.provider')}}</th>
                                     <?php } ?>
                                     <th>{{trans('lang.paid_amount')}}</th>
+                                    <th>{{trans('lang.payout_method')}}</th>
                                     <th>{{trans('lang.date')}}</th>
                                     <th>{{trans('lang.vendors_payout_note')}}</th>
                                     <th>Admin {{trans('lang.vendors_payout_note')}}</th>
@@ -176,6 +177,7 @@
                 <?php } ?>
               
                 { key: 'amount', header: "{{ trans('lang.total_amount')}}" },
+                { key: 'withdrawMethod', header: "{{ trans('lang.payout_method')}}" },
                 { key: 'paidDate', header: "{{trans('lang.date')}}" },
                 { key: 'note', header: "{{trans('lang.providers_payout_note')}}" },
                 { key: 'adminNote', header: "{{trans('lang.adproviders_payout_note')}}" },
@@ -194,7 +196,7 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                var orderableColumns = ['','title','amount','paidDate','note','adminNote','']; // Ensure this matches the actual column names
+                var orderableColumns = ['','title','amount','withdrawMethod','paidDate','note','adminNote','']; // Ensure this matches the actual column names
                 const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
@@ -424,11 +426,7 @@
                 price = 0;
             }
 
-            if (currencyAtRight) {
-                amount = parseFloat(price).toFixed(decimal_degits) + "" + currentCurrency;
-            } else {
-                amount = currentCurrency + "" + parseFloat(price).toFixed(decimal_degits);
-            }
+            amount = formatCurrency(price, { symbol: currentCurrency || 'R$', decimal_degits: decimal_degits || 2, symbolAtRight: currencyAtRight });
             html.push('<input type="checkbox" id="is_open_' + val.recid + '" class="is_open" dataId="' + val.recid + '"><label class="col-3 control-label"\n' +
             'for="is_open_' + val.recid + '" ></label>');
 
@@ -439,6 +437,7 @@
             html.push('<td><a href="' + route + '">' + val.title + '</a></td>');
             <?php } ?>
             html.push('<td>' + amount + '</td>');
+            html.push('<td>' + payoutMethodLabel(val) + '</td>');
             var date = ArrowDateTime.formatDate(val.paidDate.toDate());
             var time = ArrowDateTime.formatTime(val.paidDate.toDate());
             html.push('<td>' + date + '<br> ' + time + '</td>');

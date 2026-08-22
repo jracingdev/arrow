@@ -138,6 +138,8 @@
 
                                                 <th>{{ trans('lang.paid_amount') }}</th>
 
+                                                <th>{{ trans('lang.payout_method') }}</th>
+
                                                 <th>{{ trans('lang.date') }}</th>
 
                                                 <th>{{ trans('lang.vendors_payout_note') }}</th>
@@ -747,15 +749,7 @@
 
 
 
-                if (currencyAtRight) {
-
-                    amount = parseFloat(price).toFixed(decimal_degits) + "" + currentCurrency;
-
-                } else {
-
-                    amount = currentCurrency + "" + parseFloat(price).toFixed(decimal_degits);
-
-                }
+                amount = formatCurrency(price, { symbol: currentCurrency || 'R$', decimal_degits: decimal_degits || 2, symbolAtRight: currencyAtRight });
 
                 html.push('<input type="checkbox" id="is_open_' + val.recid + '" class="is_open" dataId="' + val.recid + '"><label class="col-3 control-label"\n' +
                     'for="is_open_' + val.recid + '" ></label>');
@@ -769,6 +763,7 @@
                 <?php  } ?>
 
                 html.push('<td>' + amount + '</td>');
+                html.push('<td>' + payoutMethodLabel(val) + '</td>');
 
 
 

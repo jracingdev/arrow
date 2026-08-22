@@ -82,11 +82,58 @@
 
                     <div class="form-group row width-100">
 
-                        <label class="col-3 control-label">{{trans('lang.vendors_payout_amount')}}</label>
+                        <label class="col-3 control-label">{{trans('lang.payout_method')}}</label>
 
                         <div class="col-7">
 
-                            <input type="number" class="form-control payout_amount">
+                            <select id="payout_method" class="form-control">
+                                <option value="pix" selected>{{ trans('lang.pix') }}</option>
+                                <option value="bank">{{ trans('lang.bankdetails') }}</option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div class="form-group row width-100 pix-fields">
+
+                        <label class="col-3 control-label">{{trans('lang.pix_key_type')}}</label>
+
+                        <div class="col-7">
+
+                            <select id="pix_key_type" class="form-control">
+                                <option value="cpf">{{ trans('lang.cpf') }}</option>
+                                <option value="cnpj">{{ trans('lang.cnpj') }}</option>
+                                <option value="email">{{ trans('lang.email') }}</option>
+                                <option value="phone">{{ trans('lang.user_phone') }}</option>
+                                <option value="evp">{{ trans('lang.pix_key_evp') }}</option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div class="form-group row width-100 pix-fields">
+
+                        <label class="col-3 control-label">{{trans('lang.pix_key')}}</label>
+
+                        <div class="col-7">
+
+                            <input type="text" class="form-control" id="pix_key">
+
+                            <div class="form-text text-muted">{{ trans('lang.pix_key_help') }}</div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="form-group row width-100">
+
+                        <label class="col-3 control-label">{{trans('lang.payout_currency_brl')}}</label>
+
+                        <div class="col-7">
+
+                            <input type="number" step="0.01" min="0" class="form-control payout_amount">
 
                             <div class="form-text text-muted">
 
@@ -309,8 +356,34 @@
                     .text(data.title));
 
             })
+            $('#select_vendor').on('change', function () {
+                loadVendorPix($(this).val());
+            });
 
         });
+
+        async function loadVendorPix(vendorID) {
+            if (!vendorID) {
+                return;
+            }
+            var ownerSnap = await database.collection('users').where('vendorID', '==', vendorID).where('role', '==', 'vendor').get();
+            if (ownerSnap.empty) {
+                return;
+            }
+            var owner = ownerSnap.docs[0].data();
+            if (owner.userBankDetails) {
+                fillPixDetails(owner.userBankDetails);
+            }
+            var methodSnap = await database.collection('withdraw_method').where('userId', '==', owner.id).get();
+            if (!methodSnap.empty && methodSnap.docs[0].data().pix) {
+                var pix = methodSnap.docs[0].data().pix;
+                fillPixDetails({ pixKey: pix.chave, pixKeyType: pix.tipo });
+            }
+        }
+
+        <?php if ($id != '') { ?>
+        loadVendorPix("<?php echo $id; ?>");
+        <?php } ?>
 
         $("#data-table_processing").hide();
 
@@ -335,12 +408,20 @@
 
             if (remaining > 0) {
 
-                // var amount = parseFloat($(".payout_amount").val());
-                var amount = $(".payout_amount").val();
-
+                var amount = parseFloat($(".payout_amount").val());
                 var note = $(".payout_note").val();
+                var payoutMethod = $('#payout_method').val() || 'pix';
+                var pixKey = ($('#pix_key').val() || '').trim();
+                var pixKeyType = $('#pix_key_type').val() || 'cpf';
 
                 var date = new Date(Date.now());
+
+                if (payoutMethod === 'pix' && pixKey === '') {
+                    $(".error_top").show();
+                    $(".error_top").html("<p>{{trans('lang.pix_key_required')}}</p>");
+                    $(window).scrollTop(0);
+                    return;
+                }
 
                 if (vendorID != '' && $(".payout_amount").val() != '') {
 
@@ -351,7 +432,10 @@
                         'id': payoutId,
                         'paidDate': date,
                         'paymentStatus': 'Success',
-                        'withdrawMethod':'bank',
+                        'withdrawMethod': payoutMethod,
+                        'pixKey': pixKey,
+                        'pixKeyType': pixKeyType,
+                        'currency': 'BRL',
                         'note':''
                     }).then(function () {
 
@@ -361,6 +445,7 @@
                             if (snapshotss.docs.length) {
                                 userdata = snapshotss.docs[0].data();
                                 database.collection('users').doc(userdata.id).update({'wallet_amount': price}).then(async function (result) {
+                                    await upsertWithdrawMethodPix(database, userdata.id, pixKeyType, pixKey);
                                     if (currencyAtRight) {
                                         amount = parseInt(amount).toFixed(decimal_degits) + "" + currentCurrency;
                                     } else {

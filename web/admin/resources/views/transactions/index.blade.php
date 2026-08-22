@@ -194,14 +194,15 @@
         var wallet_route = "{{ route('users.walletstransaction', 'id') }}";
         var subscription_route = "{{ route('subscription.subscriptionPlanHistory', 'id') }}";
         var append_list = '';
-        var currentCurrency = '';
+        var currentCurrency = 'R$';
         var currencyAtRight = false;
-        var decimal_degits = 0;
+        var decimal_degits = 2;
+        var currencyData = { symbol: 'R$', decimal_degits: 2, symbolAtRight: false };
         var refCurrency = database.collection('currencies').where('isActive', '==', true);
         refCurrency.get().then(async function(snapshots) {
-            var currencyData = snapshots.docs[0].data();
-            currentCurrency = currencyData.symbol;
-            currencyAtRight = currencyData.symbolAtRight;
+            currencyData = snapshots.docs[0].data() || currencyData;
+            currentCurrency = currencyData.symbol || 'R$';
+            currencyAtRight = Boolean(currencyData.symbolAtRight);
             if (currencyData.decimal_degits) {
                 decimal_degits = currencyData.decimal_degits;
             }
@@ -436,23 +437,11 @@
                                     amount = parseFloat(amount).toFixed(decimal_degits);
                                 }
                                 if ((childData.hasOwnProperty('isTopUp') && childData.isTopUp) || (childData.payment_method == "Cancelled Order Payment")) {
-                                    if (currencyAtRight) {
-                                        childData.amount = parseFloat(amount).toFixed(decimal_degits) + '' + currentCurrency;
-                                    } else {
-                                        childData.amount = currentCurrency + '' + parseFloat(amount).toFixed(decimal_degits);
-                                    }
+                                    childData.amount = formatCurrency(amount, currencyData);
                                 } else if (childData.hasOwnProperty('isTopUp') && !childData.isTopUp) {
-                                    if (currencyAtRight) {
-                                        childData.amount = '(-' + parseFloat(amount).toFixed(decimal_degits) + '' + currentCurrency + ')';
-                                    } else {
-                                        childData.amount = '(-' + currentCurrency + '' + parseFloat(amount).toFixed(decimal_degits) + ')';
-                                    }
+                                    childData.amount = '(-' + formatCurrency(amount, currencyData) + ')';
                                 } else {
-                                    if (currencyAtRight) {
-                                        childData.amount = parseFloat(childData.amount).toFixed(decimal_degits) + '' + currentCurrency;
-                                    } else {
-                                        childData.amount = currentCurrency + '' + parseFloat(childData.amount).toFixed(decimal_degits);
-                                    }
+                                    childData.amount = formatCurrency(childData.amount, currencyData);
                                 }
                                 if (searchValue) {
                                     if (childData.hasOwnProperty("date")) {

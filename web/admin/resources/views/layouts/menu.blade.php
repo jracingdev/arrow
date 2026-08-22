@@ -560,6 +560,11 @@ $service_type = @$_COOKIE['service_type'];
                 <span class="hide-menu">{{ trans('lang.booking_plural') }}</span>
             </a>
         </li>
+        <li><a class="waves-effect waves-dark" href="{!! route('ondemand.invoices.index') !!}" aria-expanded="false">
+                <i class="ri-file-text-fill"></i>
+                <span class="hide-menu">{{ trans('lang.nfse_queue') }}</span>
+            </a>
+        </li>
         <li><a class="waves-effect waves-dark" href="{!! route('ondemand.reports.index') !!}" aria-expanded="false">
                 <i class="ri-alarm-warning-fill"></i>
                 <span class="hide-menu">{{ trans('lang.ondemand_reports') }}</span>

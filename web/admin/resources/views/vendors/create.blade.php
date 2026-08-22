@@ -185,6 +185,27 @@ foreach ($countries as $keycountry => $valuecountry) {
                                     </div>
                                 </div>
 
+                                <div class="form-group row width-100">
+                                    <label class="col-4 control-label">{{trans('lang.pix_key_type')}}</label>
+                                    <div class="col-7">
+                                        <select class="form-control" id="pix_key_type">
+                                            <option value="cpf">{{trans('lang.cpf')}}</option>
+                                            <option value="cnpj">{{trans('lang.cnpj')}}</option>
+                                            <option value="email">{{trans('lang.email')}}</option>
+                                            <option value="phone">{{trans('lang.user_phone')}}</option>
+                                            <option value="evp">{{trans('lang.pix_key_evp')}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row width-100">
+                                    <label class="col-4 control-label">{{trans('lang.pix_key')}}</label>
+                                    <div class="col-7">
+                                        <input type="text" class="form-control" id="pix_key">
+                                        <div class="form-text text-muted">{{ trans('lang.pix_key_help') }}</div>
+                                    </div>
+                                </div>
+
                             </div>
                         </fieldset>
                     </div>
@@ -367,14 +388,13 @@ foreach ($countries as $keycountry => $valuecountry) {
             var holderName = $("#holderName").val();
             var accountNumber = $("#accountNumber").val();
             var otherDetails = $("#otherDetails").val();
-            var userBankDetails = {
+            var userBankDetails = collectPixDetails({
                 'bankName': bankName,
                 'branchName': branchName,
                 'holderName': holderName,
                 'accountNumber': accountNumber,
-                'accountNumber': accountNumber,
                 'otherDetails': otherDetails,
-            };
+            });
 
            
             firebase.auth().createUserWithEmailAndPassword(email, password)
@@ -404,6 +424,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                                 historyData={'subscriptionData': subscriptionData,'userId': user_id,'expire_date': subscriptionData.expiryDate}
                                 await addSubscriptionHistory(historyData);
                             }
+                            await upsertWithdrawMethodPix(database, user_id, userBankDetails.pixKeyType, userBankDetails.pixKey);
                             var isSendMail = await sendRegistrationEmail(user_id, name, email, userPhone);
                             if (isSendMail) {
                                 window.location.href = '{{ route("vendors")}}';

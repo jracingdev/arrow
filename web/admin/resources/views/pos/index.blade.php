@@ -107,7 +107,7 @@
 
                                         <div>
                                             <strong>{{trans('lang.wallet_Balance')}} :</strong>
-                                            <span class="text-primary" id="user_detail_wallet">$0.00</span>
+                                            <span class="text-primary" id="user_detail_wallet">R$ 0,00</span>
                                         </div>
                                     </div>
                                
@@ -1015,11 +1015,11 @@
             const rawPrice = $(this).data('price') || 0;
             const formatted = parseFloat(rawPrice).toFixed(config.decimal_degits);
             
-            if (config.currencyAtRight) {
-                $(this).text(formatted + config.currentCurrency);
-            } else {
-                $(this).text(config.currentCurrency + formatted);
-            }
+            $(this).text(formatCurrency(rawPrice, {
+                symbol: config.currentCurrency || 'R$',
+                decimal_degits: config.decimal_degits || 2,
+                symbolAtRight: Boolean(config.currencyAtRight)
+            }));
         });
     }
     
@@ -1671,11 +1671,11 @@
             $('#user_detail_name').text(user.name);
             $('#user_detail_email').text(user.email);
             $('#user_detail_phone').text(user.phone);
-            $('#user_detail_wallet').text(
-                config.currencyAtRight
-                    ? (parseFloat(user.wallet).toFixed(config.decimal_degits) + ' ' + config.currentCurrency)
-                    : (config.currentCurrency + ' ' + parseFloat(user.wallet).toFixed(config.decimal_degits))
-            );
+            $('#user_detail_wallet').text(formatCurrency(user.wallet, {
+                symbol: config.currentCurrency || 'R$',
+                decimal_degits: config.decimal_degits || 2,
+                symbolAtRight: Boolean(config.currencyAtRight)
+            }));
             $('#user_detail_block').removeClass('d-none');
         } else {
             $('#user_detail_block').addClass('d-none');

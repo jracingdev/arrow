@@ -218,6 +218,18 @@
                                                                 class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.wallet_Balance') }}</label>
                                                             <span class="wallet_balance"> </span>
                                                         </li>
+                                                        <li class="d-flex align-items-center mb-2 mr-1">
+                                                            <label class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.cpf') }}</label>
+                                                            <span class="provider_cpf">-</span>
+                                                        </li>
+                                                        <li class="d-flex align-items-center mb-2 mr-1">
+                                                            <label class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.cnpj') }}</label>
+                                                            <span class="provider_cnpj">-</span>
+                                                        </li>
+                                                        <li class="d-flex align-items-center mb-2 mr-1">
+                                                            <label class="mb-0 font-wi font-semibold text-dark-2">{{ trans('lang.pix_key') }}</label>
+                                                            <span class="provider_pix">-</span>
+                                                        </li>
 
                                                     </ul>
                                                 </div>
@@ -664,15 +676,24 @@
                         isNaN(user.wallet_amount)) {
                         wallet_balance = user.wallet_amount;
                     }
-                    if (currencyAtRight) {
-                        wallet_balance = parseFloat(wallet_balance).toFixed(decimal_degits) + "" +
-                            currentCurrency;
-                    } else {
-                        wallet_balance = currentCurrency + "" + parseFloat(wallet_balance).toFixed(
-                            decimal_degits);
-                    }
+                    wallet_balance = formatCurrency(wallet_balance, {
+                        symbol: currentCurrency || 'R$',
+                        decimal_degits: decimal_degits || 2,
+                        symbolAtRight: currencyAtRight
+                    });
 
                     $('.wallet_balance').html(wallet_balance);
+                    $('.provider_cpf').text(user.cpf || '-');
+                    $('.provider_cnpj').text(user.cnpj || '-');
+                    var pixLabel = '-';
+                    if (user.userBankDetails && user.userBankDetails.pixKey) {
+                        pixLabel = payoutMethodLabel({
+                            withdrawMethod: 'pix',
+                            pixKey: user.userBankDetails.pixKey,
+                            pixKeyType: user.userBankDetails.pixKeyType
+                        });
+                    }
+                    $('.provider_pix').text(pixLabel);
 
                     var image = "";
                     if (user.profilePictureURL) {

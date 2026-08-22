@@ -197,6 +197,27 @@ foreach ($countries as $keycountry => $valuecountry) {
                                         </div>
                                     </div>
 
+                                    <div class="form-group row width-100">
+                                        <label class="col-4 control-label">{{ trans('lang.pix_key_type') }}</label>
+                                        <div class="col-7">
+                                            <select class="form-control" id="pix_key_type">
+                                                <option value="cpf">{{ trans('lang.cpf') }}</option>
+                                                <option value="cnpj">{{ trans('lang.cnpj') }}</option>
+                                                <option value="email">{{ trans('lang.email') }}</option>
+                                                <option value="phone">{{ trans('lang.user_phone') }}</option>
+                                                <option value="evp">{{ trans('lang.pix_key_evp') }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row width-100">
+                                        <label class="col-4 control-label">{{ trans('lang.pix_key') }}</label>
+                                        <div class="col-7">
+                                            <input type="text" class="form-control" id="pix_key">
+                                            <div class="form-text text-muted">{{ trans('lang.pix_key_help') }}</div>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </fieldset>
                           
@@ -358,6 +379,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                             if (user.userBankDetails.otherDetails != undefined) {
                                 $("#otherDetails").val(user.userBankDetails.otherDetails);
                             }
+                            fillPixDetails(user.userBankDetails);
                         }
 
                     })
@@ -414,14 +436,13 @@ foreach ($countries as $keycountry => $valuecountry) {
                 var holderName = $("#holderName").val();
                 var accountNumber = $("#accountNumber").val();
                 var otherDetails = $("#otherDetails").val();
-                var userBankDetails = {
+                var userBankDetails = collectPixDetails({
                     'bankName': bankName,
                     'branchName': branchName,
                     'holderName': holderName,
                     'accountNumber': accountNumber,
-                    'accountNumber': accountNumber,
                     'otherDetails': otherDetails,
-                };
+                });
                 await storeImageData().then(async (IMG) => {
                     updateSubscriptionHistory(ownerId,
                             subscriptionPlanExpiryDate,store_id).then(
@@ -435,6 +456,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                             'active': vendor_active,
                             'userBankDetails': userBankDetails
                         }).then(async function (result) {
+                            await upsertWithdrawMethodPix(database, ownerId, userBankDetails.pixKeyType, userBankDetails.pixKey);
                             if (store_id != null) {
                                 await geoFirestore.collection('vendors').doc(store_id).update({
                                     'authorName': userFirstName +' ' +userLastName,

@@ -85,6 +85,22 @@ foreach ($countries as $keycountry => $valuecountry) {
                             </div>
 
                             <div class="form-group row width-50">
+                                <label class="col-3 control-label">{{trans('lang.cpf')}}</label>
+                                <div class="col-7">
+                                    <input type="text" class="form-control user_cpf" id="user_cpf">
+                                    <div class="form-text text-muted">{{ trans('lang.cpf_help') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row width-50">
+                                <label class="col-3 control-label">{{trans('lang.cnpj')}}</label>
+                                <div class="col-7">
+                                    <input type="text" class="form-control user_cnpj" id="user_cnpj">
+                                    <div class="form-text text-muted">{{ trans('lang.cnpj_help') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row width-50">
                                 <label class="col-3 control-label">{{trans('lang.user_phone')}}</label>
                                 <div class="col-7"> 
                                     <div class="phone-box position-relative" id="phone-box">
@@ -181,6 +197,27 @@ foreach ($countries as $keycountry => $valuecountry) {
                                     <div class="col-7">
                                         <input type="text" name="other_information" class="form-control"
                                             id="otherDetails">
+                                    </div>
+                                </div>
+
+                                <div class="form-group row width-100">
+                                    <label class="col-4 control-label">{{trans('lang.pix_key_type')}}</label>
+                                    <div class="col-7">
+                                        <select class="form-control" id="pix_key_type">
+                                            <option value="cpf">{{trans('lang.cpf')}}</option>
+                                            <option value="cnpj">{{trans('lang.cnpj')}}</option>
+                                            <option value="email">{{trans('lang.email')}}</option>
+                                            <option value="phone">{{trans('lang.user_phone')}}</option>
+                                            <option value="evp">{{trans('lang.pix_key_evp')}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row width-100">
+                                    <label class="col-4 control-label">{{trans('lang.pix_key')}}</label>
+                                    <div class="col-7">
+                                        <input type="text" class="form-control" id="pix_key">
+                                        <div class="form-text text-muted">{{ trans('lang.pix_key_help') }}</div>
                                     </div>
                                 </div>
 
@@ -338,14 +375,15 @@ foreach ($countries as $keycountry => $valuecountry) {
                     var holderName = $("#holderName").val();
                     var accountNumber = $("#accountNumber").val();
                     var otherDetails = $("#otherDetails").val();
-                    var userBankDetails = {
+                    var userBankDetails = collectPixDetails({
                         'bankName': bankName,
                         'branchName': branchName,
                         'holderName': holderName,
                         'accountNumber': accountNumber,
-                        'accountNumber': accountNumber,
                         'otherDetails': otherDetails,
-                    };
+                    });
+                    var userCpf = ($('#user_cpf').val() || '').trim();
+                    var userCnpj = ($('#user_cnpj').val() || '').trim();
 
                     jQuery("#data-table_processing").show();
 
@@ -375,6 +413,8 @@ foreach ($countries as $keycountry => $valuecountry) {
                                     'isDocumentVerify': true,
                                     'createdAt': createdAt,
                                     'userBankDetails': userBankDetails,
+                                    'cpf': userCpf,
+                                    'cnpj': userCnpj,
                                     'adminCommission':adminCommission,
                                     'wallet_amount': 0,
                                     'reviewsCount': 0,
@@ -390,6 +430,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                                         await addSubscriptionHistory(historyData);
                                     }
                                    
+                                    await upsertWithdrawMethodPix(database, user_id, userBankDetails.pixKeyType, userBankDetails.pixKey);
                                     window.location.href = '{{ route("providers")}}';
 
                                 }).catch(function (error) {
