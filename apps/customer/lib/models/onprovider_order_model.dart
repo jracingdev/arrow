@@ -18,6 +18,8 @@ class OnProviderOrderModel {
   Timestamp? newScheduleDateTime;
   Timestamp? startTime;
   Timestamp? endTime;
+  bool startedEarly;
+  Timestamp? earlyStartAt;
   String? notes;
   String? discount;
   String? discountType;
@@ -56,6 +58,8 @@ class OnProviderOrderModel {
     this.newScheduleDateTime,
     this.startTime,
     this.endTime,
+    this.startedEarly = false,
+    this.earlyStartAt,
     this.notes = '',
     this.discount,
     this.discountType,
@@ -116,6 +120,8 @@ class OnProviderOrderModel {
       newScheduleDateTime: parsedJson['newScheduleDateTime'],
       startTime: parsedJson['startTime'],
       endTime: parsedJson['endTime'],
+      startedEarly: parsedJson['startedEarly'] == true,
+      earlyStartAt: parsedJson['earlyStartAt'],
       discount: parsedJson['discount'] ?? "0.0",
       discountLabel: parsedJson['discountLabel'] ?? "0.0",
       discountType: parsedJson['discountType'] ?? "",
@@ -165,6 +171,8 @@ class OnProviderOrderModel {
       "newScheduleDateTime": newScheduleDateTime,
       "startTime": startTime,
       "endTime": endTime,
+      "startedEarly": startedEarly,
+      "earlyStartAt": earlyStartAt,
       "notes": notes,
       'discount': discount,
       "discountLabel": discountLabel,

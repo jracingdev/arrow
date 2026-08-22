@@ -20,22 +20,36 @@ class ReportCategories {
   static const noShow = 'no_show';
   static const badService = 'bad_service';
   static const paymentFraud = 'payment_fraud';
+  static const unsafeSituation = 'unsafe_situation';
+  static const paymentDispute = 'payment_dispute';
   static const other = 'other';
 
-  static const all = [abuse, harassment, noShow, badService, paymentFraud, other];
+  /// Provider reporting the customer. Omits customer-only service/payment-fraud chips.
+  static const forProvider = [abuse, harassment, noShow, unsafeSituation, paymentDispute, other];
 
-  static String labelPt(String category) {
+  /// Customer reporting the provider.
+  static const forCustomer = [abuse, harassment, noShow, badService, paymentFraud, other];
+
+  static const all = [abuse, harassment, noShow, badService, paymentFraud, unsafeSituation, paymentDispute, other];
+
+  static List<String> forRole(String role) => role == 'provider' ? forProvider : forCustomer;
+
+  static String labelPt(String category, {String role = 'customer'}) {
     switch (category) {
       case abuse:
         return 'Abuso';
       case harassment:
         return 'Assédio';
       case noShow:
-        return 'Não compareceu';
+        return role == 'provider' ? 'Cliente não estava no local' : 'Prestador não compareceu';
       case badService:
         return 'Péssimo atendimento';
       case paymentFraud:
-        return 'Levou o dinheiro e não fez';
+        return 'Levou o dinheiro e não fez o serviço';
+      case unsafeSituation:
+        return 'Situação de risco';
+      case paymentDispute:
+        return 'Cliente recusou pagar';
       default:
         return 'Outro';
     }

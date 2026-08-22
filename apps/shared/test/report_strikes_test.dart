@@ -23,7 +23,23 @@ void main() {
   });
 
   test('rótulos de categoria em português', () {
-    expect(ReportCategories.labelPt(ReportCategories.noShow), 'Não compareceu');
+    expect(ReportCategories.labelPt(ReportCategories.noShow), 'Prestador não compareceu');
+    expect(ReportCategories.labelPt(ReportCategories.noShow, role: 'provider'), 'Cliente não estava no local');
     expect(ReportCategories.labelPt(ReportCategories.paymentFraud), contains('dinheiro'));
+    expect(ReportCategories.labelPt(ReportCategories.paymentDispute, role: 'provider'), contains('pagar'));
+    expect(ReportCategories.labelPt(ReportCategories.unsafeSituation), 'Situação de risco');
+  });
+
+  test('categorias de denúncia mudam por papel', () {
+    expect(ReportCategories.forProvider, isNot(contains(ReportCategories.badService)));
+    expect(ReportCategories.forProvider, isNot(contains(ReportCategories.paymentFraud)));
+    expect(ReportCategories.forProvider, contains(ReportCategories.unsafeSituation));
+    expect(ReportCategories.forProvider, contains(ReportCategories.paymentDispute));
+    expect(ReportCategories.forCustomer, contains(ReportCategories.badService));
+    expect(ReportCategories.forCustomer, contains(ReportCategories.paymentFraud));
+    expect(ReportCategories.forCustomer, isNot(contains(ReportCategories.unsafeSituation)));
+    expect(ReportCategories.forCustomer, isNot(contains(ReportCategories.paymentDispute)));
+    expect(ReportCategories.forRole('provider'), ReportCategories.forProvider);
+    expect(ReportCategories.forRole('customer'), ReportCategories.forCustomer);
   });
 }

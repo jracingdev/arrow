@@ -2,11 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:arrow_shared/hourly_service_billing.dart';
-import 'package:arrow_shared/report_strikes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/constant/constant.dart';
@@ -51,10 +49,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     super.dispose();
   }
 
-  bool _scheduleBlocksStart(ProviderOrderModel order) {
+  bool _isEarlyStart(ProviderOrderModel order) {
     final when = order.newScheduleDateTime ?? order.scheduleDateTime;
     if (when == null) return false;
     return when.toDate().isAfter(DateTime.now());
+  }
+
+  Future<bool> _confirmEarlyStart(ProviderOrderModel order) async {
+    final when = order.newScheduleDateTime ?? order.scheduleDateTime;
+    final whenText = when == null ? '' : DateFormat('dd/MM/yyyy HH:mm').format(when.toDate());
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Início antecipado'),
+        content: Text(
+          'Este atendimento está agendado para $whenText. Você está iniciando antes do horário. '
+          'Confirme que o cliente e você estão alinhados sobre esse adiantamento.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+          ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Iniciar mesmo assim')),
+        ],
+      ),
+    );
+    return go == true;
   }
 
   Future<void> _accept(ProviderOrderModel order) async {
@@ -100,11 +118,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Future<void> _start(ProviderOrderModel order) async {
-    if (_scheduleBlocksStart(order)) {
-      final when = order.newScheduleDateTime ?? order.scheduleDateTime;
-      ShowToastDialog.showToast(
-        'O atendimento está agendado para ${DateFormat('dd/MM/yyyy HH:mm').format(when!.toDate())}.',
-      );
+    final early = _isEarlyStart(order);
+    if (early && !await _confirmEarlyStart(order)) {
       return;
     }
     ShowToastDialog.showLoader('Iniciando atendimento...');
@@ -114,6 +129,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         'status': Constant.orderOngoing,
         'startTime': FieldValue.serverTimestamp(),
         if (hourly) 'endTime': null,
+        if (early) 'startedEarly': true,
+        if (early) 'earlyStartAt': FieldValue.serverTimestamp(),
       });
       ShowToastDialog.closeLoader();
       ShowToastDialog.showToast(
@@ -270,15 +287,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   label: const Text('Conversar com o cliente'),
                 ),
               ],
-              if (Constant.canSosOrder(order.status)) ...[
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  onPressed: () => _report(order, sos: true),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
-                  icon: const Icon(Icons.emergency_outlined),
-                  label: const Text('Estou em risco / Denunciar agora'),
-                ),
-              ],
               if (Constant.canReportOrder(order.status)) ...[
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
@@ -363,25 +371,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  Future<void> _report(ProviderOrderModel order, {bool sos = false}) async {
+  Future<void> _report(ProviderOrderModel order) async {
     final uid = FireStoreUtils.getCurrentUid();
     final customerId = order.authorID.isNotEmpty ? order.authorID : (order.author.id ?? '');
     await showReportProblemSheet(
       context: context,
-      sos: sos,
+      role: 'provider',
       onSubmit: (category, description) async {
         ShowToastDialog.showLoader('Enviando...');
         try {
-          double? lat;
-          double? lng;
-          if (sos) {
-            try {
-              final pos = await Geolocator.getCurrentPosition();
-              lat = pos.latitude;
-              lng = pos.longitude;
-            } catch (_) {}
-            await FireStoreUtils.submitSos(orderId: order.id, reporterId: uid, latitude: lat, longitude: lng);
-          }
           await FireStoreUtils.submitComplaint(
             orderId: order.id,
             reporterId: uid,
@@ -390,9 +388,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             reportedId: customerId,
             reportedRole: 'customer',
             reportedName: order.author.fullName(),
-            category: sos ? ReportCategories.abuse : category,
+            category: category,
             description: description,
-            priority: sos ? 'high' : 'normal',
+            priority: 'normal',
           );
           ShowToastDialog.closeLoader();
           ShowToastDialog.showToast('A plataforma vai analisar sua denúncia.');

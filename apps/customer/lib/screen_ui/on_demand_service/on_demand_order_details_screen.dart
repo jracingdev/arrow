@@ -124,6 +124,22 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (controller.onProviderOrder.value?.startedEarly == true) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: AppThemeData.warning200.withValues(alpha: isDark ? 0.2 : 1),
+                              border: Border.all(color: AppThemeData.warning300),
+                            ),
+                            child: Text(
+                              'Prestador iniciou antes do horário'.tr,
+                              style: AppThemeData.mediumTextStyle(fontSize: 14, color: isDark ? AppThemeData.greyDark900 : AppThemeData.grey900),
+                            ),
+                          ),
+                        ],
                         SizedBox(height: 10),
                         ServiceLocationMap(
                           address: controller.onProviderOrder.value?.address?.getFullAddress() ?? '',
@@ -822,20 +838,6 @@ class OnDemandOrderDetailsScreen extends StatelessWidget {
                               ),
                             )
                             : SizedBox(),
-                        if (controller.canSos(controller.onProviderOrder.value?.status)) ...[
-                          const SizedBox(height: 8),
-                          RoundedButtonFill(
-                            title: 'Estou em risco / Denunciar agora'.tr,
-                            color: AppThemeData.danger300,
-                            textColor: AppThemeData.grey50,
-                            onPress: () {
-                              showOnDemandReportSheet(
-                                sos: true,
-                                onSubmit: (category, description) => controller.submitReport(category: category, description: description, sos: true),
-                              );
-                            },
-                          ),
-                        ],
                         if (controller.canReport(controller.onProviderOrder.value?.status)) ...[
                           const SizedBox(height: 8),
                           RoundedButtonFill(

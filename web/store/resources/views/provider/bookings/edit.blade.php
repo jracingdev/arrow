@@ -65,8 +65,24 @@
                 </div>
                 <div class="mt-4" id="safety_card">
                     <p class="text-muted">{{ trans('lang.report_hint') }}</p>
-                    <button type="button" class="btn btn-danger d-none" id="sos_btn">{{ trans('lang.sos_now') }}</button>
-                    <button type="button" class="btn btn-outline-secondary d-none ml-2" id="report_btn">{{ trans('lang.report_problem') }}</button>
+                    <button type="button" class="btn btn-outline-secondary d-none" id="report_btn">{{ trans('lang.report_problem') }}</button>
+                </div>
+                <div class="modal fade" id="early_start_modal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">{{ trans('lang.early_start_title') }}</h5>
+                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                                <p id="early_start_message">{{ trans('lang.early_start_confirm') }}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('lang.cancel') }}</button>
+                                <button type="button" class="btn btn-primary" id="early_start_confirm">{{ trans('lang.early_start_go') }}</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal fade" id="report_modal" tabindex="-1" role="dialog">
                     <div class="modal-dialog" role="document">
@@ -80,9 +96,9 @@
                                 <div class="form-group" id="report_categories">
                                     <label class="d-block"><input type="radio" name="report_category" value="abuse" checked> {{ trans('lang.report_category_abuse') }}</label>
                                     <label class="d-block"><input type="radio" name="report_category" value="harassment"> {{ trans('lang.report_category_harassment') }}</label>
-                                    <label class="d-block"><input type="radio" name="report_category" value="no_show"> {{ trans('lang.report_category_no_show') }}</label>
-                                    <label class="d-block"><input type="radio" name="report_category" value="bad_service"> {{ trans('lang.report_category_bad_service') }}</label>
-                                    <label class="d-block"><input type="radio" name="report_category" value="payment_fraud"> {{ trans('lang.report_category_payment_fraud') }}</label>
+                                    <label class="d-block"><input type="radio" name="report_category" value="no_show"> {{ trans('lang.report_category_no_show_customer') }}</label>
+                                    <label class="d-block"><input type="radio" name="report_category" value="unsafe_situation"> {{ trans('lang.report_category_unsafe_situation') }}</label>
+                                    <label class="d-block"><input type="radio" name="report_category" value="payment_dispute"> {{ trans('lang.report_category_payment_dispute') }}</label>
                                     <label class="d-block"><input type="radio" name="report_category" value="other"> {{ trans('lang.report_category_other') }}</label>
                                 </div>
                                 <div class="form-group">
@@ -127,7 +143,6 @@
     var customerId = '';
     var customerName = '';
     var bookingMap = null;
-    var reportSos = false;
     var chatUnsubs = [];
     var replaceInvoiceIndex = null;
     var timerInterval = null;
@@ -279,7 +294,7 @@
         if (paid === true) return gateway ? ('{{ trans("lang.paid") }} · ' + gateway) : '{{ trans("lang.paid") }}';
         return gateway ? ('{{ trans("lang.pending") }} · ' + gateway) : '{{ trans("lang.pending") }}';
     }
-    function scheduleBlocksStart() {
+    function isEarlyStart() {
         var when = order && (order.newScheduleDateTime || order.scheduleDateTime);
         if (!when || !when.toDate) return false;
         return when.toDate().getTime() > Date.now();
@@ -301,9 +316,6 @@
     }
     function canReportOrder(status) {
         return ['Order Assigned', 'Order Ongoing', 'Order Completed', 'Order Cancelled', 'Order Accepted', 'In Transit'].indexOf(status) >= 0;
-    }
-    function canSosOrder(status) {
-        return ['Order Ongoing', 'In Transit', 'Order Assigned'].indexOf(status) >= 0;
     }
     function isValidCoord(lat, lng) {
         if (lat == null || lng == null || isNaN(lat) || isNaN(lng)) return false;
@@ -358,8 +370,6 @@
         setTimeout(function () { bookingMap.invalidateSize(); }, 200);
     }
     function renderSafety() {
-        if (canSosOrder(order.status)) $('#sos_btn').removeClass('d-none');
-        else $('#sos_btn').addClass('d-none');
         if (canReportOrder(order.status)) $('#report_btn').removeClass('d-none');
         else $('#report_btn').addClass('d-none');
     }
@@ -510,61 +520,33 @@
         var description = ($('#report_description').val() || '').trim();
         if (!description) return;
         var category = $('input[name="report_category"]:checked').val() || 'other';
-        if (reportSos) category = 'abuse';
         var complaintId = id + '_' + providerId;
         $("#data-table_processing").show();
-        var locPromise = Promise.resolve({ lat: null, lng: null });
-        if (reportSos && navigator.geolocation) {
-            locPromise = new Promise(function (resolve) {
-                navigator.geolocation.getCurrentPosition(function (pos) {
-                    resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                }, function () { resolve({ lat: null, lng: null }); }, { timeout: 8000 });
-            });
-        }
-        locPromise.then(function (loc) {
-            return database.collection('complaints').doc(complaintId).get().then(function (existing) {
-                if (existing.exists && !reportSos) {
-                    throw new Error('already');
-                }
-                var writes = [];
-                if (reportSos) {
-                    writes.push(database.collection('SOS').doc(complaintId).set({
-                        id: complaintId,
-                        orderId: id,
-                        status: 'Initiated',
-                        serviceType: 'ondemand-service',
-                        reporterId: providerId,
-                        reporterRole: 'provider',
-                        priority: 'high',
-                        latLong: { latitude: loc.lat, longitude: loc.lng },
-                        createdAt: firebase.firestore.Timestamp.now()
-                    }, { merge: true }));
-                }
-                var createdAt = existing.exists && existing.data() && existing.data().createdAt
-                    ? existing.data().createdAt
-                    : firebase.firestore.Timestamp.now();
-                writes.push(database.collection('complaints').doc(complaintId).set({
-                    id: complaintId,
-                    createdAt: createdAt,
-                    orderId: id,
-                    serviceType: 'ondemand-service',
-                    reporterId: providerId,
-                    reporterRole: 'provider',
-                    reportedId: customerId,
-                    reportedRole: 'customer',
-                    category: category,
-                    description: description,
-                    title: category,
-                    status: 'Initiated',
-                    priority: reportSos ? 'high' : 'normal',
-                    evidenceUrls: [],
-                    customerId: customerId,
-                    customerName: customerName,
-                    driverId: providerId,
-                    driverName: ((providerUser && providerUser.firstName) || '') + ' ' + ((providerUser && providerUser.lastName) || '')
-                }, { merge: true }));
-                return Promise.all(writes);
-            });
+        database.collection('complaints').doc(complaintId).get().then(function (existing) {
+            if (existing.exists) {
+                throw new Error('already');
+            }
+            var createdAt = firebase.firestore.Timestamp.now();
+            return database.collection('complaints').doc(complaintId).set({
+                id: complaintId,
+                createdAt: createdAt,
+                orderId: id,
+                serviceType: 'ondemand-service',
+                reporterId: providerId,
+                reporterRole: 'provider',
+                reportedId: customerId,
+                reportedRole: 'customer',
+                category: category,
+                description: description,
+                title: category,
+                status: 'Initiated',
+                priority: 'normal',
+                evidenceUrls: [],
+                customerId: customerId,
+                customerName: customerName,
+                driverId: providerId,
+                driverName: ((providerUser && providerUser.firstName) || '') + ' ' + ((providerUser && providerUser.lastName) || '')
+            }, { merge: true });
         }).then(function () {
             $('#report_modal').modal('hide');
             $('#report_description').val('');
@@ -714,13 +696,7 @@
         $('#chat_input').on('keydown', function (e) {
             if (e.key === 'Enter') { e.preventDefault(); sendChat(); }
         });
-        $('#sos_btn').on('click', function () {
-            reportSos = true;
-            $('#report_modal_title').text("{{ trans('lang.sos_now') }}");
-            $('#report_modal').modal('show');
-        });
         $('#report_btn').on('click', function () {
-            reportSos = false;
             $('#report_modal_title').text("{{ trans('lang.report_problem') }}");
             $('#report_modal').modal('show');
         });
@@ -755,13 +731,7 @@
             if (!worker) { return; }
             database.collection('provider_orders').doc(id).update({ status: 'Order Assigned', workerId: worker }).then(function () { location.reload(); });
         });
-        $(document).on('click', '#start_btn', function () {
-            if (scheduleBlocksStart()) {
-                var when = order.newScheduleDateTime || order.scheduleDateTime;
-                var whenText = when && when.toDate ? ArrowDateTime.formatDate(when.toDate()) + ' ' + ArrowDateTime.formatTime(when.toDate()) : '';
-                $('.error_top').html('<p>{{ trans("lang.schedule_blocks_start") }} ' + whenText + '</p>').show();
-                return;
-            }
+        function startOrder(early) {
             var payload = {
                 status: 'Order Ongoing',
                 startTime: firebase.firestore.FieldValue.serverTimestamp()
@@ -769,7 +739,26 @@
             if (isHourly(priceUnit)) {
                 payload.endTime = null;
             }
+            if (early) {
+                payload.startedEarly = true;
+                payload.earlyStartAt = firebase.firestore.FieldValue.serverTimestamp();
+            }
             database.collection('provider_orders').doc(id).update(payload).then(function () { location.reload(); });
+        }
+        $(document).on('click', '#start_btn', function () {
+            if (isEarlyStart()) {
+                var when = order.newScheduleDateTime || order.scheduleDateTime;
+                var whenText = when && when.toDate ? ArrowDateTime.formatDate(when.toDate()) + ' ' + ArrowDateTime.formatTime(when.toDate()) : '';
+                var base = '{{ trans("lang.early_start_confirm") }}';
+                $('#early_start_message').text(whenText ? (base + ' (' + whenText + ')') : base);
+                $('#early_start_modal').modal('show');
+                return;
+            }
+            startOrder(false);
+        });
+        $('#early_start_confirm').on('click', function () {
+            $('#early_start_modal').modal('hide');
+            startOrder(true);
         });
         $(document).on('click', '#stop_timer_btn', function () {
             if (!storedStartTime) { return; }

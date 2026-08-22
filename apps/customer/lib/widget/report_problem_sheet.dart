@@ -5,20 +5,20 @@ import '../themes/app_them_data.dart';
 
 Future<void> showOnDemandReportSheet({
   required Future<void> Function(String category, String description) onSubmit,
-  bool sos = false,
+  String role = 'customer',
 }) {
   return Get.bottomSheet(
-    _OnDemandReportSheet(onSubmit: onSubmit, sos: sos),
+    _OnDemandReportSheet(onSubmit: onSubmit, role: role),
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
   );
 }
 
 class _OnDemandReportSheet extends StatefulWidget {
-  const _OnDemandReportSheet({required this.onSubmit, required this.sos});
+  const _OnDemandReportSheet({required this.onSubmit, required this.role});
 
   final Future<void> Function(String category, String description) onSubmit;
-  final bool sos;
+  final String role;
 
   @override
   State<_OnDemandReportSheet> createState() => _OnDemandReportSheetState();
@@ -62,7 +62,7 @@ class _OnDemandReportSheetState extends State<_OnDemandReportSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              widget.sos ? 'Estou em risco / Denunciar agora'.tr : 'Reportar problema'.tr,
+              'Reportar problema'.tr,
               style: AppThemeData.boldTextStyle(fontSize: 18, color: AppThemeData.grey900),
             ),
             const SizedBox(height: 8),
@@ -75,9 +75,9 @@ class _OnDemandReportSheetState extends State<_OnDemandReportSheet> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final category in ReportCategories.all)
+                for (final category in ReportCategories.forRole(widget.role))
                   ChoiceChip(
-                    label: Text(ReportCategories.labelPt(category).tr),
+                    label: Text(ReportCategories.labelPt(category, role: widget.role).tr),
                     selected: _category == category,
                     onSelected: (_) => setState(() => _category = category),
                   ),
@@ -96,7 +96,7 @@ class _OnDemandReportSheetState extends State<_OnDemandReportSheet> {
             ElevatedButton(
               onPressed: _busy ? null : _submit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: widget.sos ? AppThemeData.danger300 : AppThemeData.primary300,
+                backgroundColor: AppThemeData.primary300,
                 minimumSize: const Size.fromHeight(48),
               ),
               child: Text(

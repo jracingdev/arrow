@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:arrow_shared/hourly_service_billing.dart';
-import 'package:arrow_shared/report_strikes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/models/coupon_model.dart';
 import 'package:customer/models/user_model.dart';
@@ -383,7 +382,7 @@ class OnDemandOrderDetailsController extends GetxController {
         reportedId: reportedId,
         reportedRole: 'provider',
         reportedName: providerUser.value?.fullName() ?? order.provider.authorName ?? '',
-        category: sos ? ReportCategories.abuse : category,
+        category: category,
         description: description,
         priority: sos ? 'high' : 'normal',
       );

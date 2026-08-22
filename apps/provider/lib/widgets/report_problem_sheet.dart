@@ -5,21 +5,21 @@ import 'package:provider/themes/app_theme.dart';
 Future<void> showReportProblemSheet({
   required BuildContext context,
   required Future<void> Function(String category, String description) onSubmit,
-  bool sos = false,
+  String role = 'provider',
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-    builder: (ctx) => _ReportProblemSheet(onSubmit: onSubmit, sos: sos),
+    builder: (ctx) => _ReportProblemSheet(onSubmit: onSubmit, role: role),
   );
 }
 
 class _ReportProblemSheet extends StatefulWidget {
-  const _ReportProblemSheet({required this.onSubmit, required this.sos});
+  const _ReportProblemSheet({required this.onSubmit, required this.role});
 
   final Future<void> Function(String category, String description) onSubmit;
-  final bool sos;
+  final String role;
 
   @override
   State<_ReportProblemSheet> createState() => _ReportProblemSheetState();
@@ -57,9 +57,9 @@ class _ReportProblemSheetState extends State<_ReportProblemSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              widget.sos ? 'Estou em risco / Denunciar agora' : 'Reportar problema',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            const Text(
+              'Reportar problema',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -71,9 +71,9 @@ class _ReportProblemSheetState extends State<_ReportProblemSheet> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final category in ReportCategories.all)
+                for (final category in ReportCategories.forRole(widget.role))
                   ChoiceChip(
-                    label: Text(ReportCategories.labelPt(category)),
+                    label: Text(ReportCategories.labelPt(category, role: widget.role)),
                     selected: _category == category,
                     onSelected: (_) => setState(() => _category = category),
                   ),
@@ -91,7 +91,6 @@ class _ReportProblemSheetState extends State<_ReportProblemSheet> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _busy ? null : _submit,
-              style: widget.sos ? ElevatedButton.styleFrom(backgroundColor: AppTheme.danger) : null,
               child: Text(_busy ? 'Enviando...' : 'Enviar denúncia'),
             ),
           ],
