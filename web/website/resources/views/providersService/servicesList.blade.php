@@ -393,11 +393,7 @@
         var currentHours = hour + ':' + minute;
         if (serviceDetail.hasOwnProperty('days')) {
             if ($.inArray(currentDay, serviceDetail.days) !== -1) {
-                var [h, m] = serviceDetail.startTime.split(":");
-                var from = ((h % 12 ? h % 12 : 12) + ":" + m, h >= 12 ? 'PM' : 'AM');
-                var [h2, m2] = serviceDetail.endTime.split(":");
-                var to = ((h2 % 12 ? h2 % 12 : 12) + ":" + m2, h2 >= 12 ? 'PM' : 'AM');
-                vendor_open_time = serviceDetail.startTime + ' - ' + serviceDetail.endTime + '<span class="margine" style="margin-right: 65px;"></span>';
+                vendor_open_time = ArrowDateTime.formatClock(serviceDetail.startTime) + ' - ' + ArrowDateTime.formatClock(serviceDetail.endTime) + '<span class="margine" style="margin-right: 65px;"></span>';
                 if (currentHours >= serviceDetail.startTime && currentHours <= serviceDetail.endTime) {
                     checkFlag = true;
                 }

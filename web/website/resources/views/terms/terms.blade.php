@@ -7,8 +7,8 @@
     <meta name="author" content="Askbootstrap">
     <link rel="icon" type="image/png" href="img/fav.png">
     <title>{{trans('lang.swiggiweb_online_item_ordering_template')}}</title>
-    <link rel="stylesheet" type="text/css" href="vendor/slick/slick.min.css"/>
-    <link rel="stylesheet" type="text/css" href="vendor/slick/slick-theme.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/slick/slick.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/slick/slick-theme.min.css"/>
     <link href="vendor/icons/feather.css" rel="stylesheet" type="text/css">
     <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
@@ -177,7 +177,7 @@
                     </a>
                     <div class="osahan-credits d-flex align-items-center p-3 bg-light">
                         <p class="m-0">{{trans('lang.accounts_credits')}} </p>
-                        <h5 class="m-0 ml-auto text-primary">$52.25</h5>
+                        <h5 class="m-0 ml-auto text-primary d-none" aria-hidden="true"></h5>
                     </div>
                     <div class="bg-white profile-details">
                         <a data-toggle="modal" data-target="#paycard"
@@ -553,7 +553,7 @@
                     <ul class="list-unstyled hov_footer">
                         <li><a href="trending.html" class="text-muted"> {{trans('lang.trending')}}  </a></li>
                         <li><a href="most_popular.html" class="text-muted"> {{trans('lang.most_popular')}}  </a></li>
-                        <li><a href="vendor.html" class="text-muted"> {{trans('lang.store_details')}}  </a></li>
+                        <li><a href="{{ route('vendors') }}" class="text-muted"> {{trans('lang.store_details')}}  </a></li>
                         <li><a href="favorites.html" class="text-muted"> {{trans('lang.favorites')}}  </a></li>
                     </ul>
                 </aside>
@@ -645,7 +645,7 @@
         <li><a href="favorites.html"><i class="feather-heart mr-2"></i> {{trans('lang.favorites')}} </a></li>
         <li><a href="trending.html"><i class="feather-trending-up mr-2"></i> {{trans('lang.trending')}} </a></li>
         <li><a href="most_popular.html"><i class="feather-award mr-2"></i> {{trans('lang.most_popular')}} </a></li>
-        <li><a href="vendor.html"><i class="feather-paperclip mr-2"></i>{{trans('lang.store_detail')}} </a></li>
+        <li><a href="{{ route('vendors') }}"><i class="feather-paperclip mr-2"></i>{{trans('lang.store_detail')}} </a></li>
         <li><a href="checkout.html"><i class="feather-list mr-2"></i> {{trans('lang.checkout')}} </a></li>
         <li><a href="successful.html"><i class="feather-check-circle mr-2"></i> {{trans('lang.successful')}} </a></li>
         <li><a href="map.html"><i class="feather-map-pin mr-2"></i> {{trans('lang.live_map')}} </a></li>
@@ -887,7 +887,7 @@
 <script data-cfasync="false" src="../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script type="70bc925eb21d34a7d8eb3710-text/javascript" src="vendor/jquery/jquery.min.js"></script>
 <script type="70bc925eb21d34a7d8eb3710-text/javascript" src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-<script type="70bc925eb21d34a7d8eb3710-text/javascript" src="vendor/slick/slick.min.js"></script>
+<script type="70bc925eb21d34a7d8eb3710-text/javascript" src="js/slick/slick.min.js"></script>
 <script type="70bc925eb21d34a7d8eb3710-text/javascript" src="vendor/sidebar/hc-offcanvas-nav.js"></script>
 <script type="70bc925eb21d34a7d8eb3710-text/javascript" src="js/osahan.js"></script>
 <script src="js/rocket-loader.min.js" data-cf-settings="70bc925eb21d34a7d8eb3710-|49" defer=""></script>

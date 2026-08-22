@@ -461,7 +461,7 @@
                                                     <label class="col-sm-3 col-form-label">{{trans('lang.city')}}</label>
                                                     <div class="col-sm-6">
                                                         <input name="city" id="city" required type="text"
-                                                               placeholder="City" class="form-control"
+                                                               placeholder="{{trans('lang.city')}}" class="form-control"
                                                                value="<?php echo $cart_order['address_city']; ?>"/>
                                                     </div>
                                                 </div>

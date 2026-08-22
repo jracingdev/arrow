@@ -139,7 +139,7 @@ foreach ($countries as $keycountry => $valuecountry) {
 </div>
 <script type="2962f67e2ff6ccac59b12edc-text/javascript" src="vendor/jquery/jquery.min.js"></script>
 <script type="2962f67e2ff6ccac59b12edc-text/javascript" src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-<script type="2962f67e2ff6ccac59b12edc-text/javascript" src="vendor/slick/slick.min.js"></script>
+<script type="2962f67e2ff6ccac59b12edc-text/javascript" src="js/slick/slick.min.js"></script>
 <script type="2962f67e2ff6ccac59b12edc-text/javascript" src="vendor/sidebar/hc-offcanvas-nav.js"></script>
 <script type="2962f67e2ff6ccac59b12edc-text/javascript" src="js/siddhi.js"></script>
 

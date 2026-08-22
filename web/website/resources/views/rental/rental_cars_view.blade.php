@@ -51,7 +51,7 @@ session_start();
 <!-- GeoFirestore -->
 <script src="{{ asset('js/geofirestore.js') }}"></script>
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
-<script type="text/javascript" src="{{asset('vendor/slick/slick.min.js')}}"></script>
+<script type="text/javascript" src="{{asset('js/slick/slick.min.js')}}"></script>
 <link rel='stylesheet' href='https://sachinchoolur.github.io/lightslider/dist/css/lightslider.css'>
 <script src='https://sachinchoolur.github.io/lightslider/dist/js/lightslider.js'></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lightslider/1.1.6/js/lightslider.min.js"></script>

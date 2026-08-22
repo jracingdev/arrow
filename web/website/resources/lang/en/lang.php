@@ -971,5 +971,13 @@ return [
     'pickup_date' => 'Pick-up date',
     'dropoff_date' => 'Drop-off date',
     'address_line2_help' => 'House number, street, complement and landmark',
+    'search_for_parcel' => 'Search parcel type',
+    'search_for_ondemand' => 'Search services or providers',
+    'search_for_cab' => 'Search rides',
+    'search_for_rental' => 'Search vehicles',
+    'cep_placeholder' => '00000-000',
+    'cab_landing_title' => 'Rides',
+    'cab_landing_cta' => 'Request a ride',
+    'pix_mercadopago' => 'PIX / Mercado Pago',
 ];
 

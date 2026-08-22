@@ -261,7 +261,7 @@
 
                                         <td>
 
-                                            {{trans('lang.stripe_payment')}}
+                                            {{trans('lang.pix_mercadopago')}}
 
                                         </td>
 
@@ -852,7 +852,7 @@
                                                     <div class="col-sm-6">
 
                                                         <input name="city" id="city" required type="text"
-                                                               placeholder="City" class="form-control"
+                                                               placeholder="{{trans('lang.city')}}" class="form-control"
                                                                value=""/>
                                                     </div>
                                                 </div>

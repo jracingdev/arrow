@@ -848,5 +848,13 @@ return [
     'pickup_date' => 'تاريخ الاستلام',
     'dropoff_date' => 'تاريخ التسليم',
     'address_line2_help' => 'رقم المنزل والشارع والمعلم',
+    'search_for_parcel' => 'البحث عن نوع الطرد',
+    'search_for_ondemand' => 'البحث عن خدمات أو مقدمي خدمات',
+    'search_for_cab' => 'البحث عن رحلات',
+    'search_for_rental' => 'البحث عن مركبات',
+    'cep_placeholder' => '00000-000',
+    'cab_landing_title' => 'الرحلات',
+    'cab_landing_cta' => 'اطلب رحلة',
+    'pix_mercadopago' => 'PIX / Mercado Pago',
 ];
 

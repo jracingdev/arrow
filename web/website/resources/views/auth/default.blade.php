@@ -8,8 +8,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}"/>
     <link rel="icon" type="image/png" href="{{asset('img/fav.png')}}">
     <title><?php echo env('APP_NAME', 'Arrow'); ?> — {{ trans('lang.online_item_os') }}</title>
-    <link rel="stylesheet" type="text/css" href="{{asset('vendor/slick/slick.min.css')}}"/>
-    <link rel="stylesheet" type="text/css" href="{{asset('vendor/slick/slick-theme.min.css')}}"/>
+    <link rel="stylesheet" type="text/css" href="{{asset('css/slick/slick.min.css')}}"/>
+    <link rel="stylesheet" type="text/css" href="{{asset('css/slick/slick-theme.min.css')}}"/>
     <link href="{{asset('vendor/icons/feather.css')}}" rel="stylesheet" type="text/css">
     <link href="{{asset('vendor/bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
     <link href="{{asset('css/style.css')}}" rel="stylesheet">

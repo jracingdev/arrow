@@ -232,7 +232,7 @@
 @include('layouts.footer')
 @include('layouts.nav')
 <script src="{{ asset('js/geofirestore.js') }}"></script>
-<script type="text/javascript" src="{{ asset('vendor/slick/slick.min.js') }}"></script>
+<script type="text/javascript" src="{{ asset('js/slick/slick.min.js') }}"></script>
 <script type="text/javascript">
     var currentCurrency = '';
     var currencyAtRight = false;

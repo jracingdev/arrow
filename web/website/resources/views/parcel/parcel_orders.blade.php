@@ -8,7 +8,7 @@
                     <button class="border-0 btn btn-outline-secondary text-dark bg-white btn-block"><i
                                 class="feather-search"></i></button>
                 </div>
-                <input type="text" class="shadow-none border-0 form-control" placeholder="{{trans('lang.search_for_vendors_or_dishes')}}">
+                <input type="text" class="shadow-none border-0 form-control" placeholder="{{trans('lang.search_for_parcel')}}">
             </div>
             <div class="text-white col-md-3 col-sm-3">
                 <div class="title d-flex align-items-center">

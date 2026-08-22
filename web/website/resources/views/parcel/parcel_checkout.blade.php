@@ -11,7 +11,7 @@ session_start();
                     <button class="border-0 btn btn-outline-secondary text-dark bg-white btn-block"><i
                                 class="feather-search"></i></button>
                 </div>
-                <input type="text" class="shadow-none border-0 form-control" placeholder="{{trans('lang.search_for_vendors_or_dishes')}}">
+                <input type="text" class="shadow-none border-0 form-control" placeholder="{{trans('lang.search_for_parcel')}}">
             </div>
             <div class="text-white col-md-3 col-sm-3">
                 <div class="title d-flex align-items-center">
@@ -370,7 +370,7 @@ session_start();
 <script src="{{ asset('js/geofirestore.js') }}"></script>
 
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
-<script type="text/javascript" src="{{asset('vendor/slick/slick.min.js')}}"></script>
+<script type="text/javascript" src="{{asset('js/slick/slick.min.js')}}"></script>
 
 <script type="text/javascript">
 

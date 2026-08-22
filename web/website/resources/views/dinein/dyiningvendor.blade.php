@@ -229,7 +229,7 @@
 </div>
 @include('layouts.footer')
 @include('layouts.nav')
-<div class="modal fade" id="extras" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade d-none" id="extras" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" hidden>
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -244,32 +244,32 @@
                         <div class="custom-control custom-radio border-bottom py-2">
                             <input type="radio" id="customRadio1f" name="location" class="custom-control-input" checked>
                             <label class="custom-control-label" for="customRadio1f">{{trans('lang.tuna')}} <span
-                                        class="text-muted">+$35.00</span></label>
+                                        class="text-muted d-none"></span></label>
                         </div>
                         <div class="custom-control custom-radio border-bottom py-2">
                             <input type="radio" id="customRadio2f" name="location" class="custom-control-input">
                             <label class="custom-control-label" for="customRadio2f">{{trans('lang.salmon')}} <span
-                                        class="text-muted">+$20.00</span></label>
+                                        class="text-muted d-none"></span></label>
                         </div>
                         <div class="custom-control custom-radio border-bottom py-2">
                             <input type="radio" id="customRadio3f" name="location" class="custom-control-input">
                             <label class="custom-control-label" for="customRadio3f">{{trans('lang.wasabi')}} <span
-                                        class="text-muted">+$25.00</span></label>
+                                        class="text-muted d-none"></span></label>
                         </div>
                         <div class="custom-control custom-radio border-bottom py-2">
                             <input type="radio" id="customRadio4f" name="location" class="custom-control-input">
                             <label class="custom-control-label" for="customRadio4f">{{trans('lang.unagi')}} <span
-                                        class="text-muted">+$10.00</span></label>
+                                        class="text-muted d-none"></span></label>
                         </div>
                         <div class="custom-control custom-radio border-bottom py-2">
                             <input type="radio" id="customRadio5f" name="location" class="custom-control-input">
                             <label class="custom-control-label" for="customRadio5f">{{trans('lang.vegetables')}} <span
-                                        class="text-muted">+$5.00</span></label>
+                                        class="text-muted d-none"></span></label>
                         </div>
                         <div class="custom-control custom-radio border-bottom py-2">
                             <input type="radio" id="customRadio6f" name="location" class="custom-control-input">
                             <label class="custom-control-label" for="customRadio6f">{{trans('lang.noodles')}} <span
-                                        class="text-muted">+$30.00</span></label>
+                                        class="text-muted d-none"></span></label>
                         </div>
                         <h6 class="font-weight-bold mt-4">{{trans('lang.quantity')}}</h6>
                         <div class="d-flex align-items-center">
@@ -308,7 +308,7 @@
 <!-- GeoFirestore -->
 <script src="{{ asset('js/geofirestore.js') }}"></script>
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
-<script type="text/javascript" src="{{asset('vendor/slick/slick.min.js')}}"></script>
+<script type="text/javascript" src="{{asset('js/slick/slick.min.js')}}"></script>
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script type="text/javascript">
     var review_pagesize = 4;

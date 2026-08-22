@@ -8,7 +8,7 @@
                     <button class="border-0 btn btn-outline-secondary text-dark bg-white btn-block"><i
                             class="feather-search"></i></button>
                 </div>
-                <input type="text" class="shadow-none border-0 form-control" placeholder="{{trans('lang.search_for_vendors_or_dishes')}}">
+                <input type="text" class="shadow-none border-0 form-control" placeholder="{{trans('lang.search_for_parcel')}}">
             </div>
             <div class="text-white col-md-3 col-sm-3">
                 <div class="title d-flex align-items-center">
@@ -38,7 +38,7 @@
 @include('layouts.footer')
 <script src="{{ asset('js/geofirestore.js') }}"></script>
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
-<script type="text/javascript" src="{{ asset('vendor/slick/slick.min.js') }}"></script>
+<script type="text/javascript" src="{{ asset('js/slick/slick.min.js') }}"></script>
 <script type="text/javascript">
     var database = firebase.firestore();
     var geoFirestore = new GeoFirestore(database);
@@ -90,7 +90,13 @@
                 html += '<div class="banner-img">';
                 var redirect_id = 'javascript::void()';
                 if (banner.redirect_type != '') {
-                    if (banner.redirect_type == "store") {
+                    if (banner.redirect_type == "provider") {
+                        redirect_id = "{{ route('ondemand-providerdetail', ':id') }}";
+                        redirect_id = redirect_id.replace(':id', banner.redirect_id);
+                    } else if (banner.redirect_type == "service") {
+                        redirect_id = "{{ route('service', ':id') }}";
+                        redirect_id = redirect_id.replace(':id', banner.redirect_id);
+                    } else if (banner.redirect_type == "store") {
                         redirect_id = "{{ route('vendor', ':id') }}";
                         redirect_id = redirect_id.replace(':id', banner.redirect_id);
                     } else if (banner.redirect_type == "product") {

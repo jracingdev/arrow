@@ -9,9 +9,9 @@
     
     <link rel="icon" type="image/png" href="{{asset('img/fav.png')}}">
     <title><?php echo env('APP_NAME', 'Arrow'); ?> — Entrega multi-serviço</title>
-    <link rel="stylesheet" type="text/css" href="{{asset('vendor/slick/slick.min.css')}}"/>
-    <link rel="stylesheet" type="text/css" href="{{asset('vendor/slick/slick-theme.min.css')}}"/>
-    <link rel="stylesheet" type="text/css" href="{{asset('vendor/slick/slick-lightbox.css')}}"/>
+    <link rel="stylesheet" type="text/css" href="{{asset('css/slick/slick.min.css')}}"/>
+    <link rel="stylesheet" type="text/css" href="{{asset('css/slick/slick-theme.min.css')}}"/>
+    <link rel="stylesheet" type="text/css" href="{{asset('css/slick/slick-lightbox.css')}}"/>
     <link rel="stylesheet" type="text/css" href="{{asset('vendor/select2/dist/css/select2.min.css')}}"/>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700&display=swap"
           rel="stylesheet">

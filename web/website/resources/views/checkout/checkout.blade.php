@@ -188,7 +188,7 @@
                                 </div>
                             </div>
                             <div class="col-md-12 form-group"><label class="form-label">{{ trans('lang.landmark') }}</label><input placeholder="{{ trans('lang.address_line2_help') }}" value="" id="address_line2" type="text" class="form-control"></div>
-                            <div class="col-md-12 form-group"><label class="form-label">{{ trans('lang.zip_code') }}</label><input placeholder="{{ trans('lang.cep') }}" id="address_zipcode" type="text" class="form-control">
+                            <div class="col-md-12 form-group"><label class="form-label">{{ trans('lang.zip_code') }}</label><input placeholder="{{ trans('lang.cep_placeholder') }}" id="address_zipcode" type="text" class="form-control" inputmode="numeric" maxlength="9" autocomplete="postal-code" data-cep>
                             </div>
                             <div class="col-md-12 form-group"><label class="form-label">{{ trans('lang.city') }}</label><input placeholder="{{ trans('lang.city') }}" id="address_city" type="text" class="form-control">
                             </div>

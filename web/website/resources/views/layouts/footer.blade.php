@@ -18,7 +18,7 @@
                             </div>
                         </div>
                         <div class="col-md-12 form-group"><label class="form-label">{{ trans('lang.landmark') }}</label><input placeholder="{{ trans('lang.footer') }}" value="" id="address_line2" type="text" class="form-control"></div>
-                        <div class="col-md-12 form-group"><label class="form-label">{{ trans('lang.zip_code') }}</label><input placeholder="{{ trans('lang.postalcode') }}" id="address_zipcode" type="text" class="form-control"></div>
+                        <div class="col-md-12 form-group"><label class="form-label">{{ trans('lang.zip_code') }}</label><input placeholder="{{ trans('lang.cep_placeholder') }}" id="address_zipcode" type="text" class="form-control" inputmode="numeric" maxlength="9" autocomplete="postal-code" data-cep></div>
                         <div class="col-md-12 form-group"><label class="form-label">{{ trans('lang.city') }}</label><input placeholder="{{ trans('lang.city') }}" id="address_city" type="text" class="form-control"></div>
                         <div class="col-md-12 form-group"><label class="form-label">{{ trans('lang.country') }}</label><input placeholder="{{ trans('lang.country') }}" id="address_country" type="text" class="form-control">
                         </div>
@@ -171,8 +171,8 @@
 <script type="text/javascript" src="{{ asset('vendor/bootstrap/js/bootstrap-rtl.bundle.min.js') }}"></script>
 <?php } ?>
 <script type="text/javascript" src="{{ asset('vendor/sidebar/hc-offcanvas-nav.js') }}"></script>
-<script type="text/javascript" src="{{ asset('vendor/slick/slick.min.js') }}"></script>
-<script type="text/javascript" src="{{ asset('vendor/slick/slick-lightbox.js') }}"></script>
+<script type="text/javascript" src="{{ asset('js/slick/slick.min.js') }}"></script>
+<script type="text/javascript" src="{{ asset('js/slick/slick-lightbox.js') }}"></script>
 <script src="{{ asset('vendor/select2/dist/js/select2.min.js') }}"></script>
 <script type="text/javascript" src="{{ asset('js/siddhi.js') }}"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -188,6 +188,11 @@
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
 
 <script type="text/javascript">
+    if (window.ArrowCep && typeof ArrowCep.bind === 'function') {
+        ArrowCep.bind(document);
+        document.addEventListener('shown.bs.modal', function () { ArrowCep.bind(document); });
+        $(document).on('shown.bs.modal', function () { ArrowCep.bind(document); });
+    }
 
     var database = firebase.firestore();
     <?php $id = null;
@@ -958,7 +963,7 @@
                             $("#address_line2").val(address_street3);
                             $("#address_city").val(address_city);
                             $("#address_country").val(address_country);
-                            $("#address_zipcode").val(address_zip);
+                            $("#address_zipcode").val(window.ArrowCep ? ArrowCep.mask(address_zip) : address_zip);
                         }
                     }
                 });
@@ -1537,7 +1542,7 @@
                     $("#address_line2").val(address_name2);
                     $("#address_city").val(address_city);
                     $("#address_country").val(address_country);
-                    $("#address_zipcode").val(address_zip);
+                    $("#address_zipcode").val(window.ArrowCep ? ArrowCep.mask(address_zip) : address_zip);
                 });
             }
         }
