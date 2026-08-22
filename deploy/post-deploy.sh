@@ -83,3 +83,7 @@ fi
 
 echo "==> Pós-deploy concluído."
 echo "    Próximo: sudo ./set-production.sh"
+echo ""
+echo "    Admin — dispatch prestador (10 min / próximo da fila):"
+echo "      1) Defina NODE_PATH no .env do admin (ex.: /usr/bin/node)"
+echo "      2) Cron: * * * * * cd $WWW_ROOT/admin.arrow.app.br && $PHP_BIN artisan schedule:run >> /dev/null 2>&1"
