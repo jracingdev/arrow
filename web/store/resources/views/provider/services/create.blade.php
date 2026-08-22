@@ -24,6 +24,10 @@
                         <div class="col-7"><input type="text" class="form-control" id="title"></div>
                     </div>
                     <div class="form-group row width-50">
+                        <label class="col-3 control-label">{{ trans('lang.select_section') }}</label>
+                        <div class="col-7"><select class="form-control" id="sectionId"><option value="">{{ trans('lang.select_section') }}</option></select></div>
+                    </div>
+                    <div class="form-group row width-50">
                         <label class="col-3 control-label">{{ trans('lang.category') }}</label>
                         <div class="col-7"><select class="form-control" id="categoryId"><option value="">{{ trans('lang.select') }}</option></select></div>
                     </div>
@@ -110,19 +114,47 @@
         return geohash;
     }
 
+    function loadCategories(sectionId) {
+        $('#categoryId').html('<option value="">{{ trans('lang.select') }}</option>');
+        if (!sectionId) return;
+        database.collection('provider_categories').where('sectionId', '==', sectionId).where('publish', '==', true).get().then(function (cats) {
+            cats.docs.forEach(function (doc) {
+                var c = doc.data();
+                if (!c.parentCategoryId) {
+                    $('#categoryId').append($('<option></option>').attr('value', c.id).text(c.title));
+                }
+            });
+        });
+    }
+
     database.collection('users').doc(providerId).get().then(function (snap) {
         providerUser = snap.data() || {};
         var sectionId = providerUser.sectionId || providerUser.section_id || '';
-        if (sectionId) {
-            database.collection('provider_categories').where('sectionId', '==', sectionId).where('publish', '==', true).get().then(function (cats) {
-                cats.docs.forEach(function (doc) {
-                    var c = doc.data();
-                    if (!c.parentCategoryId) {
-                        $('#categoryId').append($('<option></option>').attr('value', c.id).text(c.title));
-                    }
-                });
-            });
+        if (providerUser.location && providerUser.location.latitude && !$('#latitude').val()) {
+            $('#latitude').val(providerUser.location.latitude);
+            $('#longitude').val(providerUser.location.longitude);
+        } else if (providerUser.latitude && !$('#latitude').val()) {
+            $('#latitude').val(providerUser.latitude);
+            $('#longitude').val(providerUser.longitude);
         }
+        database.collection('sections').where('serviceTypeFlag', '==', 'ondemand-service').get().then(function (secs) {
+            secs.docs.forEach(function (doc) {
+                var s = doc.data() || {};
+                if (s.isActive === false) return;
+                $('#sectionId').append($('<option></option>').attr('value', s.id).text(s.name || s.id));
+            });
+            if (sectionId) {
+                $('#sectionId').val(sectionId);
+            } else if ($('#sectionId option').length === 2) {
+                $('#sectionId').val($('#sectionId option').eq(1).val());
+                sectionId = $('#sectionId').val();
+            }
+            loadCategories(sectionId);
+        });
+    });
+
+    $('#sectionId').on('change', function () {
+        loadCategories($(this).val());
     });
 
     $('#address').on('input', function () {
@@ -160,13 +192,13 @@
         var price = $('#price').val();
         var lat = parseFloat($('#latitude').val());
         var lng = parseFloat($('#longitude').val());
-        if (!title || !categoryId || !price || isNaN(lat) || isNaN(lng)) {
+        var sectionId = $('#sectionId').val() || providerUser.sectionId || providerUser.section_id || '';
+        if (!title || !sectionId || !categoryId || !price || isNaN(lat) || isNaN(lng)) {
             $('.error_top').html('<p>{{ trans("lang.please_enter_details") }}</p>').show();
             window.scrollTo(0, 0);
             return;
         }
         var newId = database.collection('providers_services').doc().id;
-        var sectionId = providerUser.sectionId || providerUser.section_id || '';
         var objects = {
             address: $('#address').val(),
             author: providerId,
@@ -200,7 +232,7 @@
         };
         $("#data-table_processing").show();
         database.collection('providers_services').doc(newId).set(objects).then(function () {
-            if (!providerUser.section_id && sectionId) {
+            if (sectionId && (!providerUser.section_id || !providerUser.sectionId)) {
                 database.collection('users').doc(providerId).update({ section_id: sectionId, sectionId: sectionId });
             }
             window.location = "{{ route('provider.services') }}";

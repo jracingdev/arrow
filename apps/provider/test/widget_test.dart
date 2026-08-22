@@ -81,6 +81,24 @@ void main() {
     expect(DocumentVerification.isVerifiedForPublic(isAutoVerify: true), isFalse);
   });
 
+  test('payload publicado liga o prestador ao serviço que o cliente lista', () {
+    final map = FireStoreUtils.publishedServiceFields(
+      author: 'provider-uid',
+      title: 'Limpeza residencial',
+      sectionId: 'ondemand-br',
+      categoryId: 'limpeza',
+      price: '80',
+      priceUnit: 'Hourly',
+      publish: true,
+    );
+    expect(map['author'], 'provider-uid');
+    expect(map['publish'], isTrue);
+    expect(map['sectionId'], 'ondemand-br');
+    expect(map['categoryId'], 'limpeza');
+    expect(map['priceUnit'], 'Hourly');
+    expect(CollectionName.providersServices, 'providers_services');
+  });
+
   test('média de avaliações e rótulo de pagamento', () {
     expect(RatingAverage.of(9, 2), 4.5);
     expect(RatingAverage.formatted(10, 2), '5.0');

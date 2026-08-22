@@ -249,16 +249,31 @@
             }
         });
         $(document).ready(function() {
-            database.collection('users').where('role', '==', 'provider').where('section_id','==',section_id).get().then(async function(snapshots) {
-                snapshots.docs.forEach((listval) => {
-                    var data = listval.data();
+            database.collection('users').where('role', '==', 'provider').get().then(async function(snapshots) {
+                var rows = snapshots.docs.map(function(doc) { return doc.data(); });
+                rows.sort(function(a, b) {
+                    var aSid = a.section_id || a.sectionId || '';
+                    var bSid = b.section_id || b.sectionId || '';
+                    var aMatch = section_id && aSid === section_id ? 0 : 1;
+                    var bMatch = section_id && bSid === section_id ? 0 : 1;
+                    if (aMatch !== bMatch) return aMatch - bMatch;
+                    var aName = ((a.firstName || '') + ' ' + (a.lastName || '')).trim();
+                    var bName = ((b.firstName || '') + ' ' + (b.lastName || '')).trim();
+                    return aName.localeCompare(bName);
+                });
+                rows.forEach(function(data) {
+                    var fullName = ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || data.email || data.id;
+                    var label = data.email ? (fullName + ' (' + data.email + ')') : fullName;
                     $('#provider_select').append($("<option></option>")
                         .attr("value", data.id)
-                        .text(data.firstName + ' ' + data.lastName)
-                        .attr("data-authorName", data.firstName + ' ' + data.lastName)
-                        .attr("data-authorpic", data.profilePictureURL)
-                        .attr("data-authorphone", data.phoneNumber));
-                })
+                        .text(label)
+                        .attr("data-authorName", fullName)
+                        .attr("data-authorpic", data.profilePictureURL || '')
+                        .attr("data-authorphone", data.phoneNumber || ''));
+                });
+                if (provider_id) {
+                    $('#provider_select').val(provider_id);
+                }
             });
             database.collection('sections').where('serviceTypeFlag', '==', 'ondemand-service').orderBy('order').get().then(async function(snapshots) {
                 snapshots.docs.forEach((listval) => {

@@ -1,7 +1,9 @@
 import 'package:arrow_shared/hourly_service_billing.dart';
 import 'package:arrow_shared/rating_average.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:provider/models/provider_service_model.dart';
+import 'package:provider/screens/create_service_screen.dart';
 import 'package:provider/service/fire_store_utils.dart';
 import 'package:provider/themes/app_theme.dart';
 
@@ -13,6 +15,11 @@ class ServicesScreen extends StatelessWidget {
     final uid = FireStoreUtils.getCurrentUid();
     return Scaffold(
       appBar: AppBar(title: const Text('Serviços')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Get.to(() => const CreateServiceScreen()),
+        icon: const Icon(Icons.add),
+        label: const Text('Novo serviço'),
+      ),
       body: StreamBuilder<List<ProviderServiceModel>>(
         stream: FireStoreUtils.watchMyServices(uid),
         builder: (context, snapshot) {
@@ -21,7 +28,28 @@ class ServicesScreen extends StatelessWidget {
           }
           final services = snapshot.data ?? [];
           if (services.isEmpty) {
-            return const Center(child: Text('Nenhum serviço cadastrado.'));
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Nenhum serviço cadastrado.', textAlign: TextAlign.center),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Clientes só veem documentos publicados em providers_services com o seu uid.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppTheme.grey500, fontSize: 13),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => Get.to(() => const CreateServiceScreen()),
+                      child: const Text('Criar e publicar serviço'),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
           return ListView.separated(
             padding: const EdgeInsets.all(16),

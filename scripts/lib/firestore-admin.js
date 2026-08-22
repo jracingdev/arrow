@@ -15,10 +15,31 @@
 const fs = require('fs');
 const path = require('path');
 
+function looksUsableServiceAccount(filePath) {
+  try {
+    const sa = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return Boolean(sa.private_key && String(sa.private_key).trim() && sa.client_email && String(sa.client_email).trim());
+  } catch (e) {
+    return false;
+  }
+}
+
 function resolveCredentialsPath() {
   const fromEnv = process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.FIREBASE_CREDENTIALS;
-  if (fromEnv && fs.existsSync(fromEnv)) return path.resolve(fromEnv);
-  return path.join(__dirname, '..', '..', 'firebase', 'import-export', 'credentials.json');
+  if (fromEnv && fs.existsSync(fromEnv) && looksUsableServiceAccount(fromEnv)) return path.resolve(fromEnv);
+  const root = path.join(__dirname, '..', '..');
+  const candidates = [path.join(root, 'firebase', 'import-export', 'credentials.json')];
+  try {
+    fs.readdirSync(root).forEach((name) => {
+      if (/firebase-adminsdk.*\.json$/i.test(name)) candidates.unshift(path.join(root, name));
+    });
+  } catch (e) {
+    // ignore
+  }
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate) && looksUsableServiceAccount(candidate)) return candidate;
+  }
+  return candidates[candidates.length - 1];
 }
 
 function loadServiceAccount(credPath) {

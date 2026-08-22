@@ -144,6 +144,118 @@ class FireStoreUtils {
     return _db.collection(CollectionName.providersServices).doc(serviceId).update({'publish': publish});
   }
 
+  static Future<List<Map<String, dynamic>>> getOnDemandSections() async {
+    final snap = await _db.collection('sections').where('serviceTypeFlag', isEqualTo: 'ondemand-service').get();
+    final list = snap.docs.map((d) => d.data()).where((d) {
+      final id = (d['id'] ?? '').toString();
+      return id.isNotEmpty && d['isActive'] != false;
+    }).toList();
+    list.sort((a, b) => ((a['order'] as num?) ?? 0).compareTo((b['order'] as num?) ?? 0));
+    return list;
+  }
+
+  static Future<List<Map<String, dynamic>>> getProviderCategories({
+    required String sectionId,
+    String? parentCategoryId,
+  }) async {
+    if (sectionId.isEmpty) return const [];
+    final snap = await _db.collection('provider_categories').where('sectionId', isEqualTo: sectionId).where('publish', isEqualTo: true).get();
+    final wantParent = parentCategoryId == null || parentCategoryId.isEmpty;
+    return snap.docs.map((d) => d.data()).where((d) {
+      final parent = (d['parentCategoryId'] ?? '').toString();
+      if (wantParent) return parent.isEmpty;
+      return parent == parentCategoryId;
+    }).toList();
+  }
+
+  /// Campos que o app do cliente já lê em `providers_services` (sem GeoPoint, para testes).
+  static Map<String, dynamic> publishedServiceFields({
+    required String author,
+    required String title,
+    required String sectionId,
+    required String categoryId,
+    required String price,
+    required String priceUnit,
+    bool publish = true,
+  }) {
+    return {
+      'author': author,
+      'title': title,
+      'sectionId': sectionId,
+      'categoryId': categoryId,
+      'price': price,
+      'priceUnit': priceUnit,
+      'publish': publish,
+      'reviewsCount': 0,
+      'reviewsSum': 0,
+      'disPrice': '0',
+    };
+  }
+
+  static Future<String> createMyService({
+    required UserModel user,
+    required String title,
+    required String description,
+    required String price,
+    required String priceUnit,
+    required String sectionId,
+    required String categoryId,
+    String subCategoryId = '',
+    required bool publish,
+    String address = '',
+    double? latitude,
+    double? longitude,
+  }) async {
+    final uid = getCurrentUid();
+    if (uid.isEmpty) throw Exception('Faça login novamente.');
+    final lat = latitude ?? user.latitude;
+    final lng = longitude ?? user.longitude;
+    if (lat == null || lng == null || !GeoDistance.isValid(lat, lng)) {
+      throw Exception('Informe um endereço com localização válida.');
+    }
+    if (title.trim().isEmpty || sectionId.isEmpty || categoryId.isEmpty || price.trim().isEmpty) {
+      throw Exception('Preencha título, seção, categoria e preço.');
+    }
+    final id = const Uuid().v4();
+    final hash = GeoDistance.geohash(lat, lng);
+    final point = GeoPoint(lat, lng);
+    final data = <String, dynamic>{
+      ...publishedServiceFields(
+        author: uid,
+        title: title.trim(),
+        sectionId: sectionId,
+        categoryId: categoryId,
+        price: price.trim(),
+        priceUnit: priceUnit,
+        publish: publish,
+      ),
+      'id': id,
+      'authorName': user.fullName(),
+      'authorProfilePic': user.profilePictureURL ?? '',
+      'phoneNumber': user.phoneNumber ?? '',
+      'description': description.trim(),
+      'subCategoryId': subCategoryId,
+      'address': address.trim(),
+      'latitude': lat,
+      'longitude': lng,
+      'photos': const <String>[],
+      'days': const ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      'startTime': '08:00',
+      'endTime': '18:00',
+      'createdAt': FieldValue.serverTimestamp(),
+      'coordinates': point,
+      'g': {'geohash': hash, 'geopoint': point},
+    };
+    await _db.collection(CollectionName.providersServices).doc(id).set(data);
+    if ((user.sectionId == null || user.sectionId!.isEmpty) && sectionId.isNotEmpty) {
+      await _db.collection(CollectionName.users).doc(uid).set({
+        'section_id': sectionId,
+        'sectionId': sectionId,
+      }, SetOptions(merge: true));
+    }
+    return id;
+  }
+
   static Stream<List<WorkerModel>> watchMyWorkers(String uid) {
     return _db.collection(CollectionName.providersWorkers).where('providerId', isEqualTo: uid).snapshots().map((snap) {
       return snap.docs.map((d) => WorkerModel.fromJson(d.data())).toList();
