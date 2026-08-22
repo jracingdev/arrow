@@ -230,6 +230,12 @@
                 geopoint: new firebase.firestore.GeoPoint(lat, lng)
             }
         };
+        if (providerUser.subscription_plan) {
+            objects.subscription_plan = providerUser.subscription_plan;
+            objects.subscriptionPlanId = providerUser.subscriptionPlanId || (providerUser.subscription_plan.id || '');
+            objects.subscriptionExpiryDate = providerUser.subscriptionExpiryDate || null;
+            objects.subscriptionTotalOrders = providerUser.subscriptionTotalOrders || providerUser.subscription_plan.orderLimit || '-1';
+        }
         $("#data-table_processing").show();
         database.collection('providers_services').doc(newId).set(objects).then(function () {
             if (sectionId && (!providerUser.section_id || !providerUser.sectionId)) {
