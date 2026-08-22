@@ -19,7 +19,45 @@ const CUSTOMER_EMAIL = 'cliente.demo.joelson@arrow.test';
 const PREFIX = 'demo_joelson_';
 const FALLBACK_LAT = -23.5505;
 const FALLBACK_LNG = -46.6333;
-const FALLBACK_ADDRESS = 'Av. Paulista, 1578 — Bela Vista, São Paulo — SP';
+const PLACES = {
+  rio: {
+    address: 'Estrada do Camboatá, 2500 — Bangu, Rio de Janeiro — RJ',
+    locality: 'Rio de Janeiro',
+  },
+  sp: {
+    address: 'Av. Paulista, 1578 — Bela Vista, São Paulo — SP',
+    locality: 'São Paulo',
+  },
+};
+const FALLBACK_ADDRESS = PLACES.sp.address;
+
+function cityFromCoords(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat >= -23.15 && lat <= -22.6 && lng >= -43.8 && lng <= -43.05) return 'rio';
+  if (lat >= -23.9 && lat <= -23.3 && lng >= -46.95 && lng <= -46.3) return 'sp';
+  return null;
+}
+
+function cityFromAddress(text) {
+  const s = String(text || '');
+  if (!s) return null;
+  const rio = /rio de janeiro/i.test(s);
+  const sp = /s[aã]o paulo/i.test(s);
+  if (rio && !sp) return 'rio';
+  if (sp && !rio) return 'sp';
+  return null;
+}
+
+/** Endereço e localidade da mesma cidade das coords (não mistura SP com pin no Rio). */
+function placeForCoords(lat, lng, existingAddress) {
+  const city = cityFromCoords(lat, lng) || cityFromAddress(existingAddress) || 'sp';
+  const catalog = PLACES[city];
+  const existing = String(existingAddress || '').trim();
+  return {
+    address: cityFromAddress(existing) === city && existing ? existing : catalog.address,
+    locality: catalog.locality,
+  };
+}
 
 function printHelp() {
   console.log(`Usage: node scripts/seed_provider_joelson.js [--dry-run]
@@ -149,8 +187,25 @@ function pickCategory(categories, needles, used) {
   const lng = num(provider.longitude ?? provider.location?.longitude, FALLBACK_LNG);
   const hash = encodeGeohash(lat, lng);
   const point = new GeoPoint(lat, lng);
-  const address = provider.shippingAddress?.[0]?.address || provider.address || FALLBACK_ADDRESS;
+  const destLat = lat + 0.004;
+  const destLng = lng + 0.003;
+  const existingAddr = provider.shippingAddress?.[0]?.address || provider.address || '';
+  const place = placeForCoords(lat, lng, existingAddr);
+  const address = place.address;
   const authorName = `${provider.firstName || ''} ${provider.lastName || ''}`.trim() || 'Joelson Justino';
+  console.log('Place:', place.locality, address, lat, lng);
+
+  const customerAddr = {
+    id: `${PREFIX}addr`,
+    address,
+    addressAs: 'Casa',
+    locality: place.locality,
+    landmark: '',
+    isDefault: true,
+    latitude: destLat,
+    longitude: destLng,
+    location: { latitude: destLat, longitude: destLng },
+  };
 
   let customerSnap = await db.collection('users').where('email', '==', CUSTOMER_EMAIL).limit(1).get();
   let customerId = customerSnap.empty ? `${PREFIX}customer` : customerSnap.docs[0].id;
@@ -184,9 +239,11 @@ function pickCategory(categories, needles, used) {
       countryCode: '+55',
       countryISOCode: 'BR',
       createdAt: FieldValue.serverTimestamp(),
-      location: { latitude: lat + 0.004, longitude: lng + 0.003 },
-      latitude: lat + 0.004,
-      longitude: lng + 0.003,
+      location: { latitude: destLat, longitude: destLng },
+      latitude: destLat,
+      longitude: destLng,
+      address,
+      shippingAddress: [customerAddr],
     };
     console.log('Criará cliente dummy:', customerId, CUSTOMER_EMAIL);
   }
@@ -201,15 +258,6 @@ function pickCategory(categories, needles, used) {
     profilePictureURL: customer.profilePictureURL || '',
     role: 'customer',
     active: true,
-  };
-  const customerAddr = {
-    id: `${PREFIX}addr`,
-    address,
-    addressAs: 'Casa',
-    locality: 'São Paulo',
-    landmark: '',
-    isDefault: true,
-    location: { latitude: lat + 0.004, longitude: lng + 0.003 },
   };
 
   const serviceBase = (id, title, price, priceUnit, category, reviewsCount, reviewsSum) => ({
