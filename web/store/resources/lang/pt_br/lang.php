@@ -1303,5 +1303,14 @@ return [
     'nfse_invalid_type' => 'Envie um PDF ou imagem (JPG, PNG, WEBP).',
     'nfse_too_large' => 'O arquivo deve ter no máximo 10 MB.',
     'nfse_upload_failed' => 'Não foi possível enviar a nota fiscal.',
+    'worker_create' => 'Novo profissional',
+    'worker_edit' => 'Editar profissional',
+    'worker_online' => 'Online',
+    'worker_offline' => 'Offline',
+    'worker_salary' => 'Salário',
+    'worker_reviews' => 'avaliações',
+    'worker_empty' => 'Nenhum profissional em providers_workers.',
+    'worker_online_help' => 'Somente profissionais online podem ser atribuídos a reservas.',
+    'worker_photo' => 'Foto',
 ];
 ?>

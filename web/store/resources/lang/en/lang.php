@@ -1125,5 +1125,14 @@ return [
     'nfse_invalid_type' => 'Send a PDF or image (JPG, PNG, WEBP).',
     'nfse_too_large' => 'The file must be 10 MB or smaller.',
     'nfse_upload_failed' => 'Could not upload the invoice.',
+    'worker_create' => 'New worker',
+    'worker_edit' => 'Edit worker',
+    'worker_online' => 'Online',
+    'worker_offline' => 'Offline',
+    'worker_salary' => 'Salary',
+    'worker_reviews' => 'reviews',
+    'worker_empty' => 'No workers in providers_workers.',
+    'worker_online_help' => 'Only online workers can be assigned to bookings.',
+    'worker_photo' => 'Photo',
 ];
 ?>
