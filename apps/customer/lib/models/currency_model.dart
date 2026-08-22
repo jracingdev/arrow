@@ -1,3 +1,5 @@
+import 'package:arrow_shared/arrow_currency.dart';
+
 class CurrencyModel {
   String code;
   int decimal;
@@ -21,14 +23,14 @@ class CurrencyModel {
 
   factory CurrencyModel.fromJson(Map<String, dynamic> parsedJson) {
     return CurrencyModel(
-      code: parsedJson['code'] ?? '',
-      decimal: parsedJson['decimal_degits'] ?? 0,
-      isactive: parsedJson['isActive'] ?? '',
-      id: parsedJson['id'] ?? '',
-      name: parsedJson['name'] ?? '',
-      rounding: parsedJson['rounding'] ?? 0,
-      symbol: parsedJson['symbol'] ?? '',
-      symbolatright: parsedJson['symbolAtRight'] ?? '',
+      code: ArrowCurrency.parseCode(parsedJson),
+      decimal: ArrowCurrency.parseDecimals(parsedJson),
+      isactive: parsedJson['isActive'] == true || parsedJson['enable'] == true,
+      id: parsedJson['id']?.toString() ?? '',
+      name: parsedJson['name']?.toString() ?? '',
+      rounding: num.tryParse('${parsedJson['rounding'] ?? 0}') ?? 0,
+      symbol: ArrowCurrency.parseSymbol(parsedJson),
+      symbolatright: ArrowCurrency.parseSymbolAtRight(parsedJson),
     );
   }
 

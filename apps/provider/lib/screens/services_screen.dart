@@ -2,6 +2,7 @@ import 'package:arrow_shared/hourly_service_billing.dart';
 import 'package:arrow_shared/rating_average.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/constant/constant.dart';
 import 'package:provider/models/provider_service_model.dart';
 import 'package:provider/screens/create_service_screen.dart';
 import 'package:provider/service/fire_store_utils.dart';
@@ -69,7 +70,7 @@ class ServicesScreen extends StatelessWidget {
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('$price$unit'),
+                    Text('${Constant.amountShow(amount: price)}$unit'),
                     Row(
                       children: [
                         for (var s = 1; s <= 5; s++)

@@ -1,3 +1,4 @@
+import 'package:arrow_shared/published_service_visibility.dart';
 import 'package:customer/models/banner_model.dart';
 import 'package:customer/models/category_model.dart';
 import 'package:customer/models/favorite_ondemand_service_model.dart';
@@ -40,34 +41,12 @@ class OnDemandHomeController extends GetxController {
     // Fetch provider services
     FireStoreUtils.getProviderFuture()
         .then((providerServiceList) {
-          Set<String?> uniqueAuthorIds = providerServiceList.map((service) => service.author).toSet();
-          List<String?> listOfUniqueProviders = uniqueAuthorIds.toList();
-
-          List<ProviderServiceModel> filteredProviders = [];
-
-          for (var provider in listOfUniqueProviders) {
-            List<ProviderServiceModel> filteredList = providerServiceList.where((service) => service.author == provider).toList();
-
-            filteredList.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
-
-            for (int index = 0; index < filteredList.length; index++) {
-              final service = filteredList[index];
-
-              if (Constant.isSubscriptionModelApplied == true || Constant.sectionConstantModel?.adminCommision?.isEnabled == true) {
-                if (service.subscriptionPlan?.itemLimit == "-1") {
-                  filteredProviders.add(service);
-                } else {
-                  if (index < int.parse(service.subscriptionPlan?.itemLimit ?? '0')) {
-                    filteredProviders.add(service);
-                  }
-                }
-              } else {
-                filteredProviders.add(service);
-              }
-            }
-          }
-
-          providerList.value = filteredProviders;
+          providerList.value = PublishedServiceVisibility.takeByAuthorItemLimit(
+            services: providerServiceList,
+            authorOf: (service) => service.author,
+            itemLimitOf: (service) => service.subscriptionPlan?.itemLimit,
+            compareCreated: (a, b) => (a.createdAt?.millisecondsSinceEpoch ?? 0).compareTo(b.createdAt?.millisecondsSinceEpoch ?? 0),
+          );
           isLoading.value = false;
         })
         .catchError((e) {

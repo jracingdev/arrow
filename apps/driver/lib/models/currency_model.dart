@@ -1,3 +1,4 @@
+import 'package:arrow_shared/arrow_currency.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CurrencyModel {
@@ -15,12 +16,12 @@ class CurrencyModel {
 
   CurrencyModel.fromJson(Map<String, dynamic> json) {
     createdAt = json['createdAt'];
-    symbol = json['symbol'];
-    code = json['code'];
-    enable = json['enable'];
-    symbolAtRight = json['symbolAtRight'];
+    symbol = ArrowCurrency.parseSymbol(json);
+    code = ArrowCurrency.parseCode(json);
+    enable = json['enable'] == true || json['isActive'] == true;
+    symbolAtRight = ArrowCurrency.parseSymbolAtRight(json);
     name = json['name'];
-    decimalDigits = json['decimalDigits'] != null ? int.parse(json['decimalDigits'].toString()) : 2;
+    decimalDigits = ArrowCurrency.parseDecimals(json);
     id = json['id'];
     updatedAt = json['updatedAt'];
   }

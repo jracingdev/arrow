@@ -133,7 +133,7 @@ class SubscriptionHistoryScreen extends StatelessWidget {
                                         style: TextStyle(fontSize: 14, fontFamily: AppThemeData.regular, color: isDark ? AppThemeData.grey200 : AppThemeData.grey900),
                                       ),
                                       Text(
-                                        (subscriptionHistoryModel.paymentType ?? '').capitalizeString(),
+                                        Constant.paymentLabel(method: subscriptionHistoryModel.paymentType),
                                         textAlign: TextAlign.end,
                                         maxLines: 2,
                                         style: TextStyle(fontSize: 14, fontFamily: AppThemeData.medium, color: isDark ? AppThemeData.grey50 : AppThemeData.grey800),

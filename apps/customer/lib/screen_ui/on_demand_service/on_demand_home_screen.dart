@@ -526,7 +526,7 @@ class ServiceView extends StatelessWidget {
           const SizedBox(width: 6),
           Flexible(
             child: Text(
-              provider.priceUnit == 'Fixed' ? Constant.amountShow(amount: provider.price) : '${Constant.amountShow(amount: provider.price ?? "0")}/hr',
+              provider.priceUnit == 'Fixed' ? Constant.amountShow(amount: provider.price) : '${Constant.amountShow(amount: provider.price ?? "0")}/${'hr'.tr}',
               style: const TextStyle(fontSize: 12, color: Colors.grey, decoration: TextDecoration.lineThrough),
               overflow: TextOverflow.ellipsis,
             ),

@@ -33,6 +33,10 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
 
   UserModel? get _user => Constant.userModel;
 
+  Set<String> get _sectionIds => _sections.map((s) => (s['id'] ?? '').toString()).where((id) => id.isNotEmpty).toSet();
+
+  Set<String> get _categoryIds => _categories.map((c) => (c['id'] ?? '').toString()).where((id) => id.isNotEmpty).toSet();
+
   @override
   void initState() {
     super.initState();
@@ -156,7 +160,7 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   key: ValueKey('section-$_sectionId'),
-                  initialValue: _sectionId.isEmpty ? null : _sectionId,
+                  initialValue: _sectionIds.contains(_sectionId) ? _sectionId : null,
                   decoration: const InputDecoration(labelText: 'Seção', border: OutlineInputBorder()),
                   items: _sections
                       .map((s) => DropdownMenuItem(value: (s['id'] ?? '').toString(), child: Text((s['name'] ?? s['id'] ?? '').toString())))
@@ -168,7 +172,7 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   key: ValueKey('category-$_categoryId'),
-                  initialValue: _categoryId.isEmpty ? null : _categoryId,
+                  initialValue: _categoryIds.contains(_categoryId) ? _categoryId : null,
                   decoration: const InputDecoration(labelText: 'Categoria', border: OutlineInputBorder()),
                   items: _categories
                       .map((c) => DropdownMenuItem(value: (c['id'] ?? '').toString(), child: Text((c['title'] ?? c['id'] ?? '').toString())))
@@ -177,6 +181,14 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                     if (v != null) _onCategory(v);
                   },
                 ),
+                if (_sectionId.isNotEmpty && _categories.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: Text(
+                      'Nenhuma categoria publicada nesta seção. Peça ao admin para publicar em provider_categories.',
+                      style: TextStyle(color: AppTheme.grey500, fontSize: 13),
+                    ),
+                  ),
                 if (_subCategories.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(

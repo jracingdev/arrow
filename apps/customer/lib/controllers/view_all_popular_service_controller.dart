@@ -1,3 +1,4 @@
+import 'package:arrow_shared/published_service_visibility.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/controllers/on_demand_home_controller.dart';
 import 'package:get/get.dart';
@@ -29,32 +30,12 @@ class ViewAllPopularServiceController extends GetxController {
 
     await FireStoreUtils.getProviderFuture()
         .then((providerServiceList) {
-          Set<String?> uniqueAuthorIds = providerServiceList.map((service) => service.author).toSet();
-          List<String?> listOfUniqueProviders = uniqueAuthorIds.toList();
-
-          List<ProviderServiceModel> filteredProviders = [];
-
-          for (var provider in listOfUniqueProviders) {
-            List<ProviderServiceModel> filteredList = providerServiceList.where((service) => service.author == provider).toList();
-
-            filteredList.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
-
-            for (int index = 0; index < filteredList.length; index++) {
-              final service = filteredList[index];
-
-              if (Constant.isSubscriptionModelApplied == true || Constant.sectionConstantModel?.adminCommision?.isEnabled == true) {
-                if (service.subscriptionPlan?.itemLimit == "-1") {
-                  filteredProviders.add(service);
-                } else {
-                  if (index < int.parse(service.subscriptionPlan?.itemLimit ?? '0')) {
-                    filteredProviders.add(service);
-                  }
-                }
-              } else {
-                filteredProviders.add(service);
-              }
-            }
-          }
+          final filteredProviders = PublishedServiceVisibility.takeByAuthorItemLimit(
+            services: providerServiceList,
+            authorOf: (service) => service.author,
+            itemLimitOf: (service) => service.subscriptionPlan?.itemLimit,
+            compareCreated: (a, b) => (a.createdAt?.millisecondsSinceEpoch ?? 0).compareTo(b.createdAt?.millisecondsSinceEpoch ?? 0),
+          );
 
           allProviderList.value = filteredProviders;
           providerList.value = filteredProviders;

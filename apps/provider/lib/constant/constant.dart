@@ -1,5 +1,8 @@
+import 'package:arrow_shared/arrow_currency.dart';
+import 'package:arrow_shared/arrow_payment_label.dart';
 import 'package:arrow_shared/arrow_production_config.dart';
 import 'package:arrow_shared/brazil_phone.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/models/user_model.dart';
 import 'package:uuid/uuid.dart';
 
@@ -47,18 +50,16 @@ class Constant {
 
   static String getUuid() => const Uuid().v4();
 
-  static bool isCod(String? method) {
-    final m = (method ?? '').trim().toLowerCase();
-    return m == 'cod' || m == 'cash on delivery' || m == 'dinheiro';
+  static bool isCod(String? method) => ArrowPaymentLabel.isCod(method);
+
+  static String paymentLabel({required String method, bool? paid}) {
+    return ArrowPaymentLabel.withStatus(method: method, paid: paid);
   }
 
-  static String paymentLabel({required String method, required bool? paid}) {
-    final gateway = method.trim().isEmpty ? '—' : method;
-    if (isCod(method)) {
-      return paid == true ? 'COD · Pago' : 'COD · A pagar';
-    }
-    if (paid == true) return 'Pago · $gateway';
-    return 'A pagar · $gateway';
+  static String amountShow({required String? amount}) {
+    final value = double.tryParse((amount == null || amount.isEmpty) ? '0' : amount) ?? 0.0;
+    final number = NumberFormat.currency(locale: 'pt_BR', symbol: '', decimalDigits: ArrowCurrency.decimals).format(value).trim();
+    return '${ArrowCurrency.symbol} $number';
   }
 
   static bool canReportOrder(String status) {

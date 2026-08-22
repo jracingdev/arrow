@@ -1001,7 +1001,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      controller.currentOrder.value.paymentMethod!.toLowerCase() == "cod" ? "Cash on delivery" : "Online",
+                      Constant.paymentLabel(method: controller.currentOrder.value.paymentMethod),
                       textAlign: TextAlign.start,
                       style: TextStyle(
                         fontFamily: AppThemeData.semiBold,

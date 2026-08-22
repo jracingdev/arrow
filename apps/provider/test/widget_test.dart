@@ -39,8 +39,9 @@ void main() {
     expect(Constant.tabAccepted, contains('Order Accepted'));
     expect(Constant.tabOngoing, contains('Order Ongoing'));
     expect(Constant.tabUpcoming, contains('Order Assigned'));
-    expect(Constant.paymentLabel(method: 'cod', paid: false), 'COD · A pagar');
-    expect(Constant.paymentLabel(method: 'stripe', paid: true), 'Pago · stripe');
+    expect(Constant.paymentLabel(method: 'cod', paid: false), 'Dinheiro · A pagar');
+    expect(Constant.paymentLabel(method: 'stripe', paid: true), 'Pago · Cartão');
+    expect(Constant.amountShow(amount: '80'), contains('R\$'));
     expect(CollectionName.providersServices, 'providers_services');
     expect(CollectionName.wallet, 'wallet');
     expect(CollectionName.documentsVerify, 'documents_verify');

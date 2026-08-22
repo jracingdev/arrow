@@ -308,7 +308,7 @@ class CabOrderDetails extends StatelessWidget {
                             _iconTile(controller.cabOrder.value.duration ?? '--', "Duration".tr, "assets/icons/ic_duration.svg", isDark),
                             _iconTile(
                               Constant.amountShow(amount: controller.cabOrder.value.subTotal),
-                              "${controller.cabOrder.value.paymentMethod}".tr,
+                              Constant.paymentLabel(method: controller.cabOrder.value.paymentMethod),
                               "assets/icons/ic_rate_parcel.svg",
                               isDark,
                             ),

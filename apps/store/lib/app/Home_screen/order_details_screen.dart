@@ -293,6 +293,29 @@ class OrderDetailsScreen extends StatelessWidget {
                                         ],
                                       ),
                                 const SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        "Payment Type".tr,
+                                        style: TextStyle(
+                                          color: isDark ? AppThemeData.grey300 : AppThemeData.grey600,
+                                          fontSize: 16,
+                                          fontFamily: AppThemeData.regular,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      Constant.paymentLabel(method: controller.orderModel.value.paymentMethod),
+                                      style: TextStyle(
+                                        color: isDark ? AppThemeData.grey50 : AppThemeData.grey900,
+                                        fontSize: 16,
+                                        fontFamily: AppThemeData.semiBold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 5),
                                 controller.orderModel.value.notes == null || controller.orderModel.value.notes!.isEmpty
                                     ? const SizedBox()
                                     : InkWell(

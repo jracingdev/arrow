@@ -1,3 +1,5 @@
+import 'package:arrow_shared/arrow_currency.dart';
+import 'package:arrow_shared/arrow_payment_label.dart';
 import 'package:arrow_shared/arrow_production_config.dart';
 import 'package:arrow_shared/brazil_phone.dart';
 import 'dart:convert';
@@ -125,13 +127,17 @@ class Constant {
 
   static String amountShow({required String? amount}) {
     final value = double.tryParse((amount == null || amount.isEmpty) ? '0' : amount.toString()) ?? 0.0;
-    final decimals = currencyModel?.decimalDigits ?? 0;
-    final symbol = currencyModel?.symbol?.toString() ?? 'R\$';
+    final decimals = currencyModel?.decimalDigits ?? ArrowCurrency.decimals;
+    final symbol = ArrowCurrency.normalizeSymbol(currencyModel?.symbol?.toString());
     final number = NumberFormat.currency(locale: 'pt_BR', symbol: '', decimalDigits: decimals).format(value).trim();
     if (currencyModel?.symbolAtRight == true) {
       return '$number $symbol';
     }
     return '$symbol $number';
+  }
+
+  static String paymentLabel({String? method, bool? paid}) {
+    return ArrowPaymentLabel.withStatus(method: method, paid: paid);
   }
 
   /// Labels de status para UI (valores persistidos permanecem em inglês).

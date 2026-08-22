@@ -146,7 +146,11 @@ class FireStoreUtils {
 
   static Future<List<Map<String, dynamic>>> getOnDemandSections() async {
     final snap = await _db.collection('sections').where('serviceTypeFlag', isEqualTo: 'ondemand-service').get();
-    final list = snap.docs.map((d) => d.data()).where((d) {
+    final list = snap.docs.map((d) {
+      final data = Map<String, dynamic>.from(d.data());
+      data['id'] = (data['id'] ?? d.id).toString();
+      return data;
+    }).where((d) {
       final id = (d['id'] ?? '').toString();
       return id.isNotEmpty && d['isActive'] != false;
     }).toList();
@@ -161,8 +165,12 @@ class FireStoreUtils {
     if (sectionId.isEmpty) return const [];
     final snap = await _db.collection('provider_categories').where('sectionId', isEqualTo: sectionId).where('publish', isEqualTo: true).get();
     final wantParent = parentCategoryId == null || parentCategoryId.isEmpty;
-    return snap.docs.map((d) => d.data()).where((d) {
-      final parent = (d['parentCategoryId'] ?? '').toString();
+    return snap.docs.map((d) {
+      final data = Map<String, dynamic>.from(d.data());
+      data['id'] = (data['id'] ?? d.id).toString();
+      return data;
+    }).where((d) {
+      final parent = (d['parentCategoryId'] ?? d['parent_id'] ?? '').toString();
       if (wantParent) return parent.isEmpty;
       return parent == parentCategoryId;
     }).toList();
@@ -246,6 +254,15 @@ class FireStoreUtils {
       'coordinates': point,
       'g': {'geohash': hash, 'geopoint': point},
     };
+    final userSnap = await _db.collection(CollectionName.users).doc(uid).get();
+    final userData = userSnap.data() ?? const <String, dynamic>{};
+    final plan = userData['subscription_plan'];
+    if (plan != null) {
+      data['subscription_plan'] = plan;
+      data['subscriptionPlanId'] = userData['subscriptionPlanId'] ?? (plan is Map ? plan['id'] : null);
+      data['subscriptionExpiryDate'] = userData['subscriptionExpiryDate'];
+      data['subscriptionTotalOrders'] = userData['subscriptionTotalOrders'] ?? (plan is Map ? (plan['orderLimit'] ?? '-1') : '-1');
+    }
     await _db.collection(CollectionName.providersServices).doc(id).set(data);
     if ((user.sectionId == null || user.sectionId!.isEmpty) && sectionId.isNotEmpty) {
       await _db.collection(CollectionName.users).doc(uid).set({

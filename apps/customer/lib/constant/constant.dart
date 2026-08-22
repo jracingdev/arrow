@@ -1,3 +1,4 @@
+import 'package:arrow_shared/arrow_currency.dart';
 import 'package:arrow_shared/arrow_production_config.dart';
 import 'package:arrow_shared/brazil_phone.dart';
 import 'dart:convert';
@@ -292,8 +293,8 @@ class Constant {
 
   static String amountShow({required String? amount}) {
     final value = double.tryParse((amount == null || amount.isEmpty) ? '0' : amount.toString()) ?? 0.0;
-    final decimals = currencyModel?.decimal ?? 0;
-    final symbol = currencyModel?.symbol?.toString() ?? 'R\$';
+    final decimals = currencyModel?.decimal ?? ArrowCurrency.decimals;
+    final symbol = ArrowCurrency.normalizeSymbol(currencyModel?.symbol?.toString());
     final number = NumberFormat.currency(locale: 'pt_BR', symbol: '', decimalDigits: decimals).format(value).trim();
     if (currencyModel?.symbolatright == true) {
       return '$number $symbol';

@@ -6,6 +6,7 @@ import 'package:arrow_shared/brazil_phone.dart';
 import 'package:arrow_shared/document_verification.dart';
 import 'package:arrow_shared/geo_distance.dart';
 import 'package:arrow_shared/provider_listing_rank.dart';
+import 'package:arrow_shared/published_service_visibility.dart';
 import 'package:arrow_shared/rating_average.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/collection_name.dart';
@@ -2172,16 +2173,30 @@ class FireStoreUtils {
     await fireStore
         .collection(CollectionName.providerCategories)
         .where("sectionId", isEqualTo: Constant.sectionConstantModel!.id)
-        .where("level", isEqualTo: 0)
         .where("publish", isEqualTo: true)
         .get()
         .then((value) {
           for (var element in value.docs) {
-            CategoryModel orderModel = CategoryModel.fromJson(element.data());
-            categoryList.add(orderModel);
+            final data = element.data();
+            data['id'] = (data['id'] ?? element.id).toString();
+            final parent = (data['parentCategoryId'] ?? data['parent_id'] ?? '').toString();
+            if (parent.isNotEmpty) continue;
+            categoryList.add(CategoryModel.fromJson(data));
           }
         });
     return categoryList;
+  }
+
+  static bool includePublishedService(ProviderServiceModel model) {
+    return PublishedServiceVisibility.passesListing(
+      subscriptionModelApplied: Constant.isSubscriptionModelApplied == true,
+      hasPlan: model.subscriptionPlan != null,
+      expired: Constant.isExpireDate(
+        expiryDay: (model.subscriptionPlan?.expiryDay == '-1'),
+        subscriptionExpiryDate: model.subscriptionExpiryDate,
+      ),
+      totalOrders: model.subscriptionTotalOrders,
+    );
   }
 
   static Future<CategoryModel?> getCategoryById(String categoryId) async {
@@ -2226,14 +2241,7 @@ class FireStoreUtils {
                 ":: isExpireDate(expiryDay :: ${Constant.isExpireDate(expiryDay: (providerServiceModel.subscriptionPlan?.expiryDay == '-1'), subscriptionExpiryDate: providerServiceModel.subscriptionExpiryDate)}",
               );
 
-              if (Constant.isSubscriptionModelApplied == true || Constant.sectionConstantModel?.adminCommision?.isEnabled == true) {
-                if (providerServiceModel.subscriptionPlan != null &&
-                    Constant.isExpireDate(expiryDay: (providerServiceModel.subscriptionPlan?.expiryDay == '-1'), subscriptionExpiryDate: providerServiceModel.subscriptionExpiryDate) == false) {
-                  if (providerServiceModel.subscriptionTotalOrders == "-1" || providerServiceModel.subscriptionTotalOrders != '0') {
-                    providerList.add(providerServiceModel);
-                  }
-                }
-              } else {
+              if (includePublishedService(providerServiceModel)) {
                 providerList.add(providerServiceModel);
               }
             }
@@ -2262,13 +2270,7 @@ class FireStoreUtils {
       for (final doc in snap.docs) {
         final model = ProviderServiceModel.fromJson(doc.data());
         if (model.id == null || model.id!.isEmpty || seen.contains(model.id)) continue;
-        if (Constant.isSubscriptionModelApplied == true || Constant.sectionConstantModel?.adminCommision?.isEnabled == true) {
-          if (model.subscriptionPlan == null ||
-              Constant.isExpireDate(expiryDay: (model.subscriptionPlan?.expiryDay == '-1'), subscriptionExpiryDate: model.subscriptionExpiryDate) == true) {
-            continue;
-          }
-          if (model.subscriptionTotalOrders != '-1' && model.subscriptionTotalOrders == '0') continue;
-        }
+        if (!includePublishedService(model)) continue;
         seen.add(model.id);
         providerList.add(model);
       }
@@ -2428,14 +2430,7 @@ class FireStoreUtils {
               );
 
               //Subscription & Commission check
-              if (Constant.isSubscriptionModelApplied == true || Constant.sectionConstantModel?.adminCommision?.isEnabled == true) {
-                if (providerServiceModel.subscriptionPlan != null &&
-                    Constant.isExpireDate(expiryDay: (providerServiceModel.subscriptionPlan?.expiryDay == '-1'), subscriptionExpiryDate: providerServiceModel.subscriptionExpiryDate) == false) {
-                  if (providerServiceModel.subscriptionTotalOrders == "-1" || providerServiceModel.subscriptionTotalOrders != '0') {
-                    providerList.add(providerServiceModel);
-                  }
-                }
-              } else {
+              if (includePublishedService(providerServiceModel)) {
                 providerList.add(providerServiceModel);
               }
             }
@@ -3188,6 +3183,13 @@ class FireStoreUtils {
         final user = await getUserProfile(id);
         if (user == null || !isAccountActive(user)) inactive.add(id);
         verified[id] = DocumentVerification.isVerifiedForPublic(isDocumentVerify: user?.isDocumentVerify);
+        if (user?.subscriptionPlan != null) {
+          for (final service in providerList.where((p) => p.author == id && p.subscriptionPlan == null)) {
+            service.subscriptionPlan = user!.subscriptionPlan;
+            service.subscriptionExpiryDate = user.subscriptionExpiryDate;
+            service.subscriptionPlanId = user.subscriptionPlanId;
+          }
+        }
       } catch (_) {}
     }
     providerList.removeWhere((p) => inactive.contains(p.author));
